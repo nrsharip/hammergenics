@@ -1,0 +1,8 @@
+GIT commands:
+> git status
+> git status -u no
+> git diff
+> git diff --cached
+> git ls-files -m
+> git commit -m ""
+> git push origin master
