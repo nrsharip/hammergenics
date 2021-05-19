@@ -360,6 +360,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
         itemsTexture.add("No Texture");
 
         textureImage.setDrawable(null);
+
+        TextureAttribute textureDiffuse = null;
         if (modelInstance.materials != null && modelInstance.materials.size > 0) {
 //            modelInstance.materials.get(0).get(ColorAttribute.class, ColorAttribute.Diffuse).color.set(Color.DARK_GRAY);
 //            modelInstance.materials.get(0).get(ColorAttribute.class, ColorAttribute.Specular).color.set(Color.DARK_GRAY);
@@ -373,7 +375,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
             modelInstance.materials.get(0).remove(ColorAttribute.Emissive);    // ! adds glowing effect
 //            modelInstance.materials.get(0).remove(FloatAttribute.Shininess); // min enabled
 
-            TextureAttribute textureDiffuse = modelInstance.materials.get(0).get(TextureAttribute.class, TextureAttribute.Diffuse);
+            textureDiffuse = modelInstance.materials.get(0).get(TextureAttribute.class, TextureAttribute.Diffuse);
             if (textureDiffuse != null) {
                 // scaling seems to zoom in/out the texture image towards the mesh
 //                modelInstance.materials.get(0).get(TextureAttribute.class, TextureAttribute.Diffuse).scaleU = 10;
@@ -416,13 +418,28 @@ public class ModelPreviewScreen extends ScreenAdapter {
         );
 
         if (textureFileHandleArray.size > 0) {
+            if (textureDiffuse != null) {
+                textureFileHandleArray.removeValue(
+                        Gdx.files.local(textureDiffuse.textureDescription.texture.toString()), false);
+            }
             Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "adding textures: \n"
                     + textureFileHandleArray.toString("\n"));
             itemsTexture.addAll(textureFileHandleArray.toString(";").split(";"));
         }
 
+        //[switchModelInstance] before clear
+        //[textureSelectBox.changed] -1
+        //[textureSelectBox.changed] null
+        //[switchModelInstance] after clear/before set
+        //[textureSelectBox.changed] 0
+        //[textureSelectBox.changed] No Texture
+        //[switchModelInstance] after set
+
         textureSelectBox.clearItems();
         textureSelectBox.setItems(itemsTexture);
+        if (textureDiffuse != null) {
+            textureSelectBox.setSelected(textureDiffuse.textureDescription.texture.toString());
+        }
 
         copyExternalAnimations(assetName);
 
@@ -734,7 +751,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 textureImage.setDrawable(null);
-
+                //Gdx.app.debug("textureSelectBox.changed", String.valueOf(textureSelectBox.getSelectedIndex()));
+                //Gdx.app.debug("textureSelectBox.changed", textureSelectBox.getSelected());
                 if (modelInstance == null
                         || modelInstance.materials == null
                         || modelInstance.materials.size == 0) {
@@ -744,8 +762,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
                 modelInstance.materials.get(0).remove(TextureAttribute.Diffuse);
 
                 if (textureSelectBox.getSelectedIndex() == 0 || textureSelectBox.getSelected() == null) {
-                    //Gdx.app.debug("textureSelectBox.changed", String.valueOf(textureSelectBox.getSelectedIndex()));
-                    //Gdx.app.debug("textureSelectBox.changed", textureSelectBox.getSelected());
+                    miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
                     return;
                 }
 
@@ -763,6 +780,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
                 textureImage.setDrawable(new TextureRegionDrawable(new TextureRegion(texture)));
                 Gdx.app.debug(textureSelectBox.getClass().getSimpleName(),
                         "texture selected: " + texture);
+
+                miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
             }
         });
 
