@@ -32,6 +32,8 @@ import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Logger;
+import com.hammergenics.config.Config;
+import com.hammergenics.config.Conventions;
 import com.hammergenics.screens.LoadScreen;
 import com.hammergenics.util.LibgdxUtils;
 
@@ -64,11 +66,9 @@ public class HGGame extends Game {
 
         // https://github.com/libgdx/libgdx/wiki/Managing-your-assets#loading-a-ttf-using-the-assethandler
         FreetypeFontLoader.FreeTypeFontLoaderParameter param = new FreetypeFontLoader.FreeTypeFontLoaderParameter();
-        // FIXME: Replace TBD with the real asset
-        param.fontFileName = "TBD.ttf";
+        param.fontFileName = Config.ASSET_FILE_NAME_FONT;
         param.fontParameters.size = 16;
-        // FIXME: Replace TBD with the real asset
-        assetManager.load("TBD.ttf", BitmapFont.class, param);
+        assetManager.load(Config.ASSET_FILE_NAME_FONT, BitmapFont.class, param);
 
         // FIXME: Seems like TTF is breaking :html project
 //[ERROR] Line 55: No source code is available for type com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator; did you forget to inherit a required module?
@@ -80,7 +80,7 @@ public class HGGame extends Game {
         // https://github.com/libgdx/fbx-conv
         // fbx-conv.exe -f -v .fbx .g3db
 
-        FileHandle rootFileHandle = Gdx.files.local("");
+        FileHandle rootFileHandle = Gdx.files.local(Conventions.modelsRootDirectory);
         Array<FileHandle> fileHandleList = LibgdxUtils.traversFileHandle(rootFileHandle,
                 file -> file.isDirectory()
                         || file.getName().toLowerCase().endsWith("obj")

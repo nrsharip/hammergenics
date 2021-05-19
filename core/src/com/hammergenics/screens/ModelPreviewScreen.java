@@ -50,6 +50,7 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.hammergenics.HGGame;
+import com.hammergenics.config.Config;
 import com.hammergenics.util.LibgdxUtils;
 
 /**
@@ -676,8 +677,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
      */
     public void setup2DStageStyling() {
         // https://github.com/libgdx/libgdx/wiki/Managing-your-assets#loading-a-ttf-using-the-assethandler
-        // FIXME: Replace TBD with the real asset
-        labelBitmapFont = assetManager.get("TBD.ttf", BitmapFont.class);
+        labelBitmapFont = assetManager.get(Config.ASSET_FILE_NAME_FONT, BitmapFont.class);
         labelStyle = new Label.LabelStyle(labelBitmapFont, Color.BLACK);
         // SKIN for 2D Stage Widgets
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#skin
@@ -690,8 +690,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         //atlas = new TextureAtlas(Gdx.files.internal("skins/libgdx/uiskin.atlas"));
         // https://github.com/libgdx/libgdx/wiki/Skin#resources
         // https://github.com/libgdx/libgdx/wiki/Skin#skin-json
-        // FIXME: Replace TBD with the real asset
-        skin = new Skin(Gdx.files.internal("TBD.json"));
+        skin = new Skin(Gdx.files.internal(Config.ASSET_FILE_NAME_SKIN));
         //skin.addRegions(atlas);
     }
 
