@@ -1,5 +1,5 @@
 buildscript {
-    
+
 
     repositories {
         mavenLocal()
@@ -12,11 +12,11 @@ buildscript {
         classpath 'org.wisepersist:gwt-gradle-plugin:1.0.13'
         classpath 'org.gretty:gretty:3.0.2'
         classpath 'com.mobidevelop.robovm:robovm-gradle-plugin:2.3.12'
-        
+
 
     }
 }
-
+// https://libgdx.com/dev/import-and-running/#command-line
 allprojects {
     apply plugin: "eclipse"
 
@@ -54,7 +54,7 @@ project(":desktop") {
         api "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-desktop"
         api "com.badlogicgames.gdx:gdx-tools:$gdxVersion"
         api "com.badlogicgames.gdx-controllers:gdx-controllers-desktop:$gdxControllersVersion"
-        
+
     }
 }
 
@@ -73,7 +73,7 @@ project(":ios") {
         api "com.badlogicgames.gdx:gdx-bullet-platform:$gdxVersion:natives-ios"
         api "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-ios"
         api "com.badlogicgames.gdx-controllers:gdx-controllers-ios:$gdxControllersVersion"
-        
+
     }
 }
 
@@ -97,7 +97,7 @@ project(":html") {
         api "com.badlogicgames.box2dlights:box2dlights:$box2DLightsVersion:sources"
         api "com.badlogicgames.ashley:ashley:$ashleyVersion:sources"
         api "com.badlogicgames.gdx:gdx-ai:$aiVersion:sources"
-        
+
     }
 }
 
@@ -114,6 +114,6 @@ project(":core") {
         api "com.badlogicgames.box2dlights:box2dlights:$box2DLightsVersion"
         api "com.badlogicgames.ashley:ashley:$ashleyVersion"
         api "com.badlogicgames.gdx:gdx-ai:$aiVersion"
-        
+
     }
 }

@@ -14,8 +14,9 @@
  * limitations under the License.
  ******************************************************************************/
 
-package com.mygdx.game.util;
+package com.hammergenics.util;
 
+import com.badlogic.gdx.Files;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Version;
 import com.badlogic.gdx.files.FileHandle;
@@ -39,11 +40,48 @@ import java.lang.reflect.Modifier;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-public class LibGDXUtil {
+/**
+ * Add description here
+ *
+ * @author nrsharip
+ */
+public class LibgdxUtils {
     private static final String GENERATED = "generated/gen_";
     private static final String EXTENSION = ".txt";
 
+    /**
+     * @param rootFileName
+     * @param fileSoughtFor
+     * @return
+     */
+    public static FileHandle fileOnPath(String rootFileName, String fileSoughtFor) {
+        FileHandle rootFileHandle = Gdx.files.local(rootFileName);
+        FileHandle parent = rootFileHandle.parent();
+        FileHandle soughtFileHandle = null;
+
+        rootLoop:
+        while (!parent.path().equals(parent.type() == Files.FileType.Absolute ? "/" : "")) {
+            Gdx.app.debug(LibgdxUtils.class.getSimpleName(), parent.toString());
+
+            for (FileHandle sub : parent.list()) {
+                if (sub.toString().toLowerCase().endsWith(fileSoughtFor)) { // sub.isDirectory() &&
+                    Gdx.app.debug(LibgdxUtils.class.getSimpleName(), "found " + fileSoughtFor + ": " + sub.toString());
+                    soughtFileHandle = sub;
+                    break rootLoop;
+                }
+            }
+
+            parent = parent.parent();
+        }
+        return soughtFileHandle;
+    }
+
+    /**
+     * @param mi
+     * @return
+     */
     public static String getModelInstanceInfo(ModelInstance mi) {
+        // FIXME: calculateBoundingBox is a slow operation - BoundingBox object should be cached
         Vector3 dimensions = mi.calculateBoundingBox(new BoundingBox()).getDimensions(new Vector3());
 
         StringBuilder modelInstanceInfo = new StringBuilder("ModelInstance:\n")
@@ -56,6 +94,8 @@ public class LibGDXUtil {
         for (int i = 0; i < mi.nodes.size; i++) {
             Node node = mi.nodes.get(i);
             modelInstanceInfo.append(String.format("%2d. %s\n",i, node.id));
+            // TODO: see Node - there's more fields to add here
+            // TODO: node.getChildren()
             for (int j = 0; j < node.parts.size; j++) {
                 NodePart nodePart = node.parts.get(j);
                 modelInstanceInfo.append(String.format("    %2d. NodePart\n", j));
@@ -83,6 +123,9 @@ public class LibGDXUtil {
     }
 
 
+    /**
+     * @return
+     */
     public static Array<String> getRegisteredAttributeAliases() {
         Array<String> out = new Array<>();
         // https://github.com/libgdx/libgdx/wiki/Material-and-environment#attributes
@@ -104,6 +147,12 @@ public class LibGDXUtil {
         return out;
     }
 
+    /**
+     * @param container
+     * @param start
+     * @param indent
+     * @return
+     */
     public static String extractAttributes(Attributes container, String start, String indent) {
         if (container.size() == 0) return "";
 
@@ -224,13 +273,24 @@ public class LibGDXUtil {
         return out.toString().replace("field :","");
     }
 
-
+    /**
+     * @param fileHandle
+     * @param filter
+     * @return
+     */
     public static Array<FileHandle> traversFileHandle(FileHandle fileHandle, FileFilter filter) {
         //Gdx.app.debug(LibGDXUtil.class.getSimpleName(), fileHandle.toString());
         Array<FileHandle> out = new Array<>();
         return traversFileHandle(fileHandle, filter, out, "\t");
     }
 
+    /**
+     * @param fileHandle
+     * @param filter
+     * @param out
+     * @param indent
+     * @return
+     */
     private static Array<FileHandle> traversFileHandle(FileHandle fileHandle, FileFilter filter, Array<FileHandle> out, String indent) {
         for (FileHandle subFileHandle : fileHandle.list(filter)) {
             //Gdx.app.debug(LibGDXUtil.class.getSimpleName(), indent + subFileHandle);
@@ -241,6 +301,13 @@ public class LibGDXUtil {
         return out;
     }
 
+    /**
+     * @param obj
+     * @param depth
+     * @param start
+     * @param writeToFile
+     * @return
+     */
     public static String getFieldsContents(Object obj, int depth, String start, boolean writeToFile) {
         String out = getFieldsContents(obj, depth, start, "");
 
@@ -262,18 +329,44 @@ public class LibGDXUtil {
         return out;
     }
 
+    /**
+     * @param obj
+     * @param depth
+     * @param start
+     * @param indent
+     * @return
+     */
     public static String getFieldsContents(Object obj, int depth, String start, String indent) {
         return getFieldsContents(obj, depth, start, indent, true);
     }
 
+    /**
+     * @param obj
+     * @param depth
+     * @param start
+     * @return
+     */
     public static String getFieldsContents(Object obj, int depth, String start) {
         return getFieldsContents(obj, depth, start, "");
     }
 
+    /**
+     * @param obj
+     * @param depth
+     * @return
+     */
     public static String getFieldsContents(Object obj, int depth) {
         return getFieldsContents(obj, depth, "\n", "");
     }
 
+    /**
+     * @param obj
+     * @param depth
+     * @param start
+     * @param indent
+     * @param printStatic
+     * @return
+     */
     private static String getFieldsContents(Object obj, int depth, String start, String indent, boolean printStatic) {
         if (obj == null || depth < 0) { return null; }
 
@@ -381,6 +474,11 @@ public class LibGDXUtil {
         return out.toString();
     }
 
+    /**
+     * @param obj
+     * @param indent
+     * @return
+     */
     private static String toString(Object obj, String indent) {
         String out = String.valueOf(obj);
 

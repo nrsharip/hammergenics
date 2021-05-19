@@ -1,3 +1,7 @@
+## User Defined
+/tmp/
+gen_*
+
 ## Java
 
 *.class
