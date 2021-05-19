@@ -715,24 +715,25 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // turn on all debug lines (table, cell, and widget)
         rootTable.setDebug(false);
 
-        int colspan = 5;
         // https://github.com/libgdx/libgdx/wiki/Table#adding-cells
-        rootTable.add(new Label("Models: ", skin)).padLeft(2f).right();      // 1
-        rootTable.add(modelSelectBox).padLeft(2f).left();                    // 2
-        rootTable.add(new Label("Animations: ", skin)).padLeft(2f).right();  // 3
-        rootTable.add(animationSelectBox).padLeft(2f).left();                // 4
-        rootTable.add().expandX();                                           // 5
+        Table upperPanel = new Table();
+        upperPanel.add(new Label("Models: ", skin));
+        upperPanel.add(modelSelectBox);
+        upperPanel.add(new Label("Animations: ", skin));
+        upperPanel.add(animationSelectBox);
+        upperPanel.add().expandX();
+        rootTable.add(upperPanel).colspan(2).expandX().left();
 
         rootTable.row();
 
-        rootTable.add(miLabel).colspan(4).left();
+        rootTable.add(miLabel).expand().left();
         rootTable.add(envLabel).expand().right();
 
         rootTable.row();
 
         //https://github.com/libgdx/libgdx/wiki/Scene2d.ui#image
         //https://libgdx.info/basic_image/
-        rootTable.add(textureImage).colspan(4).left();
+        rootTable.add(textureImage).expand().left();
         rootTable.add().expand().right();
 
 //        rootTable.row();
@@ -741,9 +742,11 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
         rootTable.row();
 
-        rootTable.add(fpsLabel).minWidth(90f).padLeft(2f).left();   // 1
-        rootTable.add(debugStageCheckBox).padLeft(2f).left();       // 2
-        rootTable.add().colspan(colspan - 2).expandX();             // 3
+        Table lowerPanel = new Table();
+        lowerPanel.add(fpsLabel).minWidth(90f);
+        lowerPanel.add(debugStageCheckBox).minWidth(90f);
+        lowerPanel.add().expandX();
+        rootTable.add(lowerPanel).colspan(2).expandX().left();
 
         stage.addActor(rootTable);
     }
