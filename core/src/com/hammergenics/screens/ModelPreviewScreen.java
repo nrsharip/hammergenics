@@ -467,31 +467,31 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // https://gamefromscratch.com/libgdx-tutorial-7-camera-basics/
         // https://gamefromscratch.com/libgdx-tutorial-part-16-cameras/
         // TODO: need to visually debug this as well as switching between Orthographic and Perspective cameras (?)
-        perspectiveCamera.fieldOfView = 70f;       // PerspectiveCamera: float fieldOfView
-                                                   //                    the field of view of the height, in degrees
-        perspectiveCamera.position.set(D, D, D);   // Camera: Vector3 position
-        perspectiveCamera.lookAt(0,0,0);           // Camera: Vector3 direction
-                                                   //         camera.up and camera.direction must
-                                                   //         ALWAYS be orthonormal vectors
-        //perspectiveCamera.up;                    // Camera: Vector3 up
-        //perspectiveCamera.projection;            // Camera: Matrix4 projection
-        //perspectiveCamera.view;                  // Camera: Matrix4 view
-        //perspectiveCamera.combined;              // Camera: Matrix4 combined
-        //perspectiveCamera.invProjectionView;     // Camera: Matrix4 invProjectionView
-        perspectiveCamera.near = 1f;               // Camera: float near
-        perspectiveCamera.far = 5*D;               // Camera: float far
-        //perspectiveCamera.viewportWidth;         // Camera: float viewportWidth
-        //perspectiveCamera.viewportHeight;        // Camera: float viewportHeight
-        //perspectiveCamera.frustum;               // Camera: Frustum frustum
-                                                   //         A truncated rectangular pyramid.
-                                                   //         Used to define the viewable region and
-                                                   //         its projection onto the screen
-        //perspectiveCamera.frustum.planes;        // Frustum: Plane[] planes
-                                                   //          the six clipping planes:
-                                                   //          near, far, left, right, top, bottom
-        //perspectiveCamera.frustum.planePoints;   // Frustum: Vector3[] planePoints
-                                                   //          eight points making up the near and far clipping "rectangles".
-                                                   //          order is counter clockwise, starting at bottom left
+        perspectiveCamera.fieldOfView = 70f;         // PerspectiveCamera: float fieldOfView
+                                                     //                    the field of view of the height, in degrees
+        perspectiveCamera.position.set(D, D, D);     // Camera: Vector3 position
+        perspectiveCamera.lookAt(0,0,0);             // Camera: Vector3 direction
+                                                     //         camera.up and camera.direction must
+                                                     //         ALWAYS be orthonormal vectors
+        //perspectiveCamera.up;                      // Camera: Vector3 up
+        //perspectiveCamera.projection;              // Camera: Matrix4 projection
+        //perspectiveCamera.view;                    // Camera: Matrix4 view
+        //perspectiveCamera.combined;                // Camera: Matrix4 combined
+        //perspectiveCamera.invProjectionView;       // Camera: Matrix4 invProjectionView
+        perspectiveCamera.near = Math.min(1f, D/10); // Camera: float near
+        perspectiveCamera.far = 5*D;                 // Camera: float far
+        //perspectiveCamera.viewportWidth;           // Camera: float viewportWidth
+        //perspectiveCamera.viewportHeight;          // Camera: float viewportHeight
+        //perspectiveCamera.frustum;                 // Camera: Frustum frustum
+                                                     //         A truncated rectangular pyramid.
+                                                     //         Used to define the viewable region and
+                                                     //         its projection onto the screen
+        //perspectiveCamera.frustum.planes;          // Frustum: Plane[] planes
+                                                     //          the six clipping planes:
+                                                     //          near, far, left, right, top, bottom
+        //perspectiveCamera.frustum.planePoints;     // Frustum: Vector3[] planePoints
+                                                     //          eight points making up the near and far clipping "rectangles".
+                                                     //          order is counter clockwise, starting at bottom left
         // See also:
         // *   frustum culling : https://en.wikipedia.org/wiki/Hidden-surface_determination#Viewing-frustum_culling
         // * back-face culling : https://en.wikipedia.org/wiki/Back-face_culling
