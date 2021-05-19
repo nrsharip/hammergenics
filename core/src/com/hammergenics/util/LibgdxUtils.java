@@ -281,22 +281,36 @@ public class LibgdxUtils {
     public static Array<FileHandle> traversFileHandle(FileHandle fileHandle, FileFilter filter) {
         //Gdx.app.debug(LibGDXUtil.class.getSimpleName(), fileHandle.toString());
         Array<FileHandle> out = new Array<>();
-        return traversFileHandle(fileHandle, filter, out, "\t");
+        return traversFileHandle(fileHandle, filter, "\t", out);
+    }
+
+    /**
+     * @param fileHandle
+     * @param out
+     * @param filter
+     * @return
+     */
+    public static Array<FileHandle> traversFileHandle(FileHandle fileHandle, Array<FileHandle> out, FileFilter filter) {
+        //Gdx.app.debug(LibGDXUtil.class.getSimpleName(), fileHandle.toString());
+        if (fileHandle == null) {
+            return out;
+        }
+        return traversFileHandle(fileHandle, filter, "\t", out);
     }
 
     /**
      * @param fileHandle
      * @param filter
-     * @param out
      * @param indent
+     * @param out
      * @return
      */
-    private static Array<FileHandle> traversFileHandle(FileHandle fileHandle, FileFilter filter, Array<FileHandle> out, String indent) {
+    private static Array<FileHandle> traversFileHandle(FileHandle fileHandle, FileFilter filter, String indent, Array<FileHandle> out) {
         for (FileHandle subFileHandle : fileHandle.list(filter)) {
             //Gdx.app.debug(LibGDXUtil.class.getSimpleName(), indent + subFileHandle);
             if (!subFileHandle.isDirectory()) { out.add(subFileHandle); }
 
-            traversFileHandle(subFileHandle, filter, out, indent + "\t");
+            traversFileHandle(subFileHandle, filter, indent + "\t", out);
         }
         return out;
     }

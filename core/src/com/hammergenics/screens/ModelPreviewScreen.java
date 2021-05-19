@@ -86,6 +86,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
     private CheckBox debugStageCheckBox;
     private SelectBox<String> modelSelectBox;
     private SelectBox<String> animationSelectBox = null;
+    private SelectBox<String> textureSelectBox = null;
 
     // Current ModelInstance Related:
     private ModelInstance modelInstance;
@@ -346,6 +347,9 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // }
         // return result;
 
+        Array<String> itemsTexture = new Array<>();
+        itemsTexture.add("No Texture");
+
         textureImage.setDrawable(null);
         if (modelInstance.materials != null && modelInstance.materials.size > 0) {
 //            modelInstance.materials.get(0).get(ColorAttribute.class, ColorAttribute.Diffuse).color.set(Color.DARK_GRAY);
@@ -373,14 +377,45 @@ public class ModelPreviewScreen extends ScreenAdapter {
                 // see image constructors starting Image (Texture texture) for Texture to Drawable translation:
                 //Gdx.app.debug(getClass().getSimpleName(), "Setting Texture Image for: " + textureDiffuse.textureDescription.texture);
                 textureImage.setDrawable(new TextureRegionDrawable(new TextureRegion(textureDiffuse.textureDescription.texture)));
-            } else {
-                // TODO: add texture discovery
+                itemsTexture.add(textureDiffuse.textureDescription.texture.toString());
             }
         }
 
-        copyExternalAnimations(assetName);
+        // Select Box: Textures
+        FileHandle assetFileHandle = Gdx.files.local(assetName);
+        // All PNG files in the same directory and direct subdirecories the asset is located
+        Array<FileHandle> textureFileHandleArray;
+        textureFileHandleArray = LibgdxUtils.traversFileHandle(assetFileHandle.parent(),
+                file -> file.isDirectory()
+                        || file.getName().toLowerCase().endsWith("png")  // textures in PNG
+        );
 
-        miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
+        // TODO: Add unified convention like "textures | skins" to specify all folders at once
+        // All PNG files in the "textures" directory and subdirectories (if any) on asset's path
+        textureFileHandleArray = LibgdxUtils.traversFileHandle(
+                LibgdxUtils.fileOnPath(assetName, "textures"),
+                textureFileHandleArray,
+                file -> file.isDirectory()
+                        || file.getName().toLowerCase().endsWith("png")  // textures in PNG
+        );
+        // All PNG files in the "skins" directory and subdirectories (if any) on asset's path
+        textureFileHandleArray = LibgdxUtils.traversFileHandle(
+                LibgdxUtils.fileOnPath(assetName, "skins"),
+                textureFileHandleArray,
+                file -> file.isDirectory()
+                        || file.getName().toLowerCase().endsWith("png")  // textures in PNG
+        );
+
+        if (textureFileHandleArray.size > 0) {
+            Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "adding textures: \n"
+                    + textureFileHandleArray.toString("\n"));
+            itemsTexture.addAll(textureFileHandleArray.toString(";").split(";"));
+        }
+
+        textureSelectBox.clearItems();
+        textureSelectBox.setItems(itemsTexture);
+
+        copyExternalAnimations(assetName);
 
         // FIXME: calculateBoundingBox is a slow operation - BoundingBox object should be cached
         Vector3 dimensions = modelInstance.calculateBoundingBox(new BoundingBox()).getDimensions(new Vector3());
@@ -416,6 +451,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         animationSelectBox.clearItems();
         animationSelectBox.setItems(itemsAnimation);
 
+        miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
         // Uncomment to get gen_* files with fields contents:
         //LibGDXUtil.getFieldsContents(perspectiveCamera, 2, "", true);
         //LibGDXUtil.getFieldsContents(cameraInputController, 2,  "", true);
@@ -590,12 +626,13 @@ public class ModelPreviewScreen extends ScreenAdapter {
                 if (modelSelectBox.getSelected().equals(noModelsAvailable)) {
                     return;
                 }
-                Gdx.app.debug(modelSelectBox.getClass().getSimpleName(),
-                        "Model Selected: " + modelSelectBox.getSelected());
                 switchModelInstance(modelSelectBox.getSelected());
+                Gdx.app.debug(modelSelectBox.getClass().getSimpleName(),
+                        "model selected: " + modelSelectBox.getSelected());
             }
         });
 
+        // Select Box: Animations
         animationSelectBox = new SelectBox<>(skin);
         animationSelectBox.addListener(new ChangeListener() {
             @Override
@@ -609,7 +646,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
                 }
 
                 animationDesc = animationController.setAnimation(modelInstance.animations.get(animationIndex).id, -1);
-                
+                Gdx.app.debug(animationSelectBox.getClass().getSimpleName(),
+                        "animation selected: " + modelInstance.animations.get(animationIndex).id);
                 // Uncomment to get gen_* files with fields contents:
                 //LibGDXUtil.getFieldsContents(animationDesc, 3,  "", true);
 
@@ -654,6 +692,44 @@ public class ModelPreviewScreen extends ScreenAdapter {
                 //                     1: NodeAnimation com.badlogic.gdx.graphics.g3d.model.NodeAnimation
                 //                            ...
 
+            }
+        });
+
+        // Select Box: Textures
+        textureSelectBox = new SelectBox<>(skin);
+        textureSelectBox.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                textureImage.setDrawable(null);
+
+                if (modelInstance == null
+                        || modelInstance.materials == null
+                        || modelInstance.materials.size == 0) {
+                    return;
+                }
+
+                modelInstance.materials.get(0).remove(TextureAttribute.Diffuse);
+
+                if (textureSelectBox.getSelectedIndex() == 0 || textureSelectBox.getSelected() == null) {
+                    //Gdx.app.debug("textureSelectBox.changed", String.valueOf(textureSelectBox.getSelectedIndex()));
+                    //Gdx.app.debug("textureSelectBox.changed", textureSelectBox.getSelected());
+                    return;
+                }
+
+                Texture texture = assetManager.get(textureSelectBox.getSelected(), Texture.class);
+                TextureAttribute attr = TextureAttribute.createDiffuse(texture);
+                attr.textureDescription.minFilter = texture.getMinFilter();
+                attr.textureDescription.magFilter = texture.getMagFilter();
+                attr.textureDescription.uWrap = texture.getUWrap();
+                attr.textureDescription.vWrap = texture.getVWrap();
+                modelInstance.materials.get(0).set(attr);
+
+                // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#image
+                // https://libgdx.info/basic_image/
+                // see image constructors starting Image (Texture texture) for Texture to Drawable translation:
+                textureImage.setDrawable(new TextureRegionDrawable(new TextureRegion(texture)));
+                Gdx.app.debug(textureSelectBox.getClass().getSimpleName(),
+                        "texture selected: " + texture);
             }
         });
 
@@ -719,6 +795,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
         Table upperPanel = new Table();
         upperPanel.add(new Label("Models: ", skin));
         upperPanel.add(modelSelectBox);
+        upperPanel.add(new Label("Textures: ", skin));
+        upperPanel.add(textureSelectBox);
         upperPanel.add(new Label("Animations: ", skin));
         upperPanel.add(animationSelectBox);
         upperPanel.add().expandX();
