@@ -409,7 +409,11 @@ public class LibgdxUtils {
                         Modifier.isStatic(field.getModifiers()) ? "(static)" : "",
                         field.getType().getSimpleName(),
                         field.getName(),
-                        (fieldObject instanceof Iterable<?>) ? "" : toString(fieldObject,indent)));
+                        (fieldObject instanceof Iterable<?>)
+                                ? (fieldObject instanceof Array<?>)
+                                    ? "(" + ((Array<?>)fieldObject).size + ", " + ((Array<?>)fieldObject).ordered + ")"
+                                    : ""
+                                : toString(fieldObject,indent)));
 
                 if (!field.getType().isPrimitive()
                         && !(fieldObject instanceof Vector3)

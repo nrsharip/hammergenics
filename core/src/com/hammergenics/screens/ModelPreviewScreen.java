@@ -35,6 +35,7 @@ import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.environment.PointLight;
 import com.badlogic.gdx.graphics.g3d.environment.SpotLight;
 import com.badlogic.gdx.graphics.g3d.model.Animation;
+import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.shaders.BaseShader;
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import com.badlogic.gdx.graphics.g3d.utils.*;
@@ -89,7 +90,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
     private SelectBox<String> textureSelectBox = null;
 
     // Current ModelInstance Related:
-    private ModelInstance modelInstance;
+    private ModelInstance modelInstance = null;
     private AnimationController animationController = null;
     private AnimationController.AnimationDesc animationDesc = null;
     private int animationIndex = 0;
@@ -138,7 +139,15 @@ public class ModelPreviewScreen extends ScreenAdapter {
         setup2DStageLayout();
         setup3DEnvironment();
 
-        switchModelInstance(assetManager.getAssetFileName(models.get(0)));
+        int i = 0;
+        while (modelInstance == null && i < models.size) {
+            String filename = assetManager.getAssetFileName(models.get(i++));
+            switchModelInstance(filename);
+            if (modelInstance != null) {
+                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
+                        "model selected: " + filename);
+            }
+        }
 
         envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(environment,"", ""));
 
@@ -473,6 +482,30 @@ public class ModelPreviewScreen extends ScreenAdapter {
             for (Model m: models) {
                 String filename = assetManager.getAssetFileName(m);
                 if (filename.startsWith(animationsFolder.toString())) {
+//                    Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
+//                            LibgdxUtils.getFieldsContents(m, 0));
+                    // Array materials  = (0, true)
+                    // Array nodes      = (1, true)
+                    //   0: Node com.badlogic.gdx.graphics.g3d.model.Node
+                    // Array animations = (2, true)
+                    //   0: Animation com.badlogic.gdx.graphics.g3d.model.Animation
+                    //   1: Animation com.badlogic.gdx.graphics.g3d.model.Animation
+                    // Array meshes     = (0, true)
+                    // Array meshParts  = (0, true)
+
+                    if (m.materials.size != 0) {
+                        Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(),
+                                "WARNING: animation only model has materials (" + m.materials.size+ "): " + filename);
+                    }
+                    if (m.meshes.size != 0) {
+                        Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(),
+                                "WARNING: animation only model has meshes (" + m.meshes.size+ "): " + filename);
+                    }
+                    if (m.meshParts.size != 0) {
+                        Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(),
+                                "WARNING: animation only model has meshParts (" + m.meshParts.size+ "): " + filename);
+                    }
+
                     //modelInstance.copyAnimations(m.animations);
                     m.animations.forEach(animation -> {
                         //Gdx.app.debug(getClass().getSimpleName(), "animation: " + animation.id);
@@ -946,8 +979,14 @@ public class ModelPreviewScreen extends ScreenAdapter {
         //        at com.badlogic.gdx.graphics.g3d.ModelInstance.getRenderable(ModelInstance.java:361)
         //        at com.hammergenics.screens.ModelPreviewScreen.testRenderRelated(ModelPreviewScreen.java:728)
 
-        // Getting the Renderable (for Node 0, NodePart 0)
-        Renderable renderable = modelInstance.getRenderable(new Renderable());
+        // Getting the Renderable
+        Renderable renderable = null;
+        for (Node node:modelInstance.nodes) {
+            if (node.parts.size == 0) continue;
+            renderable = modelInstance.getRenderable(new Renderable(), node);
+            break;
+        }
+        if (renderable == null) { return; }
 
         // *****************
         // **** SHADERS ****
