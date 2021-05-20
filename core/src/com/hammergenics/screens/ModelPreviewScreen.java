@@ -17,7 +17,6 @@
 package com.hammergenics.screens;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.assets.AssetManager;
@@ -51,6 +50,8 @@ import com.hammergenics.HGGame;
 import com.hammergenics.config.Config;
 import com.hammergenics.util.LibgdxUtils;
 
+import static com.badlogic.gdx.Input.Buttons;
+import static com.badlogic.gdx.Input.Keys;
 import static com.badlogic.gdx.graphics.VertexAttributes.Usage;
 
 /**
@@ -465,8 +466,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
         float D = Math.max(Math.max(dimensions.x,dimensions.y),dimensions.z);
 
         createGridModel(D);
-        updateCamera(D);
-        updateCameraInputController(D);
+        resetCamera(D);
+        resetCameraInputController(D);
 
         animationController = null;
         if(modelInstance.animations.size > 0) {
@@ -629,7 +630,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
     /**
      * @param D
      */
-    private void updateCamera(float D) {
+    private void resetCamera(float D) {
         // IDEA finds 2 classes extending Camera:
         // 1. OrthographicCamera
         // 2. PerspectiveCamera
@@ -643,10 +644,10 @@ public class ModelPreviewScreen extends ScreenAdapter {
         perspectiveCamera.fieldOfView = 70f;         // PerspectiveCamera: float fieldOfView
                                                      //                    the field of view of the height, in degrees
         perspectiveCamera.position.set(D, D, D);     // Camera: Vector3 position
-        perspectiveCamera.lookAt(0,0,0);             // Camera: Vector3 direction
-                                                     //         camera.up and camera.direction must
-                                                     //         ALWAYS be orthonormal vectors
-        //perspectiveCamera.up;                      // Camera: Vector3 up
+        perspectiveCamera.direction.set(0, 0, -1);   // Camera: Vector3 direction
+        perspectiveCamera.up.set(0, 1, 0);           // Camera: Vector3 up
+        perspectiveCamera.lookAt(0, 0, 0);           //   camera.up and camera.direction must
+                                                     //   ALWAYS be orthonormal vectors
         //perspectiveCamera.projection;              // Camera: Matrix4 projection
         //perspectiveCamera.view;                    // Camera: Matrix4 view
         //perspectiveCamera.combined;                // Camera: Matrix4 combined
@@ -674,30 +675,30 @@ public class ModelPreviewScreen extends ScreenAdapter {
     /**
      * @param D
      */
-    private void updateCameraInputController(float D) {
+    private void resetCameraInputController(float D) {
         // Uncomment to get gen_* files with fields contents:
         //LibGDXUtil.getFieldsContents(cameraInputController, 1,  "", true);
 
         // Setting most of cameraInputController to defaults, except for scrollFactor and translateUnits.
         // These are calculated based on the model's dimensions
-        cameraInputController.rotateButton = Input.Buttons.LEFT;     //     int rotateButton    = 0
-        cameraInputController.rotateAngle = 360f;                    //   float rotateAngle     = 360.0
-        cameraInputController.translateButton = Input.Buttons.RIGHT; //     int translateButton = 1
-        cameraInputController.translateUnits = D/2;                  //   float translateUnits  = 188.23 // "right button speed"
-        cameraInputController.forwardButton = Input.Buttons.MIDDLE;  //     int forwardButton   = 2
-        cameraInputController.activateKey = 0;                       //     int activateKey     = 0
-        cameraInputController.alwaysScroll = true;                   // boolean alwaysScroll    = true
-        cameraInputController.scrollFactor = -0.2f;                  //   float scrollFactor    = -0.2 // "zoom speed"
-        cameraInputController.pinchZoomFactor = 10f;                 //   float pinchZoomFactor = 10.0
-        cameraInputController.autoUpdate = true;                     // boolean autoUpdate      = true
-        cameraInputController.target.set(0, 0, 0);                   // Vector3 target          = (0.0,0.0,0.0)
-        cameraInputController.translateTarget = true;                // boolean translateTarget = true
-        cameraInputController.forwardTarget = true;                  // boolean forwardTarget   = true
-        cameraInputController.scrollTarget = false;                  // boolean scrollTarget    = false
-        cameraInputController.forwardKey = Input.Keys.W;             //     int forwardKey      = 51
-        cameraInputController.backwardKey = Input.Keys.S;            //     int backwardKey     = 47
-        cameraInputController.rotateRightKey = Input.Keys.A;         //     int rotateRightKey  = 29
-        cameraInputController.rotateLeftKey = Input.Keys.D;          //     int rotateLeftKey   = 32
+        cameraInputController.rotateButton = Buttons.LEFT;     //     int rotateButton    = 0
+        cameraInputController.rotateAngle = 360f;              //   float rotateAngle     = 360.0
+        cameraInputController.translateButton = Buttons.RIGHT; //     int translateButton = 1
+        cameraInputController.translateUnits = 2*D;            //   float translateUnits  = 188.23 // "right button speed"
+        cameraInputController.forwardButton = Buttons.MIDDLE;  //     int forwardButton   = 2
+        cameraInputController.activateKey = 0;                 //     int activateKey     = 0
+        cameraInputController.alwaysScroll = true;             // boolean alwaysScroll    = true
+        cameraInputController.scrollFactor = -0.05f;           //   float scrollFactor    = -0.2 // "zoom speed"
+        cameraInputController.pinchZoomFactor = 10f;           //   float pinchZoomFactor = 10.0
+        cameraInputController.autoUpdate = true;               // boolean autoUpdate      = true
+        cameraInputController.target.set(0, 0, 0);             // Vector3 target          = (0.0,0.0,0.0)
+        cameraInputController.translateTarget = true;          // boolean translateTarget = true
+        cameraInputController.forwardTarget = true;            // boolean forwardTarget   = true
+        cameraInputController.scrollTarget = false;            // boolean scrollTarget    = false
+        cameraInputController.forwardKey = Keys.W;             //     int forwardKey      = 51
+        cameraInputController.backwardKey = Keys.S;            //     int backwardKey     = 47
+        cameraInputController.rotateRightKey = Keys.A;         //     int rotateRightKey  = 29
+        cameraInputController.rotateLeftKey = Keys.D;          //     int rotateLeftKey   = 32
         //cameraInputController.camera = ;
         cameraInputController.update();
     }
