@@ -25,6 +25,7 @@ import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.ParticleEffect;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGeneratorLoader;
 import com.badlogic.gdx.graphics.g2d.freetype.FreetypeFontLoader;
@@ -58,6 +59,9 @@ public class HGGame extends Game {
         Gdx.app.debug(getClass().getSimpleName(),"Gdx.graphics.getWidth()   = " + Gdx.graphics.getWidth());
         Gdx.app.debug(getClass().getSimpleName(),"Gdx.graphics.getHeight()  = " + Gdx.graphics.getHeight());
 
+        // see public BitmapFont ()
+        // Gdx.files.classpath("com/badlogic/gdx/utils/arial-15.fnt"), Gdx.files.classpath("com/badlogic/gdx/utils/arial-15.png")
+
         // https://github.com/libgdx/libgdx/wiki/Managing-your-assets#loading-a-ttf-using-the-assethandler
         // Adding TTF loader
         FileHandleResolver fileHandleResolver = new InternalFileHandleResolver();
@@ -83,20 +87,31 @@ public class HGGame extends Game {
         FileHandle rootFileHandle = Gdx.files.local(Conventions.modelsRootDirectory);
         Array<FileHandle> fileHandleList = LibgdxUtils.traversFileHandle(rootFileHandle,
                 file -> file.isDirectory()
-                        || file.getName().toLowerCase().endsWith("obj")
+//                        || file.getName().toLowerCase().endsWith(".3ds")  // converted to G3DB with fbx-conv
+                        || file.getName().toLowerCase().endsWith(".obj")    // wavefront
+//                        || file.getName().toLowerCase().endsWith(".gltf") // see for support: https://github.com/mgsx-dev/gdx-gltf
+                        || file.getName().toLowerCase().endsWith(".tga")    // textures in TGA
 //                        || file.getName().toLowerCase().endsWith(".g3dj") // json // disabling for now...
-                        || file.getName().toLowerCase().endsWith("g3db") // binary
-                        || file.getName().toLowerCase().endsWith("png")  // textures in PNG
+                        || file.getName().toLowerCase().endsWith(".g3db")   // binary
+                        || file.getName().toLowerCase().endsWith(".png")    // textures in PNG
+                        || file.getName().toLowerCase().endsWith(".bmp")    // textures in BMP
         );
         fileHandleList.forEach(fileHandle -> {
             switch (fileHandle.extension().toLowerCase()) {
+//                case "3ds":  // converted to G3DB with fbx-conv
                 case "obj":
+//                case "gltf": // see for support: https://github.com/mgsx-dev/gdx-gltf
                 case "g3db":
-                case "g3dj":
+//                case "g3dj":
                     assetManager.load(fileHandle.path(), Model.class, null);
                     break;
+                case "tga":
                 case "png":
+                case "bmp":
                     assetManager.load(fileHandle.path(), Texture.class, null);
+                    break;
+                case "XXX": // for testing purposes
+                    assetManager.load(fileHandle.path(), ParticleEffect.class, null);
                     break;
                 default:
                     Gdx.app.error(getClass().getSimpleName(),

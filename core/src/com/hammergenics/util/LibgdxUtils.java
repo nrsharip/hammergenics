@@ -33,6 +33,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ObjectMap;
+import com.hammergenics.config.Conventions;
 
 import java.io.FileFilter;
 import java.lang.reflect.Field;
@@ -83,7 +84,8 @@ public class LibgdxUtils {
                     break rootLoop;
                 }
             }
-        } while (!parent.path().equals(parent.type() == Files.FileType.Absolute ? "/" : ""));
+        //} while (!parent.path().equals(parent.type() == Files.FileType.Absolute ? "/" : ""));
+        } while (!parent.path().equals(Conventions.modelsRootDirectory));
 
         return soughtFileHandle;
     }

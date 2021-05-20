@@ -140,7 +140,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         }
         // Texture.class
         assetManager.getAll(Texture.class, textures);
-        Gdx.app.debug(getClass().getSimpleName(),"textures loaded: " + textures.size);
+        Gdx.app.debug(getClass().getSimpleName(),"textures loaded: " + textures.size + "\n" + textures.toString("\n"));
 
         // Camera related
         perspectiveCamera = new PerspectiveCamera(70f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -431,6 +431,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
         textureFileHandleArray = LibgdxUtils.traversFileHandle(assetFileHandle.parent(),
                 file -> file.isDirectory()
                         || file.getName().toLowerCase().endsWith("png")  // textures in PNG
+                        || file.getName().toLowerCase().endsWith("tga")  // textures in TGA
+                        || file.getName().toLowerCase().endsWith("bmp")  // textures in BMP
         );
 
         // TODO: Add unified convention like "textures | skins" to specify all folders at once
@@ -440,6 +442,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
                 textureFileHandleArray,
                 file -> file.isDirectory()
                         || file.getName().toLowerCase().endsWith("png")  // textures in PNG
+                        || file.getName().toLowerCase().endsWith("tga")  // textures in TGA
+                        || file.getName().toLowerCase().endsWith("bmp")  // textures in BMP
         );
         // All PNG files in the "skins" directory and subdirectories (if any) on asset's path
         textureFileHandleArray = LibgdxUtils.traversFileHandle(
@@ -447,6 +451,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
                 textureFileHandleArray,
                 file -> file.isDirectory()
                         || file.getName().toLowerCase().endsWith("png")  // textures in PNG
+                        || file.getName().toLowerCase().endsWith("tga")  // textures in TGA
+                        || file.getName().toLowerCase().endsWith("bmp")  // textures in BMP
         );
 
         if (textureFileHandleArray.size > 0) {
@@ -484,7 +490,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
         createGridModel(D);
         resetCamera(D, center);
-        resetCameraInputController(D);
+        resetCameraInputController(D, center);
 
         animationController = null;
         if(modelInstance.animations.size > 0) {
@@ -660,31 +666,31 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // https://gamefromscratch.com/libgdx-tutorial-7-camera-basics/
         // https://gamefromscratch.com/libgdx-tutorial-part-16-cameras/
         // TODO: need to visually debug this as well as switching between Orthographic and Perspective cameras (?)
-        perspectiveCamera.fieldOfView = 70f;         // PerspectiveCamera: float fieldOfView
-                                                     //                    the field of view of the height, in degrees
-        perspectiveCamera.position.set(D, D, D);     // Camera: Vector3 position
-        perspectiveCamera.direction.set(0, 0, -1);   // Camera: Vector3 direction
-        perspectiveCamera.up.set(0, 1, 0);           // Camera: Vector3 up
-        perspectiveCamera.lookAt(c.x, c.y, c.z);     //   camera.up and camera.direction must
-                                                     //   ALWAYS be orthonormal vectors
-        //perspectiveCamera.projection;              // Camera: Matrix4 projection
-        //perspectiveCamera.view;                    // Camera: Matrix4 view
-        //perspectiveCamera.combined;                // Camera: Matrix4 combined
-        //perspectiveCamera.invProjectionView;       // Camera: Matrix4 invProjectionView
-        perspectiveCamera.near = Math.min(1f, D/10); // Camera: float near
-        perspectiveCamera.far = 10*D;                // Camera: float far
-        //perspectiveCamera.viewportWidth;           // Camera: float viewportWidth
-        //perspectiveCamera.viewportHeight;          // Camera: float viewportHeight
-        //perspectiveCamera.frustum;                 // Camera: Frustum frustum
-                                                     //         A truncated rectangular pyramid.
-                                                     //         Used to define the viewable region and
-                                                     //         its projection onto the screen
-        //perspectiveCamera.frustum.planes;          // Frustum: Plane[] planes
-                                                     //          the six clipping planes:
-                                                     //          near, far, left, right, top, bottom
-        //perspectiveCamera.frustum.planePoints;     // Frustum: Vector3[] planePoints
-                                                     //          eight points making up the near and far clipping "rectangles".
-                                                     //          order is counter clockwise, starting at bottom left
+        perspectiveCamera.fieldOfView = 70f;                       // PerspectiveCamera: float fieldOfView
+                                                                   //                    the field of view of the height, in degrees
+        perspectiveCamera.position.set(c.x + D, c.y + D, c.z + D); // Camera: Vector3 position
+        perspectiveCamera.direction.set(0, 0, -1);                 // Camera: Vector3 direction
+        perspectiveCamera.up.set(0, 1, 0);                         // Camera: Vector3 up
+        perspectiveCamera.lookAt(c.x, c.y, c.z);                   //   camera.up and camera.direction must
+                                                                   //   ALWAYS be orthonormal vectors
+        //perspectiveCamera.projection;                            // Camera: Matrix4 projection
+        //perspectiveCamera.view;                                  // Camera: Matrix4 view
+        //perspectiveCamera.combined;                              // Camera: Matrix4 combined
+        //perspectiveCamera.invProjectionView;                     // Camera: Matrix4 invProjectionView
+        perspectiveCamera.near = Math.min(1f, D/10);               // Camera: float near
+        perspectiveCamera.far = 10*D;                              // Camera: float far
+        //perspectiveCamera.viewportWidth;                         // Camera: float viewportWidth
+        //perspectiveCamera.viewportHeight;                        // Camera: float viewportHeight
+        //perspectiveCamera.frustum;                               // Camera: Frustum frustum
+                                                                   //         A truncated rectangular pyramid.
+                                                                   //         Used to define the viewable region and
+                                                                   //         its projection onto the screen
+        //perspectiveCamera.frustum.planes;                        // Frustum: Plane[] planes
+                                                                   //          the six clipping planes:
+                                                                   //          near, far, left, right, top, bottom
+        //perspectiveCamera.frustum.planePoints;                   // Frustum: Vector3[] planePoints
+                                                                   //          eight points making up the near and far clipping "rectangles".
+                                                                   //          order is counter clockwise, starting at bottom left
         // See also:
         // *   frustum culling : https://en.wikipedia.org/wiki/Hidden-surface_determination#Viewing-frustum_culling
         // * back-face culling : https://en.wikipedia.org/wiki/Back-face_culling
@@ -694,7 +700,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
     /**
      * @param D
      */
-    private void resetCameraInputController(float D) {
+    private void resetCameraInputController(float D, Vector3 c) {
         // Uncomment to get gen_* files with fields contents:
         //LibGDXUtil.getFieldsContents(cameraInputController, 1,  "", true);
 
@@ -710,7 +716,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         cameraInputController.scrollFactor = -0.05f;           //   float scrollFactor    = -0.2 // "zoom speed"
         cameraInputController.pinchZoomFactor = 10f;           //   float pinchZoomFactor = 10.0
         cameraInputController.autoUpdate = true;               // boolean autoUpdate      = true
-        cameraInputController.target.set(0, 0, 0);             // Vector3 target          = (0.0,0.0,0.0)
+        cameraInputController.target.set(c.x, c.y, c.z);       // Vector3 target          = (0.0,0.0,0.0)
         cameraInputController.translateTarget = true;          // boolean translateTarget = true
         cameraInputController.forwardTarget = true;            // boolean forwardTarget   = true
         cameraInputController.scrollTarget = false;            // boolean scrollTarget    = false
