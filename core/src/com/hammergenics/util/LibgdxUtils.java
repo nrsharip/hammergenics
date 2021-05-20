@@ -70,11 +70,11 @@ public class LibgdxUtils {
         FileHandle parent = rootFileHandle;
         FileHandle soughtFileHandle = null;
 
-        Gdx.app.debug(getTag(), "looking for '" + fileSoughtFor + "' in: " + rootFileName);
+        Gdx.app.debug(getTag(), "looking for '" + fileSoughtFor + "' starting at: " + rootFileName);
         rootLoop:
         do {
             parent = parent.parent();
-            Gdx.app.debug(getTag(), parent.toString());
+            Gdx.app.debug(getTag(), "looking in: '" + parent.toString() + "'");
 
             for (FileHandle sub : parent.list()) {
                 if (sub.toString().toLowerCase().endsWith(fileSoughtFor)) { // sub.isDirectory() &&
