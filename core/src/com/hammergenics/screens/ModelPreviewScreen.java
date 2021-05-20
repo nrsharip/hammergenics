@@ -112,7 +112,6 @@ public class ModelPreviewScreen extends ScreenAdapter {
         assetManager = game.assetManager;
         // https://github.com/libgdx/libgdx/wiki/ModelBatch
         // ModelBatch is a relatively heavy weight object, because of the shaders it might create.
-        // When possible you should try to reuse it.
         modelBatch = game.modelBatch;
 
         // Getting Assets
@@ -142,6 +141,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         setup2DStageWidgets();
         setup2DStageLayout();
         setup3DEnvironment();
+        envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(environment,"", ""));
 
         int i = 0;
         while (modelInstance == null && i < models.size) {
@@ -152,8 +152,6 @@ public class ModelPreviewScreen extends ScreenAdapter {
                         "model selected: " + filename);
             }
         }
-
-        envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(environment,"", ""));
 
         testRenderRelated();
 
@@ -440,8 +438,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
                 textureFileHandleArray.removeValue(
                         Gdx.files.local(textureDiffuse.textureDescription.texture.toString()), false);
             }
-            Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "adding textures: \n"
-                    + textureFileHandleArray.toString("\n"));
+            Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
+                    "adding textures: \n" + textureFileHandleArray.toString("\n"));
             itemsTexture.addAll(textureFileHandleArray.toString(";").split(";"));
         }
 
@@ -749,11 +747,12 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
         // Select Box: Models
         Array<String> itemsModel = new Array<>();
-        for (Model m: models) {
-            String filename = assetManager.getAssetFileName(m);
-            if (!filename.toLowerCase().contains("animations")) {
-                itemsModel.add(filename);
+        for (Model model: models) {
+            if (model.materials.size == 0 && model.meshes.size == 0 && model.meshParts.size == 0) {
+                continue;
             }
+
+            itemsModel.add(assetManager.getAssetFileName(model));
         }
 
         String noModelsAvailable = "No models available";
