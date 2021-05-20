@@ -21,7 +21,10 @@ import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.files.FileHandle;
-import com.badlogic.gdx.graphics.*;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.PerspectiveCamera;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g3d.*;
@@ -38,6 +41,8 @@ import com.badlogic.gdx.graphics.g3d.utils.*;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
@@ -72,7 +77,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
     private Array<Texture> textures = new Array<>();
 
     private Model gridModel = null;
-    private ModelInstance gridModelInstance = null;
+    private ModelInstance gridXZModelInstance = null;
+    private ModelInstance gridYModelInstance = null;
 
     // 2D Stage - this is where all widgets (buttons, checkboxes, labels etc.) are located
     private Stage stage;
@@ -82,16 +88,23 @@ public class ModelPreviewScreen extends ScreenAdapter {
     private BitmapFont labelBitmapFont;
     private Label.LabelStyle labelStyle;
 
-    // 2D Stage Widgets:
+    // 2D Stage Layout:
     private Table rootTable;
+    private Table XYZTable;
+    private Table gridTable;
+
+    // 2D Stage Widgets:
     private Label miLabel;  // Model Instance Info
     private Label envLabel; // Environment Info
     private Label fpsLabel; // FPS Info
     private Image textureImage;
     private CheckBox debugStageCheckBox;
+    private CheckBox gridXZCheckBox;
+    private CheckBox gridYCheckBox;
     private SelectBox<String> modelSelectBox;
     private SelectBox<String> animationSelectBox = null;
     private SelectBox<String> textureSelectBox = null;
+    private TextButton gridTextButton = null;
 
     // Current ModelInstance Related:
     private ModelInstance modelInstance = null;
@@ -225,8 +238,11 @@ public class ModelPreviewScreen extends ScreenAdapter {
         if (modelInstance != null && environment != null) {
             modelBatch.render(modelInstance, environment);
         }
-        if (gridModelInstance != null) {
-            modelBatch.render(gridModelInstance);
+        if (gridXZModelInstance != null && gridXZCheckBox.isChecked()) {
+            modelBatch.render(gridXZModelInstance);
+        }
+        if (gridYModelInstance != null && gridYCheckBox.isChecked()) {
+            modelBatch.render(gridYModelInstance);
         }
 
         // https://github.com/libgdx/libgdx/wiki/ModelBatch
@@ -567,12 +583,13 @@ public class ModelPreviewScreen extends ScreenAdapter {
         if (gridModel != null) {
             gridModel.dispose();
             gridModel = null;
-            gridModelInstance = null;
+            gridXZModelInstance = null;
+            gridYModelInstance = null;
         }
 
         //int step = (int) Math.pow (10, (int) (Math.log10(D))) ; // 10 ^ (number of digits in D - 1)
         float step = D / 5;
-        Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(),"grid step: " + step + "for max dimension: " + D);
+        Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(),"grid step: " + step + " for max dimension: " + D);
 
         // see: ModelBuilder()
         // https://libgdx.badlogicgames.com/ci/nightlies/dist/docs/api/com/badlogic/gdx/graphics/g3d/utils/ModelBuilder.html
@@ -581,10 +598,10 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
         mb.begin();
 
-        mb.node().id = "XY"; // adding node XY
-        // MeshPart "XY"
+        mb.node().id = "XZ"; // adding node XZ
+        // MeshPart "XZ"
         // see for primitive types: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glBegin.xml
-        mpb = mb.part("XY", GL20.GL_LINES, Usage.Position | Usage.Normal,
+        mpb = mb.part("XZ", GL20.GL_LINES, Usage.Position | Usage.Normal,
                 new Material(ColorAttribute.createDiffuse(Color.YELLOW)));
         for (float pos = -1000 * step; pos < 1000 * step; pos += step ) {
             // see implementation: Add a line. Requires GL_LINES primitive type.
@@ -592,10 +609,10 @@ public class ModelPreviewScreen extends ScreenAdapter {
             mpb.line(         pos, 0, -1000 * step,         pos, 0, 1000 * step); // along Z-axis
         }
 
-        mb.node().id = "Z"; // adding node XY
-        // MeshPart "Z"
+        mb.node().id = "Y"; // adding node Y
+        // MeshPart "Y"
         // see for primitive types: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glBegin.xml
-        mpb = mb.part("Z", GL20.GL_LINES, Usage.Position | Usage.Normal,
+        mpb = mb.part("Y", GL20.GL_LINES, Usage.Position | Usage.Normal,
                 new Material(ColorAttribute.createDiffuse(Color.RED)));
         for (float x = -1000 * step; x < 1000 * step; x += 20 * step ) {
             for (float z = -1000 * step; z < 1000 * step; z += 20 * step ) {
@@ -623,7 +640,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
         //  RenderableShapeBuilder
         //  SphereShapeBuilder
         gridModel = mb.end();
-        gridModelInstance = new ModelInstance(gridModel);
+        gridXZModelInstance = new ModelInstance(gridModel, "XZ");
+        gridYModelInstance = new ModelInstance(gridModel, "Y");
 //        Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(),
 //                "GRID model instance: " + LibgdxUtils.getModelInstanceInfo(gridModelInstance));
     }
@@ -888,6 +906,28 @@ public class ModelPreviewScreen extends ScreenAdapter {
                 stage.setDebugAll(debugStageCheckBox.isChecked());
             }
         });
+
+        // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#checkbox
+        gridXZCheckBox = new CheckBox("XZ", skin);
+        gridXZCheckBox.setChecked(true);
+
+        // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#checkbox
+        gridYCheckBox = new CheckBox("Y", skin);
+        gridYCheckBox.setChecked(true);
+
+        // TEXT BUTTONS:
+        // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textbutton
+        gridTextButton = new TextButton("grid", skin);
+        gridTextButton.addListener(new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                XYZTable.setVisible(!XYZTable.isVisible());
+                return super.touchDown(event, x, y, pointer, button); // false
+                // If true is returned, this listener will have touch focus, so it will receive all
+                // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
+                // Also when true is returned, the event is handled
+            }
+        });
     }
 
     /**
@@ -918,6 +958,16 @@ public class ModelPreviewScreen extends ScreenAdapter {
     public void setup2DStageLayout() {
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#layout-widgets
         // Table, Container, Stack, ScrollPane, SplitPane, Tree, VerticalGroup, HorizontalGroup
+
+        gridTable = new Table();
+
+        XYZTable = new Table();
+        XYZTable.add(gridXZCheckBox, gridYCheckBox);
+        XYZTable.setVisible(false);
+
+        gridTable.add(XYZTable).fillX();
+        gridTable.row();
+        gridTable.add(gridTextButton).fillX();
 
         // https://github.com/libgdx/libgdx/wiki/Table#quickstart
         // The table sizes and positions its children, so setting the width of the text fields
@@ -963,8 +1013,9 @@ public class ModelPreviewScreen extends ScreenAdapter {
         rootTable.row();
 
         Table lowerPanel = new Table();
-        lowerPanel.add(fpsLabel).minWidth(90f);
-        lowerPanel.add(debugStageCheckBox).minWidth(90f);
+        lowerPanel.add(fpsLabel).minWidth(90f).bottom();
+        lowerPanel.add(debugStageCheckBox).minWidth(90f).bottom();
+        lowerPanel.add(gridTable).minWidth(90f).bottom();
         lowerPanel.add().expandX();
         rootTable.add(lowerPanel).colspan(2).expandX().left();
 
