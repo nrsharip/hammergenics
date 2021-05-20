@@ -50,29 +50,41 @@ public class LibgdxUtils {
     private static final String EXTENSION = ".txt";
 
     /**
+     * Careful with the lambda closures...
+     *
+     * @return
+     */
+    private static String getTag() {
+        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+
+        return stackTrace[3].getMethodName() + "->" + stackTrace[2].getMethodName();
+    }
+
+    /**
      * @param rootFileName
      * @param fileSoughtFor
      * @return
      */
     public static FileHandle fileOnPath(String rootFileName, String fileSoughtFor) {
         FileHandle rootFileHandle = Gdx.files.local(rootFileName);
-        FileHandle parent = rootFileHandle.parent();
+        FileHandle parent = rootFileHandle;
         FileHandle soughtFileHandle = null;
 
+        Gdx.app.debug(getTag(), "looking for '" + fileSoughtFor + "' in: " + rootFileName);
         rootLoop:
-        while (!parent.path().equals(parent.type() == Files.FileType.Absolute ? "/" : "")) {
-            Gdx.app.debug(LibgdxUtils.class.getSimpleName(), parent.toString());
+        do {
+            parent = parent.parent();
+            Gdx.app.debug(getTag(), parent.toString());
 
             for (FileHandle sub : parent.list()) {
                 if (sub.toString().toLowerCase().endsWith(fileSoughtFor)) { // sub.isDirectory() &&
-                    Gdx.app.debug(LibgdxUtils.class.getSimpleName(), "found " + fileSoughtFor + ": " + sub.toString());
+                    Gdx.app.debug(getTag(), "found " + fileSoughtFor + ": " + sub.toString());
                     soughtFileHandle = sub;
                     break rootLoop;
                 }
             }
+        } while (!parent.path().equals(parent.type() == Files.FileType.Absolute ? "/" : ""));
 
-            parent = parent.parent();
-        }
         return soughtFileHandle;
     }
 
