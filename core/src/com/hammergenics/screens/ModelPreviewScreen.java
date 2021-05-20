@@ -462,11 +462,14 @@ public class ModelPreviewScreen extends ScreenAdapter {
         copyExternalAnimations(assetName);
 
         // FIXME: calculateBoundingBox is a slow operation - BoundingBox object should be cached
-        Vector3 dimensions = modelInstance.calculateBoundingBox(new BoundingBox()).getDimensions(new Vector3());
+        BoundingBox bb = new BoundingBox();
+        modelInstance.calculateBoundingBox(bb);
+        Vector3 dimensions = bb.getDimensions(new Vector3());
+        Vector3 center = bb.getCenter(new Vector3());
         float D = Math.max(Math.max(dimensions.x,dimensions.y),dimensions.z);
 
         createGridModel(D);
-        resetCamera(D);
+        resetCamera(D, center);
         resetCameraInputController(D);
 
         animationController = null;
@@ -630,7 +633,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
     /**
      * @param D
      */
-    private void resetCamera(float D) {
+    private void resetCamera(float D, Vector3 c) {
         // IDEA finds 2 classes extending Camera:
         // 1. OrthographicCamera
         // 2. PerspectiveCamera
@@ -646,7 +649,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         perspectiveCamera.position.set(D, D, D);     // Camera: Vector3 position
         perspectiveCamera.direction.set(0, 0, -1);   // Camera: Vector3 direction
         perspectiveCamera.up.set(0, 1, 0);           // Camera: Vector3 up
-        perspectiveCamera.lookAt(0, 0, 0);           //   camera.up and camera.direction must
+        perspectiveCamera.lookAt(c.x, c.y, c.z);     //   camera.up and camera.direction must
                                                      //   ALWAYS be orthonormal vectors
         //perspectiveCamera.projection;              // Camera: Matrix4 projection
         //perspectiveCamera.view;                    // Camera: Matrix4 view
