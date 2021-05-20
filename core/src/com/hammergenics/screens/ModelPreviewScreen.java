@@ -280,11 +280,19 @@ public class ModelPreviewScreen extends ScreenAdapter {
     private void switchModelInstance(String assetName) {
         // TODO: add checks for null perspectiveCamera, cameraInputController, and the size of models
 
+        Model model = assetManager.get(assetName, Model.class);
+
         modelInstance = null;
-        if (assetName.toLowerCase().contains("animations")) { return; } // we got animations only model
+        if (model.materials.size == 0 && model.meshes.size == 0 && model.meshParts.size == 0) {
+            if (model.animations.size > 0) {
+                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
+                        "animations only model: " + assetName);
+            }
+            return; // we got animations only model
+        }
 
         // see: ModelBuilder() - https://libgdx.badlogicgames.com/ci/nightlies/dist/docs/api/com/badlogic/gdx/graphics/g3d/utils/ModelBuilder.html
-        modelInstance = new ModelInstance(assetManager.get(assetName, Model.class));
+        modelInstance = new ModelInstance(model);
         // see other useful constructors:
         // new ModelInstance (model, final String nodeId, boolean mergeTransform...
         // new ModelInstance (model, final String... rootNodeIds
