@@ -22,10 +22,7 @@ import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.files.FileHandle;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.PerspectiveCamera;
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g3d.*;
@@ -54,6 +51,8 @@ import com.hammergenics.HGGame;
 import com.hammergenics.config.Config;
 import com.hammergenics.util.LibgdxUtils;
 
+import static com.badlogic.gdx.graphics.VertexAttributes.Usage;
+
 /**
  * Add description here
  *
@@ -66,9 +65,13 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
     private PerspectiveCamera perspectiveCamera;
     private CameraInputController cameraInputController;
+    // TODO: IMPORTANT see also FirstPersonCameraController
     private Environment environment;
     private Array<Model> models = new Array<>();
     private Array<Texture> textures = new Array<>();
+
+    private Model gridModel = null;
+    private ModelInstance gridModelInstance = null;
 
     // 2D Stage - this is where all widgets (buttons, checkboxes, labels etc.) are located
     private Stage stage;
@@ -223,6 +226,9 @@ public class ModelPreviewScreen extends ScreenAdapter {
         if (modelInstance != null && environment != null) {
             modelBatch.render(modelInstance, environment);
         }
+        if (gridModelInstance != null) {
+            modelBatch.render(gridModelInstance);
+        }
 
         // https://github.com/libgdx/libgdx/wiki/ModelBatch
         // The actual rendering is performed at the call to end();.
@@ -271,6 +277,9 @@ public class ModelPreviewScreen extends ScreenAdapter {
         super.dispose();
         if (stage != null) {
             stage.dispose();
+        }
+        if (gridModel != null) {
+            gridModel.dispose();
         }
     }
 
@@ -455,6 +464,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         Vector3 dimensions = modelInstance.calculateBoundingBox(new BoundingBox()).getDimensions(new Vector3());
         float D = Math.max(Math.max(dimensions.x,dimensions.y),dimensions.z);
 
+        createGridModel(D);
         updateCamera(D);
         updateCameraInputController(D);
 
@@ -548,6 +558,75 @@ public class ModelPreviewScreen extends ScreenAdapter {
     }
 
     /**
+     * @return
+     */
+    private void createGridModel(float D) {
+        // IMPORTANT
+        if (gridModel != null) {
+            gridModel.dispose();
+            gridModel = null;
+            gridModelInstance = null;
+        }
+
+        //int step = (int) Math.pow (10, (int) (Math.log10(D))) ; // 10 ^ (number of digits in D - 1)
+        float step = D / 5;
+        Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(),"grid step: " + step + "for max dimension: " + D);
+
+        // see: ModelBuilder()
+        // https://libgdx.badlogicgames.com/ci/nightlies/dist/docs/api/com/badlogic/gdx/graphics/g3d/utils/ModelBuilder.html
+        ModelBuilder mb = new ModelBuilder();
+        MeshPartBuilder mpb;
+
+        mb.begin();
+
+        mb.node().id = "XY"; // adding node XY
+        // MeshPart "XY"
+        // see for primitive types: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glBegin.xml
+        mpb = mb.part("XY", GL20.GL_LINES, Usage.Position | Usage.Normal,
+                new Material(ColorAttribute.createDiffuse(Color.YELLOW)));
+        for (float pos = -1000 * step; pos < 1000 * step; pos += step ) {
+            // see implementation: Add a line. Requires GL_LINES primitive type.
+            mpb.line(-1000 * step, 0,          pos, 1000 * step, 0,         pos); // along X-axis
+            mpb.line(         pos, 0, -1000 * step,         pos, 0, 1000 * step); // along Z-axis
+        }
+
+        mb.node().id = "Z"; // adding node XY
+        // MeshPart "Z"
+        // see for primitive types: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glBegin.xml
+        mpb = mb.part("Z", GL20.GL_LINES, Usage.Position | Usage.Normal,
+                new Material(ColorAttribute.createDiffuse(Color.RED)));
+        for (float x = -1000 * step; x < 1000 * step; x += 20 * step ) {
+            for (float z = -1000 * step; z < 1000 * step; z += 20 * step ) {
+                // see implementation: Add a line. Requires GL_LINES primitive type.
+                mpb.line(x, -10 * step, z, x, 10 * step, z); // along Y-axis
+                // Exception in thread "LWJGL Application" com.badlogic.gdx.utils.GdxRuntimeException: Too many vertices used
+                //        at com.badlogic.gdx.graphics.g3d.utils.MeshBuilder.vertex(MeshBuilder.java:547)
+                //        at com.badlogic.gdx.graphics.g3d.utils.MeshBuilder.vertex(MeshBuilder.java:590)
+                //        at com.badlogic.gdx.graphics.g3d.utils.MeshBuilder.line(MeshBuilder.java:657)
+                //        at com.badlogic.gdx.graphics.g3d.utils.MeshBuilder.line(MeshBuilder.java:667)
+                //        at com.hammergenics.screens.ModelPreviewScreen.createGridModel(ModelPreviewScreen.java:605)
+            }
+        }
+
+        // see also com.badlogic.gdx.graphics.g3d.utils.shapebuilders:
+        //  ArrowShapeBuilder
+        //  BaseShapeBuilder
+        //  BoxShapeBuilder
+        //  CapsuleShapeBuilder
+        //  ConeShapeBuilder
+        //  CylinderShapeBuilder
+        //  EllipseShapeBuilder
+        //  FrustumShapeBuilder
+        //  PatchShapeBuilder
+        //  RenderableShapeBuilder
+        //  SphereShapeBuilder
+        gridModel = mb.end();
+        gridModelInstance = new ModelInstance(gridModel);
+//        Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(),
+//                "GRID model instance: " + LibgdxUtils.getModelInstanceInfo(gridModelInstance));
+    }
+
+    /**
      * @param D
      */
     private void updateCamera(float D) {
@@ -573,7 +652,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         //perspectiveCamera.combined;                // Camera: Matrix4 combined
         //perspectiveCamera.invProjectionView;       // Camera: Matrix4 invProjectionView
         perspectiveCamera.near = Math.min(1f, D/10); // Camera: float near
-        perspectiveCamera.far = 5*D;                 // Camera: float far
+        perspectiveCamera.far = 10*D;                // Camera: float far
         //perspectiveCamera.viewportWidth;           // Camera: float viewportWidth
         //perspectiveCamera.viewportHeight;          // Camera: float viewportHeight
         //perspectiveCamera.frustum;                 // Camera: Frustum frustum
