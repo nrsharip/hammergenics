@@ -386,10 +386,10 @@ public class ModelPreviewScreen extends ScreenAdapter {
 //            modelInstance.materials.get(0).get(ColorAttribute.class, ColorAttribute.Emissive).color.set(Color.DARK_GRAY);
 //            modelInstance.materials.get(0).get(FloatAttribute.class, FloatAttribute.Shininess).value /= 10;
 
-            modelInstance.materials.get(0).remove(ColorAttribute.Diffuse);     // ! darkens the model
+//            modelInstance.materials.get(0).remove(ColorAttribute.Diffuse);   // ! darkens the model
 //            modelInstance.materials.get(0).remove(ColorAttribute.Specular);  // min enabled
 //            modelInstance.materials.get(0).remove(ColorAttribute.Ambient);   // min enabled
-            modelInstance.materials.get(0).remove(ColorAttribute.Emissive);    // ! adds glowing effect
+//            modelInstance.materials.get(0).remove(ColorAttribute.Emissive);  // ! adds glowing effect
 //            modelInstance.materials.get(0).remove(FloatAttribute.Shininess); // min enabled
 
             textureDiffuse = modelInstance.materials.get(0).get(TextureAttribute.class, TextureAttribute.Diffuse);
