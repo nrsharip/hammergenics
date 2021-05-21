@@ -62,16 +62,24 @@ public class LibgdxUtils {
     }
 
     /**
-     * @param rootFileName
+     * @param startFileHandle
      * @param fileSoughtFor
      * @return
      */
-    public static FileHandle fileOnPath(String rootFileName, String fileSoughtFor) {
-        FileHandle rootFileHandle = Gdx.files.local(rootFileName);
-        FileHandle parent = rootFileHandle;
+    public static FileHandle fileOnPath(FileHandle startFileHandle, String fileSoughtFor) {
+        //FileHandle rootFileHandle = Gdx.files.local(startFileHandle);
+        FileHandle parent = startFileHandle;
         FileHandle soughtFileHandle = null;
 
-        Gdx.app.debug(getTag(), "looking for '" + fileSoughtFor + "' starting at: " + rootFileName);
+        if (startFileHandle.path().equals(Conventions.modelsRootDirectory)) {
+            Gdx.app.debug(getTag(),
+                    "start file '" + startFileHandle.path() + "' is the same as the assets root '"
+                            + Conventions.modelsRootDirectory + "'");
+            return null;
+        }
+
+        Gdx.app.debug(getTag(), "looking for '" + fileSoughtFor + "' starting at: " + startFileHandle.path());
+
         rootLoop:
         do {
             parent = parent.parent();
@@ -84,8 +92,8 @@ public class LibgdxUtils {
                     break rootLoop;
                 }
             }
-        //} while (!parent.path().equals(parent.type() == Files.FileType.Absolute ? "/" : ""));
-        } while (!parent.path().equals(Conventions.modelsRootDirectory));
+        } while (!parent.path().equals(Conventions.modelsRootDirectory)
+                    && !parent.path().equals(parent.type() == Files.FileType.Absolute ? "/" : ""));
 
         return soughtFileHandle;
     }
