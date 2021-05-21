@@ -35,6 +35,7 @@ import com.badlogic.gdx.graphics.g3d.environment.PointLight;
 import com.badlogic.gdx.graphics.g3d.environment.SpotLight;
 import com.badlogic.gdx.graphics.g3d.model.Animation;
 import com.badlogic.gdx.graphics.g3d.model.Node;
+import com.badlogic.gdx.graphics.g3d.model.NodePart;
 import com.badlogic.gdx.graphics.g3d.shaders.BaseShader;
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import com.badlogic.gdx.graphics.g3d.utils.*;
@@ -96,6 +97,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
     private Table rootTable;
     private Table gridTable;
     private Table XYZTable;
+
+    // TODO: this is to be changed when implemented with reflection
     private Table attrTable;
     private Table textureAttrTable;
 
@@ -108,6 +111,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
     private CheckBox gridXZCheckBox;
     private CheckBox gridYCheckBox;
     private SelectBox<String> modelSelectBox;
+    private SelectBox<String> nodeSelectBox;
     private SelectBox<String> animationSelectBox = null;
     private SelectBox<String> textureSelectBox = null;
     private TextButton gridTextButton = null;
@@ -121,6 +125,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
 //            public final static long Ambient
 //            public final static long Emissive
 //            public final static long Reflection
+    // TODO: this is to be changed when implemented with reflection
     private TextField textureOffsetU = null;
     private TextField textureOffsetV = null;
     private TextField textureScaleU = null;
@@ -183,7 +188,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         int i = 0;
         while (modelInstance == null && i < models.size) {
             String filename = assetManager.getAssetFileName(models.get(i++));
-            switchModelInstance(filename);
+            switchModelInstance(filename, null, -1);
             if (modelInstance != null) {
                 Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
                         "model selected: " + filename);
@@ -325,12 +330,13 @@ public class ModelPreviewScreen extends ScreenAdapter {
     /**
      * @param assetName
      */
-    private void switchModelInstance(String assetName) {
+    private void switchModelInstance(String assetName, String nodeId, int nodeIndex) {
         // TODO: add checks for null perspectiveCamera, cameraInputController, and the size of models
 
         Model model = assetManager.get(assetName, Model.class);
 
         modelInstance = null;
+
         if (model.materials.size == 0 && model.meshes.size == 0 && model.meshParts.size == 0) {
             if (model.animations.size > 0) {
                 Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
@@ -339,8 +345,66 @@ public class ModelPreviewScreen extends ScreenAdapter {
             return; // we got animations only model
         }
 
+        if (model.nodes.size != 0 && nodeId == null) { // switching the whole asset
+            nodeSelectBox.clearItems();
+
+            String array1[] = Arrays.stream(model.nodes.toArray(Node.class)).map(n->n.id).toArray(String[]::new);
+            String array2[] = new String[array1.length + 1];
+            System.arraycopy(array1, 0, array2, 1, array1.length);
+            array2[0] = "All";
+
+            nodeSelectBox.setItems(array2);
+        }
+
         // see: ModelBuilder() - https://libgdx.badlogicgames.com/ci/nightlies/dist/docs/api/com/badlogic/gdx/graphics/g3d/utils/ModelBuilder.html
-        modelInstance = new ModelInstance(model);
+        if (nodeId == null) {
+            modelInstance = new ModelInstance(model);
+            nodeSelectBox.getStyle().fontColor = Color.WHITE;
+        } else {
+//            Array<String> nodeTree = new Array<>();
+//            for (Node node:model.nodes) {
+//                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
+//                        "node '" + node.id + "': \n" + LibgdxUtils.traverseNode(node, nodeTree, " ").toString("\n"));
+//                nodeTree.clear();
+//            }
+
+            for (NodePart part:model.nodes.get(nodeIndex).parts) {
+                // see model.nodePartBones
+                // ModelInstance.copyNodes(model.nodes, rootNodeIds); - fills in the bones...
+                if (part.invBoneBindTransforms != null) {
+                    // see Node.calculateBoneTransforms. It fails with:
+                    // Caused by: java.lang.NullPointerException
+                    //        at com.badlogic.gdx.graphics.g3d.model.Node.calculateBoneTransforms(Node.java:94)
+                    //        at com.badlogic.gdx.graphics.g3d.ModelInstance.calculateTransforms(ModelInstance.java:406)
+                    //        at com.badlogic.gdx.graphics.g3d.ModelInstance.<init>(ModelInstance.java:157)
+                    //        at com.badlogic.gdx.graphics.g3d.ModelInstance.<init>(ModelInstance.java:145)
+                    // (this line: part.bones[i].set(part.invBoneBindTransforms.keys[i].globalTransform).mul(part.invBoneBindTransforms.values[i]);)
+                    //
+                    // part.invBoneBindTransforms.keys[i] == null, giving the exception
+                    // model.nodes.get(nodeIndex).parts.get(<any>).invBoneBindTransforms actually contains both
+                    // the keys(Nodes (head, leg, etc...)) and values (Matrix4's)...
+                    // so the keys are getting invalidated (set to null) in ModelInstance.invalidate (Node node)
+                    // because the nodes they refer to located in other root nodes (not the selected one)
+                    modelInstance = new ModelInstance(model);
+                    nodeSelectBox.getStyle().fontColor = Color.RED;
+                    break;
+                }
+            }
+
+            if (modelInstance == null) {
+                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),"nodeId: " + nodeId + " nodeIndex: " + nodeIndex);
+                //modelInstance = new ModelInstance(model);
+                modelInstance = new ModelInstance(model, nodeId);
+                nodeSelectBox.getStyle().fontColor = Color.WHITE;
+                // for some reasons getting this exception in case nodeId == null:
+                // (should be done like (String[])null maybe...)
+                // Exception in thread "LWJGL Application" java.lang.NullPointerException
+                //        at com.badlogic.gdx.graphics.g3d.ModelInstance.copyNodes(ModelInstance.java:232)
+                //        at com.badlogic.gdx.graphics.g3d.ModelInstance.<init>(ModelInstance.java:155)
+                //        at com.badlogic.gdx.graphics.g3d.ModelInstance.<init>(ModelInstance.java:145)
+            }
+        }
+
         // see other useful constructors:
         // new ModelInstance (model, final String nodeId, boolean mergeTransform...
         // new ModelInstance (model, final String... rootNodeIds
@@ -807,11 +871,6 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // SELECT BOXES:
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#selectbox
         modelSelectBox = new SelectBox<>(skin);
-        //String[] items = (String[]) Arrays.stream(models.items).map(assetManager::getAssetFileName).toArray();
-        // Exception in thread "LWJGL Application" java.lang.ClassCastException:
-        // class [Ljava.lang.Object; cannot be cast to class [Lcom.badlogic.gdx.graphics.g3d.Model;
-        // ([Ljava.lang.Object; is in module java.base of loader 'bootstrap';
-        // [Lcom.badlogic.gdx.graphics.g3d.Model; is in unnamed module of loader 'app')
 
         // Select Box: Models
         Array<String> itemsModel = new Array<>();
@@ -834,13 +893,33 @@ public class ModelPreviewScreen extends ScreenAdapter {
                 if (modelSelectBox.getSelected().equals(noModelsAvailable)) {
                     return;
                 }
-                switchModelInstance(modelSelectBox.getSelected());
+                switchModelInstance(modelSelectBox.getSelected(), null, -1);
                 Gdx.app.debug(modelSelectBox.getClass().getSimpleName(),
                         "model selected: " + modelSelectBox.getSelected());
             }
         });
 
+        // Select Box: Nodes
+        // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#selectbox
+        nodeSelectBox = new SelectBox<>(skin);
+        nodeSelectBox.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                if (modelInstance == null) {
+                    return; // we're in the init phase...
+                }
+                if (nodeSelectBox.getSelectedIndex() == 0) { // 'all' selected
+                    switchModelInstance(modelSelectBox.getSelected(), null, -1);
+                } else {
+                    switchModelInstance(modelSelectBox.getSelected(),
+                            nodeSelectBox.getSelected(), nodeSelectBox.getSelectedIndex() - 1); // -1 since there's 'all' item
+                }
+            }
+        });
+
+
         // Select Box: Animations
+        // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#selectbox
         animationSelectBox = new SelectBox<>(skin);
         animationSelectBox.addListener(new ChangeListener() {
             @Override
@@ -917,12 +996,12 @@ public class ModelPreviewScreen extends ScreenAdapter {
                     return;
                 }
 
+                modelInstance.materials.get(0).remove(TextureAttribute.Diffuse);
+
                 if (textureSelectBox.getSelectedIndex() == 0 || textureSelectBox.getSelected() == null) {
                     miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
                     return;
                 }
-
-                modelInstance.materials.get(0).remove(TextureAttribute.Diffuse);
 
                 // scaling seems to zoom in/out the texture image towards the mesh
 //                modelInstance.materials.get(0).get(TextureAttribute.class, TextureAttribute.Diffuse).scaleU = 10;
@@ -1207,6 +1286,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
         Table upperPanel = new Table();
         upperPanel.add(new Label("Models: ", skin));
         upperPanel.add(modelSelectBox);
+        upperPanel.add(new Label("Nodes: ", skin));
+        upperPanel.add(nodeSelectBox);
         upperPanel.add(new Label("Textures: ", skin));
         upperPanel.add(textureSelectBox);
         upperPanel.add(new Label("Animations: ", skin));

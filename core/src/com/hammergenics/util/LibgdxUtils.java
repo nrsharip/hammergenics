@@ -295,6 +295,15 @@ public class LibgdxUtils {
         return out.toString().replace("field :","");
     }
 
+    public static Array<String> traverseNode(Node node, Array<String> out, String indent) {
+        if (node == null) { return out; }
+        out.add(indent + node.id);
+        if (node.hasChildren()) {
+            node.getChildren().forEach(child -> traverseNode(child, out, indent + " "));
+        }
+        return out;
+    }
+
     /**
      * @param fileHandle
      * @param filter
