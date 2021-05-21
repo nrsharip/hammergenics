@@ -161,15 +161,16 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
         // Model.class
         assetManager.getAll(Model.class, models);
-        Gdx.app.debug(getClass().getSimpleName(),"models loaded: " + models.size);
+        Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "models loaded: " + models.size);
         if (models.size == 0) {
-            Gdx.app.error(getClass().getSimpleName(), "No models available");
+            Gdx.app.error(Thread.currentThread().getStackTrace()[1].getMethodName(), "No models available");
             Gdx.app.exit(); // On iOS this should be avoided in production as it breaks Apples guidelines
             return;
         }
         // Texture.class
         assetManager.getAll(Texture.class, textures);
-        Gdx.app.debug(getClass().getSimpleName(),"textures loaded: " + textures.size + "\n" + textures.toString("\n"));
+        Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
+                "textures loaded: " + textures.size + "\n" + textures.toString("\n"));
 
         // Camera related
         perspectiveCamera = new PerspectiveCamera(70f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -308,7 +309,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         }
 
         // FIXME: putting this attributes code here for now to trigger on resize.
-//        Gdx.app.debug(getClass().getSimpleName(),
+//        Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
 //                "Attribute Aliases registered so far:\n"
 //                        + LibGDXUtil.getRegisteredAttributeAliases().toString("\n"));
     }
@@ -361,6 +362,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
             modelInstance = new ModelInstance(model);
             nodeSelectBox.getStyle().fontColor = Color.WHITE;
         } else {
+            // TODO: maybe it's good to add a Tree for Node traversal
+            // https://libgdx.badlogicgames.com/ci/nightlies/docs/api/com/badlogic/gdx/scenes/scene2d/ui/Tree.html
 //            Array<String> nodeTree = new Array<>();
 //            for (Node node:model.nodes) {
 //                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
@@ -650,11 +653,13 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
                     //modelInstance.copyAnimations(m.animations);
                     m.animations.forEach(animation -> {
-                        //Gdx.app.debug(getClass().getSimpleName(), "animation: " + animation.id);
+                        //Gdx.app.debug(Thread.currentThread().getStackTrace()[3].getMethodName(),
+                        // "animation: " + animation.id);
                         // this is to make sure that we don't add the same animation multiple times
                         // from different animation models
                         if (!animationsPresent.contains(animation.id, false)) {
-                            Gdx.app.debug(getClass().getSimpleName(), "adding animation: " + animation.id);
+                            Gdx.app.debug(Thread.currentThread().getStackTrace()[3].getMethodName(),
+                                    "adding animation: " + animation.id);
                             modelInstance.copyAnimation(animation);
                             animationsPresent.add(animation.id);
                         }
@@ -844,7 +849,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
         if (clockFPS > 1) { // every second
             int fps = Gdx.graphics.getFramesPerSecond();
             fpsLabel.setText("FPS: " + fps);
-            //Gdx.app.debug("clockFPS", "time elapsed: " + clockFPS + " seconds passed. FPS = " + fps);
+            //Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
+            // "time elapsed: " + clockFPS + " seconds passed. FPS = " + fps);
             clockFPS = 0; // reset your variable to 0
         }
     }
@@ -1133,10 +1139,11 @@ public class ModelPreviewScreen extends ScreenAdapter {
                                                     .collect(Array::new, Array::add, Array::addAll);
         Array<String> itemsTextureWrap = Arrays.stream(TextureWrap.values()).map(String::valueOf)
                                                     .collect(Array::new, Array::add, Array::addAll);
-        Gdx.app.debug("TextureSelectBox." + Thread.currentThread().getStackTrace()[1].getMethodName(),
-                "TextureFilter: \n" + itemsTextureFilter.toString("\n"));
-        Gdx.app.debug("TextureSelectBox." + Thread.currentThread().getStackTrace()[1].getMethodName(),
-                "TextureWrap: \n" + itemsTextureWrap.toString("\n"));
+
+//        Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
+//                "TextureFilter: \n" + itemsTextureFilter.toString("\n"));
+//        Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
+//                "TextureWrap: \n" + itemsTextureWrap.toString("\n"));
 
         textureMinFilter = new SelectBox<>(skin);
         textureMinFilter.setName("textureMinFilter");
@@ -1525,7 +1532,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // You can call the modelBatch.ownsRenderContext method to check whether the ModelBatch owns and manages the RenderContext.
         // 1 concrete class: RenderContext
         modelBatch.getRenderContext();
-        Gdx.app.debug(getClass().getSimpleName(),"TextureBinder used: "
+        Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),"TextureBinder used: "
                 + modelBatch.getRenderContext().textureBinder.getClass().getSimpleName());
 
         // ************************
