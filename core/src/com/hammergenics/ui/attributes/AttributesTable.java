@@ -20,6 +20,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g3d.Attribute;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.utils.ArrayMap;
 import com.hammergenics.ui.AbstractTable;
 
 import java.lang.reflect.Field;
@@ -31,9 +32,18 @@ import java.util.Arrays;
  *
  * @author nrsharip
  */
-public abstract class AttributesTable extends AbstractTable {
+public abstract class AttributesTable extends AbstractAttributeTable {
     public Class<? extends Attribute> aClass;
     public Attributes container;
+
+    /**
+     * type to alias map
+     */
+    public ArrayMap<Long, String> t2a;
+    /**
+     * alias to type map
+     */
+    public ArrayMap<String, Long> a2t;
 
     /**
      * @param skin
@@ -43,12 +53,16 @@ public abstract class AttributesTable extends AbstractTable {
         super(skin);
         this.aClass = aClass;
         this.container = container;
+
+        t2a = new ArrayMap<>();
+        a2t = new ArrayMap<>();
+        traverse();
     }
 
     /**
      *
      */
-    public void traverse() {
+    private void traverse() {
         Field[] attrTypesFields = Arrays.stream(aClass.getFields())       // getting all accessible public fields
                 .filter(field -> field.getType().equals(Long.TYPE))       // taking only fields of type 'long'
                 .filter(field -> Modifier.isFinal(field.getModifiers()))  // taking only final fields
@@ -63,12 +77,17 @@ public abstract class AttributesTable extends AbstractTable {
         for (Field field: attrTypesFields) {
             try {
                 long type = field.getLong(null); // null is allowed for static fields...
+                String alias = Attribute.getAttributeAlias(type);
 
-                if (Attribute.getAttributeAlias(type) == null) {
+                if (alias == null) {
                     Gdx.app.debug(getClass().getSimpleName(),
                             "WARNING: field value is not a registered Attribute Type: "
                                     + aClass.getSimpleName() + "." + field.getName() + " = 0x" + Long.toHexString(type));
+                    continue;
                 }
+
+                t2a.put(type, alias);
+                a2t.put(alias, type);
 
                 Gdx.app.debug(getClass().getSimpleName(),
                         aClass.getSimpleName() + "." + field.getName() + ": 0x" + Long.toHexString(type)

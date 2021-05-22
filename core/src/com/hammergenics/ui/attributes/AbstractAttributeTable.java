@@ -16,21 +16,25 @@
 
 package com.hammergenics.ui.attributes;
 
-import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.hammergenics.ui.AbstractTable;
 
 /**
  * Add description here
  *
  * @author nrsharip
  */
-public abstract class AttributeTable extends AbstractAttributeTable {
-    public Attributes container;
-    protected long currentType = 0;
-    protected String currentTypeAlias = null;
+public abstract class AbstractAttributeTable extends AbstractTable {
+    protected Event listener = null;
 
-    public AttributeTable(Skin skin, Attributes container) {
+    public AbstractAttributeTable(Skin skin) {
         super(skin);
-        this.container = container;
+    }
+
+    public abstract void setListener(Event listener);
+
+    public interface Event {
+        void onAttributeEnabled(long type, String alias);
+        void onAttributeDisabled(long type, String alias);
     }
 }

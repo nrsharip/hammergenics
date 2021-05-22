@@ -53,8 +53,9 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.hammergenics.HGGame;
-import com.hammergenics.ui.TextureAttributesTable;
 import com.hammergenics.config.Config;
+import com.hammergenics.ui.attributes.AbstractAttributeTable;
+import com.hammergenics.ui.attributes.TextureAttributesTable;
 import com.hammergenics.util.LibgdxUtils;
 
 import java.util.Arrays;
@@ -467,7 +468,18 @@ public class ModelPreviewScreen extends ScreenAdapter {
         TextureAttribute textureDiffuse = null;
         if (modelInstance.materials != null && modelInstance.materials.size > 0) {
             textureAttrTable = new TextureAttributesTable(skin, modelInstance.materials.get(0));
-            textureAttrTable.traverse();
+            textureAttrTable.setListener(new AbstractAttributeTable.Event() {
+                @Override
+                public void onAttributeEnabled(long type, String alias) {
+                    miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
+                }
+
+                @Override
+                public void onAttributeDisabled(long type, String alias) {
+                    miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
+                }
+            });
+            attrTable.clear();
             attrTable.add(textureAttrTable).top();
 
 //            modelInstance.materials.get(0).get(ColorAttribute.class, ColorAttribute.Diffuse).color.set(Color.DARK_GRAY);
@@ -988,6 +1000,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
                 attr.textureDescription.vWrap = texture.getVWrap();
 
                 modelInstance.materials.get(0).set(attr);
+                textureAttrTable.setCurrentTexture(texture);
                 textureAttrTable.resetAttributes();
 
                 // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#image
