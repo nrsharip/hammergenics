@@ -14,13 +14,13 @@
  * limitations under the License.
  ******************************************************************************/
 
-package com.hammergenics.ui;
+package com.hammergenics.ui.attributes;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g3d.Attribute;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.hammergenics.ui.AbstractTable;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -31,20 +31,18 @@ import java.util.Arrays;
  *
  * @author nrsharip
  */
-public abstract class AttributesTable extends Table {
+public abstract class AttributesTable extends AbstractTable {
     public Class<? extends Attribute> aClass;
     public Attributes container;
-    public Skin uiSkin;
 
     /**
      * @param skin
      * @param container
      */
     public AttributesTable(Skin skin, Attributes container, Class<? extends Attribute> aClass) {
-        super(null); // setting no skin for the underlying table...
+        super(skin);
         this.aClass = aClass;
         this.container = container;
-        this.uiSkin = skin;
     }
 
     /**

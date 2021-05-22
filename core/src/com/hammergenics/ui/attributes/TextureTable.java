@@ -14,9 +14,10 @@
  * limitations under the License.
  ******************************************************************************/
 
-package com.hammergenics.ui;
+package com.hammergenics.ui.attributes;
 
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -26,25 +27,12 @@ import com.badlogic.gdx.utils.Array;
 
 import java.util.Arrays;
 
-import static com.badlogic.gdx.graphics.Texture.TextureFilter;
-import static com.badlogic.gdx.graphics.Texture.TextureWrap;
-
 /**
  * Add description here
  *
  * @author nrsharip
  */
-public class TextureAttributesTable extends AttributesTable {
-    // Texture Attribute related
-    // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textfield
-//            public final static long Diffuse
-//            public final static long Specular
-//            public final static long Bump
-//            public final static long Normal
-//            public final static long Ambient
-//            public final static long Emissive
-//            public final static long Reflection
-    // TODO: this is to be changed when implemented with reflection
+public class TextureTable extends AttributeTable {
     private TextField textureOffsetU = null;
     private TextField textureOffsetV = null;
     private TextField textureScaleU = null;
@@ -54,13 +42,8 @@ public class TextureAttributesTable extends AttributesTable {
     private SelectBox<String> textureUWrap = null;
     private SelectBox<String> textureVWrap = null;
 
-    /**
-     * @param skin
-     * @param container
-     */
-    public TextureAttributesTable(Skin skin, Attributes container) {
-        super(skin, container, TextureAttribute.class);
-
+    public TextureTable(Skin skin, Attributes container) {
+        super(skin, container);
         // Texture Attribute related:
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textfield
         textureOffsetU = new TextField("0", skin); textureOffsetU.setName("textureOffsetU");
@@ -118,9 +101,9 @@ public class TextureAttributesTable extends AttributesTable {
         textureScaleU.setTextFieldListener(textFieldListener);
         textureScaleV.setTextFieldListener(textFieldListener);
 
-        Array<String> itemsTextureFilter = Arrays.stream(TextureFilter.values()).map(String::valueOf)
+        Array<String> itemsTextureFilter = Arrays.stream(Texture.TextureFilter.values()).map(String::valueOf)
                 .collect(Array::new, Array::add, Array::addAll);
-        Array<String> itemsTextureWrap = Arrays.stream(TextureWrap.values()).map(String::valueOf)
+        Array<String> itemsTextureWrap = Arrays.stream(Texture.TextureWrap.values()).map(String::valueOf)
                 .collect(Array::new, Array::add, Array::addAll);
 
 //        Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
@@ -165,16 +148,16 @@ public class TextureAttributesTable extends AttributesTable {
                     if (attr != null) {
                         switch (actor.getName()) {
                             case "textureMinFilter":
-                                attr.textureDescription.minFilter = TextureFilter.valueOf(textureMinFilter.getSelected());
+                                attr.textureDescription.minFilter = Texture.TextureFilter.valueOf(textureMinFilter.getSelected());
                                 break;
                             case "textureMagFilter":
-                                attr.textureDescription.magFilter = TextureFilter.valueOf(textureMagFilter.getSelected());
+                                attr.textureDescription.magFilter = Texture.TextureFilter.valueOf(textureMagFilter.getSelected());
                                 break;
                             case "textureUWrap":
-                                attr.textureDescription.uWrap = TextureWrap.valueOf(textureUWrap.getSelected());
+                                attr.textureDescription.uWrap = Texture.TextureWrap.valueOf(textureUWrap.getSelected());
                                 break;
                             case "textureVWrap":
-                                attr.textureDescription.uWrap = TextureWrap.valueOf(textureVWrap.getSelected());
+                                attr.textureDescription.uWrap = Texture.TextureWrap.valueOf(textureVWrap.getSelected());
                                 break;
                         }
                     }
@@ -210,13 +193,9 @@ public class TextureAttributesTable extends AttributesTable {
         add(new Label("vWrap:", skin)).right();
         add(textureVWrap).fillX();
         row();
-
     }
 
-    /**
-     *
-     */
-    public void resetAttributes() {
+    public void resetAttribute() {
         if (container != null) {
             //Material mtl = modelInstance.materials.get(0);
             TextureAttribute attr = null;
