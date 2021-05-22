@@ -17,14 +17,19 @@
 package com.hammergenics.ui.attributes;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
+import com.hammergenics.screens.ModelPreviewScreen;
+import com.hammergenics.util.LibgdxUtils;
 
 import java.util.Arrays;
 
@@ -45,6 +50,7 @@ public class TextureTable extends AttributeTable {
     private SelectBox<String> textureMagFilter = null;
     private SelectBox<String> textureUWrap = null;
     private SelectBox<String> textureVWrap = null;
+    private SelectBox<String> textureSelectBox = null;
 
     private Array<String> itemsTextureFilter;
     private Array<String> itemsTextureWrap;
@@ -56,11 +62,11 @@ public class TextureTable extends AttributeTable {
     // this is a small hack to allow the use of the top panel texture selectbox
     public Texture texture;
 
-    public TextureTable(Skin skin, Attributes container) {
-        super(skin, container);
+    public TextureTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
+        super(skin, container, mps);
 
         addListeners();
-        enabledCheckBox = new CheckBox("", skin);
+        enabledCheckBox = new CheckBox("enabled", skin);
         enabledCheckBox.addListener(checkBoxListener);
 
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textfield
@@ -104,40 +110,93 @@ public class TextureTable extends AttributeTable {
         textureVWrap.clearItems();
         textureVWrap.setItems(itemsTextureWrap);
 
+        textureSelectBox = new SelectBox<>(skin);
+        Array<String> itemsTexture = new Array<>();
+        itemsTexture.add("No Texture Selected");
+        // Select Box: Textures
+        // All PNG files in the same directory and direct subdirecories the asset is located
+        FileHandle assetFileHandle = Gdx.files.local(mps.modelSelectBox.getSelected());
+        Array<FileHandle> textureFileHandleArray;
+        textureFileHandleArray = LibgdxUtils.traversFileHandle(assetFileHandle.parent(),
+                file -> file.isDirectory()
+                        || file.getName().toLowerCase().endsWith("png")  // textures in PNG
+                        || file.getName().toLowerCase().endsWith("tga")  // textures in TGA
+                        || file.getName().toLowerCase().endsWith("bmp")  // textures in BMP
+        );
+
+        // TODO: Add unified convention like "textures | skins" to specify all folders at once
+        // All PNG files in the "textures" directory and subdirectories (if any) on asset's path
+        textureFileHandleArray = LibgdxUtils.traversFileHandle(
+                // starting at parent() since we already traversed current folder/subfolders above
+                LibgdxUtils.fileOnPath(assetFileHandle.parent(), "textures"),
+                textureFileHandleArray,
+                file -> file.isDirectory()
+                        || file.getName().toLowerCase().endsWith("png")  // textures in PNG
+                        || file.getName().toLowerCase().endsWith("tga")  // textures in TGA
+                        || file.getName().toLowerCase().endsWith("bmp")  // textures in BMP
+        );
+        // All PNG files in the "skins" directory and subdirectories (if any) on asset's path
+        textureFileHandleArray = LibgdxUtils.traversFileHandle(
+                // starting at parent() since we already traversed current folder/subfolders above
+                LibgdxUtils.fileOnPath(assetFileHandle.parent(), "skins"),
+                textureFileHandleArray,
+                file -> file.isDirectory()
+                        || file.getName().toLowerCase().endsWith("png")  // textures in PNG
+                        || file.getName().toLowerCase().endsWith("tga")  // textures in TGA
+                        || file.getName().toLowerCase().endsWith("bmp")  // textures in BMP
+        );
+
+        if (textureFileHandleArray.size > 0) {
+            itemsTexture.addAll(textureFileHandleArray.toString(";").split(";"));
+        }
+
+        //[switchModelInstance] before clear
+        //[textureSelectBox.changed] -1
+        //[textureSelectBox.changed] null
+        //[switchModelInstance] after clear/before set
+        //[textureSelectBox.changed] 0
+        //[textureSelectBox.changed] No Texture
+        //[switchModelInstance] after set
+
+        if (textureSelectBox != null) {
+            textureSelectBox.clearItems();
+            textureSelectBox.setItems(itemsTexture);
+        }
 
         textureMinFilter.addListener(selectBoxListener);
         textureMagFilter.addListener(selectBoxListener);
         textureUWrap.addListener(selectBoxListener);
         textureVWrap.addListener(selectBoxListener);
 
-        add().colspan(2);
-        add(new Label("enabled:", skin)).right();
-        add(enabledCheckBox).left();
-        row();
-
         add(new Label("offsetU:", skin)).right();
         add(textureOffsetU).width(40).maxWidth(40);
         add(new Label("minFilter:", skin)).right();
         add(textureMinFilter).fillX();
+        add(enabledCheckBox).expandX().left().padLeft(5f);
         row();
 
         add(new Label("offsetV:", skin)).right();
         add(textureOffsetV).width(40).maxWidth(40);
         add(new Label("magFilter:", skin)).right();
         add(textureMagFilter).fillX();
+        add().expandX();
         row();
 
         add(new Label("scaleU:", skin)).right();
         add(textureScaleU).width(40).maxWidth(40);
         add(new Label("uWrap:", skin)).right();
         add(textureUWrap).fillX();
+        add().expandX();
         row();
 
         add(new Label("scaleV:", skin)).right();
         add(textureScaleV).width(40).maxWidth(40);
         add(new Label("vWrap:", skin)).right();
         add(textureVWrap).fillX();
+        add().expandX();
         row();
+
+        add(textureSelectBox).colspan(5).fillX();
     }
 
     // long Diffuse
@@ -247,7 +306,18 @@ public class TextureTable extends AttributeTable {
         checkBoxListener = new ChangeListener() {
             @Override
             public void changed (ChangeEvent event, Actor actor) {
+                if (textureSelectBox.getSelectedIndex() == 0) {
+                    Gdx.app.debug("enabledCheckBox", "No texture selected: type = 0x"
+                            + Long.toHexString(currentType) + " alias = " + currentTypeAlias);
+                    enabledCheckBox.setChecked(false); // no texture attribute gets enabled without the texture selected first
+                    return;
+                }
+
+                texture = mps.assetManager.get(textureSelectBox.getSelected(), Texture.class);
+
                 if (texture == null) {
+                    Gdx.app.debug("enabledCheckBox", "No texture provided for the attribute: type = 0x"
+                            + Long.toHexString(currentType) + " alias = " + currentTypeAlias);
                     enabledCheckBox.setChecked(false); // no texture attribute gets enabled without the texture selected first
                     return;
                 }
@@ -273,14 +343,23 @@ public class TextureTable extends AttributeTable {
                         attr.textureDescription.vWrap = texture.getVWrap();
                         container.set(attr);
 
+                        mps.textureImage.setDrawable(new TextureRegionDrawable(new TextureRegion(texture)));
+                        Gdx.app.debug("enabledCheckBox", "Setting the attribute: type = 0x"
+                                + Long.toHexString(currentType) + " alias = " + currentTypeAlias);
+
                         if (listener != null) { listener.onAttributeEnabled(currentType, currentTypeAlias); }
                     } else { // removing the attribute
                         if (container.get(currentType) != null) {
                             container.remove(currentType);
 
+                            mps.textureImage.setDrawable(null);
+                            Gdx.app.debug("enabledCheckBox", "Clearing the attribute: type = 0x"
+                                    + Long.toHexString(currentType) + " alias = " + currentTypeAlias);
+
                             if (listener != null) { listener.onAttributeDisabled(currentType, currentTypeAlias); }
                         } else {
-                            Gdx.app.error("enabledCheckBox", "ERROR: we shouldn't be here");
+                            Gdx.app.error("enabledCheckBox", "ERROR: we shouldn't be here: type = 0x"
+                                + Long.toHexString(currentType) + " alias = " + currentTypeAlias);
                         }
                     }
                 }

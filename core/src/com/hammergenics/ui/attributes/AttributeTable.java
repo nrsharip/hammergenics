@@ -18,6 +18,7 @@ package com.hammergenics.ui.attributes;
 
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.hammergenics.screens.ModelPreviewScreen;
 
 /**
  * Add description here
@@ -29,8 +30,8 @@ public abstract class AttributeTable extends AbstractAttributeTable {
     protected long currentType = 0;
     protected String currentTypeAlias = null;
 
-    public AttributeTable(Skin skin, Attributes container) {
-        super(skin);
+    public AttributeTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
+        super(skin, mps);
         this.container = container;
     }
 }

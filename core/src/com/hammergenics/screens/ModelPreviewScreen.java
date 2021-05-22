@@ -70,8 +70,8 @@ import static com.badlogic.gdx.graphics.VertexAttributes.Usage;
  * @author nrsharip
  */
 public class ModelPreviewScreen extends ScreenAdapter {
-    private final HGGame game;
-    private final AssetManager assetManager;
+    public final HGGame game;
+    public final AssetManager assetManager;
     private final ModelBatch modelBatch;
 
     private PerspectiveCamera perspectiveCamera;
@@ -95,10 +95,11 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
     // 2D Stage Layout:
     private Table rootTable;
-    private Table gridTable;
-    private Table XYZTable;
 
-    // TODO: this is to be changed when implemented with reflection
+    private Cell<?> infoTCell = null;
+    private Cell<?> infoBCell = null;
+    private Cell<?> editCell = null;
+
     private Table attrTable;
     private TextureAttributesTable textureAttrTable;
 
@@ -106,15 +107,16 @@ public class ModelPreviewScreen extends ScreenAdapter {
     private Label miLabel;  // Model Instance Info
     private Label envLabel; // Environment Info
     private Label fpsLabel; // FPS Info
-    private Image textureImage;
+    public Image textureImage;
     private CheckBox debugStageCheckBox;
     private CheckBox gridXZCheckBox;
     private CheckBox gridYCheckBox;
-    private SelectBox<String> modelSelectBox;
+    public SelectBox<String> modelSelectBox;
     private SelectBox<String> nodeSelectBox;
     private SelectBox<String> animationSelectBox = null;
-    private SelectBox<String> textureSelectBox = null;
-    private TextButton gridTextButton = null;
+    private TextButton mtlTextButton = null;
+    private TextButton envTextButton = null;
+    private TextButton camTextButton = null;
 
     // Current ModelInstance Related:
     private ModelInstance modelInstance = null;
@@ -460,14 +462,10 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // }
         // return result;
 
-        Array<String> itemsTexture = new Array<>();
-        itemsTexture.add("No Texture Selected");
-
         textureImage.setDrawable(null);
 
-        TextureAttribute textureDiffuse = null;
         if (modelInstance.materials != null && modelInstance.materials.size > 0) {
-            textureAttrTable = new TextureAttributesTable(skin, modelInstance.materials.get(0));
+            textureAttrTable = new TextureAttributesTable(skin, modelInstance.materials.get(0), this);
             textureAttrTable.setListener(new AbstractAttributeTable.Event() {
                 @Override
                 public void onAttributeEnabled(long type, String alias) {
@@ -481,83 +479,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
             });
             attrTable.clear();
             attrTable.add(textureAttrTable).top();
-
-//            modelInstance.materials.get(0).get(ColorAttribute.class, ColorAttribute.Diffuse).color.set(Color.DARK_GRAY);
-//            modelInstance.materials.get(0).get(ColorAttribute.class, ColorAttribute.Specular).color.set(Color.DARK_GRAY);
-//            modelInstance.materials.get(0).get(ColorAttribute.class, ColorAttribute.Ambient).color.set(Color.DARK_GRAY);
-//            modelInstance.materials.get(0).get(ColorAttribute.class, ColorAttribute.Emissive).color.set(Color.DARK_GRAY);
-//            modelInstance.materials.get(0).get(FloatAttribute.class, FloatAttribute.Shininess).value /= 10;
-//            modelInstance.materials.get(0).remove(ColorAttribute.Diffuse);   // ! darkens the model
-//            modelInstance.materials.get(0).remove(ColorAttribute.Specular);  // min enabled
-//            modelInstance.materials.get(0).remove(ColorAttribute.Ambient);   // min enabled
-//            modelInstance.materials.get(0).remove(ColorAttribute.Emissive);  // ! adds glowing effect
-//            modelInstance.materials.get(0).remove(FloatAttribute.Shininess); // min enabled
-
-            textureDiffuse = modelInstance.materials.get(0).get(TextureAttribute.class, TextureAttribute.Diffuse);
-            if (textureDiffuse != null) {
-                //textureImage.setDrawable(new TextureRegionDrawable(new TextureRegion(textureDiffuse.textureDescription.texture)));
-                itemsTexture.add(textureDiffuse.textureDescription.texture.toString());
-            }
         }
-
-        // Select Box: Textures
-        FileHandle assetFileHandle = Gdx.files.local(assetName);
-        // All PNG files in the same directory and direct subdirecories the asset is located
-        Array<FileHandle> textureFileHandleArray;
-        textureFileHandleArray = LibgdxUtils.traversFileHandle(assetFileHandle.parent(),
-                file -> file.isDirectory()
-                        || file.getName().toLowerCase().endsWith("png")  // textures in PNG
-                        || file.getName().toLowerCase().endsWith("tga")  // textures in TGA
-                        || file.getName().toLowerCase().endsWith("bmp")  // textures in BMP
-        );
-
-        // TODO: Add unified convention like "textures | skins" to specify all folders at once
-        // All PNG files in the "textures" directory and subdirectories (if any) on asset's path
-        textureFileHandleArray = LibgdxUtils.traversFileHandle(
-                // starting at parent() since we already traversed current folder/subfolders above
-                LibgdxUtils.fileOnPath(assetFileHandle.parent(), "textures"),
-                textureFileHandleArray,
-                file -> file.isDirectory()
-                        || file.getName().toLowerCase().endsWith("png")  // textures in PNG
-                        || file.getName().toLowerCase().endsWith("tga")  // textures in TGA
-                        || file.getName().toLowerCase().endsWith("bmp")  // textures in BMP
-        );
-        // All PNG files in the "skins" directory and subdirectories (if any) on asset's path
-        textureFileHandleArray = LibgdxUtils.traversFileHandle(
-                // starting at parent() since we already traversed current folder/subfolders above
-                LibgdxUtils.fileOnPath(assetFileHandle.parent(), "skins"),
-                textureFileHandleArray,
-                file -> file.isDirectory()
-                        || file.getName().toLowerCase().endsWith("png")  // textures in PNG
-                        || file.getName().toLowerCase().endsWith("tga")  // textures in TGA
-                        || file.getName().toLowerCase().endsWith("bmp")  // textures in BMP
-        );
-
-        if (textureFileHandleArray.size > 0) {
-            if (textureDiffuse != null) {
-                textureFileHandleArray.removeValue(
-                        Gdx.files.local(textureDiffuse.textureDescription.texture.toString()), false);
-            }
-//            Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
-//                    "adding textures: \n" + textureFileHandleArray.toString("\n"));
-            itemsTexture.addAll(textureFileHandleArray.toString(";").split(";"));
-        }
-
-        //[switchModelInstance] before clear
-        //[textureSelectBox.changed] -1
-        //[textureSelectBox.changed] null
-        //[switchModelInstance] after clear/before set
-        //[textureSelectBox.changed] 0
-        //[textureSelectBox.changed] No Texture
-        //[switchModelInstance] after set
-
-        if (textureSelectBox != null) {
-            textureSelectBox.clearItems();
-            textureSelectBox.setItems(itemsTexture);
-        }
-//        if (textureDiffuse != null) {
-//            textureSelectBox.setSelected(textureDiffuse.textureDescription.texture.toString());
-//        }
 
         textureAttrTable.resetAttributes();
 
@@ -837,7 +759,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         textureImage = new Image();
         textureImage.setPosition(0f, 0f);
         textureImage.setScaling(Scaling.fit);
-        textureImage.setAlign(Align.bottomRight);
+        textureImage.setAlign(Align.bottomLeft);
 
         // LABELS:
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#label
@@ -959,60 +881,6 @@ public class ModelPreviewScreen extends ScreenAdapter {
             }
         });
 
-        // Select Box: Textures
-        textureSelectBox = new SelectBox<>(skin);
-        textureSelectBox.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                textureImage.setDrawable(null);
-                //Gdx.app.debug("textureSelectBox.changed", String.valueOf(textureSelectBox.getSelectedIndex()));
-                //Gdx.app.debug("textureSelectBox.changed", textureSelectBox.getSelected());
-                if (modelInstance == null
-                        || modelInstance.materials == null
-                        || modelInstance.materials.size == 0) {
-                    return;
-                }
-
-                modelInstance.materials.get(0).remove(TextureAttribute.Diffuse);
-
-                if (textureSelectBox.getSelectedIndex() == 0 || textureSelectBox.getSelected() == null) {
-                    miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
-                    return;
-                }
-
-                // scaling seems to zoom in/out the texture image towards the mesh
-//                modelInstance.materials.get(0).get(TextureAttribute.class, TextureAttribute.Diffuse).scaleU = 10;
-//                modelInstance.materials.get(0).get(TextureAttribute.class, TextureAttribute.Diffuse).scaleV = 10;
-//                modelInstance.materials.get(0).get(TextureAttribute.class, TextureAttribute.Diffuse).offsetU = 100;
-//                modelInstance.materials.get(0).get(TextureAttribute.class, TextureAttribute.Diffuse).offsetV = 100;
-
-                Texture texture = assetManager.get(textureSelectBox.getSelected(), Texture.class);
-                TextureAttribute attr = TextureAttribute.createDiffuse(texture);
-
-                // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textfield
-                attr.offsetU = 0;
-                attr.offsetV = 0;
-                attr.scaleU = 1;
-                attr.scaleV = 1;
-                attr.textureDescription.minFilter = texture.getMinFilter();
-                attr.textureDescription.magFilter = texture.getMagFilter();
-                attr.textureDescription.uWrap = texture.getUWrap();
-                attr.textureDescription.vWrap = texture.getVWrap();
-
-                modelInstance.materials.get(0).set(attr);
-                textureAttrTable.setCurrentTexture(texture);
-                textureAttrTable.resetAttributes();
-
-                // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#image
-                // https://libgdx.info/basic_image/
-                // see image constructors starting Image (Texture texture) for Texture to Drawable translation
-                textureImage.setDrawable(new TextureRegionDrawable(new TextureRegion(texture)));
-                Gdx.app.debug(textureSelectBox.getClass().getSimpleName(), "texture selected: " + texture);
-
-                miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
-            }
-        });
-
         // CHECK BOXES:
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#checkbox
         debugStageCheckBox = new CheckBox("debug stage", skin);
@@ -1037,17 +905,34 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
         // TEXT BUTTONS:
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textbutton
-        gridTextButton = new TextButton("grid", skin);
-        gridTextButton.addListener(new InputListener() {
+//        gridTextButton = new TextButton("grid", skin);
+//        gridTextButton.addListener(new InputListener() {
+//            @Override
+//            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+//                XYZTable.setVisible(!XYZTable.isVisible());
+//                return super.touchDown(event, x, y, pointer, button); // false
+//                // If true is returned, this listener will have touch focus, so it will receive all
+//                // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
+//                // Also when true is returned, the event is handled
+//            }
+//        });
+
+        mtlTextButton = new TextButton("MTL", skin);
+        mtlTextButton.addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                XYZTable.setVisible(!XYZTable.isVisible());
+                infoTCell.setActor(miLabel);
+                infoBCell.setActor(textureImage);
+                editCell.setActor(attrTable);
                 return super.touchDown(event, x, y, pointer, button); // false
                 // If true is returned, this listener will have touch focus, so it will receive all
                 // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
                 // Also when true is returned, the event is handled
             }
         });
+
+        envTextButton = new TextButton("ENV", skin);
+        camTextButton = new TextButton("CAM", skin);
 
     }
 
@@ -1080,16 +965,6 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#layout-widgets
         // Table, Container, Stack, ScrollPane, SplitPane, Tree, VerticalGroup, HorizontalGroup
 
-        // Grid Settings related:
-        gridTable = new Table();
-        XYZTable = new Table();
-        XYZTable.add(gridXZCheckBox, gridYCheckBox);
-        XYZTable.setVisible(false);
-
-        gridTable.add(XYZTable).fillX();
-        gridTable.row();
-        gridTable.add(gridTextButton).fillX();
-
         // Attributes related:
         attrTable = new Table();
 
@@ -1112,42 +987,47 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
         // https://github.com/libgdx/libgdx/wiki/Table#adding-cells
         Table upperPanel = new Table();
-        upperPanel.add(new Label("Models: ", skin));
-        upperPanel.add(modelSelectBox);
-        upperPanel.add(new Label("Nodes: ", skin));
-        upperPanel.add(nodeSelectBox);
-        upperPanel.add(new Label("Textures: ", skin));
-        upperPanel.add(textureSelectBox);
-        upperPanel.add(new Label("Animations: ", skin));
-        upperPanel.add(animationSelectBox);
+        upperPanel.add(new Label("Models: ", skin)).right();
+        upperPanel.add(modelSelectBox).padLeft(5f).left();
+        upperPanel.add(new Label("Nodes: ", skin)).padLeft(5f).right();
+        upperPanel.add(nodeSelectBox).padLeft(5f).left();
+        upperPanel.add(new Label("Animations: ", skin)).padLeft(5f).right();
+        upperPanel.add(animationSelectBox).padLeft(5f).left();
         upperPanel.add().expandX();
+
+        rootTable.add();
         rootTable.add(upperPanel).colspan(2).expandX().left();
 
         rootTable.row();
 
-        rootTable.add(miLabel).expand().left();
-        rootTable.add(envLabel).expand().right();
+        Table leftPanel = new Table();
+        leftPanel.add(mtlTextButton).fillX();
+        leftPanel.row();
+        leftPanel.add(envTextButton).fillX();
+        leftPanel.row();
+        leftPanel.add(camTextButton).fillX();
+        leftPanel.row();
 
-        rootTable.row();
+        rootTable.add(leftPanel);
 
-        rootTable.add(attrTable).expand().left().top();
-        //https://github.com/libgdx/libgdx/wiki/Scene2d.ui#image
-        //https://libgdx.info/basic_image/
-        rootTable.add(textureImage).expand().right();
+        Table infoTable = new Table();
+        infoTCell = infoTable.add().expand().top().left();
+        infoTable.row();
+        infoBCell = infoTable.add().expand().bottom().left();
 
-//        rootTable.row();
-//        rootTable.add(new Label("TEST TEST TEST", skin)).expand().left();
-//        rootTable.add(new Label("TEST TEST TEST", skin)).expand().right();
+        rootTable.add(infoTable).expand().fillY().left().padTop(10f);
+        editCell = rootTable.add().expand().right().top().padTop(10f);
 
         rootTable.row();
 
         Table lowerPanel = new Table();
-        lowerPanel.add(fpsLabel).minWidth(90f).bottom();
-        lowerPanel.add(debugStageCheckBox).minWidth(90f).bottom();
-        lowerPanel.add(gridTable).minWidth(90f).bottom();
+        lowerPanel.add(fpsLabel).minWidth(70f).pad(3f);
+        lowerPanel.add(debugStageCheckBox).pad(3f);
+        lowerPanel.add(gridXZCheckBox).pad(3f);
+        lowerPanel.add(gridYCheckBox).pad(3f);
         lowerPanel.add().expandX();
 
-        rootTable.add(lowerPanel).colspan(2).expandX().left();
+        rootTable.add(lowerPanel).colspan(3).expandX().left();
 
         stage.addActor(rootTable);
     }

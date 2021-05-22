@@ -21,7 +21,7 @@ import com.badlogic.gdx.graphics.g3d.Attribute;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.ArrayMap;
-import com.hammergenics.ui.AbstractTable;
+import com.hammergenics.screens.ModelPreviewScreen;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -49,8 +49,8 @@ public abstract class AttributesTable extends AbstractAttributeTable {
      * @param skin
      * @param container
      */
-    public AttributesTable(Skin skin, Attributes container, Class<? extends Attribute> aClass) {
-        super(skin);
+    public AttributesTable(Skin skin, Attributes container, ModelPreviewScreen mps, Class<? extends Attribute> aClass) {
+        super(skin, mps);
         this.aClass = aClass;
         this.container = container;
 
