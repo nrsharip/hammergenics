@@ -115,7 +115,7 @@ public class TextureTable extends AttributeTable {
         itemsTexture.add("No Texture Selected");
         // Select Box: Textures
         // All PNG files in the same directory and direct subdirecories the asset is located
-        FileHandle assetFileHandle = Gdx.files.local(mps.modelSelectBox.getSelected());
+        FileHandle assetFileHandle = Gdx.files.local(mps.stage.modelSelectBox.getSelected());
         Array<FileHandle> textureFileHandleArray;
         textureFileHandleArray = LibgdxUtils.traversFileHandle(assetFileHandle.parent(),
                 file -> file.isDirectory()
@@ -343,7 +343,7 @@ public class TextureTable extends AttributeTable {
                         attr.textureDescription.vWrap = texture.getVWrap();
                         container.set(attr);
 
-                        mps.textureImage.setDrawable(new TextureRegionDrawable(new TextureRegion(texture)));
+                        mps.stage.textureImage.setDrawable(new TextureRegionDrawable(new TextureRegion(texture)));
                         Gdx.app.debug("enabledCheckBox", "Setting the attribute: type = 0x"
                                 + Long.toHexString(currentType) + " alias = " + currentTypeAlias);
 
@@ -352,7 +352,7 @@ public class TextureTable extends AttributeTable {
                         if (container.get(currentType) != null) {
                             container.remove(currentType);
 
-                            mps.textureImage.setDrawable(null);
+                            mps.stage.textureImage.setDrawable(null);
                             Gdx.app.debug("enabledCheckBox", "Clearing the attribute: type = 0x"
                                     + Long.toHexString(currentType) + " alias = " + currentTypeAlias);
 

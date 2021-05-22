@@ -25,7 +25,6 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g3d.*;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
@@ -39,18 +38,10 @@ import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import com.badlogic.gdx.graphics.g3d.utils.*;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
-import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.InputListener;
-import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.*;
-import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
-import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.hammergenics.HGGame;
-import com.hammergenics.config.Config;
+import com.hammergenics.stages.ModelPreviewStage;
 import com.hammergenics.ui.attributes.AbstractAttributeTable;
 import com.hammergenics.ui.attributes.TextureAttributesTable;
 import com.hammergenics.util.LibgdxUtils;
@@ -75,51 +66,21 @@ public class ModelPreviewScreen extends ScreenAdapter {
     private CameraInputController cameraInputController;
     // TODO: IMPORTANT see also FirstPersonCameraController
     private Environment environment;
-    private Array<Model> models = new Array<>();
+    public Array<Model> models = new Array<>();
     private Array<Texture> textures = new Array<>();
 
     private Model gridModel = null;
     private ModelInstance gridXZModelInstance = null;
     private ModelInstance gridYModelInstance = null;
 
-    // 2D Stage - this is where all widgets (buttons, checkboxes, labels etc.) are located
-    private Stage stage;
-
-    // 2D Stage Styling:
-    private Skin skin;
-    private BitmapFont labelBitmapFont;
-    private Label.LabelStyle labelStyle;
-
-    // 2D Stage Layout:
-    private Table rootTable;
-
-    private Cell<?> infoTCell = null;
-    private Cell<?> infoBCell = null;
-    private Cell<?> editCell = null;
-
-    private Table attrTable;
-    private TextureAttributesTable textureAttrTable;
-
-    // 2D Stage Widgets:
-    private Label miLabel;  // Model Instance Info
-    private Label envLabel; // Environment Info
-    private Label fpsLabel; // FPS Info
-    public Image textureImage;
-    private CheckBox debugStageCheckBox;
-    private CheckBox gridXZCheckBox;
-    private CheckBox gridYCheckBox;
-    public SelectBox<String> modelSelectBox;
-    private SelectBox<String> nodeSelectBox;
-    private SelectBox<String> animationSelectBox = null;
-    private TextButton mtlTextButton = null;
-    private TextButton envTextButton = null;
-    private TextButton camTextButton = null;
+    // 2D Stage - this is where all the widgets (buttons, checkboxes, labels etc.) are located
+    public ModelPreviewStage stage;
 
     // Current ModelInstance Related:
-    private ModelInstance modelInstance = null;
-    private AnimationController animationController = null;
-    private AnimationController.AnimationDesc animationDesc = null;
-    private int animationIndex = 0;
+    public ModelInstance modelInstance = null;
+    public AnimationController animationController = null;
+    public AnimationController.AnimationDesc animationDesc = null;
+    public int animationIndex = 0;
 
     private float clockFPS;
 
@@ -157,13 +118,13 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
         // 2D Stage
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#stage-setup
-        stage = new Stage(new ScreenViewport());
-
-        setup2DStageStyling();
-        setup2DStageWidgets();
-        setup2DStageLayout();
+        stage = new ModelPreviewStage(new ScreenViewport(), this);
+        stage.setup2DStageStyling();
+        stage.setup2DStageWidgets();
+        stage.setup2DStageLayout();
         setup3DEnvironment();
-        envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(environment,"", ""));
+
+        stage.envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(environment,"", ""));
 
         int i = 0;
         while (modelInstance == null && i < models.size) {
@@ -237,10 +198,10 @@ public class ModelPreviewScreen extends ScreenAdapter {
         if (modelInstance != null && environment != null) {
             modelBatch.render(modelInstance, environment);
         }
-        if (gridXZModelInstance != null && gridXZCheckBox.isChecked()) {
+        if (gridXZModelInstance != null && stage.gridXZCheckBox.isChecked()) {
             modelBatch.render(gridXZModelInstance);
         }
-        if (gridYModelInstance != null && gridYCheckBox.isChecked()) {
+        if (gridYModelInstance != null && stage.gridYCheckBox.isChecked()) {
             modelBatch.render(gridYModelInstance);
         }
 
@@ -297,7 +258,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
     /**
      * @param assetName
      */
-    private void switchModelInstance(String assetName, String nodeId, int nodeIndex) {
+    public void switchModelInstance(String assetName, String nodeId, int nodeIndex) {
         // TODO: add checks for null perspectiveCamera, cameraInputController, and the size of models
 
         Model model = assetManager.get(assetName, Model.class);
@@ -313,20 +274,20 @@ public class ModelPreviewScreen extends ScreenAdapter {
         }
 
         if (model.nodes.size != 0 && nodeId == null) { // switching the whole asset
-            nodeSelectBox.clearItems();
+            stage.nodeSelectBox.clearItems();
 
             String array1[] = Arrays.stream(model.nodes.toArray(Node.class)).map(n->n.id).toArray(String[]::new);
             String array2[] = new String[array1.length + 1];
             System.arraycopy(array1, 0, array2, 1, array1.length);
             array2[0] = "All";
 
-            nodeSelectBox.setItems(array2);
+            stage.nodeSelectBox.setItems(array2);
         }
 
         // see: ModelBuilder() - https://libgdx.badlogicgames.com/ci/nightlies/dist/docs/api/com/badlogic/gdx/graphics/g3d/utils/ModelBuilder.html
         if (nodeId == null) {
             modelInstance = new ModelInstance(model);
-            nodeSelectBox.getStyle().fontColor = Color.WHITE;
+            stage.nodeSelectBox.getStyle().fontColor = Color.WHITE;
         } else {
             // TODO: maybe it's good to add a Tree for Node traversal
             // https://libgdx.badlogicgames.com/ci/nightlies/docs/api/com/badlogic/gdx/scenes/scene2d/ui/Tree.html
@@ -355,7 +316,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
                     // so the keys are getting invalidated (set to null) in ModelInstance.invalidate (Node node)
                     // because the nodes they refer to located in other root nodes (not the selected one)
                     modelInstance = new ModelInstance(model);
-                    nodeSelectBox.getStyle().fontColor = Color.RED;
+                    stage.nodeSelectBox.getStyle().fontColor = Color.RED;
                     break;
                 }
             }
@@ -364,7 +325,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
                 Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),"nodeId: " + nodeId + " nodeIndex: " + nodeIndex);
                 //modelInstance = new ModelInstance(model);
                 modelInstance = new ModelInstance(model, nodeId);
-                nodeSelectBox.getStyle().fontColor = Color.WHITE;
+                stage.nodeSelectBox.getStyle().fontColor = Color.WHITE;
                 // for some reasons getting this exception in case nodeId == null:
                 // (should be done like (String[])null maybe...)
                 // Exception in thread "LWJGL Application" java.lang.NullPointerException
@@ -386,26 +347,26 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // ********************
         // **** ATTRIBUTES ****
         // ********************
-        textureImage.setDrawable(null);
+        stage.textureImage.setDrawable(null);
 
         if (modelInstance.materials != null && modelInstance.materials.size > 0) {
-            textureAttrTable = new TextureAttributesTable(skin, modelInstance.materials.get(0), this);
-            textureAttrTable.setListener(new AbstractAttributeTable.Event() {
+            stage.textureAttrTable = new TextureAttributesTable(stage.skin, modelInstance.materials.get(0), this);
+            stage.textureAttrTable.setListener(new AbstractAttributeTable.Event() {
                 @Override
                 public void onAttributeEnabled(long type, String alias) {
-                    miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
+                    stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
                 }
 
                 @Override
                 public void onAttributeDisabled(long type, String alias) {
-                    miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
+                    stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
                 }
             });
-            attrTable.clear();
-            attrTable.add(textureAttrTable).top();
+            stage.attrTable.clear();
+            stage.attrTable.add(stage.textureAttrTable).top();
         }
 
-        textureAttrTable.resetAttributes();
+        stage.textureAttrTable.resetAttributes();
 
         copyExternalAnimations(assetName);
 
@@ -432,10 +393,10 @@ public class ModelPreviewScreen extends ScreenAdapter {
         Array<String> itemsAnimation = new Array<>();
         itemsAnimation.add("No Animation");
         modelInstance.animations.forEach(a -> itemsAnimation.add(a.id));
-        animationSelectBox.clearItems();
-        animationSelectBox.setItems(itemsAnimation);
+        stage.animationSelectBox.clearItems();
+        stage.animationSelectBox.setItems(itemsAnimation);
 
-        miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
+        stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
         // Uncomment to get gen_* files with fields contents:
         //LibGDXUtil.getFieldsContents(perspectiveCamera, 2, "", true);
         //LibGDXUtil.getFieldsContents(cameraInputController, 2,  "", true);
@@ -645,233 +606,14 @@ public class ModelPreviewScreen extends ScreenAdapter {
         clockFPS += delta; // add the time since the last frame
         if (clockFPS > 1) { // every second
             int fps = Gdx.graphics.getFramesPerSecond();
-            fpsLabel.setText("FPS: " + fps);
+            stage.fpsLabel.setText("FPS: " + fps);
             //Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
             // "time elapsed: " + clockFPS + " seconds passed. FPS = " + fps);
             clockFPS = 0; // reset your variable to 0
         }
     }
 
-    /**
-     *
-     */
-    public void setup2DStageWidgets() {
-        // WIDGETS for 2D Stage (https://github.com/libgdx/libgdx/wiki/Scene2d.ui#widgets)
-        // IMAGES:
-        // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#image
-        // https://libgdx.info/basic_image/
-        textureImage = new Image();
-        textureImage.setPosition(0f, 0f);
-        textureImage.setScaling(Scaling.fit);
-        textureImage.setAlign(Align.bottomLeft);
 
-        // LABELS:
-        // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#label
-        fpsLabel = new Label("", labelStyle);
-        miLabel = new Label("", labelStyle);
-        envLabel = new Label("", labelStyle);
-
-        // SELECT BOXES:
-        // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#selectbox
-        modelSelectBox = new SelectBox<>(skin);
-
-        // Select Box: Models
-        Array<String> itemsModel = new Array<>();
-        for (Model model: models) {
-            if (model.materials.size == 0 && model.meshes.size == 0 && model.meshParts.size == 0) {
-                continue;
-            }
-
-            itemsModel.add(assetManager.getAssetFileName(model));
-        }
-
-        String noModelsAvailable = "No models available";
-        if (itemsModel.size == 0) { itemsModel.add(noModelsAvailable); }
-
-        modelSelectBox.clearItems();
-        modelSelectBox.setItems(itemsModel);
-        modelSelectBox.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                if (modelSelectBox.getSelected().equals(noModelsAvailable)) {
-                    return;
-                }
-                switchModelInstance(modelSelectBox.getSelected(), null, -1);
-                Gdx.app.debug(modelSelectBox.getClass().getSimpleName(),
-                        "model selected: " + modelSelectBox.getSelected());
-            }
-        });
-
-        // Select Box: Nodes
-        // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#selectbox
-        nodeSelectBox = new SelectBox<>(skin);
-        nodeSelectBox.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                if (modelInstance == null) {
-                    return; // we're in the init phase...
-                }
-                if (nodeSelectBox.getSelectedIndex() == 0) { // 'all' selected
-                    switchModelInstance(modelSelectBox.getSelected(), null, -1);
-                } else {
-                    switchModelInstance(modelSelectBox.getSelected(),
-                            nodeSelectBox.getSelected(), nodeSelectBox.getSelectedIndex() - 1); // -1 since there's 'all' item
-                }
-            }
-        });
-
-
-        // Select Box: Animations
-        // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#selectbox
-        animationSelectBox = new SelectBox<>(skin);
-        animationSelectBox.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                animationIndex = animationSelectBox.getSelectedIndex() - 1; // -1 since we have "No Animation" item
-                if (animationController == null) { return; }
-
-                if (animationIndex < 0) {
-                    animationController.setAnimation(null);
-                    return;
-                }
-
-                animationDesc = animationController.setAnimation(modelInstance.animations.get(animationIndex).id, -1);
-                Gdx.app.debug(animationSelectBox.getClass().getSimpleName(),
-                        "animation selected: " + modelInstance.animations.get(animationIndex).id);
-                // Uncomment to get gen_* files with fields contents:
-                //LibGDXUtil.getFieldsContents(animationDesc, 3,  "", true);
-            }
-        });
-
-        // CHECK BOXES:
-        // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#checkbox
-        debugStageCheckBox = new CheckBox("debug stage", skin);
-        debugStageCheckBox.setChecked(false);
-        debugStageCheckBox.addListener(new ChangeListener() {
-            @Override
-            public void changed (ChangeEvent event, Actor actor) {
-                // https://github.com/libgdx/libgdx/wiki/Table#debugging
-                // turn on all debug lines (table, cell, and widget)
-                //rootTable.setDebug(debugLayoutCheckBox.isChecked());
-                stage.setDebugAll(debugStageCheckBox.isChecked());
-            }
-        });
-
-        // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#checkbox
-        gridXZCheckBox = new CheckBox("XZ", skin);
-        gridXZCheckBox.setChecked(true);
-
-        // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#checkbox
-        gridYCheckBox = new CheckBox("Y", skin);
-        gridYCheckBox.setChecked(true);
-
-        // TEXT BUTTONS:
-        // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textbutton
-        mtlTextButton = new TextButton("MTL", skin);
-        mtlTextButton.addListener(new InputListener() {
-            @Override
-            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                infoTCell.setActor(miLabel);
-                infoBCell.setActor(textureImage);
-                editCell.setActor(attrTable);
-                return super.touchDown(event, x, y, pointer, button); // false
-                // If true is returned, this listener will have touch focus, so it will receive all
-                // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
-                // Also when true is returned, the event is handled
-            }
-        });
-
-        envTextButton = new TextButton("ENV", skin);
-        camTextButton = new TextButton("CAM", skin);
-
-    }
-
-    /**
-     *
-     */
-    public void setup2DStageStyling() {
-        // https://github.com/libgdx/libgdx/wiki/Managing-your-assets#loading-a-ttf-using-the-assethandler
-        labelBitmapFont = assetManager.get(Config.ASSET_FILE_NAME_FONT, BitmapFont.class);
-        labelStyle = new Label.LabelStyle(labelBitmapFont, Color.BLACK);
-        // SKIN for 2D Stage Widgets
-        // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#skin
-        // Skin files from the libGDX tests can be used as a starting point.
-        // https://github.com/libgdx/libgdx/tree/master/tests/gdx-tests-android/assets/data
-        // You will need: uiskin.png, uiskin.atlas, uiskin.json, and default.fnt.
-        // This enables you to quickly get started using scene2d.ui and replace the skin assets later.
-        // https://github.com/libgdx/libgdx/wiki/Texture-packer#textureatlas
-        //TextureAtlas atlas;
-        //atlas = new TextureAtlas(Gdx.files.internal("skins/libgdx/uiskin.atlas"));
-        // https://github.com/libgdx/libgdx/wiki/Skin#resources
-        // https://github.com/libgdx/libgdx/wiki/Skin#skin-json
-        skin = new Skin(Gdx.files.internal(Config.ASSET_FILE_NAME_SKIN));
-        //skin.addRegions(atlas);
-    }
-
-    /**
-     *
-     */
-    public void setup2DStageLayout() {
-        // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#layout-widgets
-        // Table, Container, Stack, ScrollPane, SplitPane, Tree, VerticalGroup, HorizontalGroup
-
-        // Attributes related:
-        attrTable = new Table();
-
-        // ROOT TABLE:
-        // https://github.com/libgdx/libgdx/wiki/Table#quickstart
-        rootTable = new Table();
-        // https://github.com/libgdx/libgdx/wiki/Table#root-table
-        rootTable.setFillParent(true);
-        // https://github.com/libgdx/libgdx/wiki/Table#debugging
-        rootTable.setDebug(false);
-
-        // https://github.com/libgdx/libgdx/wiki/Table#adding-cells
-        Table upperPanel = new Table();
-        upperPanel.add(new Label("Models: ", skin)).right();
-        upperPanel.add(modelSelectBox).padLeft(5f).left();
-        upperPanel.add(new Label("Nodes: ", skin)).padLeft(5f).right();
-        upperPanel.add(nodeSelectBox).padLeft(5f).left();
-        upperPanel.add(new Label("Animations: ", skin)).padLeft(5f).right();
-        upperPanel.add(animationSelectBox).padLeft(5f).left();
-        upperPanel.add().expandX();
-
-        rootTable.add();
-        rootTable.add(upperPanel).colspan(2).expandX().left();
-
-        rootTable.row();
-
-        Table leftPanel = new Table();
-        leftPanel.add(mtlTextButton).fillX();
-        leftPanel.row();
-        leftPanel.add(envTextButton).fillX();
-        leftPanel.row();
-        leftPanel.add(camTextButton).fillX();
-        leftPanel.row();
-
-        rootTable.add(leftPanel);
-
-        Table infoTable = new Table();
-        infoTCell = infoTable.add().expand().top().left();
-        infoTable.row();
-        infoBCell = infoTable.add().expand().bottom().left();
-
-        rootTable.add(infoTable).expand().fillY().left().padTop(10f);
-        editCell = rootTable.add().expand().right().top().padTop(10f);
-
-        rootTable.row();
-
-        Table lowerPanel = new Table();
-        lowerPanel.add(fpsLabel).minWidth(70f).pad(3f);
-        lowerPanel.add(debugStageCheckBox).pad(3f);
-        lowerPanel.add(gridXZCheckBox).pad(3f);
-        lowerPanel.add(gridYCheckBox).pad(3f);
-        lowerPanel.add().expandX();
-
-        rootTable.add(lowerPanel).colspan(3).expandX().left();
-
-        stage.addActor(rootTable);
-    }
 
     /**
      *
