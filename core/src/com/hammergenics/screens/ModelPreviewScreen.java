@@ -26,10 +26,8 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g3d.*;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
-import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.environment.PointLight;
 import com.badlogic.gdx.graphics.g3d.environment.SpotLight;
@@ -47,7 +45,6 @@ import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
-import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Scaling;
@@ -141,7 +138,6 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
         // Getting Assets
         // https://github.com/libgdx/libgdx/wiki/Managing-your-assets#getting-assets
-
         // Model.class
         assetManager.getAll(Model.class, models);
         Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "models loaded: " + models.size);
@@ -216,13 +212,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // https://encycolorpedia.com/96b0bc
         Gdx.gl.glClearColor(150 / 255f, 176 / 255f, 188 / 255f, 1f);
         // https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glClear.xml
-        // glClear takes a single argument that is the bitwise OR
-        // of several values indicating which buffer is to be cleared. The values are as follows:
-        // GL_COLOR_BUFFER_BIT   - Indicates the buffers currently enabled for color writing.
         // (https://stackoverflow.com/questions/34164309/gl-color-buffer-bit-regenerating-which-memory)
-        // GL_DEPTH_BUFFER_BIT   - Indicates the depth buffer.
-        // GL_ACCUM_BUFFER_BIT   - Indicates the accumulation buffer.
-        // GL_STENCIL_BUFFER_BIT - Indicates the stencil buffer.
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
         // https://github.com/libgdx/libgdx/wiki/ModelBatch
@@ -230,10 +220,6 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // the begin and end calls. If you need to switch camera in between the begin and end calls,
         // then you can call the modelBatch.setCamera(camera);, which will flush() the batch if needed.
         modelBatch.begin(perspectiveCamera);
-
-        // https://github.com/libgdx/libgdx/wiki/ModelBatch
-        // The call to modelBatch.render(...) is only valid in between
-        // the call to modelBatch.begin(camera) and modelBatch.end()
 
         // https://github.com/libgdx/libgdx/wiki/ModelBatch#what-are-render-calls
         // To specify a render call, libGDX contains the Renderable (code) class, which contains almost everything
@@ -266,9 +252,6 @@ public class ModelPreviewScreen extends ScreenAdapter {
         checkFPS(delta);
 
         stage.act(delta);
-//        stage.getBatch().begin();
-//        stage.getBatch().draw(textures.get(0), 0f, 0f);
-//        stage.getBatch().end();
         stage.draw();
     }
 
@@ -391,28 +374,6 @@ public class ModelPreviewScreen extends ScreenAdapter {
             }
         }
 
-        // see other useful constructors:
-        // new ModelInstance (model, final String nodeId, boolean mergeTransform...
-        // new ModelInstance (model, final String... rootNodeIds
-        // new ModelInstance (model, final Array<String> rootNodeIds...
-        // new ModelInstance (model, float x, float y, float z ---> x,y,z - position
-        // new ModelInstance (model, Matrix4 transform
-        // new ModelInstance (ModelInstance copyFrom...
-
-        // see also other useful methods:
-//        modelInstance.calculateBoundingBox(out); - Calculate the bounding box of this model instance.
-//                                                   !!! This is a potential slow operation, it is advised to cache the result.
-//        modelInstance.calculateTransforms();     - Calculates the local and world transform of all Node instances in this model, recursively.
-//                                                   This method can be used to recalculate all transforms if any of
-//                                                   the Node's local properties (translation, rotation, scale) was modified.
-//        modelInstance.extendBoundingBox(out);    - Extends the bounding box with the bounds of this model instance.
-//                                                   !!! This is a potential slow operation, it is advised to cache
-//        modelInstance.copy();
-//        modelInstance.copyAnimation...
-//        modelInstance.getNode (final String id)                                         ---> getNode(id, true)
-//        modelInstance.getNode (final String id, boolean recursive)                      ---> getNode(id, recursive, false)
-//        modelInstance.getNode (final String id, boolean recursive, boolean ignoreCase)  ---> Node.getNode(nodes, id, recursive, ignoreCase)
-
         // *********************************
         // **** ModelInstance.transform ****
         // *********************************
@@ -420,48 +381,11 @@ public class ModelPreviewScreen extends ScreenAdapter {
 //        modelInstance.transform.setToTranslation(Vector3 position) - changes the position
 //        modelInstance.transform.setToScaling();
 //        see Matrix4 for all operations available...
-
         modelInstance.transform.setToTranslation(0, 0, 0);
 
         // ********************
         // **** ATTRIBUTES ****
         // ********************
-
-        // This is the place where the attributes are coming from (see Model.java):
-        // see new Model (modelData, textureProvider) -> load (...) -> loadMaterials (...) ->
-        //     -> convertMaterial(ModelMaterial mtl, TextureProvider textureProvider):
-        // Material result = new Material();
-        // if (mtl.ambient != null) result.set(new ColorAttribute(ColorAttribute.Ambient, mtl.ambient));
-        // if (mtl.diffuse != null) result.set(new ColorAttribute(ColorAttribute.Diffuse, mtl.diffuse));
-        // ...
-        // if (mtl.textures != null) {
-        //   for (ModelTexture tex : mtl.textures) {
-        //     Texture texture = textureProvider.load(tex.fileName);
-        //
-        //     TextureDescriptor descriptor = new TextureDescriptor(texture) ---> ... ---> set(...)
-        //          this.texture = texture;
-        //          this.minFilter = <null>;
-        //          this.magFilter = <null>;
-        //          this.uWrap = <null>;
-        //          this.vWrap = <null>;
-        //     descriptor.minFilter = texture.getMinFilter();
-        //     descriptor.magFilter = texture.getMagFilter();
-        //     descriptor.uWrap = texture.getUWrap();
-        //     descriptor.vWrap = texture.getVWrap();
-        //     float offsetU = (tex.uvTranslation == null) ? 0f : tex.uvTranslation.x;
-        //     float offsetV = (tex.uvTranslation == null) ? 0f : tex.uvTranslation.y;
-        //     float scaleU = (tex.uvScaling == null) ? 1f : tex.uvScaling.x;
-        //     float scaleV = (tex.uvScaling == null) ? 1f : tex.uvScaling.y;
-        //
-        //     switch (tex.usage) {
-        //     case ModelTexture.USAGE_DIFFUSE:
-        //          result.set(new TextureAttribute(TextureAttribute.Diffuse, descriptor, offsetU, offsetV, scaleU, scaleV));
-        //          break;
-        //     ...
-        //   }
-        // }
-        // return result;
-
         textureImage.setDrawable(null);
 
         if (modelInstance.materials != null && modelInstance.materials.size > 0) {
@@ -499,18 +423,6 @@ public class ModelPreviewScreen extends ScreenAdapter {
         animationController = null;
         if(modelInstance.animations.size > 0) {
             animationController = new AnimationController(modelInstance);
-            // AnimationController extends BaseAnimationController
-
-            // AnimationDesc current               = null
-            // AnimationDesc queued                = null
-            //         float queuedTransitionTime  = 0.0
-            // AnimationDesc previous              = null
-            //         float transitionCurrentTime = 0.0
-            //         float transitionTargetTime  = 0.0
-            //       boolean inAction              = false
-            //       boolean paused                = false
-            //       boolean allowSameAnimation    = false
-            // ModelInstance target                         // BaseAnimationController
 
             // Uncomment to get gen_* files with fields contents:
             //LibGDXUtil.getFieldsContents(animationController, 2,  "", true);
@@ -547,14 +459,6 @@ public class ModelPreviewScreen extends ScreenAdapter {
                 if (filename.startsWith(animationsFolder.toString())) {
 //                    Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
 //                            LibgdxUtils.getFieldsContents(m, 0));
-                    // Array materials  = (0, true)
-                    // Array nodes      = (1, true)
-                    //   0: Node com.badlogic.gdx.graphics.g3d.model.Node
-                    // Array animations = (2, true)
-                    //   0: Animation com.badlogic.gdx.graphics.g3d.model.Animation
-                    //   1: Animation com.badlogic.gdx.graphics.g3d.model.Animation
-                    // Array meshes     = (0, true)
-                    // Array meshParts  = (0, true)
 
                     if (m.materials.size != 0) {
                         Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(),
@@ -836,48 +740,6 @@ public class ModelPreviewScreen extends ScreenAdapter {
                         "animation selected: " + modelInstance.animations.get(animationIndex).id);
                 // Uncomment to get gen_* files with fields contents:
                 //LibGDXUtil.getFieldsContents(animationDesc, 3,  "", true);
-
-                // (the actual numbers here are made up to show what it looks like):
-                // AnimationListener listener  = null
-                //             float speed     = 1.0
-                //             float time      = 0.0
-                //             float offset    = 0.0
-                //             float duration  = 2.784
-                //               int loopCount = -1
-                //         Animation animation = com.badlogic.gdx.graphics.g3d.model.Animation
-                //              String id             = test
-                //               float duration       = 2.784
-                //               Array nodeAnimations =
-                //                     int size = 2
-                //                     0: NodeAnimation com.badlogic.gdx.graphics.g3d.model.NodeAnimation
-                //                         Node node        = com.badlogic.gdx.graphics.g3d.model.Node
-                //                        Array<NodeKeyframe<Vector3>> translation =
-                //                              0: NodeKeyframe com.badlogic.gdx.graphics.g3d.model.NodeKeyframe
-                //                                    float keytime = 0.0
-                //                                   Object value   = <Vector3>
-                //                             ...
-                //                             14: NodeKeyframe com.badlogic.gdx.graphics.g3d.model.NodeKeyframe
-                //                                    float keytime = 2.784
-                //                                   Object value   = <Vector3>
-                //                        Array scaling     =
-                //                              0: NodeKeyframe com.badlogic.gdx.graphics.g3d.model.NodeKeyframe
-                //                                    float keytime = 0.0
-                //                                   Object value   = <Vector3>
-                //                             ...
-                //                             14: NodeKeyframe com.badlogic.gdx.graphics.g3d.model.NodeKeyframe
-                //                                    float keytime = 2.784
-                //                                   Object value   = <Vector3>
-                //                        Array rotation    =
-                //                              0: NodeKeyframe com.badlogic.gdx.graphics.g3d.model.NodeKeyframe
-                //                                    float keytime = 0.0
-                //                                   Object value   = <Quaternion>
-                //                             ...
-                //                             14: NodeKeyframe com.badlogic.gdx.graphics.g3d.model.NodeKeyframe
-                //                                    float keytime = 2.784
-                //                                   Object value   = <Quaternion>
-                //                     1: NodeAnimation com.badlogic.gdx.graphics.g3d.model.NodeAnimation
-                //                            ...
-
             }
         });
 
@@ -905,18 +767,6 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
         // TEXT BUTTONS:
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textbutton
-//        gridTextButton = new TextButton("grid", skin);
-//        gridTextButton.addListener(new InputListener() {
-//            @Override
-//            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-//                XYZTable.setVisible(!XYZTable.isVisible());
-//                return super.touchDown(event, x, y, pointer, button); // false
-//                // If true is returned, this listener will have touch focus, so it will receive all
-//                // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
-//                // Also when true is returned, the event is handled
-//            }
-//        });
-
         mtlTextButton = new TextButton("MTL", skin);
         mtlTextButton.addListener(new InputListener() {
             @Override
@@ -968,21 +818,12 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // Attributes related:
         attrTable = new Table();
 
-        //attrTable.add(textureAttrTable).top();
-
         // ROOT TABLE:
         // https://github.com/libgdx/libgdx/wiki/Table#quickstart
-        // The table sizes and positions its children, so setting the width of the text fields
-        // to 100 is done on the table cell, not on the text fields themselves.
         rootTable = new Table();
         // https://github.com/libgdx/libgdx/wiki/Table#root-table
-        // When doing UI layout, a UI widget does not set its own size.
-        // Instead, it provides a minimum, preferred, and maximum size.
-        // In libgdx the setFillParent method can be used to easily size the root table to the stage
-        // (but should generally only be used on the root table):
         rootTable.setFillParent(true);
         // https://github.com/libgdx/libgdx/wiki/Table#debugging
-        // turn on all debug lines (table, cell, and widget)
         rootTable.setDebug(false);
 
         // https://github.com/libgdx/libgdx/wiki/Table#adding-cells
