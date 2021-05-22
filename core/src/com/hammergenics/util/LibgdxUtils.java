@@ -106,10 +106,8 @@ public class LibgdxUtils {
         // FIXME: calculateBoundingBox is a slow operation - BoundingBox object should be cached
         Vector3 dimensions = mi.calculateBoundingBox(new BoundingBox()).getDimensions(new Vector3());
 
-        StringBuilder modelInstanceInfo = new StringBuilder("ModelInstance:\n")
-                .append(String.format("Dimension X: %.5f\n", dimensions.x))
-                .append(String.format("Dimension Y: %.5f\n", dimensions.y))
-                .append(String.format("Dimension Z: %.5f\n", dimensions.z));
+        StringBuilder modelInstanceInfo = new StringBuilder("ModelInstance: ")
+                .append(String.format("Dimensions X: %.5f Y: %.5f Z: %.5f", dimensions.x, dimensions.y, dimensions.z));
 
         modelInstanceInfo.append("Nodes:\n");
 
