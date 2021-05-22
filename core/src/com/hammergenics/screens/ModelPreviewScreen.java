@@ -467,6 +467,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         TextureAttribute textureDiffuse = null;
         if (modelInstance.materials != null && modelInstance.materials.size > 0) {
             textureAttrTable = new TextureAttributesTable(skin, modelInstance.materials.get(0));
+            textureAttrTable.traverse();
             attrTable.add(textureAttrTable).top();
 
 //            modelInstance.materials.get(0).get(ColorAttribute.class, ColorAttribute.Diffuse).color.set(Color.DARK_GRAY);

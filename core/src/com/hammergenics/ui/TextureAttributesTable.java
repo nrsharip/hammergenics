@@ -34,8 +34,7 @@ import static com.badlogic.gdx.graphics.Texture.TextureWrap;
  *
  * @author nrsharip
  */
-public class TextureAttributesTable extends Table {
-    public Attributes container;
+public class TextureAttributesTable extends AttributesTable {
     // Texture Attribute related
     // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textfield
 //            public final static long Diffuse
@@ -60,9 +59,8 @@ public class TextureAttributesTable extends Table {
      * @param container
      */
     public TextureAttributesTable(Skin skin, Attributes container) {
-        super(null); // setting no skin for the underlying table...
-        this.container = container;
-        // TODO: this whole thing should be redesigned with the use of reflection
+        super(skin, container, TextureAttribute.class);
+
         // Texture Attribute related:
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textfield
         textureOffsetU = new TextField("0", skin); textureOffsetU.setName("textureOffsetU");
