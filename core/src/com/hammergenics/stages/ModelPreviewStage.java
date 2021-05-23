@@ -191,13 +191,26 @@ public class ModelPreviewStage extends Stage {
 
         // TEXT BUTTONS:
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textbutton
+        Color pressedColor = Color.RED;
+        Color unpressedColor = Color.GRAY;
+
         mtlTextButton = new TextButton("MTL", skin);
+        mtlTextButton.getColor().set(unpressedColor);
         mtlTextButton.addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                infoTCell.setActor(miLabel);
-                infoBCell.setActor(textureImage);
-                editCell.setActor(attrTable);
+                if (mtlTextButton.getColor().equals(unpressedColor)) {
+                    mtlTextButton.getColor().set(pressedColor);
+                    infoTCell.setActor(miLabel);
+                    infoBCell.setActor(textureImage);
+                    editCell.setActor(attrTable);
+                } else if (mtlTextButton.getColor().equals(pressedColor)) {
+                    mtlTextButton.getColor().set(unpressedColor);
+                    infoTCell.clearActor();
+                    infoBCell.clearActor();
+                    editCell.clearActor();
+                }
+
                 return super.touchDown(event, x, y, pointer, button); // false
                 // If true is returned, this listener will have touch focus, so it will receive all
                 // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
@@ -206,7 +219,9 @@ public class ModelPreviewStage extends Stage {
         });
 
         envTextButton = new TextButton("ENV", skin);
+        envTextButton.getColor().set(unpressedColor);
         camTextButton = new TextButton("CAM", skin);
+        camTextButton.getColor().set(unpressedColor);
 
     }
 
@@ -273,15 +288,15 @@ public class ModelPreviewStage extends Stage {
         leftPanel.add(camTextButton).fillX();
         leftPanel.row();
 
-        rootTable.add(leftPanel);
+        rootTable.add(leftPanel).padTop(10f).top().left();
 
         Table infoTable = new Table();
         infoTCell = infoTable.add().expand().top().left();
         infoTable.row();
         infoBCell = infoTable.add().expand().bottom().left();
 
-        rootTable.add(infoTable).expand().fillY().left().padTop(10f);
-        editCell = rootTable.add().expand().right().top().padTop(10f);
+        rootTable.add(infoTable).expand().fillY().left().pad(10f);
+        editCell = rootTable.add().expand().right().top().pad(10f);
 
         rootTable.row();
 
