@@ -30,7 +30,7 @@ import com.hammergenics.screens.ModelPreviewScreen;
  *
  * @author nrsharip
  */
-public class TextureAttributesTable extends AttributesTable {
+public class TextureAttributesTable extends AttributesTable<TextureAttribute> {
     // Texture Attribute related
     // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textfield
     private SelectBox<String> textureAttributeSelectBox;

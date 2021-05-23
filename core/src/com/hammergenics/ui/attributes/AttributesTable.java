@@ -32,8 +32,8 @@ import java.util.Arrays;
  *
  * @author nrsharip
  */
-public abstract class AttributesTable extends AbstractAttributeTable { // TODO: make generic?
-    public Class<? extends Attribute> aClass;
+public abstract class AttributesTable<T extends Attribute> extends BaseAttributeTable {
+    public Class<T> aClass;
     public Attributes container;
 
     /**
@@ -49,7 +49,7 @@ public abstract class AttributesTable extends AbstractAttributeTable { // TODO: 
      * @param skin
      * @param container
      */
-    public AttributesTable(Skin skin, Attributes container, ModelPreviewScreen mps, Class<? extends Attribute> aClass) {
+    public AttributesTable(Skin skin, Attributes container, ModelPreviewScreen mps, Class<T> aClass) {
         super(skin, mps);
         this.aClass = aClass;
         this.container = container;

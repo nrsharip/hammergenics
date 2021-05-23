@@ -42,7 +42,7 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.hammergenics.HGGame;
 import com.hammergenics.stages.ModelPreviewStage;
-import com.hammergenics.ui.attributes.AbstractAttributeTable;
+import com.hammergenics.ui.attributes.BaseAttributeTable;
 import com.hammergenics.ui.attributes.ColorAttributesTable;
 import com.hammergenics.ui.attributes.TextureAttributesTable;
 import com.hammergenics.util.LibgdxUtils;
@@ -351,7 +351,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         stage.textureImage.setDrawable(null);
 
         if (modelInstance.materials != null && modelInstance.materials.size > 0) {
-            AbstractAttributeTable.EventListener eventListener = new AbstractAttributeTable.EventListener() {
+            BaseAttributeTable.EventListener eventListener = new BaseAttributeTable.EventListener() {
                 @Override
                 public void onAttributeEnabled(long type, String alias) {
                     stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));

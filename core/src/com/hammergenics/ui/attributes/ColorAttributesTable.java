@@ -28,7 +28,7 @@ import com.hammergenics.screens.ModelPreviewScreen;
  *
  * @author nrsharip
  */
-public class ColorAttributesTable extends AttributesTable {
+public class ColorAttributesTable extends AttributesTable<ColorAttribute> {
     /**
      * attribute type to color attribute table map
      */

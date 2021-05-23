@@ -40,7 +40,7 @@ import static com.badlogic.gdx.scenes.scene2d.ui.TextField.TextFieldListener;
  *
  * @author nrsharip
  */
-public class ColorAttributeTable extends AttributeTable {
+public class ColorAttributeTable extends AttributeTable<ColorAttribute> {
     private static final String ACTOR_R = "r";
     private static final String ACTOR_G = "g";
     private static final String ACTOR_B = "b";

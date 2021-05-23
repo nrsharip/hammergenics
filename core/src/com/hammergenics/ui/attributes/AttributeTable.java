@@ -27,7 +27,7 @@ import com.hammergenics.screens.ModelPreviewScreen;
  *
  * @author nrsharip
  */
-public abstract class AttributeTable extends AbstractAttributeTable { // TODO: make generic?
+public abstract class AttributeTable<T extends Attribute> extends BaseAttributeTable {
     public Attributes container;
     protected long currentType = 0;
     protected String currentTypeAlias = null;
@@ -49,6 +49,6 @@ public abstract class AttributeTable extends AbstractAttributeTable { // TODO: m
     /**
      *
      */
-    protected abstract <T extends Attribute> T createAttribute(String alias);
+    protected abstract T createAttribute(String alias);
 
 }

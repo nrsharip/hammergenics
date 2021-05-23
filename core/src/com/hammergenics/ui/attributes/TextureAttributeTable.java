@@ -41,7 +41,7 @@ import static com.badlogic.gdx.scenes.scene2d.ui.TextField.TextFieldListener;
  *
  * @author nrsharip
  */
-public class TextureAttributeTable extends AttributeTable {
+public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
     private static final String ACTOR_OFFSETU = "textureOffsetU";
     private static final String ACTOR_OFFSETV = "textureOffsetV";
     private static final String ACTOR_SCALEU = "textureScaleU";
@@ -314,7 +314,7 @@ public class TextureAttributeTable extends AttributeTable {
                                 attr.textureDescription.uWrap = Texture.TextureWrap.valueOf(uWrapSB.getSelected());
                                 break;
                             case ACTOR_VWRAP:
-                                attr.textureDescription.uWrap = Texture.TextureWrap.valueOf(vWrapSB.getSelected());
+                                attr.textureDescription.vWrap = Texture.TextureWrap.valueOf(vWrapSB.getSelected());
                                 break;
                         }
                     }

@@ -25,11 +25,11 @@ import com.hammergenics.ui.AbstractTable;
  *
  * @author nrsharip
  */
-public abstract class AbstractAttributeTable extends AbstractTable {
+public abstract class BaseAttributeTable extends AbstractTable {
     protected EventListener listener = null;
     protected ModelPreviewScreen mps;
 
-    public AbstractAttributeTable(Skin skin, ModelPreviewScreen mps) {
+    public BaseAttributeTable(Skin skin, ModelPreviewScreen mps) {
         super(skin);
         this.mps = mps;
     }
