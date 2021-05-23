@@ -78,10 +78,6 @@ public class TextureAttributesTable extends AttributesTable {
         currentTextureTable.resetAttribute(a2t.get(alias), alias);
     }
 
-    public void setCurrentTexture(Texture texture) {
-        currentTextureTable.texture = texture;
-    }
-
     @Override
     public void setListener(Event listener) {
         this.listener = listener;

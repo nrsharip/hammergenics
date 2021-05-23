@@ -42,15 +42,24 @@ import static com.badlogic.gdx.scenes.scene2d.ui.TextField.TextFieldListener;
  * @author nrsharip
  */
 public class TextureTable extends AttributeTable {
+    private static final String ACTOR_OFFSETU = "textureOffsetU";
+    private static final String ACTOR_OFFSETV = "textureOffsetV";
+    private static final String ACTOR_SCALEU = "textureScaleU";
+    private static final String ACTOR_SCALEV = "textureScaleV";
+    private static final String ACTOR_MINFILTER = "textureMinFilter";
+    private static final String ACTOR_MAGFILTER = "textureMagFilter";
+    private static final String ACTOR_UWRAP = "textureUWrap";
+    private static final String ACTOR_VWRAP = "textureVWrap";
+
     private CheckBox enabledCheckBox = null;
-    private TextField textureOffsetU = null;
-    private TextField textureOffsetV = null;
-    private TextField textureScaleU = null;
-    private TextField textureScaleV = null;
-    private SelectBox<String> textureMinFilter = null;
-    private SelectBox<String> textureMagFilter = null;
-    private SelectBox<String> textureUWrap = null;
-    private SelectBox<String> textureVWrap = null;
+    private TextField offsetUTF = null;
+    private TextField offsetVTF = null;
+    private TextField scaleUTF = null;
+    private TextField scaleVTF = null;
+    private SelectBox<String> minFilterSB = null;
+    private SelectBox<String> magFilterSB = null;
+    private SelectBox<String> uWrapSB = null;
+    private SelectBox<String> vWrapSB = null;
     private SelectBox<String> textureSelectBox = null;
 
     private Array<String> itemsTextureFilter;
@@ -61,8 +70,7 @@ public class TextureTable extends AttributeTable {
     private ChangeListener textureSelectBoxListener;
     private ChangeListener checkBoxListener;
 
-    // this is a small hack to allow the use of the top panel texture selectbox
-    public Texture texture;
+    private Texture texture;
 
     public TextureTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
         super(skin, container, mps);
@@ -73,15 +81,15 @@ public class TextureTable extends AttributeTable {
         enabledCheckBox.addListener(checkBoxListener);
 
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textfield
-        textureOffsetU = new TextField("0", skin); textureOffsetU.setName("textureOffsetU");
-        textureOffsetV = new TextField("0", skin); textureOffsetV.setName("textureOffsetV");
-        textureScaleU = new TextField("1", skin); textureScaleU.setName("textureScaleU");
-        textureScaleV = new TextField("1", skin); textureScaleV.setName("textureScaleV");
+        offsetUTF = new TextField("0", skin); offsetUTF.setName(ACTOR_OFFSETU);
+        offsetVTF = new TextField("0", skin); offsetVTF.setName(ACTOR_OFFSETV);
+        scaleUTF = new TextField("1", skin); scaleUTF.setName(ACTOR_SCALEU);
+        scaleVTF = new TextField("1", skin); scaleVTF.setName(ACTOR_SCALEV);
 
-        textureOffsetU.setTextFieldListener(paramTextFieldListener);
-        textureOffsetV.setTextFieldListener(paramTextFieldListener);
-        textureScaleU.setTextFieldListener(paramTextFieldListener);
-        textureScaleV.setTextFieldListener(paramTextFieldListener);
+        offsetUTF.setTextFieldListener(paramTextFieldListener);
+        offsetVTF.setTextFieldListener(paramTextFieldListener);
+        scaleUTF.setTextFieldListener(paramTextFieldListener);
+        scaleVTF.setTextFieldListener(paramTextFieldListener);
 
         itemsTextureFilter = Arrays.stream(Texture.TextureFilter.values()).map(String::valueOf)
                 .collect(Array::new, Array::add, Array::addAll);
@@ -93,25 +101,25 @@ public class TextureTable extends AttributeTable {
 //        Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
 //                "TextureWrap: \n" + itemsTextureWrap.toString("\n"));
 
-        textureMinFilter = new SelectBox<>(skin);
-        textureMinFilter.setName("textureMinFilter");
-        textureMinFilter.clearItems();
-        textureMinFilter.setItems(itemsTextureFilter);
+        minFilterSB = new SelectBox<>(skin);
+        minFilterSB.setName(ACTOR_MINFILTER);
+        minFilterSB.clearItems();
+        minFilterSB.setItems(itemsTextureFilter);
 
-        textureMagFilter = new SelectBox<>(skin);
-        textureMagFilter.setName("textureMagFilter");
-        textureMagFilter.clearItems();
-        textureMagFilter.setItems(itemsTextureFilter);
+        magFilterSB = new SelectBox<>(skin);
+        magFilterSB.setName(ACTOR_MAGFILTER);
+        magFilterSB.clearItems();
+        magFilterSB.setItems(itemsTextureFilter);
 
-        textureUWrap = new SelectBox<>(skin);
-        textureUWrap.setName("textureUWrap");
-        textureUWrap.clearItems();
-        textureUWrap.setItems(itemsTextureWrap);
+        uWrapSB = new SelectBox<>(skin);
+        uWrapSB.setName(ACTOR_UWRAP);
+        uWrapSB.clearItems();
+        uWrapSB.setItems(itemsTextureWrap);
 
-        textureVWrap = new SelectBox<>(skin);
-        textureVWrap.setName("textureVWrap");
-        textureVWrap.clearItems();
-        textureVWrap.setItems(itemsTextureWrap);
+        vWrapSB = new SelectBox<>(skin);
+        vWrapSB.setName(ACTOR_VWRAP);
+        vWrapSB.clearItems();
+        vWrapSB.setItems(itemsTextureWrap);
 
         // Select Box: Textures
         textureSelectBox = new SelectBox<>(skin);
@@ -139,37 +147,37 @@ public class TextureTable extends AttributeTable {
             textureSelectBox.setItems(itemsTexture);
         }
 
-        textureMinFilter.addListener(paramSelectBoxListener);
-        textureMagFilter.addListener(paramSelectBoxListener);
-        textureUWrap.addListener(paramSelectBoxListener);
-        textureVWrap.addListener(paramSelectBoxListener);
+        minFilterSB.addListener(paramSelectBoxListener);
+        magFilterSB.addListener(paramSelectBoxListener);
+        uWrapSB.addListener(paramSelectBoxListener);
+        vWrapSB.addListener(paramSelectBoxListener);
         textureSelectBox.addListener(textureSelectBoxListener);
 
         add(new Label("offsetU:", skin)).right();
-        add(textureOffsetU).width(40).maxWidth(40);
+        add(offsetUTF).width(40).maxWidth(40);
         add(new Label("minFilter:", skin)).right();
-        add(textureMinFilter).fillX();
+        add(minFilterSB).fillX();
         add(enabledCheckBox).expandX().left().padLeft(5f);
         row();
 
         add(new Label("offsetV:", skin)).right();
-        add(textureOffsetV).width(40).maxWidth(40);
+        add(offsetVTF).width(40).maxWidth(40);
         add(new Label("magFilter:", skin)).right();
-        add(textureMagFilter).fillX();
+        add(magFilterSB).fillX();
         add().expandX();
         row();
 
         add(new Label("scaleU:", skin)).right();
-        add(textureScaleU).width(40).maxWidth(40);
+        add(scaleUTF).width(40).maxWidth(40);
         add(new Label("uWrap:", skin)).right();
-        add(textureUWrap).fillX();
+        add(uWrapSB).fillX();
         add().expandX();
         row();
 
         add(new Label("scaleV:", skin)).right();
-        add(textureScaleV).width(40).maxWidth(40);
+        add(scaleVTF).width(40).maxWidth(40);
         add(new Label("vWrap:", skin)).right();
-        add(textureVWrap).fillX();
+        add(vWrapSB).fillX();
         add().expandX();
         row();
 
@@ -251,16 +259,16 @@ public class TextureTable extends AttributeTable {
                         attr = container.get(TextureAttribute.class, currentType);
                         if (attr != null) {
                             switch (textField.getName()) {
-                                case "textureOffsetU":
+                                case ACTOR_OFFSETU:
                                     attr.offsetU = value;
                                     break;
-                                case "textureOffsetV":
+                                case ACTOR_OFFSETV:
                                     attr.offsetV = value;
                                     break;
-                                case "textureScaleU":
+                                case ACTOR_SCALEU:
                                     attr.scaleU = value;
                                     break;
-                                case "textureScaleV":
+                                case ACTOR_SCALEV:
                                     attr.scaleV = value;
                                     break;
                             }
@@ -291,17 +299,17 @@ public class TextureTable extends AttributeTable {
                     attr = container.get(TextureAttribute.class, currentType);
                     if (attr != null) {
                         switch (actor.getName()) {
-                            case "textureMinFilter":
-                                attr.textureDescription.minFilter = Texture.TextureFilter.valueOf(textureMinFilter.getSelected());
+                            case ACTOR_MINFILTER:
+                                attr.textureDescription.minFilter = Texture.TextureFilter.valueOf(minFilterSB.getSelected());
                                 break;
-                            case "textureMagFilter":
-                                attr.textureDescription.magFilter = Texture.TextureFilter.valueOf(textureMagFilter.getSelected());
+                            case ACTOR_MAGFILTER:
+                                attr.textureDescription.magFilter = Texture.TextureFilter.valueOf(magFilterSB.getSelected());
                                 break;
-                            case "textureUWrap":
-                                attr.textureDescription.uWrap = Texture.TextureWrap.valueOf(textureUWrap.getSelected());
+                            case ACTOR_UWRAP:
+                                attr.textureDescription.uWrap = Texture.TextureWrap.valueOf(uWrapSB.getSelected());
                                 break;
-                            case "textureVWrap":
-                                attr.textureDescription.uWrap = Texture.TextureWrap.valueOf(textureVWrap.getSelected());
+                            case ACTOR_VWRAP:
+                                attr.textureDescription.uWrap = Texture.TextureWrap.valueOf(vWrapSB.getSelected());
                                 break;
                         }
                     }
@@ -353,14 +361,14 @@ public class TextureTable extends AttributeTable {
                         }
 
                         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textfield
-                        attr.offsetU = 0;
-                        attr.offsetV = 0;
-                        attr.scaleU = 1;
-                        attr.scaleV = 1;
-                        attr.textureDescription.minFilter = texture.getMinFilter();
-                        attr.textureDescription.magFilter = texture.getMagFilter();
-                        attr.textureDescription.uWrap = texture.getUWrap();
-                        attr.textureDescription.vWrap = texture.getVWrap();
+                        if (offsetUTF != null) { offsetUTF.setText(String.valueOf(attr.offsetU = 0)); }
+                        if (offsetVTF != null) { offsetVTF.setText(String.valueOf(attr.offsetV = 0)); }
+                        if (scaleUTF != null) { scaleUTF.setText(String.valueOf(attr.scaleU = 1)); }
+                        if (scaleVTF != null) { scaleVTF.setText(String.valueOf(attr.scaleV = 1)); }
+                        if (minFilterSB != null) { minFilterSB.setSelected((attr.textureDescription.minFilter = texture.getMinFilter()).name()); }
+                        if (magFilterSB != null) { magFilterSB.setSelected((attr.textureDescription.magFilter = texture.getMagFilter()).name()); }
+                        if (uWrapSB != null) { uWrapSB.setSelected((attr.textureDescription.uWrap = texture.getUWrap()).name()); }
+                        if (vWrapSB != null) { vWrapSB.setSelected((attr.textureDescription.vWrap = texture.getVWrap()).name()); }
                         container.set(attr);
 
                         mps.stage.textureImage.setDrawable(new TextureRegionDrawable(new TextureRegion(texture)));
@@ -398,17 +406,17 @@ public class TextureTable extends AttributeTable {
             attr = container.get(TextureAttribute.class, type);
             if (attr != null) {
                 if (enabledCheckBox != null) { enabledCheckBox.setChecked(true); }
-                if (textureOffsetU != null) { textureOffsetU.setText(String.valueOf(attr.offsetU)); }
-                if (textureOffsetV != null) { textureOffsetV.setText(String.valueOf(attr.offsetV)); }
-                if (textureScaleU != null) { textureScaleU.setText(String.valueOf(attr.scaleU)); }
-                if (textureScaleV != null) { textureScaleV.setText(String.valueOf(attr.scaleV)); }
-                if (textureMinFilter != null) { textureMinFilter.setSelected(attr.textureDescription.minFilter.name()); }
-                if (textureMagFilter != null) { textureMagFilter.setSelected(attr.textureDescription.magFilter.name()); }
-                if (textureUWrap != null) { textureUWrap.setSelected(attr.textureDescription.uWrap.name()); }
-                if (textureVWrap != null) { textureVWrap.setSelected(attr.textureDescription.vWrap.name()); }
+                if (offsetUTF != null) { offsetUTF.setText(String.valueOf(attr.offsetU)); }
+                if (offsetVTF != null) { offsetVTF.setText(String.valueOf(attr.offsetV)); }
+                if (scaleUTF != null) { scaleUTF.setText(String.valueOf(attr.scaleU)); }
+                if (scaleVTF != null) { scaleVTF.setText(String.valueOf(attr.scaleV)); }
+                if (minFilterSB != null) { minFilterSB.setSelected(attr.textureDescription.minFilter.name()); }
+                if (magFilterSB != null) { magFilterSB.setSelected(attr.textureDescription.magFilter.name()); }
+                if (uWrapSB != null) { uWrapSB.setSelected(attr.textureDescription.uWrap.name()); }
+                if (vWrapSB != null) { vWrapSB.setSelected(attr.textureDescription.vWrap.name()); }
                 if (textureSelectBox != null && attr.textureDescription.texture.getTextureData() instanceof FileTextureData) {
                     textureSelectBox.setSelected(attr.textureDescription.texture.toString());
-                } else {
+                } else if (textureSelectBox != null) {
                     textureSelectBox.setSelectedIndex(0);
                 }
             } else {
@@ -419,14 +427,14 @@ public class TextureTable extends AttributeTable {
 
     private void resetToDefaults() {
         if (enabledCheckBox != null) { enabledCheckBox.setChecked(false); }
-        if (textureOffsetU != null) { textureOffsetU.setText("0"); }
-        if (textureOffsetV != null) { textureOffsetV.setText("0"); }
-        if (textureScaleU != null) { textureScaleU.setText("1"); }
-        if (textureScaleV != null) { textureScaleV.setText("1"); }
-        if (textureMinFilter != null) { textureMinFilter.setSelected(itemsTextureFilter.get(0)); }
-        if (textureMagFilter != null) { textureMagFilter.setSelected(itemsTextureFilter.get(0)); }
-        if (textureUWrap != null) { textureUWrap.setSelected(itemsTextureWrap.get(0)); }
-        if (textureVWrap != null) { textureVWrap.setSelected(itemsTextureWrap.get(0)); }
+        if (offsetUTF != null) { offsetUTF.setText("0"); }
+        if (offsetVTF != null) { offsetVTF.setText("0"); }
+        if (scaleUTF != null) { scaleUTF.setText("1"); }
+        if (scaleVTF != null) { scaleVTF.setText("1"); }
+        if (minFilterSB != null) { minFilterSB.setSelected(itemsTextureFilter.get(0)); }
+        if (magFilterSB != null) { magFilterSB.setSelected(itemsTextureFilter.get(0)); }
+        if (uWrapSB != null) { uWrapSB.setSelected(itemsTextureWrap.get(0)); }
+        if (vWrapSB != null) { vWrapSB.setSelected(itemsTextureWrap.get(0)); }
         if (textureSelectBox != null) { textureSelectBox.setSelectedIndex(0); }
     }
 
