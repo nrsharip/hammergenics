@@ -361,6 +361,11 @@ public class ModelPreviewScreen extends ScreenAdapter {
                 public void onAttributeDisabled(long type, String alias) {
                     stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
                 }
+
+                @Override
+                public void onAttributeChange(long type, String alias) {
+                    stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
+                }
             });
             stage.attrTable.clear();
             stage.attrTable.add(stage.textureAttrTable).top();

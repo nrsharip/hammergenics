@@ -23,6 +23,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
+import com.badlogic.gdx.graphics.glutils.FileTextureData;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
@@ -55,8 +56,9 @@ public class TextureTable extends AttributeTable {
     private Array<String> itemsTextureFilter;
     private Array<String> itemsTextureWrap;
 
-    private TextFieldListener textFieldListener;
-    private ChangeListener selectBoxListener;
+    private TextFieldListener paramTextFieldListener;
+    private ChangeListener paramSelectBoxListener;
+    private ChangeListener textureSelectBoxListener;
     private ChangeListener checkBoxListener;
 
     // this is a small hack to allow the use of the top panel texture selectbox
@@ -65,7 +67,8 @@ public class TextureTable extends AttributeTable {
     public TextureTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
         super(skin, container, mps);
 
-        addListeners();
+        createListeners();
+
         enabledCheckBox = new CheckBox("enabled", skin);
         enabledCheckBox.addListener(checkBoxListener);
 
@@ -75,10 +78,10 @@ public class TextureTable extends AttributeTable {
         textureScaleU = new TextField("1", skin); textureScaleU.setName("textureScaleU");
         textureScaleV = new TextField("1", skin); textureScaleV.setName("textureScaleV");
 
-        textureOffsetU.setTextFieldListener(textFieldListener);
-        textureOffsetV.setTextFieldListener(textFieldListener);
-        textureScaleU.setTextFieldListener(textFieldListener);
-        textureScaleV.setTextFieldListener(textFieldListener);
+        textureOffsetU.setTextFieldListener(paramTextFieldListener);
+        textureOffsetV.setTextFieldListener(paramTextFieldListener);
+        textureScaleU.setTextFieldListener(paramTextFieldListener);
+        textureScaleV.setTextFieldListener(paramTextFieldListener);
 
         itemsTextureFilter = Arrays.stream(Texture.TextureFilter.values()).map(String::valueOf)
                 .collect(Array::new, Array::add, Array::addAll);
@@ -110,41 +113,14 @@ public class TextureTable extends AttributeTable {
         textureVWrap.clearItems();
         textureVWrap.setItems(itemsTextureWrap);
 
+        // Select Box: Textures
         textureSelectBox = new SelectBox<>(skin);
         Array<String> itemsTexture = new Array<>();
         itemsTexture.add("No Texture Selected");
-        // Select Box: Textures
+
         // All PNG files in the same directory and direct subdirecories the asset is located
         FileHandle assetFileHandle = Gdx.files.local(mps.stage.modelSelectBox.getSelected());
-        Array<FileHandle> textureFileHandleArray;
-        textureFileHandleArray = LibgdxUtils.traversFileHandle(assetFileHandle.parent(),
-                file -> file.isDirectory()
-                        || file.getName().toLowerCase().endsWith("png")  // textures in PNG
-                        || file.getName().toLowerCase().endsWith("tga")  // textures in TGA
-                        || file.getName().toLowerCase().endsWith("bmp")  // textures in BMP
-        );
-
-        // TODO: Add unified convention like "textures | skins" to specify all folders at once
-        // All PNG files in the "textures" directory and subdirectories (if any) on asset's path
-        textureFileHandleArray = LibgdxUtils.traversFileHandle(
-                // starting at parent() since we already traversed current folder/subfolders above
-                LibgdxUtils.fileOnPath(assetFileHandle.parent(), "textures"),
-                textureFileHandleArray,
-                file -> file.isDirectory()
-                        || file.getName().toLowerCase().endsWith("png")  // textures in PNG
-                        || file.getName().toLowerCase().endsWith("tga")  // textures in TGA
-                        || file.getName().toLowerCase().endsWith("bmp")  // textures in BMP
-        );
-        // All PNG files in the "skins" directory and subdirectories (if any) on asset's path
-        textureFileHandleArray = LibgdxUtils.traversFileHandle(
-                // starting at parent() since we already traversed current folder/subfolders above
-                LibgdxUtils.fileOnPath(assetFileHandle.parent(), "skins"),
-                textureFileHandleArray,
-                file -> file.isDirectory()
-                        || file.getName().toLowerCase().endsWith("png")  // textures in PNG
-                        || file.getName().toLowerCase().endsWith("tga")  // textures in TGA
-                        || file.getName().toLowerCase().endsWith("bmp")  // textures in BMP
-        );
+        Array<FileHandle> textureFileHandleArray = texturesLookUp(assetFileHandle);
 
         if (textureFileHandleArray.size > 0) {
             itemsTexture.addAll(textureFileHandleArray.toString(";").split(";"));
@@ -163,10 +139,11 @@ public class TextureTable extends AttributeTable {
             textureSelectBox.setItems(itemsTexture);
         }
 
-        textureMinFilter.addListener(selectBoxListener);
-        textureMagFilter.addListener(selectBoxListener);
-        textureUWrap.addListener(selectBoxListener);
-        textureVWrap.addListener(selectBoxListener);
+        textureMinFilter.addListener(paramSelectBoxListener);
+        textureMagFilter.addListener(paramSelectBoxListener);
+        textureUWrap.addListener(paramSelectBoxListener);
+        textureVWrap.addListener(paramSelectBoxListener);
+        textureSelectBox.addListener(textureSelectBoxListener);
 
         add(new Label("offsetU:", skin)).right();
         add(textureOffsetU).width(40).maxWidth(40);
@@ -199,6 +176,38 @@ public class TextureTable extends AttributeTable {
         add(textureSelectBox).colspan(5).fillX();
     }
 
+    private Array<FileHandle> texturesLookUp (FileHandle assetFileHandle) {
+        Array<FileHandle> textureFileHandleArray = LibgdxUtils.traversFileHandle(assetFileHandle.parent(),
+                file -> file.isDirectory()
+                        || file.getName().toLowerCase().endsWith("png")  // textures in PNG
+                        || file.getName().toLowerCase().endsWith("tga")  // textures in TGA
+                        || file.getName().toLowerCase().endsWith("bmp")  // textures in BMP
+        );
+
+        // TODO: Add unified convention like "textures | skins" to specify all folders at once
+        // All PNG files in the "textures" directory and subdirectories (if any) on asset's path
+        textureFileHandleArray = LibgdxUtils.traversFileHandle(
+                // starting at parent() since we already traversed current folder/subfolders above
+                LibgdxUtils.fileOnPath(assetFileHandle.parent(), "textures"),
+                textureFileHandleArray,
+                file -> file.isDirectory()
+                        || file.getName().toLowerCase().endsWith("png")  // textures in PNG
+                        || file.getName().toLowerCase().endsWith("tga")  // textures in TGA
+                        || file.getName().toLowerCase().endsWith("bmp")  // textures in BMP
+        );
+        // All PNG files in the "skins" directory and subdirectories (if any) on asset's path
+        textureFileHandleArray = LibgdxUtils.traversFileHandle(
+                // starting at parent() since we already traversed current folder/subfolders above
+                LibgdxUtils.fileOnPath(assetFileHandle.parent(), "skins"),
+                textureFileHandleArray,
+                file -> file.isDirectory()
+                        || file.getName().toLowerCase().endsWith("png")  // textures in PNG
+                        || file.getName().toLowerCase().endsWith("tga")  // textures in TGA
+                        || file.getName().toLowerCase().endsWith("bmp")  // textures in BMP
+        );
+        return textureFileHandleArray;
+    }
+
     // long Diffuse
     // long Specular
     // long Bump
@@ -222,8 +231,8 @@ public class TextureTable extends AttributeTable {
         return null;
     }
 
-    private void addListeners() {
-        textFieldListener = new TextFieldListener() {
+    private void createListeners() {
+        paramTextFieldListener = new TextFieldListener() {
             @Override
             public void keyTyped(TextField textField, char c) {
                 try {
@@ -256,19 +265,17 @@ public class TextureTable extends AttributeTable {
                                     break;
                             }
                         }
-                        //miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
+                        if (listener != null) { listener.onAttributeChange(currentType, currentTypeAlias); }
                     }
-                    // seems like all text fields share the same Style object thus the color of all fields is changed
-                    textField.getStyle().fontColor = Color.WHITE;
+                    textField.getColor().set(Color.WHITE);
                 } catch (NumberFormatException e) {
                     //e.printStackTrace();
-                    // seems like all text fields share the same Style object thus the color of all fields is changed
-                    textField.getStyle().fontColor = Color.RED;
+                    textField.getColor().set(Color.PINK);
                 }
             }
         };
 
-        selectBoxListener = new ChangeListener() {
+        paramSelectBoxListener = new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 if (container != null && currentType != 0) {
@@ -298,7 +305,20 @@ public class TextureTable extends AttributeTable {
                                 break;
                         }
                     }
-                    //miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
+                    if (listener != null) { listener.onAttributeChange(currentType, currentTypeAlias); }
+                }
+            }
+        };
+
+        textureSelectBoxListener = new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                if (container != null && currentType != 0) {
+                    enabledCheckBox.setChecked(false);              // relying on 'enabled' check box event processing
+                    if (textureSelectBox.getSelectedIndex() != 0) { // == 0 - 'No Texture Selected'
+                        enabledCheckBox.setChecked(true);           // relying on 'enabled' check box event processing
+                    }
+                    if (listener != null) { listener.onAttributeChange(currentType, currentTypeAlias); }
                 }
             }
         };
@@ -307,20 +327,19 @@ public class TextureTable extends AttributeTable {
             @Override
             public void changed (ChangeEvent event, Actor actor) {
                 if (textureSelectBox.getSelectedIndex() == 0) {
+                    texture = null;
+                    enabledCheckBox.setChecked(false); // no texture attribute gets enabled without the texture selected first
                     Gdx.app.debug("enabledCheckBox", "No texture selected: type = 0x"
                             + Long.toHexString(currentType) + " alias = " + currentTypeAlias);
-                    enabledCheckBox.setChecked(false); // no texture attribute gets enabled without the texture selected first
-                    return;
+                } else {
+                    texture = mps.assetManager.get(textureSelectBox.getSelected(), Texture.class);
+                    if (texture == null) {
+                        Gdx.app.debug("enabledCheckBox", "Texture is not loaded from: " + textureSelectBox.getSelected()
+                                + " (attribute: type = 0x" + Long.toHexString(currentType) + " alias = " + currentTypeAlias + ")");
+                        enabledCheckBox.setChecked(false); // no texture attribute gets enabled without the texture selected first
+                    }
                 }
 
-                texture = mps.assetManager.get(textureSelectBox.getSelected(), Texture.class);
-
-                if (texture == null) {
-                    Gdx.app.debug("enabledCheckBox", "No texture provided for the attribute: type = 0x"
-                            + Long.toHexString(currentType) + " alias = " + currentTypeAlias);
-                    enabledCheckBox.setChecked(false); // no texture attribute gets enabled without the texture selected first
-                    return;
-                }
                 if (container != null) {
                     if (enabledCheckBox.isChecked()) { // adding the attribute
                         // TODO: make sure this is propagated
@@ -328,7 +347,8 @@ public class TextureTable extends AttributeTable {
                         TextureAttribute attr = createTextureAttribute();
 
                         if (attr == null) {
-                            Gdx.app.error("enabledCheckBox", "ERROR: something's wrong with the Texture Attribute");
+                            Gdx.app.error("enabledCheckBox", "ERROR: attribute is not created"
+                                    + " (attribute: type = 0x" + Long.toHexString(currentType) + " alias = " + currentTypeAlias + ")");
                             return;
                         }
 
@@ -386,6 +406,11 @@ public class TextureTable extends AttributeTable {
                 if (textureMagFilter != null) { textureMagFilter.setSelected(attr.textureDescription.magFilter.name()); }
                 if (textureUWrap != null) { textureUWrap.setSelected(attr.textureDescription.uWrap.name()); }
                 if (textureVWrap != null) { textureVWrap.setSelected(attr.textureDescription.vWrap.name()); }
+                if (textureSelectBox != null && attr.textureDescription.texture.getTextureData() instanceof FileTextureData) {
+                    textureSelectBox.setSelected(attr.textureDescription.texture.toString());
+                } else {
+                    textureSelectBox.setSelectedIndex(0);
+                }
             } else {
                 resetToDefaults();
             }
@@ -402,6 +427,7 @@ public class TextureTable extends AttributeTable {
         if (textureMagFilter != null) { textureMagFilter.setSelected(itemsTextureFilter.get(0)); }
         if (textureUWrap != null) { textureUWrap.setSelected(itemsTextureWrap.get(0)); }
         if (textureVWrap != null) { textureVWrap.setSelected(itemsTextureWrap.get(0)); }
+        if (textureSelectBox != null) { textureSelectBox.setSelectedIndex(0); }
     }
 
     @Override

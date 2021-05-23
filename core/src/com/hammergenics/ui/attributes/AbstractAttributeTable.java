@@ -39,5 +39,6 @@ public abstract class AbstractAttributeTable extends AbstractTable {
     public interface Event {
         void onAttributeEnabled(long type, String alias);
         void onAttributeDisabled(long type, String alias);
+        void onAttributeChange(long type, String alias);
     }
 }
