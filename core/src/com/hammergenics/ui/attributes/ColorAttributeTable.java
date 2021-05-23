@@ -1,0 +1,308 @@
+/*******************************************************************************
+ * Copyright 2021 Nail Sharipov (sharipovn@gmail.com)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ******************************************************************************/
+
+package com.hammergenics.ui.attributes;
+
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g3d.Attributes;
+import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.SelectBox;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.TextField;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.utils.ArrayMap;
+import com.hammergenics.screens.ModelPreviewScreen;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.Arrays;
+
+import static com.badlogic.gdx.scenes.scene2d.ui.TextField.TextFieldListener;
+
+/**
+ * Add description here
+ *
+ * @author nrsharip
+ */
+public class ColorAttributeTable extends AttributeTable {
+    private static final String ACTOR_R = "r";
+    private static final String ACTOR_G = "g";
+    private static final String ACTOR_B = "b";
+    private static final String ACTOR_A = "a";
+
+    // r, g, b, a;
+    private TextField rTF = null;
+    private TextField gTF = null;
+    private TextField bTF = null;
+    private TextField aTF = null;
+    private SelectBox<String> colorSB = null;
+    private ArrayMap<String, Color> itemsColor =
+            new ArrayMap<>(String.class, Color.class); // important not to get the class cast exception
+
+    private TextFieldListener paramTextFieldListener;
+    private ChangeListener colorSelectBoxListener;
+    private ChangeListener checkBoxListener;
+
+    private Color color = new Color().set(Color.GRAY);
+
+    public ColorAttributeTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
+        super(skin, container, mps);
+
+        createListeners();
+
+        enabledCheckBox.addListener(checkBoxListener);
+
+        // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textfield
+        rTF = new TextField("150", skin); rTF.setName(ACTOR_R);
+        gTF = new TextField("150", skin); gTF.setName(ACTOR_G);
+        bTF = new TextField("150", skin); bTF.setName(ACTOR_B);
+        aTF = new TextField("150", skin); aTF.setName(ACTOR_A);
+
+        rTF.setTextFieldListener(paramTextFieldListener);
+        gTF.setTextFieldListener(paramTextFieldListener);
+        bTF.setTextFieldListener(paramTextFieldListener);
+        aTF.setTextFieldListener(paramTextFieldListener);
+
+        //Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "Color: \n" + itemsColor.toString("\n"));
+
+        // Select Box: Color
+        colorSB = new SelectBox<>(skin);
+        colorSB.clearItems();
+        colorsLookUp();
+        if (itemsColor != null && itemsColor.size > 0) {
+            colorSB.setItems(itemsColor.keys().toArray());
+        }
+        //[switchModelInstance] before clear
+        //[textureSelectBox.changed] -1
+        //[textureSelectBox.changed] null
+        //[switchModelInstance] after clear/before set
+        //[textureSelectBox.changed] 0
+        //[textureSelectBox.changed] No Texture
+        //[switchModelInstance] after set
+        colorSB.addListener(colorSelectBoxListener);
+
+        add(enabledCheckBox).expandX().left().padLeft(5f).padRight(5f);
+        add(new Label("r:", skin)).right();
+        add(rTF).width(40).maxWidth(40);
+        add(new Label("g:", skin)).right();
+        add(gTF).width(40).maxWidth(40);
+        add(new Label("b:", skin)).right();
+        add(bTF).width(40).maxWidth(40);
+        add(new Label("a:", skin)).right();
+        add(aTF).width(40).maxWidth(40);
+        add(new Label("color:", skin)).right();
+        add(colorSB).fillX();
+        add().expandX();
+    }
+
+    private void colorsLookUp() {
+        Class<Color> clazz = Color.class;
+
+        Field[] colorFields = Arrays.stream(clazz.getFields())            // getting all accessible public fields
+                .filter(field -> field.getType().equals(clazz))           // taking only fields of type 'Color'
+                .filter(field -> Modifier.isFinal(field.getModifiers()))  // taking only final fields
+                .filter(field -> Modifier.isStatic(field.getModifiers())) // taking only static fields
+                .toArray(Field[]::new);                                   // retrieving the array
+
+        if (colorFields.length == 0) {
+            Gdx.app.error(getClass().getSimpleName(), "ERROR: no colors found in: " + clazz.getName());
+            return;
+        }
+
+        for (Field field: colorFields) {
+            try {
+                Color color = (Color) field.get(null); // null is allowed for static fields...
+
+                itemsColor.put(field.getName(), color);
+
+//                Gdx.app.debug(getClass().getSimpleName(),
+//                        "Retrieved color: " + clazz.getSimpleName() + "." + field.getName());
+            } catch (IllegalAccessException | IllegalArgumentException | NullPointerException e) {
+                Gdx.app.error(getClass().getSimpleName(),
+                        "EXCEPTION while reading the field contents of the class: " + clazz.getName() + "\n" +
+                                Arrays.stream(e.getStackTrace())
+                                        .map(element -> String.valueOf(element) + "\n")
+                                        .reduce("", String::concat));
+            }
+        }
+    }
+
+    protected ColorAttribute createAttribute(String alias) {
+        switch (alias) {
+            case ColorAttribute.DiffuseAlias: return ColorAttribute.createDiffuse (color);
+            case ColorAttribute.SpecularAlias: return ColorAttribute.createSpecular (color);
+            case ColorAttribute.AmbientAlias: return ColorAttribute.createAmbient (color);
+            case ColorAttribute.EmissiveAlias: return ColorAttribute.createEmissive (color);
+            case ColorAttribute.ReflectionAlias: return ColorAttribute.createReflection (color);
+            case ColorAttribute.AmbientLightAlias: return ColorAttribute.createAmbientLight (color);
+            case ColorAttribute.FogAlias: return ColorAttribute.createFog (color);
+        }
+        return null;
+    }
+
+    private void createListeners() {
+        paramTextFieldListener = new TextFieldListener() {
+            @Override
+            public void keyTyped(TextField textField, char c) {
+                try {
+                    float value = Float.parseFloat(textField.getText());
+
+                    if (value > 255 || value < 0) {
+                        textField.getColor().set(Color.PINK);
+                        return;
+                    }
+                    value = (value / 255); // since originally we translated from [0:1] to [0:255]
+
+//                    Gdx.app.debug("enabledCheckBox", textField.getName() + " = " + value
+//                            + " type = 0x" + Long.toHexString(currentType) + " alias = " + currentTypeAlias);
+
+                    if (container != null && currentType != 0) {
+                        ColorAttribute attr = null;
+                        attr = container.get(ColorAttribute.class, currentType);
+
+                        switch (textField.getName()) {
+                            case ACTOR_R:
+                                if (attr != null) { attr.color.r = value; }
+                                color.r = value;
+                                break;
+                            case ACTOR_G:
+                                if (attr != null) { attr.color.g = value; }
+                                color.g = value;
+                                break;
+                            case ACTOR_B:
+                                if (attr != null) { attr.color.b = value; }
+                                color.b = value;
+                                break;
+                            case ACTOR_A:
+                                if (attr != null) { attr.color.a = value; }
+                                color.a = value;
+                                break;
+                        }
+
+                        if (attr != null && listener != null) { listener.onAttributeChange(currentType, currentTypeAlias); }
+                    }
+                    textField.getColor().set(Color.WHITE);
+                } catch (NumberFormatException e) {
+                    textField.getColor().set(Color.PINK);
+                }
+            }
+        };
+
+        colorSelectBoxListener = new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                if (container != null && currentType != 0) {
+                    color.set(itemsColor.get(colorSB.getSelected()));
+
+                    // This most likely works with ChangeListener not TextFieldListener
+//                    rTF.setProgrammaticChangeEvents(true); // to have the events fired on programmatic setText()
+//                    gTF.setProgrammaticChangeEvents(true); // to have the events fired on programmatic setText()
+//                    bTF.setProgrammaticChangeEvents(true); // to have the events fired on programmatic setText()
+//                    aTF.setProgrammaticChangeEvents(true); // to have the events fired on programmatic setText()
+
+                    if (enabledCheckBox != null && !enabledCheckBox.isChecked()) { enabledCheckBox.setChecked(true); }
+                    if (rTF != null) { rTF.setText(String.valueOf((int)(color.r * 255))); } // extending the range from [0:1] to [0:255]
+                    if (gTF != null) { gTF.setText(String.valueOf((int)(color.g * 255))); } // extending the range from [0:1] to [0:255]
+                    if (bTF != null) { bTF.setText(String.valueOf((int)(color.b * 255))); } // extending the range from [0:1] to [0:255]
+                    if (aTF != null) { aTF.setText(String.valueOf((int)(color.a * 255))); } // extending the range from [0:1] to [0:255]
+
+                    ColorAttribute attr = null;
+                    attr = container.get(ColorAttribute.class, currentType);
+                    if (attr != null) { attr.color.set(color); }
+
+                    if (listener != null) { listener.onAttributeChange(currentType, currentTypeAlias); }
+                }
+            }
+        };
+
+        checkBoxListener = new ChangeListener() {
+            @Override
+            public void changed (ChangeEvent event, Actor actor) {
+                if (container != null) {
+                    if (enabledCheckBox.isChecked()) { // adding the attribute
+                        // TODO: make sure this is propagated
+                        //Texture texture = assetManager.get(textureSelectBox.getSelected(), Texture.class);
+                        ColorAttribute attr = createAttribute(currentTypeAlias);
+
+                        if (attr == null) {
+                            Gdx.app.error("enabledCheckBox", "ERROR: attribute is not created"
+                                    + " (attribute: type = 0x" + Long.toHexString(currentType) + " alias = " + currentTypeAlias + ")");
+                            return;
+                        }
+
+                        // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textfield
+                        container.set(attr);
+
+                        Gdx.app.debug("enabledCheckBox", "Setting the attribute: type = 0x"
+                                + Long.toHexString(currentType) + " alias = " + currentTypeAlias);
+
+                        if (listener != null) { listener.onAttributeEnabled(currentType, currentTypeAlias); }
+                    } else { // removing the attribute
+                        if (container.get(currentType) != null) {
+                            container.remove(currentType);
+
+                            Gdx.app.debug("enabledCheckBox", "Clearing the attribute: type = 0x"
+                                    + Long.toHexString(currentType) + " alias = " + currentTypeAlias);
+
+                            if (listener != null) { listener.onAttributeDisabled(currentType, currentTypeAlias); }
+                        } else {
+                            Gdx.app.error("enabledCheckBox", "ERROR: we shouldn't be here: type = 0x"
+                                + Long.toHexString(currentType) + " alias = " + currentTypeAlias);
+                        }
+                    }
+                }
+            }
+        };
+    }
+
+    public void resetAttribute(long type, String alias) {
+        if (container != null) {
+            //Material mtl = modelInstance.materials.get(0);
+            ColorAttribute attr = null;
+
+            currentType = type;
+            currentTypeAlias = alias;
+
+            attr = container.get(ColorAttribute.class, type);
+            if (attr != null) {
+                color.set(attr.color);
+                if (enabledCheckBox != null) { enabledCheckBox.setChecked(true); }
+                if (rTF != null) { rTF.setText(String.valueOf((int)(attr.color.r * 255))); } // extending the range from [0:1] to [0:255]
+                if (gTF != null) { gTF.setText(String.valueOf((int)(attr.color.g * 255))); } // extending the range from [0:1] to [0:255]
+                if (bTF != null) { bTF.setText(String.valueOf((int)(attr.color.b * 255))); } // extending the range from [0:1] to [0:255]
+                if (aTF != null) { aTF.setText(String.valueOf((int)(attr.color.a * 255))); } // extending the range from [0:1] to [0:255]
+            } else {
+                resetToDefaults();
+            }
+        }
+    }
+
+    private void resetToDefaults() {
+        if (enabledCheckBox != null) { enabledCheckBox.setChecked(false); }
+        if (rTF != null) { rTF.setText(String.valueOf((int)(Color.GRAY.r * 255))); } // extending the range from [0:1] to [0:255]
+        if (gTF != null) { gTF.setText(String.valueOf((int)(Color.GRAY.g * 255))); } // extending the range from [0:1] to [0:255]
+        if (bTF != null) { bTF.setText(String.valueOf((int)(Color.GRAY.b * 255))); } // extending the range from [0:1] to [0:255]
+        if (aTF != null) { aTF.setText(String.valueOf((int)(Color.GRAY.a * 255))); } // extending the range from [0:1] to [0:255]
+    }
+
+    @Override
+    public void setListener(EventListener listener) {
+        this.listener = listener;
+    }
+}

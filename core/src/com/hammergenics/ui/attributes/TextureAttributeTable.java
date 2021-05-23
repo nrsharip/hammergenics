@@ -41,7 +41,7 @@ import static com.badlogic.gdx.scenes.scene2d.ui.TextField.TextFieldListener;
  *
  * @author nrsharip
  */
-public class TextureTable extends AttributeTable {
+public class TextureAttributeTable extends AttributeTable {
     private static final String ACTOR_OFFSETU = "textureOffsetU";
     private static final String ACTOR_OFFSETV = "textureOffsetV";
     private static final String ACTOR_SCALEU = "textureScaleU";
@@ -51,7 +51,6 @@ public class TextureTable extends AttributeTable {
     private static final String ACTOR_UWRAP = "textureUWrap";
     private static final String ACTOR_VWRAP = "textureVWrap";
 
-    private CheckBox enabledCheckBox = null;
     private TextField offsetUTF = null;
     private TextField offsetVTF = null;
     private TextField scaleUTF = null;
@@ -60,6 +59,7 @@ public class TextureTable extends AttributeTable {
     private SelectBox<String> magFilterSB = null;
     private SelectBox<String> uWrapSB = null;
     private SelectBox<String> vWrapSB = null;
+    // TODO: one more parameter is currently missing: uvIndex (see TextureAttribute)
     private SelectBox<String> textureSelectBox = null;
 
     private Array<String> itemsTextureFilter;
@@ -72,12 +72,11 @@ public class TextureTable extends AttributeTable {
 
     private Texture texture;
 
-    public TextureTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
+    public TextureAttributeTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
         super(skin, container, mps);
 
         createListeners();
 
-        enabledCheckBox = new CheckBox("enabled", skin);
         enabledCheckBox.addListener(checkBoxListener);
 
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textfield
@@ -104,22 +103,28 @@ public class TextureTable extends AttributeTable {
         minFilterSB = new SelectBox<>(skin);
         minFilterSB.setName(ACTOR_MINFILTER);
         minFilterSB.clearItems();
-        minFilterSB.setItems(itemsTextureFilter);
 
         magFilterSB = new SelectBox<>(skin);
         magFilterSB.setName(ACTOR_MAGFILTER);
         magFilterSB.clearItems();
-        magFilterSB.setItems(itemsTextureFilter);
+
+        if (itemsTextureFilter != null && itemsTextureFilter.size > 0) {
+            minFilterSB.setItems(itemsTextureFilter);
+            magFilterSB.setItems(itemsTextureFilter);
+        }
 
         uWrapSB = new SelectBox<>(skin);
         uWrapSB.setName(ACTOR_UWRAP);
         uWrapSB.clearItems();
-        uWrapSB.setItems(itemsTextureWrap);
 
         vWrapSB = new SelectBox<>(skin);
         vWrapSB.setName(ACTOR_VWRAP);
         vWrapSB.clearItems();
-        vWrapSB.setItems(itemsTextureWrap);
+
+        if (itemsTextureWrap != null && itemsTextureWrap.size > 0) {
+            uWrapSB.setItems(itemsTextureWrap);
+            vWrapSB.setItems(itemsTextureWrap);
+        }
 
         // Select Box: Textures
         textureSelectBox = new SelectBox<>(skin);
@@ -223,11 +228,11 @@ public class TextureTable extends AttributeTable {
     // long Ambient
     // long Emissive
     // long Reflection
-    private TextureAttribute createTextureAttribute() {
+    protected TextureAttribute createAttribute(String alias) {
         if (texture == null) {
             return null;
         }
-        switch (currentTypeAlias) {
+        switch (alias) {
             case TextureAttribute.DiffuseAlias: return TextureAttribute.createDiffuse(texture);
             case TextureAttribute.SpecularAlias: return TextureAttribute.createSpecular(texture);
             case TextureAttribute.BumpAlias: return TextureAttribute.createBump(texture);
@@ -273,7 +278,7 @@ public class TextureTable extends AttributeTable {
                                     break;
                             }
                         }
-                        if (listener != null) { listener.onAttributeChange(currentType, currentTypeAlias); }
+                        if (attr != null && listener != null) { listener.onAttributeChange(currentType, currentTypeAlias); }
                     }
                     textField.getColor().set(Color.WHITE);
                 } catch (NumberFormatException e) {
@@ -352,7 +357,7 @@ public class TextureTable extends AttributeTable {
                     if (enabledCheckBox.isChecked()) { // adding the attribute
                         // TODO: make sure this is propagated
                         //Texture texture = assetManager.get(textureSelectBox.getSelected(), Texture.class);
-                        TextureAttribute attr = createTextureAttribute();
+                        TextureAttribute attr = createAttribute(currentTypeAlias);
 
                         if (attr == null) {
                             Gdx.app.error("enabledCheckBox", "ERROR: attribute is not created"
@@ -369,6 +374,7 @@ public class TextureTable extends AttributeTable {
                         if (magFilterSB != null) { magFilterSB.setSelected((attr.textureDescription.magFilter = texture.getMagFilter()).name()); }
                         if (uWrapSB != null) { uWrapSB.setSelected((attr.textureDescription.uWrap = texture.getUWrap()).name()); }
                         if (vWrapSB != null) { vWrapSB.setSelected((attr.textureDescription.vWrap = texture.getVWrap()).name()); }
+                        // TODO: one more parameter is currently missing: uvIndex (see TextureAttribute)
                         container.set(attr);
 
                         mps.stage.textureImage.setDrawable(new TextureRegionDrawable(new TextureRegion(texture)));
@@ -414,6 +420,7 @@ public class TextureTable extends AttributeTable {
                 if (magFilterSB != null) { magFilterSB.setSelected(attr.textureDescription.magFilter.name()); }
                 if (uWrapSB != null) { uWrapSB.setSelected(attr.textureDescription.uWrap.name()); }
                 if (vWrapSB != null) { vWrapSB.setSelected(attr.textureDescription.vWrap.name()); }
+                // TODO: one more parameter is currently missing: uvIndex (see TextureAttribute)
                 if (textureSelectBox != null && attr.textureDescription.texture.getTextureData() instanceof FileTextureData) {
                     textureSelectBox.setSelected(attr.textureDescription.texture.toString());
                 } else if (textureSelectBox != null) {
@@ -435,11 +442,12 @@ public class TextureTable extends AttributeTable {
         if (magFilterSB != null) { magFilterSB.setSelected(itemsTextureFilter.get(0)); }
         if (uWrapSB != null) { uWrapSB.setSelected(itemsTextureWrap.get(0)); }
         if (vWrapSB != null) { vWrapSB.setSelected(itemsTextureWrap.get(0)); }
+        // TODO: one more parameter is currently missing: uvIndex (see TextureAttribute)
         if (textureSelectBox != null) { textureSelectBox.setSelectedIndex(0); }
     }
 
     @Override
-    public void setListener(Event listener) {
+    public void setListener(EventListener listener) {
         this.listener = listener;
     }
 }

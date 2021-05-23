@@ -43,6 +43,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.hammergenics.HGGame;
 import com.hammergenics.stages.ModelPreviewStage;
 import com.hammergenics.ui.attributes.AbstractAttributeTable;
+import com.hammergenics.ui.attributes.ColorAttributesTable;
 import com.hammergenics.ui.attributes.TextureAttributesTable;
 import com.hammergenics.util.LibgdxUtils;
 
@@ -287,7 +288,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // see: ModelBuilder() - https://libgdx.badlogicgames.com/ci/nightlies/dist/docs/api/com/badlogic/gdx/graphics/g3d/utils/ModelBuilder.html
         if (nodeId == null) {
             modelInstance = new ModelInstance(model);
-            stage.nodeSelectBox.getStyle().fontColor = Color.WHITE;
+            stage.nodeSelectBox.getColor().set(Color.WHITE);
         } else {
             // TODO: maybe it's good to add a Tree for Node traversal
             // https://libgdx.badlogicgames.com/ci/nightlies/docs/api/com/badlogic/gdx/scenes/scene2d/ui/Tree.html
@@ -316,7 +317,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
                     // so the keys are getting invalidated (set to null) in ModelInstance.invalidate (Node node)
                     // because the nodes they refer to located in other root nodes (not the selected one)
                     modelInstance = new ModelInstance(model);
-                    stage.nodeSelectBox.getStyle().fontColor = Color.RED;
+                    stage.nodeSelectBox.getColor().set(Color.PINK);
                     break;
                 }
             }
@@ -325,7 +326,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
                 Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),"nodeId: " + nodeId + " nodeIndex: " + nodeIndex);
                 //modelInstance = new ModelInstance(model);
                 modelInstance = new ModelInstance(model, nodeId);
-                stage.nodeSelectBox.getStyle().fontColor = Color.WHITE;
+                stage.nodeSelectBox.getColor().set(Color.WHITE);
                 // for some reasons getting this exception in case nodeId == null:
                 // (should be done like (String[])null maybe...)
                 // Exception in thread "LWJGL Application" java.lang.NullPointerException
@@ -350,8 +351,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         stage.textureImage.setDrawable(null);
 
         if (modelInstance.materials != null && modelInstance.materials.size > 0) {
-            stage.textureAttrTable = new TextureAttributesTable(stage.skin, modelInstance.materials.get(0), this);
-            stage.textureAttrTable.setListener(new AbstractAttributeTable.Event() {
+            AbstractAttributeTable.EventListener eventListener = new AbstractAttributeTable.EventListener() {
                 @Override
                 public void onAttributeEnabled(long type, String alias) {
                     stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
@@ -366,12 +366,24 @@ public class ModelPreviewScreen extends ScreenAdapter {
                 public void onAttributeChange(long type, String alias) {
                     stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
                 }
-            });
-            stage.attrTable.clear();
-            stage.attrTable.add(stage.textureAttrTable).top();
-        }
+            };
 
-        stage.textureAttrTable.resetAttributes();
+            stage.textureAttrTable = new TextureAttributesTable(stage.skin, modelInstance.materials.get(0), this);
+            stage.colorAttrTable = new ColorAttributesTable(stage.skin, modelInstance.materials.get(0), this);
+
+            stage.textureAttrTable.setListener(eventListener);
+            stage.colorAttrTable.setListener(eventListener);
+
+            stage.textureAttrTable.resetAttributes();
+            stage.colorAttrTable.resetAttributes();
+
+            stage.attrTable.clear();
+            stage.attrTable.add(stage.colorAttrTable).top().left().fillX();
+            stage.attrTable.row();
+            stage.attrTable.add(stage.textureAttrTable).top().left().fillX();
+            stage.attrTable.row();
+            stage.attrTable.add().expandY();
+        }
 
         copyExternalAnimations(assetName);
 

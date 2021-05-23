@@ -26,7 +26,7 @@ import com.hammergenics.ui.AbstractTable;
  * @author nrsharip
  */
 public abstract class AbstractAttributeTable extends AbstractTable {
-    protected Event listener = null;
+    protected EventListener listener = null;
     protected ModelPreviewScreen mps;
 
     public AbstractAttributeTable(Skin skin, ModelPreviewScreen mps) {
@@ -34,9 +34,9 @@ public abstract class AbstractAttributeTable extends AbstractTable {
         this.mps = mps;
     }
 
-    public abstract void setListener(Event listener);
+    public abstract void setListener(EventListener listener);
 
-    public interface Event {
+    public interface EventListener {
         void onAttributeEnabled(long type, String alias);
         void onAttributeDisabled(long type, String alias);
         void onAttributeChange(long type, String alias);

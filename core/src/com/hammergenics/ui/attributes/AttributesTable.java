@@ -32,7 +32,7 @@ import java.util.Arrays;
  *
  * @author nrsharip
  */
-public abstract class AttributesTable extends AbstractAttributeTable {
+public abstract class AttributesTable extends AbstractAttributeTable { // TODO: make generic?
     public Class<? extends Attribute> aClass;
     public Attributes container;
 

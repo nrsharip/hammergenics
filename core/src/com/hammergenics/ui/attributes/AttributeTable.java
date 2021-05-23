@@ -16,7 +16,9 @@
 
 package com.hammergenics.ui.attributes;
 
+import com.badlogic.gdx.graphics.g3d.Attribute;
 import com.badlogic.gdx.graphics.g3d.Attributes;
+import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.hammergenics.screens.ModelPreviewScreen;
 
@@ -25,13 +27,28 @@ import com.hammergenics.screens.ModelPreviewScreen;
  *
  * @author nrsharip
  */
-public abstract class AttributeTable extends AbstractAttributeTable {
+public abstract class AttributeTable extends AbstractAttributeTable { // TODO: make generic?
     public Attributes container;
     protected long currentType = 0;
     protected String currentTypeAlias = null;
 
+    protected CheckBox enabledCheckBox = null;
+
     public AttributeTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
         super(skin, mps);
         this.container = container;
+
+        enabledCheckBox = new CheckBox("enabled", skin);
     }
+
+    /**
+     *
+     */
+    public abstract void resetAttribute(long type, String alias);
+
+    /**
+     *
+     */
+    protected abstract <T extends Attribute> T createAttribute(String alias);
+
 }

@@ -16,7 +16,6 @@
 
 package com.hammergenics.ui.attributes;
 
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -34,16 +33,8 @@ import com.hammergenics.screens.ModelPreviewScreen;
 public class TextureAttributesTable extends AttributesTable {
     // Texture Attribute related
     // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textfield
-//            public final static long Diffuse
-//            public final static long Specular
-//            public final static long Bump
-//            public final static long Normal
-//            public final static long Ambient
-//            public final static long Emissive
-//            public final static long Reflection
-
     private SelectBox<String> textureAttributeSelectBox;
-    private TextureTable currentTextureTable;
+    private TextureAttributeTable currentTextureAttributeTable;
 
     /**
      * @param skin
@@ -59,7 +50,7 @@ public class TextureAttributesTable extends AttributesTable {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 String alias = textureAttributeSelectBox.getSelected();
-                currentTextureTable.resetAttribute(a2t.get(alias), alias);
+                currentTextureAttributeTable.resetAttribute(a2t.get(alias), alias);
             }
         });
 
@@ -67,20 +58,24 @@ public class TextureAttributesTable extends AttributesTable {
         add(textureAttributeSelectBox).left();
         add().expandX();
         row();
-        add(currentTextureTable = new TextureTable(skin, container, mps)).colspan(3);
+        add(currentTextureAttributeTable = new TextureAttributeTable(skin, container, mps)).colspan(3);
     }
 
     /**
      *
      */
+    @Override
     public void resetAttributes() {
         String alias = textureAttributeSelectBox.getSelected();
-        currentTextureTable.resetAttribute(a2t.get(alias), alias);
+        currentTextureAttributeTable.resetAttribute(a2t.get(alias), alias);
     }
 
+    /**
+     * @param listener
+     */
     @Override
-    public void setListener(Event listener) {
+    public void setListener(EventListener listener) {
         this.listener = listener;
-        currentTextureTable.setListener(listener);
+        currentTextureAttributeTable.setListener(listener);
     }
 }
