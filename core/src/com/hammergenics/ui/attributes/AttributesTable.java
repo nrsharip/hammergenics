@@ -32,9 +32,18 @@ import java.util.Arrays;
  *
  * @author nrsharip
  */
-public abstract class AttributesTable<T extends Attribute> extends BaseAttributeTable {
+public abstract class AttributesTable<T extends Attribute, Q extends AttributeTable<T>> extends BaseAttributeTable {
     public Class<T> aClass;
     public Attributes container;
+
+    /**
+     * attribute type to color attribute table map
+     */
+    protected ArrayMap<Long, Q> t2Table = null;
+    /**
+     * attribute alias to color attribute table map
+     */
+    protected ArrayMap<String, Q> a2Table = null;
 
     /**
      * type to alias map

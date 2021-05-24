@@ -155,13 +155,15 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
         vWrapSB.addListener(paramSelectBoxListener);
         textureSelectBox.addListener(textureSelectBoxListener);
 
+        add(enabledCheckBox);
         add(new Label("offsetU:", skin)).right();
         add(offsetUTF).width(40).maxWidth(40);
         add(new Label("minFilter:", skin)).right();
         add(minFilterSB).fillX();
-        add(enabledCheckBox).expandX().left().padLeft(5f);
+        add().expandX();
         row();
 
+        add();
         add(new Label("offsetV:", skin)).right();
         add(offsetVTF).width(40).maxWidth(40);
         add(new Label("magFilter:", skin)).right();
@@ -169,6 +171,7 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
         add().expandX();
         row();
 
+        add();
         add(new Label("scaleU:", skin)).right();
         add(scaleUTF).width(40).maxWidth(40);
         add(new Label("uWrap:", skin)).right();
@@ -176,6 +179,7 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
         add().expandX();
         row();
 
+        add();
         add(new Label("scaleV:", skin)).right();
         add(scaleVTF).width(40).maxWidth(40);
         add(new Label("vWrap:", skin)).right();
@@ -184,6 +188,7 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
         row();
 
         add(textureSelectBox).colspan(5).fillX();
+        add().expandX();
     }
 
     private Array<FileHandle> texturesLookUp (FileHandle assetFileHandle) {

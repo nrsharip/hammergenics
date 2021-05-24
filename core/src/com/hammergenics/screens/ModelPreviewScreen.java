@@ -43,6 +43,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.hammergenics.HGGame;
 import com.hammergenics.stages.ModelPreviewStage;
 import com.hammergenics.ui.attributes.BaseAttributeTable;
+import com.hammergenics.ui.attributes.BlendingAttributesTable;
 import com.hammergenics.ui.attributes.ColorAttributesTable;
 import com.hammergenics.ui.attributes.TextureAttributesTable;
 import com.hammergenics.util.LibgdxUtils;
@@ -370,17 +371,22 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
             stage.textureAttrTable = new TextureAttributesTable(stage.skin, modelInstance.materials.get(0), this);
             stage.colorAttrTable = new ColorAttributesTable(stage.skin, modelInstance.materials.get(0), this);
+            stage.blendingAttrTable = new BlendingAttributesTable(stage.skin, modelInstance.materials.get(0), this);
 
             stage.textureAttrTable.setListener(eventListener);
             stage.colorAttrTable.setListener(eventListener);
+            stage.blendingAttrTable.setListener(eventListener);
 
             stage.textureAttrTable.resetAttributes();
             stage.colorAttrTable.resetAttributes();
+            stage.blendingAttrTable.resetAttributes();
 
             stage.attrTable.clear();
-            stage.attrTable.add(stage.colorAttrTable).top().left().fillX();
+            stage.attrTable.add(stage.colorAttrTable).padTop(20f).top().left().fillX();
             stage.attrTable.row();
-            stage.attrTable.add(stage.textureAttrTable).top().left().fillX();
+            stage.attrTable.add(stage.textureAttrTable).padTop(20f).top().left().fillX();
+            stage.attrTable.row();
+            stage.attrTable.add(stage.blendingAttrTable).padTop(20f).top().left().fillX();
             stage.attrTable.row();
             stage.attrTable.add().expandY();
         }

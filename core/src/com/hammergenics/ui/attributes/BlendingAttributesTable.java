@@ -17,7 +17,7 @@
 package com.hammergenics.ui.attributes;
 
 import com.badlogic.gdx.graphics.g3d.Attributes;
-import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.ArrayMap;
@@ -28,20 +28,15 @@ import com.hammergenics.screens.ModelPreviewScreen;
  *
  * @author nrsharip
  */
-public class ColorAttributesTable extends AttributesTable<ColorAttribute, ColorAttributeTable> {
-    /**
-     * @param skin
-     * @param container
-     * @param mps
-     */
-    public ColorAttributesTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
-        super(skin, container, mps, ColorAttribute.class);
+public class BlendingAttributesTable extends AttributesTable<BlendingAttribute, BlendingAttributeTable> {
+    public BlendingAttributesTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
+        super(skin, container, mps, BlendingAttribute.class);
 
         t2Table = new ArrayMap<>();
         a2Table = new ArrayMap<>();
 
         t2a.forEach((entry) -> {
-            ColorAttributeTable table = new ColorAttributeTable(skin, container, mps);
+            BlendingAttributeTable table = new BlendingAttributeTable(skin, container, mps);
             table.resetAttribute(entry.key, entry.value);
             t2Table.put(entry.key, table);   // type to table
             a2Table.put(entry.value, table); // alias to table
@@ -55,22 +50,13 @@ public class ColorAttributesTable extends AttributesTable<ColorAttribute, ColorA
         });
     }
 
-    /**
-     *
-     */
     @Override
     public void resetAttributes() {
-        t2a.forEach((entry) -> {
-            t2Table.get(entry.key).resetAttribute(entry.key, entry.value);
-        });
+
     }
 
-    /**
-     * @param listener
-     */
     @Override
     public void setListener(EventListener listener) {
-        this.listener = listener;
-        a2Table.forEach((entry) -> entry.value.setListener(listener));
+
     }
 }

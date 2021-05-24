@@ -247,7 +247,6 @@ public class ColorAttributeTable extends AttributeTable<ColorAttribute> {
     @Override
     public void resetAttribute(long type, String alias) {
         if (container != null) {
-            //Material mtl = modelInstance.materials.get(0);
             ColorAttribute attr = null;
 
             currentType = type;

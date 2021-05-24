@@ -32,6 +32,7 @@ import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.hammergenics.config.Config;
 import com.hammergenics.screens.ModelPreviewScreen;
+import com.hammergenics.ui.attributes.BlendingAttributesTable;
 import com.hammergenics.ui.attributes.ColorAttributesTable;
 import com.hammergenics.ui.attributes.TextureAttributesTable;
 
@@ -57,6 +58,7 @@ public class ModelPreviewStage extends Stage {
     public Table attrTable;
     public ColorAttributesTable colorAttrTable;
     public TextureAttributesTable textureAttrTable;
+    public BlendingAttributesTable blendingAttrTable;
 
     // 2D Stage Widgets:
     public Label miLabel;  // Model Instance Info

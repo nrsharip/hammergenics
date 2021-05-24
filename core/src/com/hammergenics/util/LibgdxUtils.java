@@ -20,6 +20,7 @@ import com.badlogic.gdx.Files;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Version;
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g3d.Attribute;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.Material;
@@ -32,6 +33,7 @@ import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.hammergenics.config.Conventions;
 
@@ -40,6 +42,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 
 /**
  * Add description here
@@ -49,6 +52,18 @@ import java.time.format.DateTimeFormatter;
 public class LibgdxUtils {
     private static final String GENERATED = "generated/gen_";
     private static final String EXTENSION = ".txt";
+    public static ArrayMap<String, Integer> gl20_s2i;
+    public static ArrayMap<Integer, String> gl20_i2s; // ATTENTION: duplicates are present (GL_NONE, GL_ZERO..) - take special care
+
+    static {
+        gl20_s2i = new ArrayMap<>(String.class, Integer.class);
+        gl20_i2s = new ArrayMap<>(Integer.class, String.class);
+        scanGL20();
+
+        if (gl20_s2i.size == 0 || gl20_i2s.size == 0) {
+            Gdx.app.error(LibgdxUtils.class.getSimpleName(),"ERROR: no GL20 constants retrieved");
+        }
+    }
 
     /**
      * Careful with the lambda closures...
@@ -59,6 +74,37 @@ public class LibgdxUtils {
         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
 
         return stackTrace[3].getMethodName() + "->" + stackTrace[2].getMethodName();
+    }
+
+    private static void scanGL20() {
+        Arrays.stream(scanPublicStaticFinalFields(GL20.class, Integer.TYPE)).forEach(field -> {
+            try {
+                int value = field.getInt(null); // null is allowed for static fields...
+
+                gl20_s2i.put(field.getName(), value);
+                gl20_i2s.put(value, field.getName());
+                //Gdx.app.debug(getTag(),GL20.class.getSimpleName() + "." + field.getName() + ": 0x" + Integer.toHexString(value));
+            } catch (IllegalAccessException | IllegalArgumentException | NullPointerException e) {
+                Gdx.app.error(getTag(),"EXCEPTION while reading the field contents of the class: " + GL20.class.getName() + "\n" +
+                                Arrays.stream(e.getStackTrace())
+                                        .map(element -> String.valueOf(element) + "\n")
+                                        .reduce("", String::concat));
+            }
+        });
+    }
+
+    public static Field[] scanPublicStaticFinalFields(Class<?> scanned, Class<?> scanFor) {
+        Field[] fields = Arrays.stream(scanned.getFields())                           // getting all accessible public fields
+                            .filter(field -> field.getType().equals(scanFor))         // taking only fields of type 'int'
+                            .filter(field -> Modifier.isFinal(field.getModifiers()))  // taking only final fields
+                            .filter(field -> Modifier.isStatic(field.getModifiers())) // taking only static fields
+                            .toArray(Field[]::new);                                   // retrieving the array
+
+        if (fields.length == 0) {
+            Gdx.app.debug(getTag(),
+                    "WARNING: no fields of type '" + scanFor.getSimpleName() + "' found in: " + scanned.getName());
+        }
+        return fields;
     }
 
     /**
