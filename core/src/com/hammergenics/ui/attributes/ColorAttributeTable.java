@@ -235,11 +235,6 @@ public class ColorAttributeTable extends AttributeTable<ColorAttribute> {
     }
 
     @Override
-    protected void resetAttributeToDefaults(ColorAttribute attr) {
-        attr.color.set(Color.GRAY);
-    }
-
-    @Override
     protected void resetWidgetsToDefaults() {
         if (enabledCheckBox != null) { enabledCheckBox.setChecked(false); }
         if (rTF != null) { rTF.setText(String.valueOf((int)(Color.GRAY.r * 255))); } // extending the range from [0:1] to [0:255]

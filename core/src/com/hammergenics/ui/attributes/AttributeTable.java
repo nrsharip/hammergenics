@@ -50,7 +50,7 @@ public abstract class AttributeTable<T extends Attribute> extends BaseAttributeT
             public void changed (ChangeEvent event, Actor actor) {
                 if (container != null && currentType != 0) {
                     T attr = container.get(attributeClass, currentType);
-                    if (enabledCheckBox.isChecked() && attr != null) {
+                    if (enabledCheckBox.isChecked() && attr != null) { // attribute already exists, sync up
 
                         fetchWidgetsFromAttribute(attr); // syncing one more time
 
@@ -113,8 +113,6 @@ public abstract class AttributeTable<T extends Attribute> extends BaseAttributeT
     public void setListener(EventListener listener) { this.listener = listener; }
 
     protected abstract boolean preCreateAttr();
-
-    protected abstract void resetAttributeToDefaults(T attr);
 
     protected abstract void fetchWidgetsFromAttribute(T attr);
 

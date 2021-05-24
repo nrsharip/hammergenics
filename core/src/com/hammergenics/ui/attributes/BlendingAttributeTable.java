@@ -95,11 +95,6 @@ public class BlendingAttributeTable extends AttributeTable<BlendingAttribute> {
     }
 
     @Override
-    protected void resetAttributeToDefaults(BlendingAttribute attr) {
-
-    }
-
-    @Override
     protected void resetWidgetsToDefaults() {
 
     }

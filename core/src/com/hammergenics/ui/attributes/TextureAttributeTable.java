@@ -407,19 +407,6 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
         }
     }
 
-    protected void resetAttributeToDefaults(TextureAttribute attr) {
-        attr.offsetU = 0;
-        attr.offsetV = 0;
-        attr.scaleU = 1;
-        attr.scaleV = 1;
-        //attr.textureDescription.texture = texture; // TODO: ???
-        attr.textureDescription.minFilter = texture.getMinFilter(); // TODO: this is not a default value though
-        attr.textureDescription.magFilter = texture.getMagFilter(); // TODO: this is not a default value though
-        attr.textureDescription.uWrap = texture.getUWrap();         // TODO: this is not a default value though
-        attr.textureDescription.vWrap = texture.getVWrap();         // TODO: this is not a default value though
-        // TODO: one more parameter is currently missing: uvIndex (see TextureAttribute)
-    }
-
     protected void resetWidgetsToDefaults() {
         if (enabledCheckBox != null) { enabledCheckBox.setChecked(false); }
         if (offsetUTF != null) { offsetUTF.setText("0"); }
