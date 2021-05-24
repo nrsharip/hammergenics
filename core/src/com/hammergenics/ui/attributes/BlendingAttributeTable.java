@@ -50,7 +50,7 @@ public class BlendingAttributeTable extends AttributeTable<BlendingAttribute> {
     private Array<String> itemsSB;
     
     public BlendingAttributeTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
-        super(skin, container, mps);
+        super(skin, container, mps, BlendingAttribute.class);
 
         setSrc2dst(new ArrayMap<>(String.class, String.class));
         setItemsSB(new Array<>(String.class));
@@ -95,35 +95,23 @@ public class BlendingAttributeTable extends AttributeTable<BlendingAttribute> {
     }
 
     @Override
-    protected void reflectAttr(BlendingAttribute attr) {
+    protected void resetAttributeToDefaults(BlendingAttribute attr) {
+
+    }
+
+    @Override
+    protected void resetWidgetsToDefaults() {
+
+    }
+
+    @Override
+    protected void fetchWidgetsFromAttribute(BlendingAttribute attr) {
 
     }
 
     @Override
     protected void postRemoveAttr() {
 
-    }
-
-    @Override
-    public void resetAttribute(long type, String alias) {
-        if (container != null) {
-            BlendingAttribute attr = null;
-
-            currentType = type;
-            currentTypeAlias = alias;
-
-            attr = container.get(BlendingAttribute.class, type);
-            if (attr != null) {
-//                color.set(attr.color);
-//                if (enabledCheckBox != null) { enabledCheckBox.setChecked(true); }
-//                if (rTF != null) { rTF.setText(String.valueOf((int)(attr.color.r * 255))); } // extending the range from [0:1] to [0:255]
-//                if (gTF != null) { gTF.setText(String.valueOf((int)(attr.color.g * 255))); } // extending the range from [0:1] to [0:255]
-//                if (bTF != null) { bTF.setText(String.valueOf((int)(attr.color.b * 255))); } // extending the range from [0:1] to [0:255]
-//                if (aTF != null) { aTF.setText(String.valueOf((int)(attr.color.a * 255))); } // extending the range from [0:1] to [0:255]
-            } else {
-//                resetToDefaults();
-            }
-        }
     }
 
     @Override

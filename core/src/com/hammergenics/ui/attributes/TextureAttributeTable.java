@@ -72,7 +72,7 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
     private Texture texture;
 
     public TextureAttributeTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
-        super(skin, container, mps);
+        super(skin, container, mps, TextureAttribute.class);
 
         createListeners();
 
@@ -341,6 +341,7 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
 
     @Override
     protected boolean preCreateAttr() {
+        if (textureSelectBox == null) { return false; }
         if (textureSelectBox.getSelectedIndex() == 0) {
             texture = null;
             enabledCheckBox.setProgrammaticChangeEvents(false); // making sure no events fired during setChecked()
@@ -369,54 +370,48 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
     }
 
     @Override
-    protected void reflectAttr(TextureAttribute attr) {
+    protected void fetchWidgetsFromAttribute(TextureAttribute attr) {
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textfield
-        if (offsetUTF != null) { offsetUTF.setText(String.valueOf(attr.offsetU = 0)); }
-        if (offsetVTF != null) { offsetVTF.setText(String.valueOf(attr.offsetV = 0)); }
-        if (scaleUTF != null) { scaleUTF.setText(String.valueOf(attr.scaleU = 1)); }
-        if (scaleVTF != null) { scaleVTF.setText(String.valueOf(attr.scaleV = 1)); }
-        if (minFilterSB != null) { minFilterSB.setSelected((attr.textureDescription.minFilter = texture.getMinFilter()).name()); }
-        if (magFilterSB != null) { magFilterSB.setSelected((attr.textureDescription.magFilter = texture.getMagFilter()).name()); }
-        if (uWrapSB != null) { uWrapSB.setSelected((attr.textureDescription.uWrap = texture.getUWrap()).name()); }
-        if (vWrapSB != null) { vWrapSB.setSelected((attr.textureDescription.vWrap = texture.getVWrap()).name()); }
+        if (offsetUTF != null) { offsetUTF.setText(String.valueOf(attr.offsetU)); }
+        if (offsetVTF != null) { offsetVTF.setText(String.valueOf(attr.offsetV)); }
+        if (scaleUTF != null) { scaleUTF.setText(String.valueOf(attr.scaleU)); }
+        if (scaleVTF != null) { scaleVTF.setText(String.valueOf(attr.scaleV)); }
+        if (minFilterSB != null) { minFilterSB.setSelected(attr.textureDescription.minFilter.name()); }
+        if (magFilterSB != null) { magFilterSB.setSelected(attr.textureDescription.magFilter.name()); }
+        if (uWrapSB != null) { uWrapSB.setSelected(attr.textureDescription.uWrap.name()); }
+        if (vWrapSB != null) { vWrapSB.setSelected(attr.textureDescription.vWrap.name()); }
         // TODO: one more parameter is currently missing: uvIndex (see TextureAttribute)
 
-        mps.stage.textureImage.setDrawable(new TextureRegionDrawable(new TextureRegion(texture)));
-    }
-
-    @Override
-    public void resetAttribute(long type, String alias) {
-        if (container != null) {
-            //Material mtl = modelInstance.materials.get(0);
-            TextureAttribute attr = null;
-
-            currentType = type;
-            currentTypeAlias = alias;
-
-            attr = container.get(TextureAttribute.class, type);
-            if (attr != null) {
-                if (enabledCheckBox != null) { enabledCheckBox.setChecked(true); }
-                if (offsetUTF != null) { offsetUTF.setText(String.valueOf(attr.offsetU)); }
-                if (offsetVTF != null) { offsetVTF.setText(String.valueOf(attr.offsetV)); }
-                if (scaleUTF != null) { scaleUTF.setText(String.valueOf(attr.scaleU)); }
-                if (scaleVTF != null) { scaleVTF.setText(String.valueOf(attr.scaleV)); }
-                if (minFilterSB != null) { minFilterSB.setSelected(attr.textureDescription.minFilter.name()); }
-                if (magFilterSB != null) { magFilterSB.setSelected(attr.textureDescription.magFilter.name()); }
-                if (uWrapSB != null) { uWrapSB.setSelected(attr.textureDescription.uWrap.name()); }
-                if (vWrapSB != null) { vWrapSB.setSelected(attr.textureDescription.vWrap.name()); }
-                // TODO: one more parameter is currently missing: uvIndex (see TextureAttribute)
-                if (textureSelectBox != null && attr.textureDescription.texture.getTextureData() instanceof FileTextureData) {
-                    textureSelectBox.setSelected(attr.textureDescription.texture.toString());
-                } else if (textureSelectBox != null) {
-                    textureSelectBox.setSelectedIndex(0);
-                }
+        if (textureSelectBox != null) {
+            textureSelectBox.getSelection().setProgrammaticChangeEvents(false); // disabling events
+            if (attr.textureDescription.texture.getTextureData() instanceof FileTextureData) {
+                textureSelectBox.setSelected(attr.textureDescription.texture.toString());
             } else {
-                resetToDefaults();
+                textureSelectBox.setSelectedIndex(0);
             }
+            textureSelectBox.getSelection().setProgrammaticChangeEvents(true);  // enabling events
+        }
+
+        preCreateAttr(); // to setup a texture
+        if (texture != null) {
+            mps.stage.textureImage.setDrawable(new TextureRegionDrawable(new TextureRegion(texture)));
         }
     }
 
-    private void resetToDefaults() {
+    protected void resetAttributeToDefaults(TextureAttribute attr) {
+        attr.offsetU = 0;
+        attr.offsetV = 0;
+        attr.scaleU = 1;
+        attr.scaleV = 1;
+        //attr.textureDescription.texture = texture; // TODO: ???
+        attr.textureDescription.minFilter = texture.getMinFilter();
+        attr.textureDescription.magFilter = texture.getMagFilter();
+        attr.textureDescription.uWrap = texture.getUWrap();
+        attr.textureDescription.vWrap = texture.getVWrap();
+        // TODO: one more parameter is currently missing: uvIndex (see TextureAttribute)
+    }
+
+    protected void resetWidgetsToDefaults() {
         if (enabledCheckBox != null) { enabledCheckBox.setChecked(false); }
         if (offsetUTF != null) { offsetUTF.setText("0"); }
         if (offsetVTF != null) { offsetVTF.setText("0"); }

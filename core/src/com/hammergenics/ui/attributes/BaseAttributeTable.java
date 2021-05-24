@@ -16,6 +16,7 @@
 
 package com.hammergenics.ui.attributes;
 
+import com.badlogic.gdx.graphics.g3d.Attribute;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.hammergenics.screens.ModelPreviewScreen;
 import com.hammergenics.ui.AbstractTable;
@@ -25,13 +26,15 @@ import com.hammergenics.ui.AbstractTable;
  *
  * @author nrsharip
  */
-public abstract class BaseAttributeTable extends AbstractTable {
+public abstract class BaseAttributeTable<T extends Attribute> extends AbstractTable {
+    public Class<T> attributeClass;
     protected EventListener listener = null;
     protected ModelPreviewScreen mps;
 
-    public BaseAttributeTable(Skin skin, ModelPreviewScreen mps) {
+    public BaseAttributeTable(Skin skin, ModelPreviewScreen mps, Class<T> aClass) {
         super(skin);
         this.mps = mps;
+        this.attributeClass = aClass;
     }
 
     public abstract void setListener(EventListener listener);

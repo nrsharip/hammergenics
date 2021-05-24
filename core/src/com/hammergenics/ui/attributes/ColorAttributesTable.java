@@ -42,7 +42,7 @@ public class ColorAttributesTable extends AttributesTable<ColorAttribute, ColorA
 
         t2a.forEach((entry) -> {
             ColorAttributeTable table = new ColorAttributeTable(skin, container, mps);
-            table.resetAttribute(entry.key, entry.value);
+            table.fetchWidgetsFromContainer(entry.key, entry.value);
             t2Table.put(entry.key, table);   // type to table
             a2Table.put(entry.value, table); // alias to table
         });
@@ -61,7 +61,7 @@ public class ColorAttributesTable extends AttributesTable<ColorAttribute, ColorA
     @Override
     public void resetAttributes() {
         t2a.forEach((entry) -> {
-            t2Table.get(entry.key).resetAttribute(entry.key, entry.value);
+            t2Table.get(entry.key).fetchWidgetsFromContainer(entry.key, entry.value);
         });
     }
 

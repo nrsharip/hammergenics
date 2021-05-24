@@ -60,7 +60,7 @@ public class ColorAttributeTable extends AttributeTable<ColorAttribute> {
     private Color color = new Color().set(Color.GRAY);
 
     public ColorAttributeTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
-        super(skin, container, mps);
+        super(skin, container, mps, ColorAttribute.class);
 
         createListeners();
 
@@ -235,42 +235,31 @@ public class ColorAttributeTable extends AttributeTable<ColorAttribute> {
     }
 
     @Override
-    protected void reflectAttr(ColorAttribute attr) {
-
+    protected void resetAttributeToDefaults(ColorAttribute attr) {
+        //attr.color.set(Color.GRAY); // FIXME
     }
 
     @Override
-    protected void postRemoveAttr() {
-
-    }
-
-    @Override
-    public void resetAttribute(long type, String alias) {
-        if (container != null) {
-            ColorAttribute attr = null;
-
-            currentType = type;
-            currentTypeAlias = alias;
-
-            attr = container.get(ColorAttribute.class, type);
-            if (attr != null) {
-                color.set(attr.color);
-                if (enabledCheckBox != null) { enabledCheckBox.setChecked(true); }
-                if (rTF != null) { rTF.setText(String.valueOf((int)(attr.color.r * 255))); } // extending the range from [0:1] to [0:255]
-                if (gTF != null) { gTF.setText(String.valueOf((int)(attr.color.g * 255))); } // extending the range from [0:1] to [0:255]
-                if (bTF != null) { bTF.setText(String.valueOf((int)(attr.color.b * 255))); } // extending the range from [0:1] to [0:255]
-                if (aTF != null) { aTF.setText(String.valueOf((int)(attr.color.a * 255))); } // extending the range from [0:1] to [0:255]
-            } else {
-                resetToDefaults();
-            }
-        }
-    }
-
-    private void resetToDefaults() {
+    protected void resetWidgetsToDefaults() {
         if (enabledCheckBox != null) { enabledCheckBox.setChecked(false); }
         if (rTF != null) { rTF.setText(String.valueOf((int)(Color.GRAY.r * 255))); } // extending the range from [0:1] to [0:255]
         if (gTF != null) { gTF.setText(String.valueOf((int)(Color.GRAY.g * 255))); } // extending the range from [0:1] to [0:255]
         if (bTF != null) { bTF.setText(String.valueOf((int)(Color.GRAY.b * 255))); } // extending the range from [0:1] to [0:255]
         if (aTF != null) { aTF.setText(String.valueOf((int)(Color.GRAY.a * 255))); } // extending the range from [0:1] to [0:255]
+    }
+
+    @Override
+    protected void fetchWidgetsFromAttribute(ColorAttribute attr) {
+        color.set(attr.color);
+        if (enabledCheckBox != null) { enabledCheckBox.setChecked(true); }
+        if (rTF != null) { rTF.setText(String.valueOf((int)(attr.color.r * 255))); } // extending the range from [0:1] to [0:255]
+        if (gTF != null) { gTF.setText(String.valueOf((int)(attr.color.g * 255))); } // extending the range from [0:1] to [0:255]
+        if (bTF != null) { bTF.setText(String.valueOf((int)(attr.color.b * 255))); } // extending the range from [0:1] to [0:255]
+        if (aTF != null) { aTF.setText(String.valueOf((int)(attr.color.a * 255))); } // extending the range from [0:1] to [0:255]
+    }
+
+    @Override
+    protected void postRemoveAttr() {
+
     }
 }

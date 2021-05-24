@@ -50,7 +50,7 @@ public class TextureAttributesTable extends AttributesTable<TextureAttribute, Te
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 String alias = textureAttributeSelectBox.getSelected();
-                currentTextureAttributeTable.resetAttribute(a2t.get(alias), alias);
+                currentTextureAttributeTable.fetchWidgetsFromContainer(a2t.get(alias), alias);
             }
         });
 
@@ -67,7 +67,7 @@ public class TextureAttributesTable extends AttributesTable<TextureAttribute, Te
     @Override
     public void resetAttributes() {
         String alias = textureAttributeSelectBox.getSelected();
-        currentTextureAttributeTable.resetAttribute(a2t.get(alias), alias);
+        currentTextureAttributeTable.fetchWidgetsFromContainer(a2t.get(alias), alias);
     }
 
     /**

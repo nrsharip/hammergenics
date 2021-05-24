@@ -37,7 +37,7 @@ public class BlendingAttributesTable extends AttributesTable<BlendingAttribute, 
 
         t2a.forEach((entry) -> {
             BlendingAttributeTable table = new BlendingAttributeTable(skin, container, mps);
-            table.resetAttribute(entry.key, entry.value);
+            table.fetchWidgetsFromContainer(entry.key, entry.value);
             t2Table.put(entry.key, table);   // type to table
             a2Table.put(entry.value, table); // alias to table
         });

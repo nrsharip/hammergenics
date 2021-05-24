@@ -30,7 +30,7 @@ import com.hammergenics.screens.ModelPreviewScreen;
  *
  * @author nrsharip
  */
-public abstract class AttributeTable<T extends Attribute> extends BaseAttributeTable {
+public abstract class AttributeTable<T extends Attribute> extends BaseAttributeTable<T> {
     public Attributes container;
     protected long currentType = 0;
     protected String currentTypeAlias = null;
@@ -39,8 +39,8 @@ public abstract class AttributeTable<T extends Attribute> extends BaseAttributeT
 
     protected ChangeListener checkBoxListener;
 
-    public AttributeTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
-        super(skin, mps);
+    public AttributeTable(Skin skin, Attributes container, ModelPreviewScreen mps, Class<T> aClass) {
+        super(skin, mps, aClass);
         this.container = container;
 
         enabledCheckBox = new CheckBox("enabled", skin);
@@ -61,7 +61,9 @@ public abstract class AttributeTable<T extends Attribute> extends BaseAttributeT
                             return;
                         }
 
-                        reflectAttr(attr);
+                        resetAttributeToDefaults(attr);
+
+                        fetchWidgetsFromAttribute(attr);
 
                         container.set(attr);
 
@@ -90,25 +92,33 @@ public abstract class AttributeTable<T extends Attribute> extends BaseAttributeT
         enabledCheckBox.addListener(checkBoxListener);
     }
 
-    @Override
-    public void setListener(EventListener listener) {
-        this.listener = listener;
+    protected void fetchWidgetsFromContainer(long type, String alias) {
+        if (container != null) {
+            currentType = type;
+            currentTypeAlias = alias;
+
+            T attr = container.get(attributeClass, type);
+            if (attr != null) {
+                fetchWidgetsFromAttribute(attr);
+            } else {
+                resetWidgetsToDefaults();
+            }
+        }
     }
+
+    @Override
+    public void setListener(EventListener listener) { this.listener = listener; }
 
     protected abstract boolean preCreateAttr();
 
-    protected abstract void reflectAttr(T attr);
+    protected abstract void resetAttributeToDefaults(T attr);
+
+    protected abstract void fetchWidgetsFromAttribute(T attr);
 
     protected abstract void postRemoveAttr();
 
-    /**
-     *
-     */
-    public abstract void resetAttribute(long type, String alias);
+    protected abstract void resetWidgetsToDefaults();
 
-    /**
-     *
-     */
     protected abstract T createAttribute(String alias);
 
 }

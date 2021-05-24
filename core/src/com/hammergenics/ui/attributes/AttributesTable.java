@@ -32,8 +32,7 @@ import java.util.Arrays;
  *
  * @author nrsharip
  */
-public abstract class AttributesTable<T extends Attribute, Q extends AttributeTable<T>> extends BaseAttributeTable {
-    public Class<T> aClass;
+public abstract class AttributesTable<T extends Attribute, Q extends AttributeTable<T>> extends BaseAttributeTable<T> {
     public Attributes container;
 
     /**
@@ -59,8 +58,7 @@ public abstract class AttributesTable<T extends Attribute, Q extends AttributeTa
      * @param container
      */
     public AttributesTable(Skin skin, Attributes container, ModelPreviewScreen mps, Class<T> aClass) {
-        super(skin, mps);
-        this.aClass = aClass;
+        super(skin, mps, aClass);
         this.container = container;
 
         t2a = new ArrayMap<>();
@@ -72,14 +70,14 @@ public abstract class AttributesTable<T extends Attribute, Q extends AttributeTa
      *
      */
     private void traverse() {
-        Field[] attrTypesFields = Arrays.stream(aClass.getFields())       // getting all accessible public fields
-                .filter(field -> field.getType().equals(Long.TYPE))       // taking only fields of type 'long'
-                .filter(field -> Modifier.isFinal(field.getModifiers()))  // taking only final fields
-                .filter(field -> Modifier.isStatic(field.getModifiers())) // taking only static fields
-                .toArray(Field[]::new);                                   // retrieving the array
+        Field[] attrTypesFields = Arrays.stream(attributeClass.getFields()) // getting all accessible public fields
+                .filter(field -> field.getType().equals(Long.TYPE))         // taking only fields of type 'long'
+                .filter(field -> Modifier.isFinal(field.getModifiers()))    // taking only final fields
+                .filter(field -> Modifier.isStatic(field.getModifiers()))   // taking only static fields
+                .toArray(Field[]::new);                                     // retrieving the array
 
         if (attrTypesFields.length == 0) {
-            Gdx.app.error(getClass().getSimpleName(), "ERROR: no type fields found in: " + aClass.getName());
+            Gdx.app.error(getClass().getSimpleName(), "ERROR: no type fields found in: " + attributeClass.getName());
             return;
         }
 
@@ -91,7 +89,7 @@ public abstract class AttributesTable<T extends Attribute, Q extends AttributeTa
                 if (alias == null) {
                     Gdx.app.debug(getClass().getSimpleName(),
                             "WARNING: field value is not a registered Attribute Type: "
-                                    + aClass.getSimpleName() + "." + field.getName() + " = 0x" + Long.toHexString(type));
+                                    + attributeClass.getSimpleName() + "." + field.getName() + " = 0x" + Long.toHexString(type));
                     continue;
                 }
 
@@ -99,11 +97,11 @@ public abstract class AttributesTable<T extends Attribute, Q extends AttributeTa
                 a2t.put(alias, type);
 
                 Gdx.app.debug(getClass().getSimpleName(),
-                        aClass.getSimpleName() + "." + field.getName() + ": 0x" + Long.toHexString(type)
+                        attributeClass.getSimpleName() + "." + field.getName() + ": 0x" + Long.toHexString(type)
                                 + " (alias: " + Attribute.getAttributeAlias(type) + ")");
             } catch (IllegalAccessException | IllegalArgumentException | NullPointerException e) {
                 Gdx.app.error(getClass().getSimpleName(),
-                        "EXCEPTION while reading the field contents of the class: " + aClass.getName() + "\n" +
+                        "EXCEPTION while reading the field contents of the class: " + attributeClass.getName() + "\n" +
                                 Arrays.stream(e.getStackTrace())
                                         .map(element -> String.valueOf(element) + "\n")
                                         .reduce("", String::concat));
