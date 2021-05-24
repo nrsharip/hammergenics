@@ -153,7 +153,7 @@ public class LibgdxUtils {
         Vector3 dimensions = mi.calculateBoundingBox(new BoundingBox()).getDimensions(new Vector3());
 
         StringBuilder modelInstanceInfo = new StringBuilder("ModelInstance: ")
-                .append(String.format("Dimensions X: %.5f Y: %.5f Z: %.5f", dimensions.x, dimensions.y, dimensions.z));
+                .append(String.format("Dimensions X: %.5f Y: %.5f Z: %.5f\n", dimensions.x, dimensions.y, dimensions.z));
 
         modelInstanceInfo.append("Nodes:\n");
 
@@ -236,11 +236,21 @@ public class LibgdxUtils {
 
             // IDEA finds 10 classes extending Attribute
             // com.badlogic.gdx.graphics.g3d.attributes:
-//            if (BlendingAttribute.is(attr.type)) { }// BlendingAttribute
+            if (BlendingAttribute.is(attr.type)) {
+                BlendingAttribute a = ((BlendingAttribute) attr);
+                out.append(String.format(indent + "%17s %8s: \n",
+                        attr.getClass().getSimpleName(), alias
+                ));
+                out.append(String.format(indent + "  blended:%s opacity:%.5f %s %s \n",
+                        a.blended, a.opacity,
+                        a.sourceFunction == 0 ? "GL_ZERO" : a.sourceFunction == 1 ? "GL_ONE" : gl20_i2s.get(a.sourceFunction),
+                        a.destFunction == 0 ? "GL_ZERO" : a.destFunction == 1 ? "GL_ONE" : gl20_i2s.get(a.destFunction)
+                ));
+                continue;
+            } // BlendingAttribute
             if (ColorAttribute.is(attr.type)) {
                 out.append(String.format(indent + "%14s %20s: %.3f %.3f %.3f %.3f \n",
-                        attr.getClass().getSimpleName(),
-                        alias,
+                        attr.getClass().getSimpleName(), alias,
                         ((ColorAttribute) attr).color.r,((ColorAttribute) attr).color.g,
                         ((ColorAttribute) attr).color.b,((ColorAttribute) attr).color.a));
                 continue;
@@ -291,39 +301,21 @@ public class LibgdxUtils {
             } // SpotLightsAttribute
             if (TextureAttribute.is(attr.type)) {
                 TextureAttribute a = ((TextureAttribute) attr);
-                out.append(String.format(indent + "%16s %20s:\n",
-                        attr.getClass().getSimpleName(),
-                        alias
+                out.append(String.format(indent + "%16s %17s:\n",
+                        attr.getClass().getSimpleName(), alias
                 ));
-                out.append(indent + " offsetU: " + a.offsetU + "\n");
-                out.append(indent + " offsetV: " + a.offsetV + "\n");
-                out.append(indent + "  scaleU: " + a.scaleU + "\n");
-                out.append(indent + "  scaleV: " + a.scaleV + "\n");
-                out.append(indent + " uvIndex: " + a.uvIndex + "\n");
-
-                out.append(indent + " " + a.textureDescription.getClass().getSimpleName() + " textureDescription:\n");
-                out.append(String.format(indent + "%15s texture: %s\n",
-                        a.textureDescription.texture.getClass().getSimpleName(),
-                        a.textureDescription.texture.toString()
+                out.append(String.format(indent + "  offsetU:%.3f offsetV:%.3f scaleU:%.3f scaleV:%.3f uvIndex:%d\n",
+                        a.offsetU, a.offsetV, a.scaleU, a.scaleV, a.uvIndex
                 ));
-                out.append(String.format(indent + "%15s minFilter: %s\n",
-                        a.textureDescription.minFilter.getClass().getSimpleName(),
-                        a.textureDescription.minFilter.toString()
-                ));
-                out.append(String.format(indent + "%15s magFilter: %s\n",
-                        a.textureDescription.magFilter.getClass().getSimpleName(),
-                        a.textureDescription.magFilter.toString()
-                ));
-                out.append(String.format(indent + "%15s uWrap: %s\n",
-                        a.textureDescription.uWrap.getClass().getSimpleName(),
-                        a.textureDescription.uWrap.toString()
-                ));
-                out.append(String.format(indent + "%15s vWrap: %s\n",
-                        a.textureDescription.vWrap.getClass().getSimpleName(),
+                out.append(String.format(indent + "  minFilter:%s magFilter:%s uWrap:%s vWrap:%s\n",
+                        a.textureDescription.minFilter.toString(),
+                        a.textureDescription.magFilter.toString(),
+                        a.textureDescription.uWrap.toString(),
                         a.textureDescription.vWrap.toString()
                 ));
-
-                //Gdx.app.debug(LibGDXUtil.class.getSimpleName(), getFieldsContents(attr, 1, "", "", false));
+                out.append(String.format(indent + "  texture: %s\n",
+                        a.textureDescription.texture.toString()
+                ));
                 continue;
             } // TextureAttribute
 

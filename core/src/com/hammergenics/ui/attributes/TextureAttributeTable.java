@@ -160,7 +160,6 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
         add(offsetUTF).width(40).maxWidth(40);
         add(new Label("minFilter:", skin)).right();
         add(minFilterSB).fillX();
-        add().expandX();
         row();
 
         add();
@@ -168,7 +167,6 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
         add(offsetVTF).width(40).maxWidth(40);
         add(new Label("magFilter:", skin)).right();
         add(magFilterSB).fillX();
-        add().expandX();
         row();
 
         add();
@@ -176,7 +174,6 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
         add(scaleUTF).width(40).maxWidth(40);
         add(new Label("uWrap:", skin)).right();
         add(uWrapSB).fillX();
-        add().expandX();
         row();
 
         add();
@@ -184,11 +181,9 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
         add(scaleVTF).width(40).maxWidth(40);
         add(new Label("vWrap:", skin)).right();
         add(vWrapSB).fillX();
-        add().expandX();
         row();
 
         add(textureSelectBox).colspan(5).fillX();
-        add().expandX();
     }
 
     private Array<FileHandle> texturesLookUp (FileHandle assetFileHandle) {

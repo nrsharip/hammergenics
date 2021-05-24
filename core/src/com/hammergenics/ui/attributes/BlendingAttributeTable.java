@@ -65,7 +65,7 @@ public class BlendingAttributeTable extends AttributeTable<BlendingAttribute> {
 
         setSrc2dst(new ArrayMap<>(String.class, String.class));
         setItemsSB(new Array<>(String.class));
-        Gdx.app.debug(getClass().getSimpleName(), "Retrieved function list: \n" + itemsSB.toString("\n"));
+        //Gdx.app.debug(getClass().getSimpleName(), "Retrieved function list: \n" + itemsSB.toString("\n"));
 
         opacityTF = new TextField("1", skin);
 
@@ -104,6 +104,7 @@ public class BlendingAttributeTable extends AttributeTable<BlendingAttribute> {
 
         line2.add(new Label("src:", skin)).right();
         line2.add(srcFuncSB);
+        line2.row();
         line2.add(new Label("dst:", skin)).right();
         line2.add(dstFuncSB);
 
