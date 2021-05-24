@@ -17,10 +17,13 @@
 package com.hammergenics.ui.attributes;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.hammergenics.screens.ModelPreviewScreen;
@@ -34,12 +37,14 @@ import static com.hammergenics.util.LibgdxUtils.gl20_s2i;
  * @author nrsharip
  */
 public class BlendingAttributeTable extends AttributeTable<BlendingAttribute> {
+    private static final String ACTOR_SRC = "sourceFunction";
+    private static final String ACTOR_DST = "destFunction";
 
     private TextField opacityTF = null;
     private SelectBox<String> srcFuncSB = null;
     private SelectBox<String> dstFuncSB = null;
-    protected CheckBox blendedCB = null;
-    protected CheckBox mapSrc2DstCB = null;
+    private CheckBox blendedCB = null;
+    private CheckBox mapSrc2DstCB = null;
 
     // boolean blended - Whether this material should be considered blended (default: true). This is used for sorting (back to front instead of front to back).
     // sourceFunction  - Specifies how the (incoming) red, green, blue, and alpha source blending factors are computed (default: GL_SRC_ALPHA)
@@ -48,18 +53,33 @@ public class BlendingAttributeTable extends AttributeTable<BlendingAttribute> {
 
     private ArrayMap<String, String> src2dst;
     private Array<String> itemsSB;
-    
+
+    private TextField.TextFieldListener opacityTFListener = null;
+    private ChangeListener selectBoxListener = null;
+    private ChangeListener blendedCBListener = null;
+
     public BlendingAttributeTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
         super(skin, container, mps, BlendingAttribute.class);
 
+        createListeners();
+
         setSrc2dst(new ArrayMap<>(String.class, String.class));
         setItemsSB(new Array<>(String.class));
+        Gdx.app.debug(getClass().getSimpleName(), "Retrieved function list: \n" + itemsSB.toString("\n"));
 
         opacityTF = new TextField("1", skin);
+
         blendedCB = new CheckBox("blended", skin);
-        mapSrc2DstCB = new CheckBox("map src to dst", skin);
+        blendedCB.setChecked(true);
+
+        mapSrc2DstCB = new CheckBox("match src with dst", skin);
+        mapSrc2DstCB.setChecked(true);
+
         srcFuncSB = new SelectBox<>(skin);
+        srcFuncSB.setName(ACTOR_SRC);
+
         dstFuncSB = new SelectBox<>(skin);
+        dstFuncSB.setName(ACTOR_DST);
 
         srcFuncSB.clearItems();
         dstFuncSB.clearItems();
@@ -67,13 +87,19 @@ public class BlendingAttributeTable extends AttributeTable<BlendingAttribute> {
         srcFuncSB.setItems(itemsSB.toArray(String.class));
         dstFuncSB.setItems(itemsSB.toArray(String.class));
 
+        opacityTF.setTextFieldListener(opacityTFListener);
+        blendedCB.addListener(blendedCBListener);
+        srcFuncSB.addListener(selectBoxListener);
+        dstFuncSB.addListener(selectBoxListener);
+
         Table line1 = new Table();
         Table line2 = new Table();
 
         line1.add(enabledCheckBox);
         line1.add(new Label("opacity:", skin)).right();
         line1.add(opacityTF).width(80).maxWidth(80).padRight(5f);
-        line1.add(mapSrc2DstCB);
+        line1.add(blendedCB).padRight(5f);
+        line1.add(mapSrc2DstCB).padRight(5f);
         line1.add().expandX();
 
         line2.add(new Label("src:", skin)).right();
@@ -84,9 +110,86 @@ public class BlendingAttributeTable extends AttributeTable<BlendingAttribute> {
         add(line1).fillX();
         row();
         add(line2).fillX();
+    }
 
-        Gdx.app.debug(getClass().getSimpleName(),
-                        "Retrieved function list: \n" + itemsSB.toString("\n"));
+    private void createListeners() {
+        blendedCBListener = new ChangeListener() {
+            @Override
+            public void changed (ChangeEvent event, Actor actor) {
+                if (container != null && currentType != 0) {
+                    BlendingAttribute attr = container.get(BlendingAttribute.class, currentType);
+                    if (attr != null) {
+                        attr.blended = blendedCB.isChecked();
+                    }
+                }
+            }
+        };
+
+        opacityTFListener = new TextField.TextFieldListener() {
+            @Override
+            public void keyTyped(TextField textField, char c) {
+                try {
+                    float value = Float.parseFloat(textField.getText());
+
+                    if (value > 1 || value < 0) {
+                        textField.getColor().set(Color.PINK);
+                        return;
+                    }
+
+                    if (container != null && currentType != 0) {
+                        BlendingAttribute attr = null;
+                        attr = container.get(BlendingAttribute.class, currentType);
+
+                        if (attr != null) { attr.opacity = value; }
+
+                        if (listener != null) { listener.onAttributeChange(currentType, currentTypeAlias); }
+                    }
+                    textField.getColor().set(Color.WHITE);
+                } catch (NumberFormatException e) {
+                    textField.getColor().set(Color.PINK);
+                }
+            }
+        };
+
+        selectBoxListener = new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                if (container != null && currentType != 0) {
+
+                    BlendingAttribute attr = container.get(BlendingAttribute.class, currentType);
+                    if (attr != null) {
+                        switch (actor.getName()) {
+                            case ACTOR_SRC:
+                                attr.sourceFunction = gl20_s2i.get(srcFuncSB.getSelected());
+                                if (mapSrc2DstCB.isChecked() && src2dst.containsKey(srcFuncSB.getSelected())) {
+                                    String mapped = src2dst.get(srcFuncSB.getSelected());
+
+                                    dstFuncSB.getSelection().setProgrammaticChangeEvents(false);
+                                    dstFuncSB.setSelected(mapped);
+                                    dstFuncSB.getSelection().setProgrammaticChangeEvents(true);
+
+                                    attr.destFunction = gl20_s2i.get(mapped);
+                                }
+                                break;
+                            case ACTOR_DST:
+                                attr.destFunction = gl20_s2i.get(dstFuncSB.getSelected());
+                                if (mapSrc2DstCB.isChecked() && src2dst.containsKey(dstFuncSB.getSelected())) {
+                                    String mapped = src2dst.get(dstFuncSB.getSelected());
+
+                                    srcFuncSB.getSelection().setProgrammaticChangeEvents(false);
+                                    srcFuncSB.setSelected(mapped);
+                                    srcFuncSB.getSelection().setProgrammaticChangeEvents(true);
+
+                                    attr.sourceFunction = gl20_s2i.get(mapped);
+                                }
+                                break;
+                        }
+                    }
+
+                    if (listener != null) { listener.onAttributeChange(currentType, currentTypeAlias); }
+                }
+            }
+        };
     }
 
     @Override
@@ -96,12 +199,20 @@ public class BlendingAttributeTable extends AttributeTable<BlendingAttribute> {
 
     @Override
     protected void resetWidgetsToDefaults() {
-
+        if (opacityTF != null) { opacityTF.setText(String.valueOf(1f)); }
+        if (srcFuncSB != null) { srcFuncSB.setSelected(gl20_i2s.get(GL20.GL_SRC_ALPHA));}
+        if (dstFuncSB != null) { dstFuncSB.setSelected(gl20_i2s.get(GL20.GL_ONE_MINUS_SRC_ALPHA));}
+        if (blendedCB != null) { blendedCB.setChecked(true); }
     }
 
     @Override
     protected void fetchWidgetsFromAttribute(BlendingAttribute attr) {
-
+        if (opacityTF != null) { opacityTF.setText(String.valueOf(attr.opacity)); }
+        if (srcFuncSB != null) { srcFuncSB.setSelected(attr.sourceFunction == 0 ?
+                "GL_ZERO" : attr.sourceFunction == 1 ? "GL_ONE" : gl20_i2s.get(attr.sourceFunction));}
+        if (dstFuncSB != null) { dstFuncSB.setSelected(attr.destFunction == 0 ?
+                "GL_ZERO" : attr.destFunction == 1 ? "GL_ONE" : gl20_i2s.get(attr.destFunction));}
+        if (blendedCB != null) { blendedCB.setChecked(attr.blended); }
     }
 
     @Override
@@ -111,7 +222,7 @@ public class BlendingAttributeTable extends AttributeTable<BlendingAttribute> {
 
     @Override
     protected BlendingAttribute createAttribute(String alias) {
-        return null;
+        return new BlendingAttribute(); // using no-arg constructor
     }
 
     private void setSrc2dst(ArrayMap<String, String> map) {
@@ -167,7 +278,7 @@ public class BlendingAttributeTable extends AttributeTable<BlendingAttribute> {
         map.put(gl20_i2s.get(GL20.GL_ONE_MINUS_CONSTANT_COLOR), gl20_i2s.get(GL20.GL_CONSTANT_COLOR)); // GL_ONE_MINUS_CONSTANT_COLOR
         map.put(gl20_i2s.get(GL20.GL_CONSTANT_ALPHA), gl20_i2s.get(GL20.GL_ONE_MINUS_CONSTANT_ALPHA)); // GL_CONSTANT_ALPHA
         map.put(gl20_i2s.get(GL20.GL_ONE_MINUS_CONSTANT_ALPHA), gl20_i2s.get(GL20.GL_CONSTANT_ALPHA)); // GL_ONE_MINUS_CONSTANT_ALPHA
-//        map.put(gl20_i2s.get(GL20.), gl20_i2s.get(GL20.));
+        //map.put(gl20_i2s.get(GL20.), gl20_i2s.get(GL20.));
 
         src2dst = map;
     }

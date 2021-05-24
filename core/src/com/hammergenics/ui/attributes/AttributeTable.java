@@ -102,6 +102,11 @@ public abstract class AttributeTable<T extends Attribute> extends BaseAttributeT
 
             T attr = container.get(attributeClass, type);
             if (attr != null) {
+                if (enabledCheckBox != null) {
+                    enabledCheckBox.setProgrammaticChangeEvents(false);
+                    enabledCheckBox.setChecked(true);
+                    enabledCheckBox.setProgrammaticChangeEvents(true);
+                }
                 fetchWidgetsFromAttribute(attr);
             } else {
                 resetWidgetsToDefaults();
