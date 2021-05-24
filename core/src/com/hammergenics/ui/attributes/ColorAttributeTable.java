@@ -236,7 +236,7 @@ public class ColorAttributeTable extends AttributeTable<ColorAttribute> {
 
     @Override
     protected void resetAttributeToDefaults(ColorAttribute attr) {
-        //attr.color.set(Color.GRAY); // FIXME
+        attr.color.set(Color.GRAY);
     }
 
     @Override

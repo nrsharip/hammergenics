@@ -48,20 +48,23 @@ public abstract class AttributeTable<T extends Attribute> extends BaseAttributeT
         checkBoxListener = new ChangeListener() {
             @Override
             public void changed (ChangeEvent event, Actor actor) {
-                if (container != null) {
-                    if (enabledCheckBox.isChecked()) { // adding the attribute
+                if (container != null && currentType != 0) {
+                    T attr = container.get(attributeClass, currentType);
+                    if (enabledCheckBox.isChecked() && attr != null) {
+
+                        fetchWidgetsFromAttribute(attr); // syncing one more time
+
+                    } else if (enabledCheckBox.isChecked()) { // adding the attribute
 
                         if (!preCreateAttr()) { return; }
 
-                        T attr = createAttribute(currentTypeAlias);
+                        attr = createAttribute(currentTypeAlias);
 
                         if (attr == null) {
                             Gdx.app.error("enabledCheckBox", "ERROR: attribute is not created"
                                     + " (attribute: type = 0x" + Long.toHexString(currentType) + " alias = " + currentTypeAlias + ")");
                             return;
                         }
-
-                        resetAttributeToDefaults(attr);
 
                         fetchWidgetsFromAttribute(attr);
 

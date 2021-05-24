@@ -234,16 +234,25 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
         if (texture == null) {
             return null;
         }
+        TextureAttribute out = null;
         switch (alias) {
-            case TextureAttribute.DiffuseAlias: return TextureAttribute.createDiffuse(texture);
-            case TextureAttribute.SpecularAlias: return TextureAttribute.createSpecular(texture);
-            case TextureAttribute.BumpAlias: return TextureAttribute.createBump(texture);
-            case TextureAttribute.NormalAlias: return TextureAttribute.createNormal(texture);
-            case TextureAttribute.AmbientAlias: return TextureAttribute.createAmbient(texture);
-            case TextureAttribute.EmissiveAlias: return TextureAttribute.createEmissive(texture);
-            case TextureAttribute.ReflectionAlias: return TextureAttribute.createReflection(texture);
+            case TextureAttribute.DiffuseAlias: out = TextureAttribute.createDiffuse(texture); break;
+            case TextureAttribute.SpecularAlias: out = TextureAttribute.createSpecular(texture); break;
+            case TextureAttribute.BumpAlias: out = TextureAttribute.createBump(texture); break;
+            case TextureAttribute.NormalAlias: out = TextureAttribute.createNormal(texture); break;
+            case TextureAttribute.AmbientAlias: out = TextureAttribute.createAmbient(texture); break;
+            case TextureAttribute.EmissiveAlias: out = TextureAttribute.createEmissive(texture); break;
+            case TextureAttribute.ReflectionAlias: out = TextureAttribute.createReflection(texture); break;
         }
-        return null;
+        if (out != null) {
+            // no-arg constructor "public TextureDescriptor ()" doesn't fill these out
+            out.textureDescription.minFilter = texture.getMinFilter();
+            out.textureDescription.magFilter = texture.getMagFilter();
+            out.textureDescription.uWrap = texture.getUWrap();
+            out.textureDescription.vWrap = texture.getVWrap();
+        }
+
+        return out;
     }
 
     private void createListeners() {
@@ -404,10 +413,10 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
         attr.scaleU = 1;
         attr.scaleV = 1;
         //attr.textureDescription.texture = texture; // TODO: ???
-        attr.textureDescription.minFilter = texture.getMinFilter();
-        attr.textureDescription.magFilter = texture.getMagFilter();
-        attr.textureDescription.uWrap = texture.getUWrap();
-        attr.textureDescription.vWrap = texture.getVWrap();
+        attr.textureDescription.minFilter = texture.getMinFilter(); // TODO: this is not a default value though
+        attr.textureDescription.magFilter = texture.getMagFilter(); // TODO: this is not a default value though
+        attr.textureDescription.uWrap = texture.getUWrap();         // TODO: this is not a default value though
+        attr.textureDescription.vWrap = texture.getVWrap();         // TODO: this is not a default value though
         // TODO: one more parameter is currently missing: uvIndex (see TextureAttribute)
     }
 
