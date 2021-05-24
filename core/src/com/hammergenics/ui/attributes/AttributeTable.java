@@ -16,10 +16,13 @@
 
 package com.hammergenics.ui.attributes;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g3d.Attribute;
 import com.badlogic.gdx.graphics.g3d.Attributes;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.hammergenics.screens.ModelPreviewScreen;
 
 /**
@@ -34,12 +37,65 @@ public abstract class AttributeTable<T extends Attribute> extends BaseAttributeT
 
     protected CheckBox enabledCheckBox = null;
 
+    protected ChangeListener checkBoxListener;
+
     public AttributeTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
         super(skin, mps);
         this.container = container;
 
         enabledCheckBox = new CheckBox("enabled", skin);
+
+        checkBoxListener = new ChangeListener() {
+            @Override
+            public void changed (ChangeEvent event, Actor actor) {
+                if (container != null) {
+                    if (enabledCheckBox.isChecked()) { // adding the attribute
+
+                        if (!preCreateAttr()) { return; }
+
+                        T attr = createAttribute(currentTypeAlias);
+
+                        if (attr == null) {
+                            Gdx.app.error("enabledCheckBox", "ERROR: attribute is not created"
+                                    + " (attribute: type = 0x" + Long.toHexString(currentType) + " alias = " + currentTypeAlias + ")");
+                            return;
+                        }
+
+                        reflectAttr(attr);
+
+                        container.set(attr);
+
+                        Gdx.app.debug("enabledCheckBox", "Setting the attribute: type = 0x"
+                                + Long.toHexString(currentType) + " alias = " + currentTypeAlias);
+
+                        if (listener != null) { listener.onAttributeEnabled(currentType, currentTypeAlias); }
+                    } else { // removing the attribute
+                        if (container.get(currentType) != null) {
+                            container.remove(currentType);
+
+                            postRemoveAttr();
+
+                            Gdx.app.debug("enabledCheckBox", "Clearing the attribute: type = 0x"
+                                    + Long.toHexString(currentType) + " alias = " + currentTypeAlias);
+
+                            if (listener != null) { listener.onAttributeDisabled(currentType, currentTypeAlias); }
+                        } else {
+                            Gdx.app.error("enabledCheckBox", "ERROR: we shouldn't be here: type = 0x"
+                                    + Long.toHexString(currentType) + " alias = " + currentTypeAlias);
+                        }
+                    }
+                }
+            }
+        };
+        enabledCheckBox.addListener(checkBoxListener);
     }
+
+
+    protected abstract boolean preCreateAttr();
+
+    protected abstract void reflectAttr(T attr);
+
+    protected abstract void postRemoveAttr();
 
     /**
      *

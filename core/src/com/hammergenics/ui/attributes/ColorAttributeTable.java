@@ -52,12 +52,10 @@ public class ColorAttributeTable extends AttributeTable<ColorAttribute> {
     private TextField bTF = null;
     private TextField aTF = null;
     private SelectBox<String> colorSB = null;
-    private ArrayMap<String, Color> itemsColor =
-            new ArrayMap<>(String.class, Color.class); // important not to get the class cast exception
+    private ArrayMap<String, Color> itemsColor = new ArrayMap<>(String.class, Color.class);
 
     private TextFieldListener paramTextFieldListener;
     private ChangeListener colorSelectBoxListener;
-    private ChangeListener checkBoxListener;
 
     private Color color = new Color().set(Color.GRAY);
 
@@ -65,8 +63,6 @@ public class ColorAttributeTable extends AttributeTable<ColorAttribute> {
         super(skin, container, mps);
 
         createListeners();
-
-        enabledCheckBox.addListener(checkBoxListener);
 
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textfield
         rTF = new TextField("150", skin); rTF.setName(ACTOR_R);
@@ -143,6 +139,7 @@ public class ColorAttributeTable extends AttributeTable<ColorAttribute> {
         }
     }
 
+    @Override
     protected ColorAttribute createAttribute(String alias) {
         switch (alias) {
             case ColorAttribute.DiffuseAlias: return ColorAttribute.createDiffuse (color);
@@ -230,47 +227,24 @@ public class ColorAttributeTable extends AttributeTable<ColorAttribute> {
                 }
             }
         };
-
-        checkBoxListener = new ChangeListener() {
-            @Override
-            public void changed (ChangeEvent event, Actor actor) {
-                if (container != null) {
-                    if (enabledCheckBox.isChecked()) { // adding the attribute
-                        // TODO: make sure this is propagated
-                        //Texture texture = assetManager.get(textureSelectBox.getSelected(), Texture.class);
-                        ColorAttribute attr = createAttribute(currentTypeAlias);
-
-                        if (attr == null) {
-                            Gdx.app.error("enabledCheckBox", "ERROR: attribute is not created"
-                                    + " (attribute: type = 0x" + Long.toHexString(currentType) + " alias = " + currentTypeAlias + ")");
-                            return;
-                        }
-
-                        // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textfield
-                        container.set(attr);
-
-                        Gdx.app.debug("enabledCheckBox", "Setting the attribute: type = 0x"
-                                + Long.toHexString(currentType) + " alias = " + currentTypeAlias);
-
-                        if (listener != null) { listener.onAttributeEnabled(currentType, currentTypeAlias); }
-                    } else { // removing the attribute
-                        if (container.get(currentType) != null) {
-                            container.remove(currentType);
-
-                            Gdx.app.debug("enabledCheckBox", "Clearing the attribute: type = 0x"
-                                    + Long.toHexString(currentType) + " alias = " + currentTypeAlias);
-
-                            if (listener != null) { listener.onAttributeDisabled(currentType, currentTypeAlias); }
-                        } else {
-                            Gdx.app.error("enabledCheckBox", "ERROR: we shouldn't be here: type = 0x"
-                                + Long.toHexString(currentType) + " alias = " + currentTypeAlias);
-                        }
-                    }
-                }
-            }
-        };
     }
 
+    @Override
+    protected boolean preCreateAttr() {
+        return true;
+    }
+
+    @Override
+    protected void reflectAttr(ColorAttribute attr) {
+
+    }
+
+    @Override
+    protected void postRemoveAttr() {
+
+    }
+
+    @Override
     public void resetAttribute(long type, String alias) {
         if (container != null) {
             //Material mtl = modelInstance.materials.get(0);

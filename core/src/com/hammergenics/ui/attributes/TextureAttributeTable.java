@@ -68,7 +68,6 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
     private TextFieldListener paramTextFieldListener;
     private ChangeListener paramSelectBoxListener;
     private ChangeListener textureSelectBoxListener;
-    private ChangeListener checkBoxListener;
 
     private Texture texture;
 
@@ -76,8 +75,6 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
         super(skin, container, mps);
 
         createListeners();
-
-        enabledCheckBox.addListener(checkBoxListener);
 
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textfield
         offsetUTF = new TextField("0", skin); offsetUTF.setName(ACTOR_OFFSETU);
@@ -335,72 +332,50 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
                 }
             }
         };
-
-        checkBoxListener = new ChangeListener() {
-            @Override
-            public void changed (ChangeEvent event, Actor actor) {
-                if (textureSelectBox.getSelectedIndex() == 0) {
-                    texture = null;
-                    enabledCheckBox.setChecked(false); // no texture attribute gets enabled without the texture selected first
-                    Gdx.app.debug("enabledCheckBox", "No texture selected: type = 0x"
-                            + Long.toHexString(currentType) + " alias = " + currentTypeAlias);
-                } else {
-                    texture = mps.assetManager.get(textureSelectBox.getSelected(), Texture.class);
-                    if (texture == null) {
-                        Gdx.app.debug("enabledCheckBox", "Texture is not loaded from: " + textureSelectBox.getSelected()
-                                + " (attribute: type = 0x" + Long.toHexString(currentType) + " alias = " + currentTypeAlias + ")");
-                        enabledCheckBox.setChecked(false); // no texture attribute gets enabled without the texture selected first
-                    }
-                }
-
-                if (container != null) {
-                    if (enabledCheckBox.isChecked()) { // adding the attribute
-                        // TODO: make sure this is propagated
-                        //Texture texture = assetManager.get(textureSelectBox.getSelected(), Texture.class);
-                        TextureAttribute attr = createAttribute(currentTypeAlias);
-
-                        if (attr == null) {
-                            Gdx.app.error("enabledCheckBox", "ERROR: attribute is not created"
-                                    + " (attribute: type = 0x" + Long.toHexString(currentType) + " alias = " + currentTypeAlias + ")");
-                            return;
-                        }
-
-                        // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textfield
-                        if (offsetUTF != null) { offsetUTF.setText(String.valueOf(attr.offsetU = 0)); }
-                        if (offsetVTF != null) { offsetVTF.setText(String.valueOf(attr.offsetV = 0)); }
-                        if (scaleUTF != null) { scaleUTF.setText(String.valueOf(attr.scaleU = 1)); }
-                        if (scaleVTF != null) { scaleVTF.setText(String.valueOf(attr.scaleV = 1)); }
-                        if (minFilterSB != null) { minFilterSB.setSelected((attr.textureDescription.minFilter = texture.getMinFilter()).name()); }
-                        if (magFilterSB != null) { magFilterSB.setSelected((attr.textureDescription.magFilter = texture.getMagFilter()).name()); }
-                        if (uWrapSB != null) { uWrapSB.setSelected((attr.textureDescription.uWrap = texture.getUWrap()).name()); }
-                        if (vWrapSB != null) { vWrapSB.setSelected((attr.textureDescription.vWrap = texture.getVWrap()).name()); }
-                        // TODO: one more parameter is currently missing: uvIndex (see TextureAttribute)
-                        container.set(attr);
-
-                        mps.stage.textureImage.setDrawable(new TextureRegionDrawable(new TextureRegion(texture)));
-                        Gdx.app.debug("enabledCheckBox", "Setting the attribute: type = 0x"
-                                + Long.toHexString(currentType) + " alias = " + currentTypeAlias);
-
-                        if (listener != null) { listener.onAttributeEnabled(currentType, currentTypeAlias); }
-                    } else { // removing the attribute
-                        if (container.get(currentType) != null) {
-                            container.remove(currentType);
-
-                            mps.stage.textureImage.setDrawable(null);
-                            Gdx.app.debug("enabledCheckBox", "Clearing the attribute: type = 0x"
-                                    + Long.toHexString(currentType) + " alias = " + currentTypeAlias);
-
-                            if (listener != null) { listener.onAttributeDisabled(currentType, currentTypeAlias); }
-                        } else {
-                            Gdx.app.error("enabledCheckBox", "ERROR: we shouldn't be here: type = 0x"
-                                + Long.toHexString(currentType) + " alias = " + currentTypeAlias);
-                        }
-                    }
-                }
-            }
-        };
     }
 
+    @Override
+    protected boolean preCreateAttr() {
+        if (textureSelectBox.getSelectedIndex() == 0) {
+            texture = null;
+            enabledCheckBox.setChecked(false); // no texture attribute gets enabled without the texture selected first
+            Gdx.app.debug("enabledCheckBox", "No texture selected: type = 0x"
+                    + Long.toHexString(currentType) + " alias = " + currentTypeAlias);
+            return false;
+        } else {
+            texture = mps.assetManager.get(textureSelectBox.getSelected(), Texture.class);
+            if (texture == null) {
+                Gdx.app.debug("enabledCheckBox", "Texture is not loaded from: " + textureSelectBox.getSelected()
+                        + " (attribute: type = 0x" + Long.toHexString(currentType) + " alias = " + currentTypeAlias + ")");
+                enabledCheckBox.setChecked(false); // no texture attribute gets enabled without the texture selected first
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    protected void postRemoveAttr() {
+        mps.stage.textureImage.setDrawable(null);
+    }
+
+    @Override
+    protected void reflectAttr(TextureAttribute attr) {
+        // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textfield
+        if (offsetUTF != null) { offsetUTF.setText(String.valueOf(attr.offsetU = 0)); }
+        if (offsetVTF != null) { offsetVTF.setText(String.valueOf(attr.offsetV = 0)); }
+        if (scaleUTF != null) { scaleUTF.setText(String.valueOf(attr.scaleU = 1)); }
+        if (scaleVTF != null) { scaleVTF.setText(String.valueOf(attr.scaleV = 1)); }
+        if (minFilterSB != null) { minFilterSB.setSelected((attr.textureDescription.minFilter = texture.getMinFilter()).name()); }
+        if (magFilterSB != null) { magFilterSB.setSelected((attr.textureDescription.magFilter = texture.getMagFilter()).name()); }
+        if (uWrapSB != null) { uWrapSB.setSelected((attr.textureDescription.uWrap = texture.getUWrap()).name()); }
+        if (vWrapSB != null) { vWrapSB.setSelected((attr.textureDescription.vWrap = texture.getVWrap()).name()); }
+        // TODO: one more parameter is currently missing: uvIndex (see TextureAttribute)
+
+        mps.stage.textureImage.setDrawable(new TextureRegionDrawable(new TextureRegion(texture)));
+    }
+
+    @Override
     public void resetAttribute(long type, String alias) {
         if (container != null) {
             //Material mtl = modelInstance.materials.get(0);
