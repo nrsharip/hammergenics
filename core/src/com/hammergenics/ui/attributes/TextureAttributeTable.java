@@ -424,9 +424,4 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
         // TODO: one more parameter is currently missing: uvIndex (see TextureAttribute)
         if (textureSelectBox != null) { textureSelectBox.setSelectedIndex(0); }
     }
-
-    @Override
-    public void setListener(EventListener listener) {
-        this.listener = listener;
-    }
 }

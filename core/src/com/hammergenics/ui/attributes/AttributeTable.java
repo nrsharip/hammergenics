@@ -90,6 +90,10 @@ public abstract class AttributeTable<T extends Attribute> extends BaseAttributeT
         enabledCheckBox.addListener(checkBoxListener);
     }
 
+    @Override
+    public void setListener(EventListener listener) {
+        this.listener = listener;
+    }
 
     protected abstract boolean preCreateAttr();
 

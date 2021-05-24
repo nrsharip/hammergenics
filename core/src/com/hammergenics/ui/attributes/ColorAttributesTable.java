@@ -79,6 +79,7 @@ public class ColorAttributesTable extends AttributesTable<ColorAttribute> {
      */
     @Override
     public void setListener(EventListener listener) {
+        this.listener = listener;
         a2Table.forEach((entry) -> entry.value.setListener(listener));
     }
 }

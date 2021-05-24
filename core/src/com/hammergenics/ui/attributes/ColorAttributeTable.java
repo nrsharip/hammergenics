@@ -274,9 +274,4 @@ public class ColorAttributeTable extends AttributeTable<ColorAttribute> {
         if (bTF != null) { bTF.setText(String.valueOf((int)(Color.GRAY.b * 255))); } // extending the range from [0:1] to [0:255]
         if (aTF != null) { aTF.setText(String.valueOf((int)(Color.GRAY.a * 255))); } // extending the range from [0:1] to [0:255]
     }
-
-    @Override
-    public void setListener(EventListener listener) {
-        this.listener = listener;
-    }
 }
