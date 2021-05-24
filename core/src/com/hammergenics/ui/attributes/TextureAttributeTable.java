@@ -338,7 +338,9 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
     protected boolean preCreateAttr() {
         if (textureSelectBox.getSelectedIndex() == 0) {
             texture = null;
-            enabledCheckBox.setChecked(false); // no texture attribute gets enabled without the texture selected first
+            enabledCheckBox.setProgrammaticChangeEvents(false); // making sure no events fired during setChecked()
+            enabledCheckBox.setChecked(false);                  // no texture attribute gets enabled without the texture selected first
+            enabledCheckBox.setProgrammaticChangeEvents(true);  // enabling events back
             Gdx.app.debug("enabledCheckBox", "No texture selected: type = 0x"
                     + Long.toHexString(currentType) + " alias = " + currentTypeAlias);
             return false;
@@ -347,7 +349,9 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
             if (texture == null) {
                 Gdx.app.debug("enabledCheckBox", "Texture is not loaded from: " + textureSelectBox.getSelected()
                         + " (attribute: type = 0x" + Long.toHexString(currentType) + " alias = " + currentTypeAlias + ")");
-                enabledCheckBox.setChecked(false); // no texture attribute gets enabled without the texture selected first
+                enabledCheckBox.setProgrammaticChangeEvents(false); // making sure no events fired during setChecked()
+                enabledCheckBox.setChecked(false);                  // no texture attribute gets enabled without the texture selected first
+                enabledCheckBox.setProgrammaticChangeEvents(true);  // enabling events back
                 return false;
             }
         }
