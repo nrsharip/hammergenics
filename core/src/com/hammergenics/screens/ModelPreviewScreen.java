@@ -126,6 +126,37 @@ public class ModelPreviewScreen extends ScreenAdapter {
         stage.setup2DStageLayout();
         setup3DEnvironment();
 
+        // temporarily placing it here:
+        eventListener = new BaseAttributeTable.EventListener() {
+            @Override
+            public void onAttributeEnabled(long type, String alias) {
+                stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
+                stage.envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(environment,"", ""));
+//                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
+//                        "onAttributeEnabled: 0x" + Long.toHexString(type) + " alias: " + alias);
+            }
+
+            @Override
+            public void onAttributeDisabled(long type, String alias) {
+                stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
+                stage.envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(environment,"", ""));
+//                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
+//                        "onAttributeDisabled: 0x" + Long.toHexString(type) + " alias: " + alias);
+            }
+
+            @Override
+            public void onAttributeChange(long type, String alias) {
+                stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
+                stage.envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(environment,"", ""));
+//                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
+//                        "onAttributeChange: 0x" + Long.toHexString(type) + " alias: " + alias);
+            }
+        };
+
+        // temporarily placing it here:
+        stage.envAttrTable = new AttributesManagerTable(stage.skin, environment, this);
+        stage.envAttrTable.setListener(eventListener);
+
         stage.envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(environment,"", ""));
 
         int i = 0;
@@ -145,30 +176,6 @@ public class ModelPreviewScreen extends ScreenAdapter {
         inputMultiplexer.addProcessor(stage);
         inputMultiplexer.addProcessor(cameraInputController);
         Gdx.input.setInputProcessor(inputMultiplexer);
-
-        // temporarily placing it here:
-        eventListener = new BaseAttributeTable.EventListener() {
-            @Override
-            public void onAttributeEnabled(long type, String alias) {
-                stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
-                stage.envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(environment,"", ""));
-            }
-
-            @Override
-            public void onAttributeDisabled(long type, String alias) {
-                stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
-                stage.envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(environment,"", ""));
-            }
-
-            @Override
-            public void onAttributeChange(long type, String alias) {
-                stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
-                stage.envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(environment,"", ""));
-            }
-        };
-
-        stage.envAttrTable = new AttributesManagerTable(stage.skin, environment, this);
-        stage.envAttrTable.setListener(eventListener);
 
         // Uncomment to get gen_* files with fields contents:
 //        LibGDXUtil.getFieldsContents(modelInstance, 4, true);
@@ -378,6 +385,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
         if (modelInstance.materials != null && modelInstance.materials.size > 0) {
             stage.mtlAttrTable = new AttributesManagerTable(stage.skin, modelInstance.materials.get(0), this);
             stage.mtlAttrTable.setListener(eventListener);
+            Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
+                    "setting events for: " + modelInstance.materials.get(0).id);
         }
 
         copyExternalAnimations(assetName);
