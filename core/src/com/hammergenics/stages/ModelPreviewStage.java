@@ -40,6 +40,9 @@ import com.hammergenics.ui.AttributesManagerTable;
  * @author nrsharip
  */
 public class ModelPreviewStage extends Stage {
+    public static final Color COLOR_PRESSED = Color.RED;
+    public static final Color COLOR_UNPRESSED = Color.GRAY;
+
     public ModelPreviewScreen mpScreen;
 
     // 2D Stage Styling:
@@ -191,30 +194,27 @@ public class ModelPreviewStage extends Stage {
 
         // TEXT BUTTONS:
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textbutton
-        final Color pressedColor = Color.RED;
-        final Color unpressedColor = Color.GRAY;
-
         mtlTextButton = new TextButton("MTL", skin);
-        mtlTextButton.getColor().set(unpressedColor);
+        mtlTextButton.getColor().set(COLOR_UNPRESSED);
         mtlTextButton.addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 infoTCell.clearActor();
                 infoBCell.clearActor();
                 editCell.clearActor();
-                if (mtlTextButton.getColor().equals(unpressedColor)) {
+                if (mtlTextButton.getColor().equals(COLOR_UNPRESSED)) {
                     // clearing all buttons first
-                    mtlTextButton.getColor().set(unpressedColor);
-                    envTextButton.getColor().set(unpressedColor);
-                    camTextButton.getColor().set(unpressedColor);
+                    mtlTextButton.getColor().set(COLOR_UNPRESSED);
+                    envTextButton.getColor().set(COLOR_UNPRESSED);
+                    camTextButton.getColor().set(COLOR_UNPRESSED);
 
                     // setting MTL specific actors
-                    mtlTextButton.getColor().set(pressedColor);
+                    mtlTextButton.getColor().set(COLOR_PRESSED);
                     infoTCell.setActor(miLabel);
                     infoBCell.setActor(textureImage);
                     editCell.setActor(mtlAttrTable);
-                } else if (mtlTextButton.getColor().equals(pressedColor)) {
-                    mtlTextButton.getColor().set(unpressedColor);
+                } else if (mtlTextButton.getColor().equals(COLOR_PRESSED)) {
+                    mtlTextButton.getColor().set(COLOR_UNPRESSED);
                     infoTCell.clearActor();
                     infoBCell.clearActor();
                     editCell.clearActor();
@@ -228,25 +228,25 @@ public class ModelPreviewStage extends Stage {
         });
 
         envTextButton = new TextButton("ENV", skin);
-        envTextButton.getColor().set(unpressedColor);
+        envTextButton.getColor().set(COLOR_UNPRESSED);
         envTextButton.addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 infoTCell.clearActor();
                 infoBCell.clearActor();
                 editCell.clearActor();
-                if (envTextButton.getColor().equals(unpressedColor)) {
+                if (envTextButton.getColor().equals(COLOR_UNPRESSED)) {
                     // clearing all buttons first
-                    mtlTextButton.getColor().set(unpressedColor);
-                    envTextButton.getColor().set(unpressedColor);
-                    camTextButton.getColor().set(unpressedColor);
+                    mtlTextButton.getColor().set(COLOR_UNPRESSED);
+                    envTextButton.getColor().set(COLOR_UNPRESSED);
+                    camTextButton.getColor().set(COLOR_UNPRESSED);
 
                     // setting ENV specific actors
-                    envTextButton.getColor().set(pressedColor);
+                    envTextButton.getColor().set(COLOR_PRESSED);
                     infoTCell.setActor(envLabel);
                     editCell.setActor(envAttrTable);
-                } else if (envTextButton.getColor().equals(pressedColor)) {
-                    envTextButton.getColor().set(unpressedColor);
+                } else if (envTextButton.getColor().equals(COLOR_PRESSED)) {
+                    envTextButton.getColor().set(COLOR_UNPRESSED);
                     infoTCell.clearActor();
                     infoBCell.clearActor();
                     editCell.clearActor();
@@ -260,7 +260,7 @@ public class ModelPreviewStage extends Stage {
         });
 
         camTextButton = new TextButton("CAM", skin);
-        camTextButton.getColor().set(unpressedColor);
+        camTextButton.getColor().set(COLOR_UNPRESSED);
 
     }
 

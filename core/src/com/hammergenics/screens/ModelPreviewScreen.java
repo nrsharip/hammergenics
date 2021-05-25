@@ -51,6 +51,7 @@ import java.util.Arrays;
 import static com.badlogic.gdx.Input.Buttons;
 import static com.badlogic.gdx.Input.Keys;
 import static com.badlogic.gdx.graphics.VertexAttributes.Usage;
+import static com.hammergenics.stages.ModelPreviewStage.COLOR_PRESSED;
 
 /**
  * Add description here
@@ -381,12 +382,17 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // **** ATTRIBUTES ****
         // ********************
         stage.textureImage.setDrawable(null);
-
         if (modelInstance.materials != null && modelInstance.materials.size > 0) {
             stage.mtlAttrTable = new AttributesManagerTable(stage.skin, modelInstance.materials.get(0), this);
             stage.mtlAttrTable.setListener(eventListener);
-            Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
-                    "setting events for: " + modelInstance.materials.get(0).id);
+//            Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
+//                    "setting events for: " + modelInstance.materials.get(0).id);
+
+            // TODO: this should be decoupled from screen eventually
+            if (stage.mtlTextButton.getColor().equals(COLOR_PRESSED)) {
+                stage.editCell.clearActor();
+                stage.editCell.setActor(stage.mtlAttrTable);
+            }
         }
 
         copyExternalAnimations(assetName);
