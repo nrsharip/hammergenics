@@ -49,6 +49,7 @@ public class AttributesManagerTable extends AbstractTable {
         textureAttrTable.resetAttributes();
         colorAttrTable.resetAttributes();
         blendingAttrTable.resetAttributes();
+        dlAttrTable.resetAttributes();
 
         clear();
         add(colorAttrTable).padTop(20f).top().left().fillX();

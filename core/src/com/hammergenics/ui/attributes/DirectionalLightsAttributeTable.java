@@ -51,6 +51,9 @@ public class DirectionalLightsAttributeTable extends AttributeTable<DirectionalL
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 if (plsTextButton.getColor().equals(COLOR_DISABLED) || lights == null || indexedTB == null) { return; }
+
+                if (!enabledCheckBox.isChecked()) { enabledCheckBox.setChecked(true); }
+
                 addButton();
 
                 lights.add(new DirectionalLight().set(Color.WHITE, -0.7f, -0.5f, -0.3f));
@@ -78,7 +81,6 @@ public class DirectionalLightsAttributeTable extends AttributeTable<DirectionalL
                 if (indexedTB.size == 0 || lights.size == 0) { // these should be equal
                     mnsTextButton.getColor().set(COLOR_DISABLED);
                     mnsTextButton.getLabel().getColor().set(COLOR_DISABLED);
-                    return;
                 }
 
                 if (listener != null) { listener.onAttributeChange(currentType, currentTypeAlias); }
@@ -134,16 +136,21 @@ public class DirectionalLightsAttributeTable extends AttributeTable<DirectionalL
     @Override
     protected void postRemoveAttr() {
         indexedTBTable.reset();
+        mnsTextButton.getColor().set(COLOR_DISABLED);
+        mnsTextButton.getLabel().getColor().set(COLOR_DISABLED);
     }
 
     @Override
     protected void resetWidgetsToDefaults() {
         indexedTB = new Array<>(TextButton.class);
+        indexedTBTable.reset();
 
         if (lights == null || lights.size == 0) { // lights shouldn't be null
             mnsTextButton.getColor().set(COLOR_DISABLED);
             mnsTextButton.getLabel().getColor().set(COLOR_DISABLED);
-            return;
+        } else {
+            mnsTextButton.getColor().set(COLOR_UNPRESSED);
+            mnsTextButton.getLabel().getColor().set(COLOR_UNPRESSED);
         }
 
         this.lights.forEach(light -> {
