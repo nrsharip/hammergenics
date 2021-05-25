@@ -41,9 +41,4 @@ public class DirectionalLightsAttributesTable
 
         resetAttributes();
     }
-
-    @Override
-    public void setListener(EventListener listener) {
-
-    }
 }

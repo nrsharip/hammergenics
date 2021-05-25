@@ -52,13 +52,4 @@ public class ColorAttributesTable extends AttributesTable<ColorAttribute, ColorA
             row();
         });
     }
-
-    /**
-     * @param listener
-     */
-    @Override
-    public void setListener(EventListener listener) {
-        this.listener = listener;
-        a2Table.forEach((entry) -> entry.value.setListener(listener));
-    }
 }

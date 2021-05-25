@@ -112,4 +112,10 @@ public abstract class AttributesTable<T extends Attribute, Q extends AttributeTa
     public void resetAttributes() {
         t2a.forEach((entry) -> t2Table.get(entry.key).fetchWidgetsFromContainer(entry.key, entry.value));
     }
+
+    @Override
+    public void setListener(EventListener listener) {
+        this.listener = listener;
+        t2Table.forEach((entry) -> entry.value.setListener(listener));
+    }
 }
