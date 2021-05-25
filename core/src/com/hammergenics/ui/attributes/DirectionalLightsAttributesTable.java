@@ -18,8 +18,8 @@ package com.hammergenics.ui.attributes;
 
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.utils.ArrayMap;
 import com.hammergenics.screens.ModelPreviewScreen;
 
 /**
@@ -33,6 +33,7 @@ public class DirectionalLightsAttributesTable
     public DirectionalLightsAttributesTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
         super(skin, container, mps, DirectionalLightsAttribute.class);
 
+        // START - Candidate for move to AttributesTable
         t2a.forEach((entry) -> {
             DirectionalLightsAttributeTable table = new DirectionalLightsAttributeTable(skin, container, mps);
             t2Table.put(entry.key, table);   // type to table
@@ -40,5 +41,13 @@ public class DirectionalLightsAttributesTable
         });
 
         resetAttributes();
+
+        a2Table.forEach((entry) -> {
+            add(new Label(entry.key + ":", skin)).right();
+            add(entry.value).left();
+            add().expandX();
+            row();
+        });
+        // END - Candidate for move to AttributesTable
     }
 }

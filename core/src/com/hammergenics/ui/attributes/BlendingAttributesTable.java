@@ -32,6 +32,7 @@ public class BlendingAttributesTable extends AttributesTable<BlendingAttribute, 
     public BlendingAttributesTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
         super(skin, container, mps, BlendingAttribute.class);
 
+        // START - Candidate for move to AttributesTable
         t2a.forEach((entry) -> {
             BlendingAttributeTable table = new BlendingAttributeTable(skin, container, mps);
             t2Table.put(entry.key, table);   // type to table
@@ -46,5 +47,6 @@ public class BlendingAttributesTable extends AttributesTable<BlendingAttribute, 
             add().expandX();
             row();
         });
+        // END - Candidate for move to AttributesTable
     }
 }

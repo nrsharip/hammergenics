@@ -37,6 +37,7 @@ public class ColorAttributesTable extends AttributesTable<ColorAttribute, ColorA
     public ColorAttributesTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
         super(skin, container, mps, ColorAttribute.class);
 
+        // START - Candidate for move to AttributesTable
         t2a.forEach((entry) -> {
             ColorAttributeTable table = new ColorAttributeTable(skin, container, mps);
             t2Table.put(entry.key, table);   // type to table
@@ -51,5 +52,6 @@ public class ColorAttributesTable extends AttributesTable<ColorAttribute, ColorA
             add().expandX();
             row();
         });
+        // END - Candidate for move to AttributesTable
     }
 }

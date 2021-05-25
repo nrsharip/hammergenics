@@ -57,6 +57,8 @@ public class AttributesManagerTable extends AbstractTable {
         row();
         add(blendingAttrTable).padTop(20f).top().left().fillX();
         row();
+        add(dlAttrTable).padTop(20f).top().left().fillX();
+        row();
         add().expandY();
     }
 
@@ -65,5 +67,6 @@ public class AttributesManagerTable extends AbstractTable {
         textureAttrTable.setListener(listener);
         colorAttrTable.setListener(listener);
         blendingAttrTable.setListener(listener);
+        dlAttrTable.setListener(listener);
     }
 }
