@@ -37,31 +37,19 @@ public class ColorAttributesTable extends AttributesTable<ColorAttribute, ColorA
     public ColorAttributesTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
         super(skin, container, mps, ColorAttribute.class);
 
-        t2Table = new ArrayMap<>();
-        a2Table = new ArrayMap<>();
-
         t2a.forEach((entry) -> {
             ColorAttributeTable table = new ColorAttributeTable(skin, container, mps);
-            table.fetchWidgetsFromContainer(entry.key, entry.value);
             t2Table.put(entry.key, table);   // type to table
             a2Table.put(entry.value, table); // alias to table
         });
+
+        resetAttributes();
 
         a2Table.forEach((entry) -> {
             add(new Label(entry.key + ":", skin)).right();
             add(entry.value).left();
             add().expandX();
             row();
-        });
-    }
-
-    /**
-     *
-     */
-    @Override
-    public void resetAttributes() {
-        t2a.forEach((entry) -> {
-            t2Table.get(entry.key).fetchWidgetsFromContainer(entry.key, entry.value);
         });
     }
 

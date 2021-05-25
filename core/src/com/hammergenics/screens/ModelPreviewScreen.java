@@ -111,8 +111,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
         }
         // Texture.class
         assetManager.getAll(Texture.class, textures);
-//        Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
-//                "textures loaded: " + textures.size + "\n" + textures.toString("\n"));
+        Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
+                "textures loaded: " + textures.size); // + "\n" + textures.toString("\n")
 
         // Camera related
         perspectiveCamera = new PerspectiveCamera(70f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());

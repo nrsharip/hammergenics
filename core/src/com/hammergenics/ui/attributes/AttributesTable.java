@@ -36,11 +36,11 @@ public abstract class AttributesTable<T extends Attribute, Q extends AttributeTa
     /**
      * attribute type to color attribute table map
      */
-    protected ArrayMap<Long, Q> t2Table = null;
+    protected ArrayMap<Long, Q> t2Table = new ArrayMap<>();
     /**
      * attribute alias to color attribute table map
      */
-    protected ArrayMap<String, Q> a2Table = null;
+    protected ArrayMap<String, Q> a2Table = new ArrayMap<>();
 
     /**
      * type to alias map
@@ -109,5 +109,7 @@ public abstract class AttributesTable<T extends Attribute, Q extends AttributeTa
     /**
      *
      */
-    public abstract void resetAttributes();
+    public void resetAttributes() {
+        t2a.forEach((entry) -> t2Table.get(entry.key).fetchWidgetsFromContainer(entry.key, entry.value));
+    }
 }

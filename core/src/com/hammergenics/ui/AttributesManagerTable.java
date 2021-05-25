@@ -19,10 +19,7 @@ package com.hammergenics.ui;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.hammergenics.screens.ModelPreviewScreen;
-import com.hammergenics.ui.attributes.BaseAttributeTable;
-import com.hammergenics.ui.attributes.BlendingAttributesTable;
-import com.hammergenics.ui.attributes.ColorAttributesTable;
-import com.hammergenics.ui.attributes.TextureAttributesTable;
+import com.hammergenics.ui.attributes.*;
 
 /**
  * Add description here
@@ -37,14 +34,17 @@ public class AttributesManagerTable extends AbstractTable {
     public ColorAttributesTable colorAttrTable;
     public TextureAttributesTable textureAttrTable;
     public BlendingAttributesTable blendingAttrTable;
+    public DirectionalLightsAttributesTable dlAttrTable;
 
     public AttributesManagerTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
         super(skin);
         this.container = container;
+        this.mps = mps;
 
         textureAttrTable = new TextureAttributesTable(skin, container, mps);
         colorAttrTable = new ColorAttributesTable(skin, container, mps);
         blendingAttrTable = new BlendingAttributesTable(skin, container, mps);
+        dlAttrTable = new DirectionalLightsAttributesTable(skin, container, mps);
 
         textureAttrTable.resetAttributes();
         colorAttrTable.resetAttributes();
