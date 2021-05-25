@@ -20,6 +20,7 @@ import com.badlogic.gdx.Files;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Version;
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g3d.Attribute;
 import com.badlogic.gdx.graphics.g3d.Attributes;
@@ -36,6 +37,7 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.hammergenics.config.Conventions;
+import com.hammergenics.ui.attributes.ColorAttributeTable;
 
 import java.io.FileFilter;
 import java.lang.reflect.Field;
@@ -52,16 +54,23 @@ import java.util.Arrays;
 public class LibgdxUtils {
     private static final String GENERATED = "generated/gen_";
     private static final String EXTENSION = ".txt";
-    public static ArrayMap<String, Integer> gl20_s2i;
-    public static ArrayMap<Integer, String> gl20_i2s; // ATTENTION: duplicates are present (GL_NONE, GL_ZERO..) - take special care
+    public static final ArrayMap<String, Integer> gl20_s2i;
+    public static final ArrayMap<Integer, String> gl20_i2s; // ATTENTION: duplicates are present (GL_NONE, GL_ZERO..) - take special care
+    public static final ArrayMap<String, Color> color_s2c;
 
     static {
         gl20_s2i = new ArrayMap<>(String.class, Integer.class);
         gl20_i2s = new ArrayMap<>(Integer.class, String.class);
+        color_s2c = new ArrayMap<>(String.class, Color.class);
+
         scanGL20();
+        scanColor();
 
         if (gl20_s2i.size == 0 || gl20_i2s.size == 0) {
             Gdx.app.error(LibgdxUtils.class.getSimpleName(),"ERROR: no GL20 constants retrieved");
+        }
+        if (color_s2c.size == 0) {
+            Gdx.app.error(LibgdxUtils.class.getSimpleName(),"ERROR: no Color constants retrieved");
         }
     }
 
@@ -91,6 +100,31 @@ public class LibgdxUtils {
                                         .reduce("", String::concat));
             }
         });
+    }
+
+    public static void scanColor() {
+        Field[] colorFields = scanPublicStaticFinalFields(Color.class, Color.class);
+
+        if (colorFields.length == 0) {
+            Gdx.app.error(ColorAttributeTable.class.getSimpleName(), "ERROR: no colors found in: " + Color.class.getName());
+            return;
+        }
+
+        for (Field field: colorFields) {
+            try {
+                Color color = (Color) field.get(null); // null is allowed for static fields...
+                color_s2c.put(field.getName(), color);
+
+//                Gdx.app.debug(getClass().getSimpleName(),
+//                        "Retrieved color: " + clazz.getSimpleName() + "." + field.getName());
+            } catch (IllegalAccessException | IllegalArgumentException | NullPointerException e) {
+                Gdx.app.error(getTag(),
+                        "EXCEPTION while reading the field contents of the class: " + Color.class.getName() + "\n" +
+                                Arrays.stream(e.getStackTrace())
+                                        .map(element -> String.valueOf(element) + "\n")
+                                        .reduce("", String::concat));
+            }
+        }
     }
 
     public static Field[] scanPublicStaticFinalFields(Class<?> scanned, Class<?> scanFor) {

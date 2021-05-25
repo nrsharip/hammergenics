@@ -16,7 +16,6 @@
 
 package com.hammergenics.ui.attributes;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
@@ -26,14 +25,10 @@ import com.badlogic.gdx.scenes.scene2d.ui.SelectBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
-import com.badlogic.gdx.utils.ArrayMap;
 import com.hammergenics.screens.ModelPreviewScreen;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.util.Arrays;
-
 import static com.badlogic.gdx.scenes.scene2d.ui.TextField.TextFieldListener;
+import static com.hammergenics.util.LibgdxUtils.color_s2c;
 
 /**
  * Add description here
@@ -41,10 +36,10 @@ import static com.badlogic.gdx.scenes.scene2d.ui.TextField.TextFieldListener;
  * @author nrsharip
  */
 public class ColorAttributeTable extends AttributeTable<ColorAttribute> {
-    private static final String ACTOR_R = "r";
-    private static final String ACTOR_G = "g";
-    private static final String ACTOR_B = "b";
-    private static final String ACTOR_A = "a";
+    public static final String ACTOR_R = "r_TextField";
+    public static final String ACTOR_G = "g_TextField";
+    public static final String ACTOR_B = "b_TextField";
+    public static final String ACTOR_A = "a_TextField";
 
     // r, g, b, a;
     private TextField rTF = null;
@@ -52,7 +47,6 @@ public class ColorAttributeTable extends AttributeTable<ColorAttribute> {
     private TextField bTF = null;
     private TextField aTF = null;
     private SelectBox<String> colorSB = null;
-    private ArrayMap<String, Color> itemsColor = new ArrayMap<>(String.class, Color.class);
 
     private TextFieldListener paramTextFieldListener;
     private ChangeListener colorSelectBoxListener;
@@ -80,9 +74,8 @@ public class ColorAttributeTable extends AttributeTable<ColorAttribute> {
         // Select Box: Color
         colorSB = new SelectBox<>(skin);
         colorSB.clearItems();
-        colorsLookUp();
-        if (itemsColor != null && itemsColor.size > 0) {
-            colorSB.setItems(itemsColor.keys().toArray());
+        if (color_s2c != null && color_s2c.size > 0) {
+            colorSB.setItems(color_s2c.keys().toArray());
         }
         //[switchModelInstance] before clear
         //[textureSelectBox.changed] -1
@@ -105,38 +98,6 @@ public class ColorAttributeTable extends AttributeTable<ColorAttribute> {
         add(new Label("color:", skin)).right();
         add(colorSB).fillX();
         add().expandX();
-    }
-
-    private void colorsLookUp() {
-        Class<Color> clazz = Color.class;
-
-        Field[] colorFields = Arrays.stream(clazz.getFields())            // getting all accessible public fields
-                .filter(field -> field.getType().equals(clazz))           // taking only fields of type 'Color'
-                .filter(field -> Modifier.isFinal(field.getModifiers()))  // taking only final fields
-                .filter(field -> Modifier.isStatic(field.getModifiers())) // taking only static fields
-                .toArray(Field[]::new);                                   // retrieving the array
-
-        if (colorFields.length == 0) {
-            Gdx.app.error(getClass().getSimpleName(), "ERROR: no colors found in: " + clazz.getName());
-            return;
-        }
-
-        for (Field field: colorFields) {
-            try {
-                Color color = (Color) field.get(null); // null is allowed for static fields...
-
-                itemsColor.put(field.getName(), color);
-
-//                Gdx.app.debug(getClass().getSimpleName(),
-//                        "Retrieved color: " + clazz.getSimpleName() + "." + field.getName());
-            } catch (IllegalAccessException | IllegalArgumentException | NullPointerException e) {
-                Gdx.app.error(getClass().getSimpleName(),
-                        "EXCEPTION while reading the field contents of the class: " + clazz.getName() + "\n" +
-                                Arrays.stream(e.getStackTrace())
-                                        .map(element -> String.valueOf(element) + "\n")
-                                        .reduce("", String::concat));
-            }
-        }
     }
 
     @Override
@@ -205,7 +166,7 @@ public class ColorAttributeTable extends AttributeTable<ColorAttribute> {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 if (container != null && currentType != 0) {
-                    color.set(itemsColor.get(colorSB.getSelected()));
+                    color.set(color_s2c.get(colorSB.getSelected()));
 
                     // This most likely works with ChangeListener not TextFieldListener
 //                    rTF.setProgrammaticChangeEvents(true); // to have the events fired on programmatic setText()
