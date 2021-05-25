@@ -42,10 +42,8 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.hammergenics.HGGame;
 import com.hammergenics.stages.ModelPreviewStage;
+import com.hammergenics.ui.AttributesManagerTable;
 import com.hammergenics.ui.attributes.BaseAttributeTable;
-import com.hammergenics.ui.attributes.BlendingAttributesTable;
-import com.hammergenics.ui.attributes.ColorAttributesTable;
-import com.hammergenics.ui.attributes.TextureAttributesTable;
 import com.hammergenics.util.LibgdxUtils;
 
 import java.util.Arrays;
@@ -86,6 +84,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
     private float clockFPS;
 
+    public BaseAttributeTable.EventListener eventListener;
+
     /**
      * @param game
      */
@@ -111,8 +111,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
         }
         // Texture.class
         assetManager.getAll(Texture.class, textures);
-        Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
-                "textures loaded: " + textures.size + "\n" + textures.toString("\n"));
+//        Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
+//                "textures loaded: " + textures.size + "\n" + textures.toString("\n"));
 
         // Camera related
         perspectiveCamera = new PerspectiveCamera(70f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -145,6 +145,30 @@ public class ModelPreviewScreen extends ScreenAdapter {
         inputMultiplexer.addProcessor(stage);
         inputMultiplexer.addProcessor(cameraInputController);
         Gdx.input.setInputProcessor(inputMultiplexer);
+
+        // temporarily placing it here:
+        eventListener = new BaseAttributeTable.EventListener() {
+            @Override
+            public void onAttributeEnabled(long type, String alias) {
+                stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
+                stage.envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(environment,"", ""));
+            }
+
+            @Override
+            public void onAttributeDisabled(long type, String alias) {
+                stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
+                stage.envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(environment,"", ""));
+            }
+
+            @Override
+            public void onAttributeChange(long type, String alias) {
+                stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
+                stage.envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(environment,"", ""));
+            }
+        };
+
+        stage.envAttrTable = new AttributesManagerTable(stage.skin, environment, this);
+        stage.envAttrTable.setListener(eventListener);
 
         // Uncomment to get gen_* files with fields contents:
 //        LibGDXUtil.getFieldsContents(modelInstance, 4, true);
@@ -352,43 +376,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
         stage.textureImage.setDrawable(null);
 
         if (modelInstance.materials != null && modelInstance.materials.size > 0) {
-            BaseAttributeTable.EventListener eventListener = new BaseAttributeTable.EventListener() {
-                @Override
-                public void onAttributeEnabled(long type, String alias) {
-                    stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
-                }
-
-                @Override
-                public void onAttributeDisabled(long type, String alias) {
-                    stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
-                }
-
-                @Override
-                public void onAttributeChange(long type, String alias) {
-                    stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
-                }
-            };
-
-            stage.textureAttrTable = new TextureAttributesTable(stage.skin, modelInstance.materials.get(0), this);
-            stage.colorAttrTable = new ColorAttributesTable(stage.skin, modelInstance.materials.get(0), this);
-            stage.blendingAttrTable = new BlendingAttributesTable(stage.skin, modelInstance.materials.get(0), this);
-
-            stage.textureAttrTable.setListener(eventListener);
-            stage.colorAttrTable.setListener(eventListener);
-            stage.blendingAttrTable.setListener(eventListener);
-
-            stage.textureAttrTable.resetAttributes();
-            stage.colorAttrTable.resetAttributes();
-            stage.blendingAttrTable.resetAttributes();
-
-            stage.attrTable.clear();
-            stage.attrTable.add(stage.colorAttrTable).padTop(20f).top().left().fillX();
-            stage.attrTable.row();
-            stage.attrTable.add(stage.textureAttrTable).padTop(20f).top().left().fillX();
-            stage.attrTable.row();
-            stage.attrTable.add(stage.blendingAttrTable).padTop(20f).top().left().fillX();
-            stage.attrTable.row();
-            stage.attrTable.add().expandY();
+            stage.mtlAttrTable = new AttributesManagerTable(stage.skin, modelInstance.materials.get(0), this);
+            stage.mtlAttrTable.setListener(eventListener);
         }
 
         copyExternalAnimations(assetName);

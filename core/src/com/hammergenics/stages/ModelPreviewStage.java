@@ -32,9 +32,7 @@ import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.hammergenics.config.Config;
 import com.hammergenics.screens.ModelPreviewScreen;
-import com.hammergenics.ui.attributes.BlendingAttributesTable;
-import com.hammergenics.ui.attributes.ColorAttributesTable;
-import com.hammergenics.ui.attributes.TextureAttributesTable;
+import com.hammergenics.ui.AttributesManagerTable;
 
 /**
  * Add description here
@@ -55,10 +53,8 @@ public class ModelPreviewStage extends Stage {
     public Cell<?> infoBCell = null;
     public Cell<?> editCell = null;
 
-    public Table attrTable;
-    public ColorAttributesTable colorAttrTable;
-    public TextureAttributesTable textureAttrTable;
-    public BlendingAttributesTable blendingAttrTable;
+    public AttributesManagerTable mtlAttrTable;
+    public AttributesManagerTable envAttrTable;
 
     // 2D Stage Widgets:
     public Label miLabel;  // Model Instance Info
@@ -195,19 +191,28 @@ public class ModelPreviewStage extends Stage {
 
         // TEXT BUTTONS:
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textbutton
-        Color pressedColor = Color.RED;
-        Color unpressedColor = Color.GRAY;
+        final Color pressedColor = Color.RED;
+        final Color unpressedColor = Color.GRAY;
 
         mtlTextButton = new TextButton("MTL", skin);
         mtlTextButton.getColor().set(unpressedColor);
         mtlTextButton.addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                infoTCell.clearActor();
+                infoBCell.clearActor();
+                editCell.clearActor();
                 if (mtlTextButton.getColor().equals(unpressedColor)) {
+                    // clearing all buttons first
+                    mtlTextButton.getColor().set(unpressedColor);
+                    envTextButton.getColor().set(unpressedColor);
+                    camTextButton.getColor().set(unpressedColor);
+
+                    // setting MTL specific actors
                     mtlTextButton.getColor().set(pressedColor);
                     infoTCell.setActor(miLabel);
                     infoBCell.setActor(textureImage);
-                    editCell.setActor(attrTable);
+                    editCell.setActor(mtlAttrTable);
                 } else if (mtlTextButton.getColor().equals(pressedColor)) {
                     mtlTextButton.getColor().set(unpressedColor);
                     infoTCell.clearActor();
@@ -224,6 +229,36 @@ public class ModelPreviewStage extends Stage {
 
         envTextButton = new TextButton("ENV", skin);
         envTextButton.getColor().set(unpressedColor);
+        envTextButton.addListener(new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                infoTCell.clearActor();
+                infoBCell.clearActor();
+                editCell.clearActor();
+                if (envTextButton.getColor().equals(unpressedColor)) {
+                    // clearing all buttons first
+                    mtlTextButton.getColor().set(unpressedColor);
+                    envTextButton.getColor().set(unpressedColor);
+                    camTextButton.getColor().set(unpressedColor);
+
+                    // setting ENV specific actors
+                    envTextButton.getColor().set(pressedColor);
+                    infoTCell.setActor(envLabel);
+                    editCell.setActor(envAttrTable);
+                } else if (envTextButton.getColor().equals(pressedColor)) {
+                    envTextButton.getColor().set(unpressedColor);
+                    infoTCell.clearActor();
+                    infoBCell.clearActor();
+                    editCell.clearActor();
+                }
+
+                return super.touchDown(event, x, y, pointer, button); // false
+                // If true is returned, this listener will have touch focus, so it will receive all
+                // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
+                // Also when true is returned, the event is handled
+            }
+        });
+
         camTextButton = new TextButton("CAM", skin);
         camTextButton.getColor().set(unpressedColor);
 
@@ -259,7 +294,8 @@ public class ModelPreviewStage extends Stage {
         // Table, Container, Stack, ScrollPane, SplitPane, Tree, VerticalGroup, HorizontalGroup
 
         // Attributes related:
-        attrTable = new Table();
+        //mtlAttrTable = new Table();
+        //envAttrTable = new Table();
 
         // ROOT TABLE:
         // https://github.com/libgdx/libgdx/wiki/Table#quickstart

@@ -33,8 +33,6 @@ import java.util.Arrays;
  * @author nrsharip
  */
 public abstract class AttributesTable<T extends Attribute, Q extends AttributeTable<T>> extends BaseAttributeTable<T> {
-    public Attributes container;
-
     /**
      * attribute type to color attribute table map
      */
@@ -58,8 +56,7 @@ public abstract class AttributesTable<T extends Attribute, Q extends AttributeTa
      * @param container
      */
     public AttributesTable(Skin skin, Attributes container, ModelPreviewScreen mps, Class<T> aClass) {
-        super(skin, mps, aClass);
-        this.container = container;
+        super(skin, container, mps, aClass);
 
         t2a = new ArrayMap<>();
         a2t = new ArrayMap<>();

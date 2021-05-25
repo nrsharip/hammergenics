@@ -31,7 +31,6 @@ import com.hammergenics.screens.ModelPreviewScreen;
  * @author nrsharip
  */
 public abstract class AttributeTable<T extends Attribute> extends BaseAttributeTable<T> {
-    public Attributes container;
     protected long currentType = 0;
     protected String currentTypeAlias = null;
 
@@ -40,8 +39,7 @@ public abstract class AttributeTable<T extends Attribute> extends BaseAttributeT
     protected ChangeListener checkBoxListener;
 
     public AttributeTable(Skin skin, Attributes container, ModelPreviewScreen mps, Class<T> aClass) {
-        super(skin, mps, aClass);
-        this.container = container;
+        super(skin, container, mps, aClass);
 
         enabledCheckBox = new CheckBox("enabled", skin);
 
