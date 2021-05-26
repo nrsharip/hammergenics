@@ -144,6 +144,12 @@ public class DirectionalLightsAttributeTable extends BaseLightsAttributeTable<Di
     }
 
     @Override
+    protected void postButtonRemove() {
+        pos--;
+        if (indexedTB.size == 0) { pos = 0; } // resetting
+    }
+
+    @Override
     protected void resetWidgetsToDefaults() {
         // additional from DirectionalLight:
         if (xTF != null) { xTF.setText(String.valueOf(0f)); }
@@ -163,6 +169,6 @@ public class DirectionalLightsAttributeTable extends BaseLightsAttributeTable<Di
         float x = pos % 2 == 0 ? 0f : (pos % 4) > 2 ? -1f : 1f;
         float z = (pos + 3) % 2 == 0 ? 0f : ((pos + 3) % 4) > 2 ? -1f : 1f;
         pos++;
-        return new DirectionalLight().set(Color.WHITE, x, 0f, z);
+        return new DirectionalLight().set(Color.WHITE, x, -0.5f, z);
     }
 }

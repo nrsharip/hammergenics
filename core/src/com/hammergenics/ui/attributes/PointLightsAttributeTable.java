@@ -64,6 +64,11 @@ public class PointLightsAttributeTable extends BaseLightsAttributeTable<PointLig
     }
 
     @Override
+    protected void postButtonRemove() {
+
+    }
+
+    @Override
     protected void resetWidgetsToDefaults() {
         // additional from PointLight:
 

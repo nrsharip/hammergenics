@@ -129,6 +129,8 @@ public abstract class BaseLightsAttributeTable<T extends Attribute, L extends Ba
                     mnsTextButton.getLabel().getColor().set(COLOR_DISABLED);
                 }
 
+                postButtonRemove();
+
                 if (listener != null) { listener.onAttributeChange(currentType, currentTypeAlias); }
             }
         });
@@ -281,6 +283,7 @@ public abstract class BaseLightsAttributeTable<T extends Attribute, L extends Ba
     }
 
     protected abstract void postButtonAdd();
+    protected abstract void postButtonRemove();
 
     private void addButton() {
         TextButton button = new TextButton(String.valueOf(indexedTB.size + 1), this.uiSkin);

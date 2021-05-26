@@ -696,9 +696,9 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // Lights should be sorted by importance. Usually this means that lights should be sorted on distance.
         // !!! The DefaultShader for example by default (configurable) only uses the first five point lights for shader lighting.
         // Any remaining lights will be added to an ambient cubemap which is much less accurate.
-        environment.add(new DirectionalLight().set(Color.WHITE, -0.7f, -0.5f, -0.3f));  // min enabled
-        environment.add(new PointLight().set(Color.LIGHT_GRAY, 50f, 50f, 50f, 0.5f));   // min enabled
-        environment.add(new SpotLight());                                               // min enabled
+        environment.add(new DirectionalLight().set(Color.WHITE, -1f, -0.5f, -1f));     // min enabled
+        environment.add(new PointLight().set(Color.LIGHT_GRAY, 400f, 400f, 400f, 1f)); // min enabled
+        environment.add(new SpotLight());                                              // min enabled
     }
 
     /**

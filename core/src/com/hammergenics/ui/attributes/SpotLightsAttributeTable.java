@@ -63,6 +63,11 @@ public class SpotLightsAttributeTable extends BaseLightsAttributeTable<SpotLight
     }
 
     @Override
+    protected void postButtonRemove() {
+
+    }
+
+    @Override
     protected void resetWidgetsToDefaults() {
         // additional from SpotLight:
 
