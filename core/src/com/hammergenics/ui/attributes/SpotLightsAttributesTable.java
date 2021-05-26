@@ -17,9 +17,7 @@
 package com.hammergenics.ui.attributes;
 
 import com.badlogic.gdx.graphics.g3d.Attributes;
-import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.SpotLightsAttribute;
-import com.badlogic.gdx.graphics.g3d.environment.PointLight;
 import com.badlogic.gdx.graphics.g3d.environment.SpotLight;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -38,7 +36,7 @@ public class SpotLightsAttributesTable
 
         // START - Candidate for move to AttributesTable
         t2a.forEach((entry) -> {
-            SLAttributeTable table = new SLAttributeTable(skin, container, mps);
+            SpotLightsAttributeTable table = new SpotLightsAttributeTable(skin, container, mps);
             t2Table.put(entry.key, table);   // type to table
             a2Table.put(entry.value, table); // alias to table
         });

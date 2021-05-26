@@ -30,9 +30,9 @@ import com.hammergenics.screens.ModelPreviewScreen;
  *
  * @author nrsharip
  */
-public class PLAttributeTable extends BaseLightsAttributeTable<PointLightsAttribute, PointLight> {
+public class PointLightsAttributeTable extends BaseLightsAttributeTable<PointLightsAttribute, PointLight> {
 
-    public PLAttributeTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
+    public PointLightsAttributeTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
         super(skin, container, mps, PointLightsAttribute.class, PointLight.class);
     }
 

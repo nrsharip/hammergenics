@@ -36,7 +36,7 @@ public class PointLightsAttributesTable
 
         // START - Candidate for move to AttributesTable
         t2a.forEach((entry) -> {
-            PLAttributeTable table = new PLAttributeTable(skin, container, mps);
+            PointLightsAttributeTable table = new PointLightsAttributeTable(skin, container, mps);
             t2Table.put(entry.key, table);   // type to table
             a2Table.put(entry.value, table); // alias to table
         });

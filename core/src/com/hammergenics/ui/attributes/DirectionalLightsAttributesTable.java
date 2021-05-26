@@ -36,7 +36,7 @@ public class DirectionalLightsAttributesTable
 
         // START - Candidate for move to AttributesTable
         t2a.forEach((entry) -> {
-            DLAttributeTable table = new DLAttributeTable(skin, container, mps);
+            DirectionalLightsAttributeTable table = new DirectionalLightsAttributeTable(skin, container, mps);
             t2Table.put(entry.key, table);   // type to table
             a2Table.put(entry.value, table); // alias to table
         });

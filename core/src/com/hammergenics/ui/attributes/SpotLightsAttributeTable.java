@@ -18,8 +18,8 @@ package com.hammergenics.ui.attributes;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g3d.Attributes;
-import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
-import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
+import com.badlogic.gdx.graphics.g3d.attributes.SpotLightsAttribute;
+import com.badlogic.gdx.graphics.g3d.environment.SpotLight;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -30,14 +30,14 @@ import com.hammergenics.screens.ModelPreviewScreen;
  *
  * @author nrsharip
  */
-public class DLAttributeTable extends BaseLightsAttributeTable<DirectionalLightsAttribute, DirectionalLight> {
+public class SpotLightsAttributeTable extends BaseLightsAttributeTable<SpotLightsAttribute, SpotLight> {
 
-    public DLAttributeTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
-        super(skin, container, mps, DirectionalLightsAttribute.class, DirectionalLight.class);
+    public SpotLightsAttributeTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
+        super(skin, container, mps, SpotLightsAttribute.class, SpotLight.class);
     }
 
     @Override
-    protected void fetchWidgetsFromAttribute(DirectionalLightsAttribute attr) {
+    protected void fetchWidgetsFromAttribute(SpotLightsAttribute attr) {
         this.lights = attr.lights;
 
         resetWidgetsToDefaults();
@@ -53,8 +53,8 @@ public class DLAttributeTable extends BaseLightsAttributeTable<DirectionalLights
     }
 
     @Override
-    protected DirectionalLightsAttribute createAttribute(String alias) {
-        DirectionalLightsAttribute lightsAttribute = new DirectionalLightsAttribute();
+    protected SpotLightsAttribute createAttribute(String alias) {
+        SpotLightsAttribute lightsAttribute = new SpotLightsAttribute();
         lightsAttribute.lights.addAll(this.lights);
         return lightsAttribute;
     }
