@@ -20,9 +20,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.attributes.SpotLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.SpotLight;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.hammergenics.screens.ModelPreviewScreen;
 
 /**
@@ -57,5 +55,22 @@ public class SpotLightsAttributeTable extends BaseLightsAttributeTable<SpotLight
         SpotLightsAttribute lightsAttribute = new SpotLightsAttribute();
         lightsAttribute.lights.addAll(this.lights);
         return lightsAttribute;
+    }
+
+    @Override
+    protected void postButtonAdd() {
+
+    }
+
+    @Override
+    protected void resetWidgetsToDefaults() {
+        // additional from SpotLight:
+
+        super.resetWidgetsToDefaults();
+    }
+
+    @Override
+    protected SpotLight createLight() {
+        return new SpotLight();
     }
 }

@@ -73,6 +73,8 @@ public abstract class BaseLightsAttributeTable<T extends Attribute, L extends Ba
     public Array<TextButton> indexedTB = null;
     protected Array<L> lights;
 
+    protected abstract L createLight();
+
     public BaseLightsAttributeTable(Skin skin, Attributes container, ModelPreviewScreen mps, Class<T> aClass, Class<L> lightClass) {
         super(skin, container, mps, aClass);
         this.lightClass = lightClass;
@@ -88,26 +90,8 @@ public abstract class BaseLightsAttributeTable<T extends Attribute, L extends Ba
 
                 addButton();
 
-                L light = null;
-                try {
-                    light = lightClass.getConstructor().newInstance();
-                } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                    Gdx.app.error("plsTextButton.changed",
-                            "EXCEPTION while creating the light of type: " + lightClass.getName() + "\n" +
-                                    Arrays.stream(e.getStackTrace())
-                                            .map(element -> String.valueOf(element) + "\n")
-                                            .reduce("", String::concat));
-                    return;
-                }
-                if (light instanceof DirectionalLight) {
-                    ((DirectionalLight)light).set(Color.WHITE, -0.7f, -0.5f, -0.3f);
-                }
-                if (light instanceof PointLight) {
-                    ((PointLight)light).set(Color.LIGHT_GRAY, 50f, 50f, 50f, 0.5f);
-                }
-                if (light instanceof SpotLight) {
+                L light = createLight();
 
-                }
                 lights.add(light);
 
                 indexedTB.get(indexedTB.size - 1).setChecked(true); // "pressing" the button added
@@ -125,7 +109,10 @@ public abstract class BaseLightsAttributeTable<T extends Attribute, L extends Ba
             public void changed(ChangeEvent event, Actor actor) {
                 if (mnsTextButton.getColor().equals(COLOR_DISABLED) || lights == null || indexedTB == null) { return; }
 
-                if (indexedTB.get(indexedTB.size - 1).getColor().equals(COLOR_PRESSED)) {
+                if (indexedTB.size > 2 && indexedTB.get(indexedTB.size - 1).getColor().equals(COLOR_PRESSED)) {
+                    // trick to trigger the change event on the button before the one being removed ("press" button)
+                    indexedTB.get(indexedTB.size - 2).setChecked(!indexedTB.get(indexedTB.size - 2).isChecked());
+                } else if (indexedTB.size == 2) {
                     // trick to trigger the change event on button 0 ("press" 0 button)
                     indexedTB.get(0).setChecked(!indexedTB.get(0).isChecked());
                 }
@@ -293,6 +280,8 @@ public abstract class BaseLightsAttributeTable<T extends Attribute, L extends Ba
         };
     }
 
+    protected abstract void postButtonAdd();
+
     private void addButton() {
         TextButton button = new TextButton(String.valueOf(indexedTB.size + 1), this.uiSkin);
         button.setName(ACTOR_BUTTON_PREFIX + String.valueOf(indexedTB.size));
@@ -310,6 +299,8 @@ public abstract class BaseLightsAttributeTable<T extends Attribute, L extends Ba
                     if (bTF != null) { bTF.setText(String.valueOf((int)(lights.get(index).color.b * 255))); } // extending the range from [0:1] to [0:255]
                     if (aTF != null) { aTF.setText(String.valueOf((int)(lights.get(index).color.a * 255))); } // extending the range from [0:1] to [0:255]
                 }
+
+                postButtonAdd();
             }
         });
 

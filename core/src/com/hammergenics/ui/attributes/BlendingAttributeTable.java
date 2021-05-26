@@ -104,7 +104,6 @@ public class BlendingAttributeTable extends AttributeTable<BlendingAttribute> {
 
         line2.add(new Label("src:", skin)).right();
         line2.add(srcFuncSB);
-        line2.row();
         line2.add(new Label("dst:", skin)).right();
         line2.add(dstFuncSB);
 

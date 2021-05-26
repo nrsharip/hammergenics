@@ -17,12 +17,11 @@
 package com.hammergenics.ui.attributes;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.PointLight;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.hammergenics.screens.ModelPreviewScreen;
 
 /**
@@ -57,5 +56,22 @@ public class PointLightsAttributeTable extends BaseLightsAttributeTable<PointLig
         PointLightsAttribute lightsAttribute = new PointLightsAttribute();
         lightsAttribute.lights.addAll(this.lights);
         return lightsAttribute;
+    }
+
+    @Override
+    protected void postButtonAdd() {
+
+    }
+
+    @Override
+    protected void resetWidgetsToDefaults() {
+        // additional from PointLight:
+
+        super.resetWidgetsToDefaults();
+    }
+
+    @Override
+    protected PointLight createLight() {
+        return new PointLight().set(Color.WHITE, 400f, 400f, 400f, 1f);
     }
 }

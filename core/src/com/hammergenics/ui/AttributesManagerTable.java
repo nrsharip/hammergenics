@@ -58,17 +58,17 @@ public class AttributesManagerTable extends AbstractTable {
         slAttrTable.resetAttributes();
 
         clear();
-        add(colorAttrTable).padTop(20f).top().left().fillX();
+        add(colorAttrTable).padTop(10f).top().left().fillX();
         row();
-        add(textureAttrTable).padTop(20f).top().left().fillX();
+        add(textureAttrTable).padTop(10f).top().left().fillX();
         row();
-        add(blendingAttrTable).padTop(20f).top().left().fillX();
+        add(blendingAttrTable).padTop(10f).top().left().fillX();
         row();
-        add(dlAttrTable).padTop(20f).top().left().fillX();
+        add(dlAttrTable).padTop(10f).top().left().fillX();
         row();
-        add(plAttrTable).padTop(20f).top().left().fillX();
+        add(plAttrTable).padTop(10f).top().left().fillX();
         row();
-        add(slAttrTable).padTop(20f).top().left().fillX();
+        add(slAttrTable).padTop(10f).top().left().fillX();
         row();
         add().expandY();
     }
