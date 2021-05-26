@@ -35,6 +35,8 @@ public class AttributesManagerTable extends AbstractTable {
     public TextureAttributesTable textureAttrTable;
     public BlendingAttributesTable blendingAttrTable;
     public DirectionalLightsAttributesTable dlAttrTable;
+    public PointLightsAttributesTable plAttrTable;
+    public SpotLightsAttributesTable slAttrTable;
 
     public AttributesManagerTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
         super(skin);
@@ -45,11 +47,15 @@ public class AttributesManagerTable extends AbstractTable {
         colorAttrTable = new ColorAttributesTable(skin, container, mps);
         blendingAttrTable = new BlendingAttributesTable(skin, container, mps);
         dlAttrTable = new DirectionalLightsAttributesTable(skin, container, mps);
+        plAttrTable = new PointLightsAttributesTable(skin, container, mps);
+        slAttrTable = new SpotLightsAttributesTable(skin, container, mps);
 
         textureAttrTable.resetAttributes();
         colorAttrTable.resetAttributes();
         blendingAttrTable.resetAttributes();
         dlAttrTable.resetAttributes();
+        plAttrTable.resetAttributes();
+        slAttrTable.resetAttributes();
 
         clear();
         add(colorAttrTable).padTop(20f).top().left().fillX();
@@ -60,6 +66,10 @@ public class AttributesManagerTable extends AbstractTable {
         row();
         add(dlAttrTable).padTop(20f).top().left().fillX();
         row();
+        add(plAttrTable).padTop(20f).top().left().fillX();
+        row();
+        add(slAttrTable).padTop(20f).top().left().fillX();
+        row();
         add().expandY();
     }
 
@@ -69,5 +79,7 @@ public class AttributesManagerTable extends AbstractTable {
         colorAttrTable.setListener(listener);
         blendingAttrTable.setListener(listener);
         dlAttrTable.setListener(listener);
+        plAttrTable.setListener(listener);
+        slAttrTable.setListener(listener);
     }
 }

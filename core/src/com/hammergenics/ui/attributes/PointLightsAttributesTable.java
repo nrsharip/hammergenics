@@ -17,8 +17,8 @@
 package com.hammergenics.ui.attributes;
 
 import com.badlogic.gdx.graphics.g3d.Attributes;
-import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
-import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
+import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
+import com.badlogic.gdx.graphics.g3d.environment.PointLight;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.hammergenics.screens.ModelPreviewScreen;
@@ -28,15 +28,15 @@ import com.hammergenics.screens.ModelPreviewScreen;
  *
  * @author nrsharip
  */
-public class DirectionalLightsAttributesTable
-        extends AttributesTable<DirectionalLightsAttribute, BaseLightsAttributeTable<DirectionalLightsAttribute, DirectionalLight>> {
+public class PointLightsAttributesTable
+        extends AttributesTable<PointLightsAttribute, BaseLightsAttributeTable<PointLightsAttribute, PointLight>> {
 
-    public DirectionalLightsAttributesTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
-        super(skin, container, mps, DirectionalLightsAttribute.class);
+    public PointLightsAttributesTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
+        super(skin, container, mps, PointLightsAttribute.class);
 
         // START - Candidate for move to AttributesTable
         t2a.forEach((entry) -> {
-            DLAttributeTable table = new DLAttributeTable(skin, container, mps);
+            PLAttributeTable table = new PLAttributeTable(skin, container, mps);
             t2Table.put(entry.key, table);   // type to table
             a2Table.put(entry.value, table); // alias to table
         });

@@ -18,14 +18,23 @@ package com.hammergenics.ui.attributes;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g3d.Attribute;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.SpotLightsAttribute;
+import com.badlogic.gdx.graphics.g3d.environment.BaseLight;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
+import com.badlogic.gdx.graphics.g3d.environment.PointLight;
+import com.badlogic.gdx.graphics.g3d.environment.SpotLight;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Array;
 import com.hammergenics.screens.ModelPreviewScreen;
+
+import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 
 import static com.hammergenics.ui.attributes.ColorAttributeTable.*;
 import static com.hammergenics.util.LibgdxUtils.color_s2c;
@@ -35,33 +44,39 @@ import static com.hammergenics.util.LibgdxUtils.color_s2c;
  *
  * @author nrsharip
  */
-public class DirectionalLightsAttributeTable extends AttributeTable<DirectionalLightsAttribute> {
+public abstract class BaseLightsAttributeTable<T extends Attribute, L extends BaseLight<L>> extends AttributeTable<T> {
     private static final String ACTOR_BUTTON_PREFIX = "button_";
     private static final Color COLOR_DISABLED = Color.GRAY;
     private static final Color COLOR_PRESSED = Color.RED;
     private static final Color COLOR_UNPRESSED = Color.WHITE;
 
-    // r, g, b, a;
-    private TextField rTF = null;
-    private TextField gTF = null;
-    private TextField bTF = null;
-    private TextField aTF = null;
-    private SelectBox<String> colorSB = null;
+    protected Class<L> lightClass;
+    protected Color color = new Color().set(Color.GRAY);
+    protected int index = -1;
+
+    // r, g, b, a
+    protected TextField rTF = null;
+    protected TextField gTF = null;
+    protected TextField bTF = null;
+    protected TextField aTF = null;
+    // color select box
+    protected SelectBox<String> colorSB = null;
+    // + and - buttons
+    protected TextButton plsTextButton = null;
+    protected TextButton mnsTextButton = null;
+    // table to contain the indexed buttons (1, 2, 3 etc.)
+    protected Table indexedTBTable = new Table();
 
     private TextField.TextFieldListener rgbaTextFieldListener;
     private ChangeListener colorSelectBoxListener;
-    private Color color = new Color().set(Color.GRAY);
 
-    public TextButton plsTextButton = null;
-    public TextButton mnsTextButton = null;
     public Array<TextButton> indexedTB = null;
-    private Array<DirectionalLight> lights = new Array<>(DirectionalLight.class);
-    private Table indexedTBTable = new Table();
-    private int index = -1;
+    protected Array<L> lights;
 
-
-    public DirectionalLightsAttributeTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
-        super(skin, container, mps, DirectionalLightsAttribute.class);
+    public BaseLightsAttributeTable(Skin skin, Attributes container, ModelPreviewScreen mps, Class<T> aClass, Class<L> lightClass) {
+        super(skin, container, mps, aClass);
+        this.lightClass = lightClass;
+        lights = new Array<>(lightClass);
 
         plsTextButton = new TextButton("+", skin);
         plsTextButton.addListener(new ChangeListener() {
@@ -73,7 +88,27 @@ public class DirectionalLightsAttributeTable extends AttributeTable<DirectionalL
 
                 addButton();
 
-                lights.add(new DirectionalLight().set(Color.WHITE, -0.7f, -0.5f, -0.3f));
+                L light = null;
+                try {
+                    light = lightClass.getConstructor().newInstance();
+                } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                    Gdx.app.error("plsTextButton.changed",
+                            "EXCEPTION while creating the light of type: " + lightClass.getName() + "\n" +
+                                    Arrays.stream(e.getStackTrace())
+                                            .map(element -> String.valueOf(element) + "\n")
+                                            .reduce("", String::concat));
+                    return;
+                }
+                if (light instanceof DirectionalLight) {
+                    ((DirectionalLight)light).set(Color.WHITE, -0.7f, -0.5f, -0.3f);
+                }
+                if (light instanceof PointLight) {
+                    ((PointLight)light).set(Color.LIGHT_GRAY, 50f, 50f, 50f, 0.5f);
+                }
+                if (light instanceof SpotLight) {
+
+                }
+                lights.add(light);
 
                 indexedTB.get(indexedTB.size - 1).setChecked(true); // "pressing" the button added
 
@@ -112,6 +147,7 @@ public class DirectionalLightsAttributeTable extends AttributeTable<DirectionalL
         });
 
         createListeners();
+
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textfield
         rTF = new TextField("150", skin); rTF.setName(ACTOR_R);
         gTF = new TextField("150", skin); gTF.setName(ACTOR_G);
@@ -129,6 +165,7 @@ public class DirectionalLightsAttributeTable extends AttributeTable<DirectionalL
         if (color_s2c != null && color_s2c.size > 0) { colorSB.setItems(color_s2c.keys().toArray()); }
         colorSB.addListener(colorSelectBoxListener);
 
+        // Standard Color Layout:
         Table line1 = new Table();
         Table line2 = new Table();
 
@@ -154,7 +191,7 @@ public class DirectionalLightsAttributeTable extends AttributeTable<DirectionalL
         add(line1).fillX();
         row();
         add(line2).fillX();
-
+        row();
     }
 
     private void createListeners() {
@@ -171,26 +208,44 @@ public class DirectionalLightsAttributeTable extends AttributeTable<DirectionalL
                     value = (value / 255); // since originally we translated from [0:1] to [0:255]
 
                     if (container != null && currentType != 0) {
-                        DirectionalLightsAttribute attr = null;
-                        attr = container.get(DirectionalLightsAttribute.class, currentType);
+                        T attr = null;
+                        attr = container.get(attributeClass, currentType);
+
+                        if (attr != null && index >= 0) {
+                            if (attr instanceof DirectionalLightsAttribute) {
+                                DirectionalLightsAttribute attrTyped = (DirectionalLightsAttribute)attr;
+                                switch (textField.getName()) {
+                                    case ACTOR_R: if (index < attrTyped.lights.size) { attrTyped.lights.get(index).color.r = value; } break;
+                                    case ACTOR_G: if (index < attrTyped.lights.size) { attrTyped.lights.get(index).color.g = value; } break;
+                                    case ACTOR_B: if (index < attrTyped.lights.size) { attrTyped.lights.get(index).color.b = value; } break;
+                                    case ACTOR_A: if (index < attrTyped.lights.size) { attrTyped.lights.get(index).color.a = value; } break;
+                                }
+                            }
+                            if (attr instanceof PointLightsAttribute) {
+                                PointLightsAttribute attrTyped = (PointLightsAttribute)attr;
+                                switch (textField.getName()) {
+                                    case ACTOR_R: if (index < attrTyped.lights.size) { attrTyped.lights.get(index).color.r = value; } break;
+                                    case ACTOR_G: if (index < attrTyped.lights.size) { attrTyped.lights.get(index).color.g = value; } break;
+                                    case ACTOR_B: if (index < attrTyped.lights.size) { attrTyped.lights.get(index).color.b = value; } break;
+                                    case ACTOR_A: if (index < attrTyped.lights.size) { attrTyped.lights.get(index).color.a = value; } break;
+                                }
+                            }
+                            if (attr instanceof SpotLightsAttribute) {
+                                SpotLightsAttribute attrTyped = (SpotLightsAttribute)attr;
+                                switch (textField.getName()) {
+                                    case ACTOR_R: if (index < attrTyped.lights.size) { attrTyped.lights.get(index).color.r = value; } break;
+                                    case ACTOR_G: if (index < attrTyped.lights.size) { attrTyped.lights.get(index).color.g = value; } break;
+                                    case ACTOR_B: if (index < attrTyped.lights.size) { attrTyped.lights.get(index).color.b = value; } break;
+                                    case ACTOR_A: if (index < attrTyped.lights.size) { attrTyped.lights.get(index).color.a = value; } break;
+                                }
+                            }
+                        }
 
                         switch (textField.getName()) {
-                            case ACTOR_R:
-                                if (attr != null && index >= 0 && index < attr.lights.size) { attr.lights.get(index).color.r = value; }
-                                color.r = value;
-                                break;
-                            case ACTOR_G:
-                                if (attr != null && index >= 0 && index < attr.lights.size) { attr.lights.get(index).color.g = value; }
-                                color.g = value;
-                                break;
-                            case ACTOR_B:
-                                if (attr != null && index >= 0 && index < attr.lights.size) { attr.lights.get(index).color.b = value; }
-                                color.b = value;
-                                break;
-                            case ACTOR_A:
-                                if (attr != null && index >= 0 && index < attr.lights.size) { attr.lights.get(index).color.a = value; }
-                                color.a = value;
-                                break;
+                            case ACTOR_R: color.r = value; break;
+                            case ACTOR_G: color.g = value; break;
+                            case ACTOR_B: color.b = value; break;
+                            case ACTOR_A: color.a = value; break;
                         }
 
                         if (attr != null && listener != null) { listener.onAttributeChange(currentType, currentTypeAlias); }
@@ -214,9 +269,23 @@ public class DirectionalLightsAttributeTable extends AttributeTable<DirectionalL
                     if (bTF != null) { bTF.setText(String.valueOf((int)(color.b * 255))); } // extending the range from [0:1] to [0:255]
                     if (aTF != null) { aTF.setText(String.valueOf((int)(color.a * 255))); } // extending the range from [0:1] to [0:255]
 
-                    DirectionalLightsAttribute attr = null;
-                    attr = container.get(DirectionalLightsAttribute.class, currentType);
-                    if (attr != null && index >= 0 && index < attr.lights.size) { attr.lights.get(index).color.set(color); }
+                    T attr = null;
+                    attr = container.get(attributeClass, currentType);
+
+                    if (attr != null && index >= 0) {
+                        if (attr instanceof DirectionalLightsAttribute) {
+                            DirectionalLightsAttribute attrTyped = (DirectionalLightsAttribute)attr;
+                            if (index < attrTyped.lights.size) { attrTyped.lights.get(index).color.set(color); }
+                        }
+                        if (attr instanceof PointLightsAttribute) {
+                            PointLightsAttribute attrTyped = (PointLightsAttribute)attr;
+                            if (index < attrTyped.lights.size) { attrTyped.lights.get(index).color.set(color); }
+                        }
+                        if (attr instanceof SpotLightsAttribute) {
+                            SpotLightsAttribute attrTyped = (SpotLightsAttribute)attr;
+                            if (index < attrTyped.lights.size) { attrTyped.lights.get(index).color.set(color); }
+                        }
+                    }
 
                     if (listener != null) { listener.onAttributeChange(currentType, currentTypeAlias); }
                 }
@@ -260,23 +329,6 @@ public class DirectionalLightsAttributeTable extends AttributeTable<DirectionalL
     }
 
     @Override
-    protected void fetchWidgetsFromAttribute(DirectionalLightsAttribute attr) {
-        this.lights = attr.lights;
-
-        resetWidgetsToDefaults();
-
-        if (index >= 0 && index < attr.lights.size) {
-            color.set(attr.lights.get(index).color);
-            if (rTF != null) { rTF.setText(String.valueOf((int)(attr.lights.get(index).color.r * 255))); } // extending the range from [0:1] to [0:255]
-            if (gTF != null) { gTF.setText(String.valueOf((int)(attr.lights.get(index).color.g * 255))); } // extending the range from [0:1] to [0:255]
-            if (bTF != null) { bTF.setText(String.valueOf((int)(attr.lights.get(index).color.b * 255))); } // extending the range from [0:1] to [0:255]
-            if (aTF != null) { aTF.setText(String.valueOf((int)(attr.lights.get(index).color.a * 255))); } // extending the range from [0:1] to [0:255]
-        }
-
-        Gdx.app.debug(getClass().getSimpleName(), "lights size: " + lights.size);
-    }
-
-    @Override
     protected void postRemoveAttr() {
         indexedTBTable.reset();
         mnsTextButton.getColor().set(COLOR_DISABLED);
@@ -310,13 +362,5 @@ public class DirectionalLightsAttributeTable extends AttributeTable<DirectionalL
             index = 0;
             indexedTB.get(index).getColor().set(COLOR_PRESSED);
         }
-    }
-
-    @Override
-    protected DirectionalLightsAttribute createAttribute(String alias) {
-        // this is a bit hacky since the way one adds the lights attribute is environment.add(...)
-        DirectionalLightsAttribute lightsAttribute = new DirectionalLightsAttribute();
-        lightsAttribute.lights.addAll(this.lights);
-        return lightsAttribute;
     }
 }
