@@ -28,8 +28,6 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g3d.*;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
-import com.badlogic.gdx.graphics.g3d.environment.PointLight;
-import com.badlogic.gdx.graphics.g3d.environment.SpotLight;
 import com.badlogic.gdx.graphics.g3d.model.Animation;
 import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.model.NodePart;
@@ -640,8 +638,6 @@ public class ModelPreviewScreen extends ScreenAdapter {
         }
     }
 
-
-
     /**
      *
      */
@@ -668,13 +664,13 @@ public class ModelPreviewScreen extends ScreenAdapter {
         environment = new Environment();
         // Some attribute classes are dedicated to a single type value (bit).
         // Others can be used for multiple type values (bits), in which case you must specify the type on construction.
-        environment.set(ColorAttribute.createAmbient(Color.GRAY));            // min enabled
-//        environment.set(ColorAttribute.createDiffuse(Color.GRAY));          // ! darkens the model
-        environment.set(ColorAttribute.createSpecular(Color.GRAY));           // min enabled
-        environment.set(ColorAttribute.createReflection(Color.GRAY));         // min enabled
-//        environment.set(ColorAttribute.createEmissive(Color.GRAY));         // ! adds glowing effect  // JdxLib v1.10.0
-        environment.set(ColorAttribute.createAmbientLight(Color.DARK_GRAY));  // min enabled            // JdxLib v1.10.0
-        environment.set(ColorAttribute.createFog(Color.GRAY));                // min enabled            // JdxLib v1.10.0
+        environment.set(ColorAttribute.createAmbient(Color.GRAY));           // min enabled
+//      environment.set(ColorAttribute.createDiffuse(Color.GRAY));           // ! darkens the model
+        environment.set(ColorAttribute.createSpecular(Color.GRAY));          // min enabled
+        environment.set(ColorAttribute.createReflection(Color.GRAY));        // min enabled
+//      environment.set(ColorAttribute.createEmissive(Color.GRAY));          // ! adds glowing effect  // JdxLib v1.10.0
+        environment.set(ColorAttribute.createAmbientLight(Color.DARK_GRAY)); // min enabled            // JdxLib v1.10.0
+        environment.set(ColorAttribute.createFog(Color.GRAY));               // min enabled            // JdxLib v1.10.0
 
         // https://github.com/libgdx/libgdx/wiki/Material-and-environment#lights
         // you can attach a light to either an environment or a material.
@@ -697,8 +693,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // !!! The DefaultShader for example by default (configurable) only uses the first five point lights for shader lighting.
         // Any remaining lights will be added to an ambient cubemap which is much less accurate.
         environment.add(new DirectionalLight().set(Color.WHITE, -1f, -0.5f, -1f));     // min enabled
-        environment.add(new PointLight().set(Color.LIGHT_GRAY, 400f, 400f, 400f, 1f)); // min enabled
-        environment.add(new SpotLight());                                              // min enabled
+//      environment.add(new PointLight().set(Color.LIGHT_GRAY, 400f, 400f, 400f, 1f)); // min enabled
+//      environment.add(new SpotLight());                                              // min enabled
     }
 
     /**

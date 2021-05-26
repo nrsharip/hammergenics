@@ -30,6 +30,10 @@ import com.hammergenics.screens.ModelPreviewScreen;
  */
 public class SpotLightsAttributeTable extends BaseLightsAttributeTable<SpotLightsAttribute, SpotLight> {
 
+    // (from SpotLight.java)
+    // IMPORTANT: Note that the default shader doesn't support spot lights,
+    //            you'll have to supply your own shader to use this class.
+
     public SpotLightsAttributeTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
         super(skin, container, mps, SpotLightsAttribute.class, SpotLight.class);
     }

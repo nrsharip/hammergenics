@@ -31,6 +31,8 @@ import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGeneratorLoader;
 import com.badlogic.gdx.graphics.g2d.freetype.FreetypeFontLoader;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
+import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
+import com.badlogic.gdx.graphics.g3d.utils.DefaultShaderProvider;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Logger;
 import com.hammergenics.config.Config;
@@ -87,22 +89,22 @@ public class HGGame extends Game {
         FileHandle rootFileHandle = Gdx.files.local(Conventions.modelsRootDirectory);
         Array<FileHandle> fileHandleList = LibgdxUtils.traversFileHandle(rootFileHandle,
                 file -> file.isDirectory()
-//                        || file.getName().toLowerCase().endsWith(".3ds")  // converted to G3DB with fbx-conv
-                        || file.getName().toLowerCase().endsWith(".obj")    // wavefront
-//                        || file.getName().toLowerCase().endsWith(".gltf") // see for support: https://github.com/mgsx-dev/gdx-gltf
-                        || file.getName().toLowerCase().endsWith(".tga")    // textures in TGA
-//                        || file.getName().toLowerCase().endsWith(".g3dj") // json // disabling for now...
-                        || file.getName().toLowerCase().endsWith(".g3db")   // binary
-                        || file.getName().toLowerCase().endsWith(".png")    // textures in PNG
-                        || file.getName().toLowerCase().endsWith(".bmp")    // textures in BMP
+//                      || file.getName().toLowerCase().endsWith(".3ds")  // converted to G3DB with fbx-conv
+                        || file.getName().toLowerCase().endsWith(".obj")  // wavefront
+//                      || file.getName().toLowerCase().endsWith(".gltf") // see for support: https://github.com/mgsx-dev/gdx-gltf
+                        || file.getName().toLowerCase().endsWith(".tga")  // textures in TGA
+//                      || file.getName().toLowerCase().endsWith(".g3dj") // json // disabling for now...
+                        || file.getName().toLowerCase().endsWith(".g3db") // binary
+                        || file.getName().toLowerCase().endsWith(".png")  // textures in PNG
+                        || file.getName().toLowerCase().endsWith(".bmp")  // textures in BMP
         );
         fileHandleList.forEach(fileHandle -> {
             switch (fileHandle.extension().toLowerCase()) {
-//                case "3ds":  // converted to G3DB with fbx-conv
+//              case "3ds":  // converted to G3DB with fbx-conv
                 case "obj":
-//                case "gltf": // see for support: https://github.com/mgsx-dev/gdx-gltf
+//              case "gltf": // see for support: https://github.com/mgsx-dev/gdx-gltf
                 case "g3db":
-//                case "g3dj":
+//              case "g3dj":
                     assetManager.load(fileHandle.path(), Model.class, null);
                     break;
                 case "tga":
@@ -123,26 +125,21 @@ public class HGGame extends Game {
         // The behavior of DefaultShader class is configurable by supplying
         // a DefaultShader.Config instance to the DefaultShaderProvider.
 
-// Default Values from gen_1.10.0_Config_...
-//  String vertexShader         = null // The GPU shader (the vertex and fragment shader) to be used is also configurable using this config.
-//  String fragmentShader       = null // Because this shader can be used for various combinations of attributes, it typically is a so-called ubershader.
-//     int numDirectionalLights = 2
-//     int numPointLights       = 5
-//     int numSpotLights        = 0
-//     int numBones             = 12
-// boolean ignoreUnimplemented  = true
-//     int defaultCullFace      = -1
-//     int defaultDepthFunc     = -1
-
-        // DefaultShader.Config config = new DefaultShader.Config();
-        // config.numDirectionalLights = 1;
-        // config.numPointLights = 0;
-        // config.numBones = 16;
+        DefaultShader.Config config = new DefaultShader.Config();
+//        config.vertexShader;         // String = null - The uber vertex shader to use, null to use the default vertex shader.
+//        config.fragmentShader;       // String = null - The uber fragment shader to use, null to use the default fragment shader.
+//        config.numDirectionalLights; // int = 2 The number of directional lights to use
+//        config.numPointLights;       // int = 5 The number of point lights to use
+//        config.numSpotLights;        // int = 0 The number of spot lights to use
+//        config.numBones;             // int = 12 The number of bones to use
+//        config.ignoreUnimplemented;  // boolean = true
+//        config.defaultCullFace;      // int = -1 Set to 0 to disable culling, -1 to inherit from {@link DefaultShader#defaultCullFace}
+//        config.defaultDepthFunc;     // int = -1 Set to 0 to disable depth test, -1 to inherit from {@link DefaultShader#defaultDepthFunc}
 
         // https://github.com/libgdx/libgdx/wiki/ModelBatch
         // You'd typically create a ModelBatch in the create() method.
-        //modelBatch = new ModelBatch(new DefaultShaderProvider(config));
-        modelBatch = new ModelBatch();
+        modelBatch = new ModelBatch(new DefaultShaderProvider(config));
+        //modelBatch = new ModelBatch();
 
         this.setScreen(new LoadScreen(this));
     }
