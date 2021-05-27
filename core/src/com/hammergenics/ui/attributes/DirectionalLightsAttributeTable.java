@@ -37,15 +37,15 @@ public class DirectionalLightsAttributeTable extends BaseLightsAttributeTable<Di
     public static final String ACTOR_Y = "y_TextField";
     public static final String ACTOR_Z = "z_TextField";
 
-    // this is an internal counter to switch the position of newly created light
-    private short pos = 0;
-
-    // x, y, z: direction
+    // direction: x, y, z
     protected TextField xTF = null;
     protected TextField yTF = null;
     protected TextField zTF = null;
 
     private TextField.TextFieldListener xyzTextFieldListener;
+
+    // this is an internal counter to switch the position of newly created light
+    private short pos = 0;
 
     public DirectionalLightsAttributeTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
         super(skin, container, mps, DirectionalLightsAttribute.class, DirectionalLight.class);
@@ -62,11 +62,11 @@ public class DirectionalLightsAttributeTable extends BaseLightsAttributeTable<Di
         zTF.setTextFieldListener(xyzTextFieldListener);
 
         Table line = new Table();
-        line.add(new Label("x:", skin)).right();
+        line.add(new Label("dir x:", skin)).right();
         line.add(xTF).width(100).maxWidth(100);
-        line.add(new Label("y:", skin)).right();
+        line.add(new Label("dir y:", skin)).right();
         line.add(yTF).width(100).maxWidth(100);
-        line.add(new Label("z:", skin)).right();
+        line.add(new Label("dir z:", skin)).right();
         line.add(zTF).width(100).maxWidth(100);
         line.add().expandX();
         add(line).fillX();
@@ -161,13 +161,14 @@ public class DirectionalLightsAttributeTable extends BaseLightsAttributeTable<Di
 
     @Override
     protected DirectionalLight createLight() {
-        // pos % 4     x   z
-        //    0     :  0  -1
-        //    1     :  1   0
-        //    2     :  0   1
-        //    3     : -1   0
-        float x = pos % 2 == 0 ? 0f : (pos % 4) > 2 ? -1f : 1f;
-        float z = (pos + 3) % 2 == 0 ? 0f : ((pos + 3) % 4) > 2 ? -1f : 1f;
+        // 4 positions:
+        // pos % 2   pos % 4     x   z
+        //    0         0     :  0  -1
+        //    1         1     :  1   0
+        //    0         2     :  0   1
+        //    1         3     : -1   0
+        float x = pos % 2 == 0 ? 0f : (pos % 4) > 1 ? -1f : 1f;
+        float z = pos % 2 == 1 ? 0f : (pos % 4) < 2 ? -1f : 1f;
         pos++;
         return new DirectionalLight().set(Color.WHITE, x, -0.5f, z);
     }
