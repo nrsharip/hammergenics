@@ -27,13 +27,17 @@ import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g3d.*;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
+import com.badlogic.gdx.graphics.g3d.environment.PointLight;
 import com.badlogic.gdx.graphics.g3d.model.Animation;
 import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.model.NodePart;
 import com.badlogic.gdx.graphics.g3d.shaders.BaseShader;
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import com.badlogic.gdx.graphics.g3d.utils.*;
+import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.SphereShapeBuilder;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Array;
@@ -68,15 +72,23 @@ public class ModelPreviewScreen extends ScreenAdapter {
     public Array<Model> models = new Array<>();
     private Array<Texture> textures = new Array<>();
 
+    // Auxiliary models:
     private Model gridModel = null;
     private ModelInstance gridXZModelInstance = null;
     private ModelInstance gridYModelInstance = null;
+    private Model lightsModel = null;
+    private Array<ModelInstance> dlArrayModelInstance = null;
+    private Array<ModelInstance> plArrayModelInstance = null;
 
     // 2D Stage - this is where all the widgets (buttons, checkboxes, labels etc.) are located
     public ModelPreviewStage stage;
 
     // Current ModelInstance Related:
     public ModelInstance modelInstance = null;
+    public BoundingBox bb;
+    public Vector3 dimensions;
+    public Vector3 center;
+    public float maxD;
     public AnimationController animationController = null;
     public AnimationController.AnimationDesc animationDesc = null;
     public int animationIndex = 0;
@@ -123,7 +135,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
         stage.setup2DStageStyling();
         stage.setup2DStageWidgets();
         stage.setup2DStageLayout();
-        setup3DEnvironment();
+
+        environment = new Environment();
 
         // temporarily placing it here:
         eventListener = new BaseAttributeTable.EventListener() {
@@ -131,6 +144,10 @@ public class ModelPreviewScreen extends ScreenAdapter {
             public void onAttributeEnabled(long type, String alias) {
                 stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
                 stage.envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(environment,"", ""));
+
+                if (modelInstance != null && (type & (DirectionalLightsAttribute.Type | PointLightsAttribute.Type)) != 0) {
+                    createLightsModel(maxD, center);
+                }
 //                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
 //                        "onAttributeEnabled: 0x" + Long.toHexString(type) + " alias: " + alias);
             }
@@ -139,6 +156,10 @@ public class ModelPreviewScreen extends ScreenAdapter {
             public void onAttributeDisabled(long type, String alias) {
                 stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
                 stage.envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(environment,"", ""));
+
+                if (modelInstance != null && (type & (DirectionalLightsAttribute.Type | PointLightsAttribute.Type)) != 0) {
+                    createLightsModel(maxD, center);
+                }
 //                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
 //                        "onAttributeDisabled: 0x" + Long.toHexString(type) + " alias: " + alias);
             }
@@ -147,16 +168,14 @@ public class ModelPreviewScreen extends ScreenAdapter {
             public void onAttributeChange(long type, String alias) {
                 stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
                 stage.envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(environment,"", ""));
+
+                if (modelInstance != null && (type & (DirectionalLightsAttribute.Type | PointLightsAttribute.Type)) != 0) {
+                    createLightsModel(maxD, center);
+                }
 //                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
 //                        "onAttributeChange: 0x" + Long.toHexString(type) + " alias: " + alias);
             }
         };
-
-        // temporarily placing it here:
-        stage.envAttrTable = new AttributesManagerTable(stage.skin, environment, this);
-        stage.envAttrTable.setListener(eventListener);
-
-        stage.envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(environment,"", ""));
 
         int i = 0;
         while (modelInstance == null && i < models.size) {
@@ -227,15 +246,11 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // * there's a render(...) that could take an Iterable of ModelInstance's, e.g.
         //   modelBatch.render((Array<ModelInstance>) array, environment);
         // * Enable caching as soon as multiple instances are rendered: https://github.com/libgdx/libgdx/wiki/ModelCache
-        if (modelInstance != null && environment != null) {
-            modelBatch.render(modelInstance, environment);
-        }
-        if (gridXZModelInstance != null && stage.gridXZCheckBox.isChecked()) {
-            modelBatch.render(gridXZModelInstance);
-        }
-        if (gridYModelInstance != null && stage.gridYCheckBox.isChecked()) {
-            modelBatch.render(gridYModelInstance);
-        }
+        if (modelInstance != null && environment != null) { modelBatch.render(modelInstance, environment); }
+        if (gridXZModelInstance != null && stage.gridXZCheckBox.isChecked()) { modelBatch.render(gridXZModelInstance); }
+        if (gridYModelInstance != null && stage.gridYCheckBox.isChecked()) { modelBatch.render(gridYModelInstance); }
+        if (dlArrayModelInstance != null && stage.lightsCheckBox.isChecked()) { modelBatch.render(dlArrayModelInstance, environment); }
+        if (plArrayModelInstance != null && stage.lightsCheckBox.isChecked()) { modelBatch.render(plArrayModelInstance, environment); }
 
         // https://github.com/libgdx/libgdx/wiki/ModelBatch
         // The actual rendering is performed at the call to end();.
@@ -279,12 +294,9 @@ public class ModelPreviewScreen extends ScreenAdapter {
     @Override
     public void dispose() {
         super.dispose();
-        if (stage != null) {
-            stage.dispose();
-        }
-        if (gridModel != null) {
-            gridModel.dispose();
-        }
+        if (stage != null) { stage.dispose(); }
+        if (gridModel != null) { gridModel.dispose(); }
+        if (lightsModel != null) { lightsModel.dispose(); }
     }
 
     /**
@@ -376,15 +388,38 @@ public class ModelPreviewScreen extends ScreenAdapter {
 //        see Matrix4 for all operations available...
         modelInstance.transform.setToTranslation(0, 0, 0);
 
-        // ********************
-        // **** ATTRIBUTES ****
-        // ********************
+        // FIXME: calculateBoundingBox is a slow operation - BoundingBox object should be cached
+        bb = new BoundingBox();
+        modelInstance.calculateBoundingBox(bb);
+        dimensions = bb.getDimensions(new Vector3());
+        center = bb.getCenter(new Vector3());
+        maxD = Math.max(Math.max(dimensions.x,dimensions.y),dimensions.z);
+
+        createGridModel(maxD);
+        resetCamera(maxD, center);
+        resetCameraInputController(maxD, center);
+
+        setup3DEnvironment(maxD);
+        createLightsModel(maxD, center);
+
+        // **************************
+        // **** ATTRIBUTES 2D UI ****
+        // **************************
+
+        stage.envAttrTable = new AttributesManagerTable(stage.skin, environment, this);
+        stage.envAttrTable.setListener(eventListener);
+        stage.envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(environment,"", ""));
+        // TODO: this should be decoupled from screen eventually
+        if (stage.envTextButton.getColor().equals(COLOR_PRESSED)) {
+            stage.editCell.clearActor();
+            stage.editCell.setActor(stage.envAttrTable);
+        }
+
         stage.textureImage.setDrawable(null);
         if (modelInstance.materials != null && modelInstance.materials.size > 0) {
             stage.mtlAttrTable = new AttributesManagerTable(stage.skin, modelInstance.materials.get(0), this);
             stage.mtlAttrTable.setListener(eventListener);
-//            Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
-//                    "setting events for: " + modelInstance.materials.get(0).id);
+            // Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "" );
 
             // TODO: this should be decoupled from screen eventually
             if (stage.mtlTextButton.getColor().equals(COLOR_PRESSED)) {
@@ -393,18 +428,10 @@ public class ModelPreviewScreen extends ScreenAdapter {
             }
         }
 
+        // ********************
+        // **** ANIMATIONS ****
+        // ********************
         copyExternalAnimations(assetName);
-
-        // FIXME: calculateBoundingBox is a slow operation - BoundingBox object should be cached
-        BoundingBox bb = new BoundingBox();
-        modelInstance.calculateBoundingBox(bb);
-        Vector3 dimensions = bb.getDimensions(new Vector3());
-        Vector3 center = bb.getCenter(new Vector3());
-        float D = Math.max(Math.max(dimensions.x,dimensions.y),dimensions.z);
-
-        createGridModel(D);
-        resetCamera(D, center);
-        resetCameraInputController(D, center);
 
         animationController = null;
         if(modelInstance.animations.size > 0) {
@@ -548,6 +575,96 @@ public class ModelPreviewScreen extends ScreenAdapter {
 //                "GRID model instance: " + LibgdxUtils.getModelInstanceInfo(gridModelInstance));
     }
 
+    private void createLightsModel(float D, Vector3 c) {
+        // IMPORTANT
+        if (lightsModel != null) {
+            lightsModel.dispose();
+            lightsModel = null;
+        }
+        if (dlArrayModelInstance != null) {
+            dlArrayModelInstance.clear();
+            dlArrayModelInstance = null;
+        }
+        if (plArrayModelInstance != null) {
+            plArrayModelInstance.clear();
+            plArrayModelInstance = null;
+        }
+        dlArrayModelInstance = new Array<>(ModelInstance.class);
+        plArrayModelInstance = new Array<>(ModelInstance.class);
+
+        Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(), "max dimension: " + D + " center: " + c);
+
+        // see: ModelBuilder()
+        // https://libgdx.badlogicgames.com/ci/nightlies/dist/docs/api/com/badlogic/gdx/graphics/g3d/utils/ModelBuilder.html
+        ModelBuilder mb = new ModelBuilder();
+        MeshPartBuilder mpb;
+
+        mb.begin();
+
+        mb.node().id = "directional"; // adding node XZ
+        // MeshPart "directional", see for primitive types: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glBegin.xml
+        mpb = mb.part("directional", GL20.GL_TRIANGLES, Usage.Position | Usage.Normal,
+                new Material("base")
+                //new Material()
+        );
+
+        //SphereShapeBuilder.build(mpb, D/10, D/10, D/10, 10, 10);
+
+        mb.node().id = "point"; // adding node Y
+        // MeshPart "point", see for primitive types: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glBegin.xml
+        mpb = mb.part("point", GL20.GL_TRIANGLES, Usage.Position | Usage.Normal,
+                new Material("base")
+                //new Material()
+        );
+
+        SphereShapeBuilder.build(mpb, D/10, D/10, D/10, 100, 100);
+
+        // see also com.badlogic.gdx.graphics.g3d.utils.shapebuilders:
+        //  ArrowShapeBuilder
+        //  BaseShapeBuilder
+        //  BoxShapeBuilder
+        //  CapsuleShapeBuilder
+        //  ConeShapeBuilder
+        //  CylinderShapeBuilder
+        //  EllipseShapeBuilder
+        //  FrustumShapeBuilder
+        //  PatchShapeBuilder
+        //  RenderableShapeBuilder
+        //  SphereShapeBuilder
+        lightsModel = mb.end();
+
+        PointLightsAttribute envPLAttribute = environment.get(PointLightsAttribute.class, PointLightsAttribute.Type);
+        if (envPLAttribute != null) {
+            envPLAttribute.lights.forEach(light -> {
+                DirectionalLightsAttribute dlAttribute = new DirectionalLightsAttribute();
+                Array<DirectionalLight> dLights = new Array<>(DirectionalLight.class);
+
+                Vector3 dir = light.position.cpy().sub(c).nor();
+                float fraction = light.intensity / (2 * maxD * 100);
+                dLights.addAll(
+                        new DirectionalLight().set(new Color(Color.BLACK).add(fraction, fraction, fraction, 0f), dir)
+//                ,new DirectionalLight().set(Color.WHITE,   0,   0, -1f) // xz
+//                ,new DirectionalLight().set(Color.WHITE,  1f,   0,   0) // xz
+//                ,new DirectionalLight().set(Color.WHITE,   0,   0,  1f) // xz
+//                ,new DirectionalLight().set(Color.WHITE, -1f,   0,   0) // xz
+//                ,new DirectionalLight().set(Color.WHITE,   0, -1f,   0) // y
+//                ,new DirectionalLight().set(Color.WHITE,   0,  1f,   0) // y
+                );
+
+                dlAttribute.lights.addAll(dLights);
+                ModelInstance mi = new ModelInstance(lightsModel, "point");
+                mi.transform.setToTranslation(light.position);
+                mi.getMaterial("base", true).set(
+                        dlAttribute, ColorAttribute.createEmissive(light.color)
+                );
+
+                plArrayModelInstance.add(mi);
+            });
+        }
+
+        // Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(), "");
+    }
+
     /**
      * @param D
      */
@@ -641,7 +758,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
     /**
      *
      */
-    public void setup3DEnvironment() {
+    public void setup3DEnvironment(float D) {
         // https://github.com/libgdx/libgdx/wiki/Material-and-environment
         // In practice, when rendering, you are specifying what (the shape) to render and how (the material) to render.
         // * The shape is specified using the Mesh (or more commonly the MeshPart),
@@ -661,7 +778,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // TODO: keep for now
         // !!! A ModelInstance (or Renderable) can only contain one Environment though.
 
-        environment = new Environment();
+        environment.clear();
         // Some attribute classes are dedicated to a single type value (bit).
         // Others can be used for multiple type values (bits), in which case you must specify the type on construction.
         environment.set(ColorAttribute.createAmbient(Color.GRAY));           // min enabled
@@ -693,8 +810,10 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // !!! The DefaultShader for example by default (configurable) only uses the first five point lights for shader lighting.
         // Any remaining lights will be added to an ambient cubemap which is much less accurate.
         environment.add(new DirectionalLight().set(Color.WHITE, -1f, -0.5f, -1f));     // min enabled
-//      environment.add(new PointLight().set(Color.LIGHT_GRAY, 400f, 400f, 400f, 1f)); // min enabled
-//      environment.add(new SpotLight());                                              // min enabled
+
+        if (environment.has(PointLightsAttribute.Type)) { environment.remove(PointLightsAttribute.Type); }
+        // adding one point light for the newly created model instance
+        environment.add(new PointLight().set(Color.WHITE, D/2, D/2, -D/2, D * 100f));
     }
 
     /**

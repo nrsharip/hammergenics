@@ -67,6 +67,7 @@ public class ModelPreviewStage extends Stage {
     public CheckBox debugStageCheckBox;
     public CheckBox gridXZCheckBox;
     public CheckBox gridYCheckBox;
+    public CheckBox lightsCheckBox;
     public SelectBox<String> modelSelectBox;
     public SelectBox<String> nodeSelectBox;
     public SelectBox<String> animationSelectBox = null;
@@ -191,6 +192,9 @@ public class ModelPreviewStage extends Stage {
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#checkbox
         gridYCheckBox = new CheckBox("Y", skin);
         gridYCheckBox.setChecked(true);
+
+        lightsCheckBox = new CheckBox("lights (ENV)", skin);
+        lightsCheckBox.setChecked(true);
 
         // TEXT BUTTONS:
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textbutton
@@ -345,6 +349,7 @@ public class ModelPreviewStage extends Stage {
         lowerPanel.add(debugStageCheckBox).pad(3f);
         lowerPanel.add(gridXZCheckBox).pad(3f);
         lowerPanel.add(gridYCheckBox).pad(3f);
+        lowerPanel.add(lightsCheckBox).pad(3f);
         lowerPanel.add().expandX();
 
         rootTable.add(lowerPanel).colspan(3).expandX().left();
