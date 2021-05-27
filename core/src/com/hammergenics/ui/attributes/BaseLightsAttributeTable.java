@@ -46,9 +46,9 @@ import static com.hammergenics.util.LibgdxUtils.color_s2c;
  */
 public abstract class BaseLightsAttributeTable<T extends Attribute, L extends BaseLight<L>> extends AttributeTable<T> {
     private static final String ACTOR_BUTTON_PREFIX = "button_";
-    private static final Color COLOR_DISABLED = Color.GRAY;
-    private static final Color COLOR_PRESSED = Color.RED;
-    private static final Color COLOR_UNPRESSED = Color.WHITE;
+    protected static final Color COLOR_DISABLED = Color.GRAY;
+    protected static final Color COLOR_PRESSED = Color.RED;
+    protected static final Color COLOR_UNPRESSED = Color.WHITE;
 
     protected Class<L> lightClass;
     protected Color color = new Color().set(Color.GRAY);

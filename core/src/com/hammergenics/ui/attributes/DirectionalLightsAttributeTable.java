@@ -22,10 +22,9 @@ import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.ui.TextField;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
+import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.hammergenics.screens.ModelPreviewScreen;
 
 /**
@@ -42,8 +41,10 @@ public class DirectionalLightsAttributeTable extends BaseLightsAttributeTable<Di
     protected TextField xTF = null;
     protected TextField yTF = null;
     protected TextField zTF = null;
+    protected TextButton setTB = null;
 
     private TextField.TextFieldListener xyzTextFieldListener;
+    private InputListener setInputListener;
 
     public DirectionalLightsAttributeTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
         super(skin, container, mps, DirectionalLightsAttribute.class, DirectionalLight.class);
@@ -54,10 +55,12 @@ public class DirectionalLightsAttributeTable extends BaseLightsAttributeTable<Di
         xTF = new TextField("0", skin); xTF.setName(ACTOR_X);
         yTF = new TextField("0", skin); yTF.setName(ACTOR_Y);
         zTF = new TextField("-1", skin); zTF.setName(ACTOR_Z);
+        setTB = new TextButton("SET", skin);
 
         xTF.setTextFieldListener(xyzTextFieldListener);
         yTF.setTextFieldListener(xyzTextFieldListener);
         zTF.setTextFieldListener(xyzTextFieldListener);
+        setTB.addListener(setInputListener);
 
         Table line = new Table();
         line.add(new Label("dir x:", skin)).right();
@@ -66,6 +69,7 @@ public class DirectionalLightsAttributeTable extends BaseLightsAttributeTable<Di
         line.add(yTF).width(100).maxWidth(100);
         line.add(new Label("dir z:", skin)).right();
         line.add(zTF).width(100).maxWidth(100);
+        line.add(setTB).padLeft(10f);
         line.add().expandX();
         add(line).fillX();
     }
@@ -75,31 +79,44 @@ public class DirectionalLightsAttributeTable extends BaseLightsAttributeTable<Di
             @Override
             public void keyTyped(TextField textField, char c) {
                 try {
-                    float value = Float.parseFloat(textField.getText());
-
-//                    if (value > 1 || value < 0) {
-//                        textField.getColor().set(Color.PINK);
-//                        return;
-//                    }
-
-                    if (container != null && currentType != 0) {
-                        DirectionalLightsAttribute attr = null;
-                        attr = container.get(DirectionalLightsAttribute.class, currentType);
-
-                        if (attr != null && index >= 0) {
-                            switch (textField.getName()) {
-                                case ACTOR_X: if (index < attr.lights.size) { attr.lights.get(index).direction.x = value; } break;
-                                case ACTOR_Y: if (index < attr.lights.size) { attr.lights.get(index).direction.y = value; } break;
-                                case ACTOR_Z: if (index < attr.lights.size) { attr.lights.get(index).direction.z = value; } break;
-                            }
-                        }
-
-                        if (attr != null && listener != null) { listener.onAttributeChange(currentType, currentTypeAlias); }
-                    }
+                    Float.parseFloat(textField.getText());
                     textField.getColor().set(Color.WHITE);
+                    if (xTF.getColor().equals(Color.WHITE)
+                            && yTF.getColor().equals(Color.WHITE)
+                            && zTF.getColor().equals(Color.WHITE)) {
+                        setTB.getColor().set(COLOR_UNPRESSED);
+                        setTB.getLabel().getColor().set(COLOR_UNPRESSED);
+                    }
                 } catch (NumberFormatException e) {
                     textField.getColor().set(Color.PINK);
+                    setTB.getColor().set(COLOR_DISABLED);
+                    setTB.getLabel().getColor().set(COLOR_DISABLED);
                 }
+            }
+        };
+        setInputListener = new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                if (container != null && currentType != 0) {
+                    DirectionalLightsAttribute attr = null;
+                    attr = container.get(DirectionalLightsAttribute.class, currentType);
+
+                    if (setTB.getColor().equals(COLOR_DISABLED)) {
+                        return super.touchDown(event, x, y, pointer, button);
+                    }
+
+                    if (attr != null && index >= 0 && index < attr.lights.size) {
+                        attr.lights.get(index).direction.set(
+                                Float.parseFloat(xTF.getText()),
+                                Float.parseFloat(yTF.getText()),
+                                Float.parseFloat(zTF.getText())
+                        );
+                    }
+
+                    if (attr != null && listener != null) { listener.onAttributeChange(currentType, currentTypeAlias); }
+                }
+
+                return super.touchDown(event, x, y, pointer, button);
             }
         };
     }

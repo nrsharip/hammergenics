@@ -37,6 +37,7 @@ import com.badlogic.gdx.graphics.g3d.model.NodePart;
 import com.badlogic.gdx.graphics.g3d.shaders.BaseShader;
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import com.badlogic.gdx.graphics.g3d.utils.*;
+import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.ArrowShapeBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.SphereShapeBuilder;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
@@ -608,7 +609,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
                 //new Material()
         );
 
-        //SphereShapeBuilder.build(mpb, D/10, D/10, D/10, 10, 10);
+        // Vector (D/10, 0, 0):
+        ArrowShapeBuilder.build(mpb, 0, 0, 0, D/10, 0, 0, 0.2f, 0.5f, 100);
 
         mb.node().id = "point"; // adding node Y
         // MeshPart "point", see for primitive types: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glBegin.xml
@@ -633,6 +635,23 @@ public class ModelPreviewScreen extends ScreenAdapter {
         //  SphereShapeBuilder
         lightsModel = mb.end();
 
+        DirectionalLightsAttribute envDLAttribute = environment.get(DirectionalLightsAttribute.class, DirectionalLightsAttribute.Type);
+        if (envDLAttribute != null) {
+            envDLAttribute.lights.forEach(light -> {
+                ModelInstance mi = new ModelInstance(lightsModel, "directional");
+                // from the center moving backwards to the direction of light
+                mi.transform.setToTranslation(c.cpy().sub(light.direction.cpy().nor().scl(D)));
+                // rotating the arrow from X vector (1,0,0) to the direction vector
+                mi.transform.rotate(Vector3.X, light.direction.cpy().nor());
+                mi.getMaterial("base", true).set(
+                        ColorAttribute.createDiffuse(light.color),
+                        ColorAttribute.createEmissive(light.color)
+                );
+
+                dlArrayModelInstance.add(mi);
+            });
+        }
+
         PointLightsAttribute envPLAttribute = environment.get(PointLightsAttribute.class, PointLightsAttribute.Type);
         if (envPLAttribute != null) {
             envPLAttribute.lights.forEach(light -> {
@@ -640,7 +659,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
                 Array<DirectionalLight> dLights = new Array<>(DirectionalLight.class);
 
                 Vector3 dir = light.position.cpy().sub(c).nor();
-                float fraction = light.intensity / (2 * maxD * 50f);
+                float fraction = light.intensity / (2 * D * 50f);
                 dLights.addAll(
                         new DirectionalLight().set(new Color(Color.BLACK).add(fraction, fraction, fraction, 0f), dir)
 //                ,new DirectionalLight().set(Color.WHITE,   0,   0, -1f) // xz
@@ -655,7 +674,9 @@ public class ModelPreviewScreen extends ScreenAdapter {
                 ModelInstance mi = new ModelInstance(lightsModel, "point");
                 mi.transform.setToTranslation(light.position);
                 mi.getMaterial("base", true).set(
-                        dlAttribute, ColorAttribute.createEmissive(light.color)
+                        dlAttribute,
+                        ColorAttribute.createDiffuse(light.color),
+                        ColorAttribute.createEmissive(light.color)
                 );
 
                 plArrayModelInstance.add(mi);
