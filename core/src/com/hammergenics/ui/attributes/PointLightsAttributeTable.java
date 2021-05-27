@@ -21,6 +21,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.PointLight;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -47,19 +48,16 @@ public class PointLightsAttributeTable extends BaseLightsAttributeTable<PointLig
 
     private TextField.TextFieldListener xyziTextFieldListener;
 
-    // this is an internal counter to switch the position of newly created light
-    private short pos = 0;
-
     public PointLightsAttributeTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
         super(skin, container, mps, PointLightsAttribute.class, PointLight.class);
 
         createListeners();
 
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textfield
-        xTF = new TextField("400", skin); xTF.setName(ACTOR_X);
-        yTF = new TextField("400", skin); yTF.setName(ACTOR_Y);
-        zTF = new TextField("400", skin); zTF.setName(ACTOR_Z);
-        iTF = new TextField("100000", skin); iTF.setName(ACTOR_I);
+        xTF = new TextField("100", skin); xTF.setName(ACTOR_X);
+        yTF = new TextField("100", skin); yTF.setName(ACTOR_Y);
+        zTF = new TextField("100", skin); zTF.setName(ACTOR_Z);
+        iTF = new TextField("5000", skin); iTF.setName(ACTOR_I);
 
         xTF.setTextFieldListener(xyziTextFieldListener);
         yTF.setTextFieldListener(xyziTextFieldListener);
@@ -155,40 +153,32 @@ public class PointLightsAttributeTable extends BaseLightsAttributeTable<PointLig
 
     @Override
     protected void postButtonRemove() {
-        pos--;
-        if (indexedTB.size == 0) { pos = 0; } // resetting
     }
 
     @Override
     protected void resetWidgetsToDefaults() {
         // additional from PointLight:
-        if (xTF != null) { xTF.setText(String.valueOf(400f)); }
-        if (yTF != null) { yTF.setText(String.valueOf(400f)); }
-        if (zTF != null) { zTF.setText(String.valueOf(400f)); }
-        if (iTF != null) { iTF.setText(String.valueOf(100000f)); }
+        if (xTF != null) { xTF.setText(String.valueOf(100f)); }
+        if (yTF != null) { yTF.setText(String.valueOf(100f)); }
+        if (zTF != null) { zTF.setText(String.valueOf(100f)); }
+        if (iTF != null) { iTF.setText(String.valueOf(5000f)); }
         super.resetWidgetsToDefaults();
     }
 
     @Override
     protected PointLight createLight() {
-        // 8 positions:
-        // pos % 4   pos % 8     x   z
-        //    0         0     :  0  -1
-        //    1         1     :  1  -1
-        //    2         2     :  1   0
-        //    3         3     :  1   1
-        //    0         4     :  0   1
-        //    1         5     : -1   1
-        //    2         6     : -1   0
-        //    3         7     : -1  -1
+        Vector3 pos;
+        float intensity;
 
-        float x = pos % 4 == 0 ? 0f : (pos % 8) > 3 ? -1f : 1f;
-        float z = pos % 4 == 2 ? 0f : ((pos + 2) % 8) < 4 ? -1f : 1f;
-        pos++;
-        // scaling:
-        x *= 400f;
-        z *= 400f;
+        if (lights != null && lights.size != 0) {
+            PointLight pl = lights.get(lights.size - 1);
+            pos = pl.position.cpy().rotate(-45f, 0, 1, 0);
+            intensity = pl.intensity;
+        } else {
+            pos = new Vector3(100f, 100f, 100f);
+            intensity = 5000f;
+        }
 
-        return new PointLight().set(Color.WHITE, x, 400f, z, 100000f);
+        return new PointLight().set(Color.WHITE, pos, intensity);
     }
 }

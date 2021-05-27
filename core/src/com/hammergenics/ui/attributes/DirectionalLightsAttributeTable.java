@@ -21,6 +21,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -43,9 +44,6 @@ public class DirectionalLightsAttributeTable extends BaseLightsAttributeTable<Di
     protected TextField zTF = null;
 
     private TextField.TextFieldListener xyzTextFieldListener;
-
-    // this is an internal counter to switch the position of newly created light
-    private short pos = 0;
 
     public DirectionalLightsAttributeTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
         super(skin, container, mps, DirectionalLightsAttribute.class, DirectionalLight.class);
@@ -145,8 +143,6 @@ public class DirectionalLightsAttributeTable extends BaseLightsAttributeTable<Di
 
     @Override
     protected void postButtonRemove() {
-        pos--;
-        if (indexedTB.size == 0) { pos = 0; } // resetting
     }
 
     @Override
@@ -161,15 +157,15 @@ public class DirectionalLightsAttributeTable extends BaseLightsAttributeTable<Di
 
     @Override
     protected DirectionalLight createLight() {
-        // 4 positions:
-        // pos % 2   pos % 4     x   z
-        //    0         0     :  0  -1
-        //    1         1     :  1   0
-        //    0         2     :  0   1
-        //    1         3     : -1   0
-        float x = pos % 2 == 0 ? 0f : (pos % 4) > 1 ? -1f : 1f;
-        float z = pos % 2 == 1 ? 0f : (pos % 4) < 2 ? -1f : 1f;
-        pos++;
-        return new DirectionalLight().set(Color.WHITE, x, -0.5f, z);
+        Vector3 dir;
+
+        if (lights != null && lights.size != 0) {
+            DirectionalLight pl = lights.get(lights.size - 1);
+            dir = pl.direction.cpy().rotate(-90f, 0, 1, 0).nor();
+        } else {
+            dir = new Vector3(0f, -0.5f, -1f);
+        }
+
+        return new DirectionalLight().set(Color.WHITE, dir);
     }
 }

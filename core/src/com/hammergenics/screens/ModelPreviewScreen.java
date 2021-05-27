@@ -146,7 +146,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
                 stage.envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(environment,"", ""));
 
                 if (modelInstance != null && (type & (DirectionalLightsAttribute.Type | PointLightsAttribute.Type)) != 0) {
-                    createLightsModel(maxD, center);
+                    resetLightsModel(maxD, center);
                 }
 //                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
 //                        "onAttributeEnabled: 0x" + Long.toHexString(type) + " alias: " + alias);
@@ -158,7 +158,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
                 stage.envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(environment,"", ""));
 
                 if (modelInstance != null && (type & (DirectionalLightsAttribute.Type | PointLightsAttribute.Type)) != 0) {
-                    createLightsModel(maxD, center);
+                    resetLightsModel(maxD, center);
                 }
 //                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
 //                        "onAttributeDisabled: 0x" + Long.toHexString(type) + " alias: " + alias);
@@ -170,7 +170,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
                 stage.envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(environment,"", ""));
 
                 if (modelInstance != null && (type & (DirectionalLightsAttribute.Type | PointLightsAttribute.Type)) != 0) {
-                    createLightsModel(maxD, center);
+                    resetLightsModel(maxD, center);
                 }
 //                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
 //                        "onAttributeChange: 0x" + Long.toHexString(type) + " alias: " + alias);
@@ -395,12 +395,12 @@ public class ModelPreviewScreen extends ScreenAdapter {
         center = bb.getCenter(new Vector3());
         maxD = Math.max(Math.max(dimensions.x,dimensions.y),dimensions.z);
 
-        createGridModel(maxD);
+        resetGridModel(maxD);
         resetCamera(maxD, center);
         resetCameraInputController(maxD, center);
 
-        setup3DEnvironment(maxD);
-        createLightsModel(maxD, center);
+        resetEnvironment(maxD);
+        resetLightsModel(maxD, center);
 
         // **************************
         // **** ATTRIBUTES 2D UI ****
@@ -507,7 +507,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
     /**
      * @return
      */
-    private void createGridModel(float D) {
+    private void resetGridModel(float D) {
         // IMPORTANT
         if (gridModel != null) {
             gridModel.dispose();
@@ -575,7 +575,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
 //                "GRID model instance: " + LibgdxUtils.getModelInstanceInfo(gridModelInstance));
     }
 
-    private void createLightsModel(float D, Vector3 c) {
+    private void resetLightsModel(float D, Vector3 c) {
         // IMPORTANT
         if (lightsModel != null) {
             lightsModel.dispose();
@@ -640,7 +640,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
                 Array<DirectionalLight> dLights = new Array<>(DirectionalLight.class);
 
                 Vector3 dir = light.position.cpy().sub(c).nor();
-                float fraction = light.intensity / (2 * maxD * 100);
+                float fraction = light.intensity / (2 * maxD * 50f);
                 dLights.addAll(
                         new DirectionalLight().set(new Color(Color.BLACK).add(fraction, fraction, fraction, 0f), dir)
 //                ,new DirectionalLight().set(Color.WHITE,   0,   0, -1f) // xz
@@ -758,7 +758,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
     /**
      *
      */
-    public void setup3DEnvironment(float D) {
+    private void resetEnvironment(float D) {
         // https://github.com/libgdx/libgdx/wiki/Material-and-environment
         // In practice, when rendering, you are specifying what (the shape) to render and how (the material) to render.
         // * The shape is specified using the Mesh (or more commonly the MeshPart),
@@ -813,7 +813,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
         if (environment.has(PointLightsAttribute.Type)) { environment.remove(PointLightsAttribute.Type); }
         // adding one point light for the newly created model instance
-        environment.add(new PointLight().set(Color.WHITE, D/2, D/2, -D/2, D * 100f));
+        environment.add(new PointLight().set(Color.WHITE, D/2, D/2, -D/2, D * 50f));
     }
 
     /**
