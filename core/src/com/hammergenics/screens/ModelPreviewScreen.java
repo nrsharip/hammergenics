@@ -274,9 +274,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // TODO: add checks for null perspectiveCamera, cameraInputController, and the size of models
 
         Model model = assetManager.get(assetName, Model.class);
-
         currMI = null;
-
         if (model.materials.size == 0 && model.meshes.size == 0 && model.meshParts.size == 0) {
             if (model.animations.size > 0) {
                 Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "animations only model: " + assetName);
@@ -295,9 +293,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
             stage.nodeSelectBox.setItems(array2);
         }
 
-        // see: ModelBuilder() - https://libgdx.badlogicgames.com/ci/nightlies/dist/docs/api/com/badlogic/gdx/graphics/g3d/utils/ModelBuilder.html
         if (nodeId == null) {
-            currMI = new HGModelInstance(model);
+            currMI = new HGModelInstance(model, assetName);
             stage.nodeSelectBox.getColor().set(Color.WHITE);
         } else {
             // TODO: maybe it's good to add a Tree for Node traversal
@@ -326,7 +323,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
                     // the keys(Nodes (head, leg, etc...)) and values (Matrix4's)...
                     // so the keys are getting invalidated (set to null) in ModelInstance.invalidate (Node node)
                     // because the nodes they refer to located in other root nodes (not the selected one)
-                    currMI = new HGModelInstance(model);
+                    currMI = new HGModelInstance(model, assetName);
                     stage.nodeSelectBox.getColor().set(Color.PINK);
                     break;
                 }
@@ -335,7 +332,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
             if (currMI == null) {
                 Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),"nodeId: " + nodeId + " nodeIndex: " + nodeIndex);
                 //modelInstance = new ModelInstance(model);
-                currMI = new HGModelInstance(model, nodeId);
+                currMI = new HGModelInstance(model, assetName, nodeId);
                 stage.nodeSelectBox.getColor().set(Color.WHITE);
                 // for some reasons getting this exception in case nodeId == null:
                 // (should be done like (String[])null maybe...)
@@ -346,17 +343,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
             }
         }
 
-        // *********************************
-        // **** ModelInstance.transform ****
-        // *********************************
-        currMI.transform.setToTranslation(0, 0, 0);
-
-        // FIXME: calculateBoundingBox is a slow operation - BoundingBox object should be cached
-        currMI.bb = new BoundingBox();
-        currMI.calculateBoundingBox(currMI.bb);
-        currMI.dims = currMI.bb.getDimensions(new Vector3());
-        currMI.center = currMI.bb.getCenter(new Vector3());
-        currMI.maxD = Math.max(Math.max(currMI.dims.x, currMI.dims.y), currMI.dims.z);
+        currMI.moveTo(0, 0, 0);
+        currMI.recalculate();
 
         resetGridModel(currMI.maxD);
         resetCamera(currMI.maxD, currMI.center);

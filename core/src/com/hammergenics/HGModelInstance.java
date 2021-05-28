@@ -28,6 +28,20 @@ import com.badlogic.gdx.math.collision.BoundingBox;
  * @author nrsharip
  */
 public class HGModelInstance extends ModelInstance {
+    public Model model;
+    /**
+     * asset name
+     */
+    public String an;
+    /**
+     * root node ids
+     */
+    public String[] rni;
+    /**
+     * scaling factor (default 1)
+     */
+    public float sf = 1f;
+
     public BoundingBox bb;
     public Vector3 dims;
     public Vector3 center;
@@ -36,12 +50,29 @@ public class HGModelInstance extends ModelInstance {
     public AnimationController.AnimationDesc animationDesc = null;
     public int animationIndex = 0;
 
-
-    public HGModelInstance (final Model model) {
-        this(model, (String[])null);
+    public HGModelInstance (final Model model, final String assetName) {
+        this(model, assetName, (String[])null);
     }
 
-    public HGModelInstance (final Model model, final String... rootNodeIds) {
+    public HGModelInstance (final Model model, final String assetName, final String... rootNodeIds) {
         super(model, rootNodeIds);
+
+        this.model = model;
+        this.an = assetName;
+        this.rni = rootNodeIds;
+    }
+
+    public void moveTo(Vector3 vector) { transform.setToTranslation(vector); }
+
+    public void moveTo(float x, float y, float z) { transform.setToTranslation(x, y, z); }
+
+    public void scale(float factor) { this.sf = factor; transform.setToScaling(factor, factor, factor); }
+
+    public void recalculate() {
+        bb = new BoundingBox();
+        calculateBoundingBox(bb);
+        dims = bb.getDimensions(new Vector3());
+        center = bb.getCenter(new Vector3());
+        maxD = Math.max(Math.max(dims.x, dims.y), dims.z);
     }
 }
