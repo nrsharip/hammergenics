@@ -406,7 +406,6 @@ public class ModelPreviewStage extends Stage {
         envAttrTable = new AttributesManagerTable(skin, modelPS.environment, modelPS);
         envAttrTable.setListener(eventListener);
         envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(modelPS.environment,"", ""));
-        // TODO: this should be decoupled from screen eventually
         if (envTextButton.getColor().equals(COLOR_PRESSED)) {
             editCell.clearActor();
             editCell.setActor(envAttrTable);
@@ -418,7 +417,6 @@ public class ModelPreviewStage extends Stage {
             mtlAttrTable.setListener(eventListener);
             // Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "" );
 
-            // TODO: this should be decoupled from screen eventually
             if (mtlTextButton.getColor().equals(COLOR_PRESSED)) {
                 editCell.clearActor();
                 editCell.setActor(mtlAttrTable);
