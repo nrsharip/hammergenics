@@ -43,6 +43,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.hammergenics.HGGame;
+import com.hammergenics.HGModel;
 import com.hammergenics.HGModelInstance;
 import com.hammergenics.stages.ModelPreviewStage;
 import com.hammergenics.util.LibgdxUtils;
@@ -67,7 +68,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
     private CameraInputController cameraInputController;
     // TODO: IMPORTANT see also FirstPersonCameraController
     public Environment environment;
-    public Array<Model> models = new Array<>();
+    public Array<HGModel> hgModels = new Array<>();
     private Array<Texture> textures = new Array<>();
 
     // Auxiliary models:
@@ -94,37 +95,43 @@ public class ModelPreviewScreen extends ScreenAdapter {
         assetManager = game.assetManager;
         // https://github.com/libgdx/libgdx/wiki/ModelBatch
         modelBatch = game.modelBatch;
-
         // https://github.com/libgdx/libgdx/wiki/Managing-your-assets#getting-assets
+
+        Array<Model> models = new Array<>(Model.class);
         assetManager.getAll(Model.class, models);
-        Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "models loaded: " + models.size);
-        if (models.size == 0) {
+        hgModels = Arrays.stream(models.toArray())
+                            .map(model -> {
+                                String fn = assetManager.getAssetFileName(model);
+                                FileHandle fh = assetManager.getFileHandleResolver().resolve(fn);
+                                return new HGModel(model, fh); })                                  // Array<Model> -> Array<HGModel>
+                            .collect(() -> new Array<>(HGModel.class), Array::add, Array::addAll); // retrieving the Array<HGModel>
+
+        Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "models loaded: " + hgModels.size);
+        if (hgModels.size == 0) {
             Gdx.app.error(Thread.currentThread().getStackTrace()[1].getMethodName(), "No models available");
             Gdx.app.exit(); // On iOS this should be avoided in production as it breaks Apples guidelines
             return;
         }
+
         assetManager.getAll(Texture.class, textures);
         Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "textures loaded: " + textures.size);
 
         // Camera related
         perspectiveCamera = new PerspectiveCamera(70f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         cameraInputController = new CameraInputController(perspectiveCamera);
-
-        // 2D Stage
-        // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#stage-setup
-        stage = new ModelPreviewStage(new ScreenViewport(), this);
-        stage.setup2DStageStyling();
-        stage.setup2DStageWidgets();
-        stage.setup2DStageLayout();
-
+        // Environment related
         environment = new Environment();
 
+        // 2D Stage - https://github.com/libgdx/libgdx/wiki/Scene2d.ui#stage-setup
+        stage = new ModelPreviewStage(new ScreenViewport(), this);
+
         int i = 0;
-        while (currMI == null && i < models.size) {
-            String filename = assetManager.getAssetFileName(models.get(i++));
-            switchModelInstance(assetManager.getFileHandleResolver().resolve(filename), null, -1);
+        while (currMI == null && i < hgModels.size) {
+            HGModel hgModel = hgModels.get(i++);
+
+            addModelInstance(hgModel.afh, null, -1);
             if (currMI != null) {
-                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "model selected: " + filename);
+                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "model selected: " + hgModel.afh);
             }
         }
 
@@ -228,22 +235,23 @@ public class ModelPreviewScreen extends ScreenAdapter {
     /**
      * @param assetFL
      */
-    public void switchModelInstance(FileHandle assetFL, String nodeId, int nodeIndex) {
+    public void addModelInstance(FileHandle assetFL, String nodeId, int nodeIndex) {
         // TODO: add checks for null perspectiveCamera, cameraInputController, and the size of models
 
-        Model model = assetManager.get(assetFL.path(), Model.class);
+        HGModel hgModel = new HGModel(assetManager.get(assetFL.path(), Model.class), assetFL);
         currMI = null;
-        if (model.materials.size == 0 && model.meshes.size == 0 && model.meshParts.size == 0) {
-            if (model.animations.size > 0) {
+        if (!hgModel.hasMaterials() && !hgModel.hasMeshes() && !hgModel.hasMeshParts()) {
+            if (hgModel.hasAnimations()) {
+                // we got animations only model
                 Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "animations only model: " + assetFL);
             }
-            return; // we got animations only model
+            return;
         }
 
-        if (model.nodes.size != 0 && nodeId == null) { // switching the whole asset
+        if (hgModel.hasNodes() && nodeId == null) { // switching the whole asset
             stage.nodeSelectBox.clearItems();
 
-            String array1[] = Arrays.stream(model.nodes.toArray(Node.class)).map(n->n.id).toArray(String[]::new);
+            String array1[] = Arrays.stream(hgModel.obj.nodes.toArray(Node.class)).map(n->n.id).toArray(String[]::new);
             String array2[] = new String[array1.length + 1];
             System.arraycopy(array1, 0, array2, 1, array1.length);
             array2[0] = "All";
@@ -252,7 +260,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         }
 
         if (nodeId == null) {
-            currMI = new HGModelInstance(model, assetFL);
+            currMI = new HGModelInstance(hgModel, assetFL);
             stage.nodeSelectBox.getColor().set(Color.WHITE);
         } else {
             // TODO: maybe it's good to add a Tree for Node traversal
@@ -264,7 +272,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
 //                nodeTree.clear();
 //            }
 
-            for (NodePart part:model.nodes.get(nodeIndex).parts) {
+            for (NodePart part:hgModel.obj.nodes.get(nodeIndex).parts) {
                 // see model.nodePartBones
                 // ModelInstance.copyNodes(model.nodes, rootNodeIds); - fills in the bones...
                 if (part.invBoneBindTransforms != null) {
@@ -281,7 +289,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
                     // the keys(Nodes (head, leg, etc...)) and values (Matrix4's)...
                     // so the keys are getting invalidated (set to null) in ModelInstance.invalidate (Node node)
                     // because the nodes they refer to located in other root nodes (not the selected one)
-                    currMI = new HGModelInstance(model, assetFL);
+                    currMI = new HGModelInstance(hgModel, assetFL);
                     stage.nodeSelectBox.getColor().set(Color.PINK);
                     break;
                 }
@@ -290,7 +298,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
             if (currMI == null) {
                 Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),"nodeId: " + nodeId + " nodeIndex: " + nodeIndex);
                 //modelInstance = new ModelInstance(model);
-                currMI = new HGModelInstance(model, assetFL, nodeId);
+                currMI = new HGModelInstance(hgModel, assetFL, nodeId);
                 stage.nodeSelectBox.getColor().set(Color.WHITE);
                 // for some reasons getting this exception in case nodeId == null:
                 // (should be done like (String[])null maybe...)
@@ -303,13 +311,16 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
         currMI.moveTo(0, 0, 0);
         currMI.recalculate();
+        float D = currMI.maxD;
 
-        resetGridModel(currMI.maxD);
-        resetCamera(currMI.maxD, currMI.center);
-        resetCameraInputController(currMI.maxD, currMI.center);
+        resetGridModel(D);
+        resetCamera(D, currMI.center);
+        resetCameraInputController(D, currMI.center);
 
-        resetEnvironment(currMI.maxD);
-        resetLightsModel(currMI.maxD, currMI.center);
+        resetEnvironment();
+        // adding one point light for the newly created model instance
+        environment.add(new PointLight().set(Color.WHITE, D/2, D/2, -D/2, D * 50f));
+        resetLightsModel(D, currMI.center);
 
         stage.resetPages();
 
@@ -346,29 +357,26 @@ public class ModelPreviewScreen extends ScreenAdapter {
             // populating with animations already present
             for (Animation animation : currMI.animations) { animationsPresent.add(animation.id); }
 
-            for (Model m: models) {
-                String filename = assetManager.getAssetFileName(m);
+            for (HGModel hgm: hgModels) {
+                String filename = hgm.afh.path();
                 if (filename.startsWith(animationsFolder.toString())) {
-//                    Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), LibgdxUtils.getFieldsContents(m, 0));
-
-                    if (m.materials.size != 0) {
+                    if (hgm.hasMaterials()) {
                         Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(),
-                                "WARNING: animation only model has materials (" + m.materials.size+ "): " + filename);
+                                "WARNING: animation only model has materials (" + hgm.obj.materials.size+ "): " + filename);
                     }
-                    if (m.meshes.size != 0) {
+                    if (hgm.hasMeshes()) {
                         Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(),
-                                "WARNING: animation only model has meshes (" + m.meshes.size+ "): " + filename);
+                                "WARNING: animation only model has meshes (" + hgm.obj.meshes.size+ "): " + filename);
                     }
-                    if (m.meshParts.size != 0) {
+                    if (hgm.hasMeshParts()) {
                         Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(),
-                                "WARNING: animation only model has meshParts (" + m.meshParts.size+ "): " + filename);
+                                "WARNING: animation only model has meshParts (" + hgm.obj.meshParts.size+ "): " + filename);
                     }
 
                     //modelInstance.copyAnimations(m.animations);
-                    m.animations.forEach(animation -> {
+                    hgm.obj.animations.forEach(animation -> {
                         //Gdx.app.debug(Thread.currentThread().getStackTrace()[3].getMethodName(), "animation: " + animation.id);
-                        // this is to make sure that we don't add the same animation multiple times
-                        // from different animation models
+                        // this is to make sure that we don't add the same animation multiple times from different animation models
                         if (!animationsPresent.contains(animation.id, false)) {
                             Gdx.app.debug(Thread.currentThread().getStackTrace()[3].getMethodName(),
                                     "adding animation: " + animation.id);
@@ -452,6 +460,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
     }
 
     public void resetLightsModel(float D, Vector3 c) {
+        if (D == 0) { return; }
+
         // IMPORTANT
         if (lightsModel != null) {
             lightsModel.dispose();
@@ -479,20 +489,14 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
         mb.node().id = "directional"; // adding node XZ
         // MeshPart "directional", see for primitive types: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glBegin.xml
-        mpb = mb.part("directional", GL20.GL_TRIANGLES, Usage.Position | Usage.Normal,
-                new Material("base")
-                //new Material()
-        );
+        mpb = mb.part("directional", GL20.GL_TRIANGLES, Usage.Position | Usage.Normal, new Material("base"));
 
         // Vector (D/10, 0, 0):
         ArrowShapeBuilder.build(mpb, 0, 0, 0, D/10, 0, 0, 0.2f, 0.5f, 100);
 
         mb.node().id = "point"; // adding node Y
         // MeshPart "point", see for primitive types: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glBegin.xml
-        mpb = mb.part("point", GL20.GL_TRIANGLES, Usage.Position | Usage.Normal,
-                new Material("base")
-                //new Material()
-        );
+        mpb = mb.part("point", GL20.GL_TRIANGLES, Usage.Position | Usage.Normal, new Material("base"));
 
         SphereShapeBuilder.build(mpb, D/10, D/10, D/10, 100, 100);
 
@@ -654,7 +658,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
     /**
      *
      */
-    private void resetEnvironment(float D) {
+    private void resetEnvironment() {
         // https://github.com/libgdx/libgdx/wiki/Material-and-environment
         // In practice, when rendering, you are specifying what (the shape) to render and how (the material) to render.
         // * The shape is specified using the Mesh (or more commonly the MeshPart),
@@ -708,8 +712,6 @@ public class ModelPreviewScreen extends ScreenAdapter {
         environment.add(new DirectionalLight().set(Color.WHITE, -1f, -0.5f, -1f));     // min enabled
 
         if (environment.has(PointLightsAttribute.Type)) { environment.remove(PointLightsAttribute.Type); }
-        // adding one point light for the newly created model instance
-        environment.add(new PointLight().set(Color.WHITE, D/2, D/2, -D/2, D * 50f));
     }
 
     /**

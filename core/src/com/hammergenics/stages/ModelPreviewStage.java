@@ -20,7 +20,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -33,6 +32,7 @@ import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import com.hammergenics.HGModel;
 import com.hammergenics.config.Config;
 import com.hammergenics.screens.ModelPreviewScreen;
 import com.hammergenics.ui.AttributesManagerTable;
@@ -85,6 +85,10 @@ public class ModelPreviewStage extends Stage {
     public ModelPreviewStage(Viewport viewport, ModelPreviewScreen modelPS) {
         super(viewport);
         this.modelPS = modelPS;
+
+        setup2DStageStyling();
+        setup2DStageWidgets();
+        setup2DStageLayout();
     }
 
     /**
@@ -112,13 +116,10 @@ public class ModelPreviewStage extends Stage {
 
         // Select Box: Models
         Array<FileHandle> itemsModel = new Array<>();
-        for (Model model: modelPS.models) {
-            if (model.materials.size == 0 && model.meshes.size == 0 && model.meshParts.size == 0) {
-                continue;
-            }
+        for (HGModel hgModel: modelPS.hgModels) {
+            if (!hgModel.hasMaterials() && !hgModel.hasMeshes() && !hgModel.hasMeshParts()) { continue; }
 
-            String filename = modelPS.assetManager.getAssetFileName(model);
-            itemsModel.add(modelPS.assetManager.getFileHandleResolver().resolve(filename));
+            itemsModel.add(hgModel.afh);
         }
 
         String noModelsAvailable = "No models available";
@@ -132,7 +133,7 @@ public class ModelPreviewStage extends Stage {
                 if (modelSelectBox.getSelected().equals(noModelsAvailable)) {
                     return;
                 }
-                modelPS.switchModelInstance(modelSelectBox.getSelected(), null, -1);
+                modelPS.addModelInstance(modelSelectBox.getSelected(), null, -1);
                 Gdx.app.debug(modelSelectBox.getClass().getSimpleName(),
                         "model selected: " + modelSelectBox.getSelected());
             }
@@ -148,9 +149,9 @@ public class ModelPreviewStage extends Stage {
                     return; // we're in the init phase...
                 }
                 if (nodeSelectBox.getSelectedIndex() == 0) { // 'all' selected
-                    modelPS.switchModelInstance(modelSelectBox.getSelected(), null, -1);
+                    modelPS.addModelInstance(modelSelectBox.getSelected(), null, -1);
                 } else {
-                    modelPS.switchModelInstance(modelSelectBox.getSelected(),
+                    modelPS.addModelInstance(modelSelectBox.getSelected(),
                             nodeSelectBox.getSelected(), nodeSelectBox.getSelectedIndex() - 1); // -1 since there's 'all' item
                 }
             }
