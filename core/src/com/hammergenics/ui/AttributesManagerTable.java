@@ -26,7 +26,7 @@ import com.hammergenics.ui.attributes.*;
  *
  * @author nrsharip
  */
-public class AttributesManagerTable extends AbstractTable {
+public class AttributesManagerTable extends HGTable {
     public Attributes container;
     protected BaseAttributeTable.EventListener listener = null;
     protected ModelPreviewScreen mps;

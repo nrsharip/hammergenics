@@ -44,6 +44,7 @@ import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.hammergenics.HGGame;
+import com.hammergenics.HGModelInstance;
 import com.hammergenics.stages.ModelPreviewStage;
 import com.hammergenics.ui.AttributesManagerTable;
 import com.hammergenics.ui.attributes.BaseAttributeTable;
@@ -85,14 +86,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
     public ModelPreviewStage stage;
 
     // Current ModelInstance Related:
-    public ModelInstance modelInstance = null;
-    public BoundingBox bb;
-    public Vector3 dimensions;
-    public Vector3 center;
-    public float maxD;
-    public AnimationController animationController = null;
-    public AnimationController.AnimationDesc animationDesc = null;
-    public int animationIndex = 0;
+    public HGModelInstance currMI = null;
 
     private float clockFPS;
 
@@ -143,11 +137,11 @@ public class ModelPreviewScreen extends ScreenAdapter {
         eventListener = new BaseAttributeTable.EventListener() {
             @Override
             public void onAttributeEnabled(long type, String alias) {
-                stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
+                stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(currMI));
                 stage.envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(environment,"", ""));
 
-                if (modelInstance != null && (type & (DirectionalLightsAttribute.Type | PointLightsAttribute.Type)) != 0) {
-                    resetLightsModel(maxD, center);
+                if (currMI != null && (type & (DirectionalLightsAttribute.Type | PointLightsAttribute.Type)) != 0) {
+                    resetLightsModel(currMI.maxD, currMI.center);
                 }
 //                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
 //                        "onAttributeEnabled: 0x" + Long.toHexString(type) + " alias: " + alias);
@@ -155,11 +149,11 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
             @Override
             public void onAttributeDisabled(long type, String alias) {
-                stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
+                stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(currMI));
                 stage.envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(environment,"", ""));
 
-                if (modelInstance != null && (type & (DirectionalLightsAttribute.Type | PointLightsAttribute.Type)) != 0) {
-                    resetLightsModel(maxD, center);
+                if (currMI != null && (type & (DirectionalLightsAttribute.Type | PointLightsAttribute.Type)) != 0) {
+                    resetLightsModel(currMI.maxD, currMI.center);
                 }
 //                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
 //                        "onAttributeDisabled: 0x" + Long.toHexString(type) + " alias: " + alias);
@@ -167,11 +161,11 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
             @Override
             public void onAttributeChange(long type, String alias) {
-                stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
+                stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(currMI));
                 stage.envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(environment,"", ""));
 
-                if (modelInstance != null && (type & (DirectionalLightsAttribute.Type | PointLightsAttribute.Type)) != 0) {
-                    resetLightsModel(maxD, center);
+                if (currMI != null && (type & (DirectionalLightsAttribute.Type | PointLightsAttribute.Type)) != 0) {
+                    resetLightsModel(currMI.maxD, currMI.center);
                 }
 //                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
 //                        "onAttributeChange: 0x" + Long.toHexString(type) + " alias: " + alias);
@@ -179,10 +173,10 @@ public class ModelPreviewScreen extends ScreenAdapter {
         };
 
         int i = 0;
-        while (modelInstance == null && i < models.size) {
+        while (currMI == null && i < models.size) {
             String filename = assetManager.getAssetFileName(models.get(i++));
             switchModelInstance(filename, null, -1);
-            if (modelInstance != null) {
+            if (currMI != null) {
                 Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
                         "model selected: " + filename);
             }
@@ -211,8 +205,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
     public void render(float delta) {
         cameraInputController.update();
 
-        if(animationController != null) {
-            animationController.update(delta);
+        if(currMI.animationController != null) {
+            currMI.animationController.update(delta);
 //            if (animationDesc.loopCount == 0) {
 //                // do something if the animation is over
 //            }
@@ -247,7 +241,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // * there's a render(...) that could take an Iterable of ModelInstance's, e.g.
         //   modelBatch.render((Array<ModelInstance>) array, environment);
         // * Enable caching as soon as multiple instances are rendered: https://github.com/libgdx/libgdx/wiki/ModelCache
-        if (modelInstance != null && environment != null) { modelBatch.render(modelInstance, environment); }
+        if (currMI != null && environment != null) { modelBatch.render(currMI, environment); }
         if (gridXZModelInstance != null && stage.gridXZCheckBox.isChecked()) { modelBatch.render(gridXZModelInstance); }
         if (gridYModelInstance != null && stage.gridYCheckBox.isChecked()) { modelBatch.render(gridYModelInstance); }
         if (dlArrayModelInstance != null && stage.lightsCheckBox.isChecked()) { modelBatch.render(dlArrayModelInstance, environment); }
@@ -308,7 +302,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
         Model model = assetManager.get(assetName, Model.class);
 
-        modelInstance = null;
+        currMI = null;
 
         if (model.materials.size == 0 && model.meshes.size == 0 && model.meshParts.size == 0) {
             if (model.animations.size > 0) {
@@ -331,7 +325,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
         // see: ModelBuilder() - https://libgdx.badlogicgames.com/ci/nightlies/dist/docs/api/com/badlogic/gdx/graphics/g3d/utils/ModelBuilder.html
         if (nodeId == null) {
-            modelInstance = new ModelInstance(model);
+            currMI = new HGModelInstance(model);
             stage.nodeSelectBox.getColor().set(Color.WHITE);
         } else {
             // TODO: maybe it's good to add a Tree for Node traversal
@@ -360,16 +354,16 @@ public class ModelPreviewScreen extends ScreenAdapter {
                     // the keys(Nodes (head, leg, etc...)) and values (Matrix4's)...
                     // so the keys are getting invalidated (set to null) in ModelInstance.invalidate (Node node)
                     // because the nodes they refer to located in other root nodes (not the selected one)
-                    modelInstance = new ModelInstance(model);
+                    currMI = new HGModelInstance(model);
                     stage.nodeSelectBox.getColor().set(Color.PINK);
                     break;
                 }
             }
 
-            if (modelInstance == null) {
+            if (currMI == null) {
                 Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),"nodeId: " + nodeId + " nodeIndex: " + nodeIndex);
                 //modelInstance = new ModelInstance(model);
-                modelInstance = new ModelInstance(model, nodeId);
+                currMI = new HGModelInstance(model, nodeId);
                 stage.nodeSelectBox.getColor().set(Color.WHITE);
                 // for some reasons getting this exception in case nodeId == null:
                 // (should be done like (String[])null maybe...)
@@ -387,21 +381,21 @@ public class ModelPreviewScreen extends ScreenAdapter {
 //        modelInstance.transform.setToTranslation(Vector3 position) - changes the position
 //        modelInstance.transform.setToScaling();
 //        see Matrix4 for all operations available...
-        modelInstance.transform.setToTranslation(0, 0, 0);
+        currMI.transform.setToTranslation(0, 0, 0);
 
         // FIXME: calculateBoundingBox is a slow operation - BoundingBox object should be cached
-        bb = new BoundingBox();
-        modelInstance.calculateBoundingBox(bb);
-        dimensions = bb.getDimensions(new Vector3());
-        center = bb.getCenter(new Vector3());
-        maxD = Math.max(Math.max(dimensions.x,dimensions.y),dimensions.z);
+        currMI.bb = new BoundingBox();
+        currMI.calculateBoundingBox(currMI.bb);
+        currMI.dims = currMI.bb.getDimensions(new Vector3());
+        currMI.center = currMI.bb.getCenter(new Vector3());
+        currMI.maxD = Math.max(Math.max(currMI.dims.x, currMI.dims.y), currMI.dims.z);
 
-        resetGridModel(maxD);
-        resetCamera(maxD, center);
-        resetCameraInputController(maxD, center);
+        resetGridModel(currMI.maxD);
+        resetCamera(currMI.maxD, currMI.center);
+        resetCameraInputController(currMI.maxD, currMI.center);
 
-        resetEnvironment(maxD);
-        resetLightsModel(maxD, center);
+        resetEnvironment(currMI.maxD);
+        resetLightsModel(currMI.maxD, currMI.center);
 
         // **************************
         // **** ATTRIBUTES 2D UI ****
@@ -417,8 +411,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
         }
 
         stage.textureImage.setDrawable(null);
-        if (modelInstance.materials != null && modelInstance.materials.size > 0) {
-            stage.mtlAttrTable = new AttributesManagerTable(stage.skin, modelInstance.materials.get(0), this);
+        if (currMI.materials != null && currMI.materials.size > 0) {
+            stage.mtlAttrTable = new AttributesManagerTable(stage.skin, currMI.materials.get(0), this);
             stage.mtlAttrTable.setListener(eventListener);
             // Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "" );
 
@@ -434,9 +428,9 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // ********************
         copyExternalAnimations(assetName);
 
-        animationController = null;
-        if(modelInstance.animations.size > 0) {
-            animationController = new AnimationController(modelInstance);
+        currMI.animationController = null;
+        if(currMI.animations.size > 0) {
+            currMI.animationController = new AnimationController(currMI);
 
             // Uncomment to get gen_* files with fields contents:
             //LibGDXUtil.getFieldsContents(animationController, 2,  "", true);
@@ -445,11 +439,11 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // Select Box: Animations
         Array<String> itemsAnimation = new Array<>();
         itemsAnimation.add("No Animation");
-        modelInstance.animations.forEach(a -> itemsAnimation.add(a.id));
+        currMI.animations.forEach(a -> itemsAnimation.add(a.id));
         stage.animationSelectBox.clearItems();
         stage.animationSelectBox.setItems(itemsAnimation);
 
-        stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelInstance));
+        stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(currMI));
         // Uncomment to get gen_* files with fields contents:
         //LibGDXUtil.getFieldsContents(perspectiveCamera, 2, "", true);
         //LibGDXUtil.getFieldsContents(cameraInputController, 2,  "", true);
@@ -459,14 +453,14 @@ public class ModelPreviewScreen extends ScreenAdapter {
      * @param assetName
      */
     private void copyExternalAnimations(String assetName) {
-        if (assetManager == null || modelInstance == null) { return; }
+        if (assetManager == null || currMI == null) { return; }
 
         FileHandle animationsFolder = LibgdxUtils.fileOnPath(Gdx.files.local(assetName), "animations");
         if (animationsFolder != null && animationsFolder.isDirectory()) {
             // final since it goes to lambda closure
             final Array<String> animationsPresent = new Array<>();
             // populating with animations already present
-            for (Animation animation : modelInstance.animations) { animationsPresent.add(animation.id); }
+            for (Animation animation : currMI.animations) { animationsPresent.add(animation.id); }
 
             for (Model m: models) {
                 String filename = assetManager.getAssetFileName(m);
@@ -496,7 +490,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
                         if (!animationsPresent.contains(animation.id, false)) {
                             Gdx.app.debug(Thread.currentThread().getStackTrace()[3].getMethodName(),
                                     "adding animation: " + animation.id);
-                            modelInstance.copyAnimation(animation);
+                            currMI.copyAnimation(animation);
                             animationsPresent.add(animation.id);
                         }
                     });
@@ -841,7 +835,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
      *
      */
     public void testRenderRelated() {
-        if (modelInstance == null) { return; }
+        if (currMI == null) { return; }
 
         // Regarding Pool<T>:
         // see example:
@@ -887,7 +881,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
 //     renderable.shader = shaderProvider.getShader(renderable); // note this double assignment
 // ... (see ModelBatch.java for the complete list of render()'s)
 
-        if (modelInstance.materials == null || modelInstance.materials.size == 0) { return; }
+        if (currMI.materials == null || currMI.materials.size == 0) { return; }
         // Getting this exception in case there's no material defined.
         // Exception in thread "LWJGL Application" java.lang.IndexOutOfBoundsException: index can't be >= size: 0 >= 0
         //        at com.badlogic.gdx.utils.Array.get(Array.java:155)
@@ -897,9 +891,9 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
         // Getting the Renderable
         Renderable renderable = null;
-        for (Node node:modelInstance.nodes) {
+        for (Node node: currMI.nodes) {
             if (node.parts.size == 0) continue;
-            renderable = modelInstance.getRenderable(new Renderable(), node);
+            renderable = currMI.getRenderable(new Renderable(), node);
             break;
         }
         if (renderable == null) { return; }

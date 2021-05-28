@@ -24,10 +24,10 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
  *
  * @author nrsharip
  */
-public abstract class AbstractTable extends Table {
+public abstract class HGTable extends Table {
     public Skin uiSkin;
 
-    public AbstractTable(Skin skin) {
+    public HGTable(Skin skin) {
         super(null); // setting no skin for the underlying table...
         this.uiSkin = skin;
     }

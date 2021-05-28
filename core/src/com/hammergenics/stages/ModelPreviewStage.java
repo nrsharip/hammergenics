@@ -136,7 +136,7 @@ public class ModelPreviewStage extends Stage {
         nodeSelectBox.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                if (mpScreen.modelInstance == null) {
+                if (mpScreen.currMI == null) {
                     return; // we're in the init phase...
                 }
                 if (nodeSelectBox.getSelectedIndex() == 0) { // 'all' selected
@@ -155,17 +155,17 @@ public class ModelPreviewStage extends Stage {
         animationSelectBox.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                mpScreen.animationIndex = animationSelectBox.getSelectedIndex() - 1; // -1 since we have "No Animation" item
-                if (mpScreen.animationController == null) { return; }
+                mpScreen.currMI.animationIndex = animationSelectBox.getSelectedIndex() - 1; // -1 since we have "No Animation" item
+                if (mpScreen.currMI.animationController == null) { return; }
 
-                if (mpScreen.animationIndex < 0) {
-                    mpScreen.animationController.setAnimation(null);
+                if (mpScreen.currMI.animationIndex < 0) {
+                    mpScreen.currMI.animationController.setAnimation(null);
                     return;
                 }
 
-                mpScreen.animationDesc = mpScreen.animationController.setAnimation(mpScreen.modelInstance.animations.get(mpScreen.animationIndex).id, -1);
+                mpScreen.currMI.animationDesc = mpScreen.currMI.animationController.setAnimation(mpScreen.currMI.animations.get(mpScreen.currMI.animationIndex).id, -1);
                 Gdx.app.debug(animationSelectBox.getClass().getSimpleName(),
-                        "animation selected: " + mpScreen.modelInstance.animations.get(mpScreen.animationIndex).id);
+                        "animation selected: " + mpScreen.currMI.animations.get(mpScreen.currMI.animationIndex).id);
                 // Uncomment to get gen_* files with fields contents:
                 //LibGDXUtil.getFieldsContents(animationDesc, 3,  "", true);
             }

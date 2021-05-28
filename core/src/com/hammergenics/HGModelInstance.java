@@ -1,0 +1,47 @@
+/*******************************************************************************
+ * Copyright 2021 Nail Sharipov (sharipovn@gmail.com)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ******************************************************************************/
+
+package com.hammergenics;
+
+import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
+import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.BoundingBox;
+
+/**
+ * Add description here
+ *
+ * @author nrsharip
+ */
+public class HGModelInstance extends ModelInstance {
+    public BoundingBox bb;
+    public Vector3 dims;
+    public Vector3 center;
+    public float maxD;
+    public AnimationController animationController = null;
+    public AnimationController.AnimationDesc animationDesc = null;
+    public int animationIndex = 0;
+
+
+    public HGModelInstance (final Model model) {
+        this(model, (String[])null);
+    }
+
+    public HGModelInstance (final Model model, final String... rootNodeIds) {
+        super(model, rootNodeIds);
+    }
+}

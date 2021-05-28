@@ -20,14 +20,14 @@ import com.badlogic.gdx.graphics.g3d.Attribute;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.hammergenics.screens.ModelPreviewScreen;
-import com.hammergenics.ui.AbstractTable;
+import com.hammergenics.ui.HGTable;
 
 /**
  * Add description here
  *
  * @author nrsharip
  */
-public abstract class BaseAttributeTable<T extends Attribute> extends AbstractTable {
+public abstract class BaseAttributeTable<T extends Attribute> extends HGTable {
     public Attributes container;
     public Class<T> attributeClass;
     protected EventListener listener = null;
