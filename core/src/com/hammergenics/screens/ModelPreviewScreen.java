@@ -97,17 +97,11 @@ public class ModelPreviewScreen extends ScreenAdapter {
      */
     public ModelPreviewScreen(HGGame game) {
         this.game = game;
-        // Game Class objects:
-        // AssetManager
-        // ModelBatch
         assetManager = game.assetManager;
         // https://github.com/libgdx/libgdx/wiki/ModelBatch
-        // ModelBatch is a relatively heavy weight object, because of the shaders it might create.
         modelBatch = game.modelBatch;
 
-        // Getting Assets
         // https://github.com/libgdx/libgdx/wiki/Managing-your-assets#getting-assets
-        // Model.class
         assetManager.getAll(Model.class, models);
         Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "models loaded: " + models.size);
         if (models.size == 0) {
@@ -115,10 +109,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
             Gdx.app.exit(); // On iOS this should be avoided in production as it breaks Apples guidelines
             return;
         }
-        // Texture.class
         assetManager.getAll(Texture.class, textures);
-        Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
-                "textures loaded: " + textures.size); // + "\n" + textures.toString("\n")
+        Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "textures loaded: " + textures.size);
 
         // Camera related
         perspectiveCamera = new PerspectiveCamera(70f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -143,8 +135,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
                 if (currMI != null && (type & (DirectionalLightsAttribute.Type | PointLightsAttribute.Type)) != 0) {
                     resetLightsModel(currMI.maxD, currMI.center);
                 }
-//                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
-//                        "onAttributeEnabled: 0x" + Long.toHexString(type) + " alias: " + alias);
+//                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "onAttributeEnabled: 0x" + Long.toHexString(type) + " alias: " + alias);
             }
 
             @Override
@@ -155,8 +146,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
                 if (currMI != null && (type & (DirectionalLightsAttribute.Type | PointLightsAttribute.Type)) != 0) {
                     resetLightsModel(currMI.maxD, currMI.center);
                 }
-//                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
-//                        "onAttributeDisabled: 0x" + Long.toHexString(type) + " alias: " + alias);
+//                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "onAttributeDisabled: 0x" + Long.toHexString(type) + " alias: " + alias);
             }
 
             @Override
@@ -167,8 +157,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
                 if (currMI != null && (type & (DirectionalLightsAttribute.Type | PointLightsAttribute.Type)) != 0) {
                     resetLightsModel(currMI.maxD, currMI.center);
                 }
-//                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
-//                        "onAttributeChange: 0x" + Long.toHexString(type) + " alias: " + alias);
+//                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "onAttributeChange: 0x" + Long.toHexString(type) + " alias: " + alias);
             }
         };
 
@@ -177,8 +166,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
             String filename = assetManager.getAssetFileName(models.get(i++));
             switchModelInstance(filename, null, -1);
             if (currMI != null) {
-                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
-                        "model selected: " + filename);
+                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "model selected: " + filename);
             }
         }
 
@@ -189,13 +177,6 @@ public class ModelPreviewScreen extends ScreenAdapter {
         inputMultiplexer.addProcessor(stage);
         inputMultiplexer.addProcessor(cameraInputController);
         Gdx.input.setInputProcessor(inputMultiplexer);
-
-        // Uncomment to get gen_* files with fields contents:
-//        LibGDXUtil.getFieldsContents(modelInstance, 4, true);
-//        LibGDXUtil.getFieldsContents(modelBatch, 4, true);
-//        LibGDXUtil.getFieldsContents(model, 4, true);
-//        LibGDXUtil.getFieldsContents(environment, 4, true);
-//        LibGDXUtil.getFieldsContents(Gdx.gl, 4, true);
     }
 
     /**
@@ -211,11 +192,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
 //                // do something if the animation is over
 //            }
         }
-        //camera.update(); // done with cameraInputController.update();
 
         // https://github.com/libgdx/libgdx/wiki/ModelBatch
-        // call glClear etc.
-        // GL20 - Interface wrapping all the methods of OpenGL ES 2.0
         // https://encycolorpedia.com/96b0bc
         Gdx.gl.glClearColor(150 / 255f, 176 / 255f, 188 / 255f, 1f);
         // https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glClear.xml
@@ -276,11 +254,6 @@ public class ModelPreviewScreen extends ScreenAdapter {
         if (stage != null) {
             stage.getViewport().update(width, height, true);
         }
-
-        // FIXME: putting this attributes code here for now to trigger on resize.
-//        Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
-//                "Attribute Aliases registered so far:\n"
-//                        + LibGDXUtil.getRegisteredAttributeAliases().toString("\n"));
     }
 
     /**
@@ -306,8 +279,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
         if (model.materials.size == 0 && model.meshes.size == 0 && model.meshParts.size == 0) {
             if (model.animations.size > 0) {
-                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
-                        "animations only model: " + assetName);
+                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "animations only model: " + assetName);
             }
             return; // we got animations only model
         }
@@ -377,10 +349,6 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // *********************************
         // **** ModelInstance.transform ****
         // *********************************
-//        modelInstance.transform.setToTranslation(float x, float y, float z) - changes the position
-//        modelInstance.transform.setToTranslation(Vector3 position) - changes the position
-//        modelInstance.transform.setToScaling();
-//        see Matrix4 for all operations available...
         currMI.transform.setToTranslation(0, 0, 0);
 
         // FIXME: calculateBoundingBox is a slow operation - BoundingBox object should be cached
@@ -400,7 +368,6 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // **************************
         // **** ATTRIBUTES 2D UI ****
         // **************************
-
         stage.envAttrTable = new AttributesManagerTable(stage.skin, environment, this);
         stage.envAttrTable.setListener(eventListener);
         stage.envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(environment,"", ""));
@@ -431,9 +398,6 @@ public class ModelPreviewScreen extends ScreenAdapter {
         currMI.animationController = null;
         if(currMI.animations.size > 0) {
             currMI.animationController = new AnimationController(currMI);
-
-            // Uncomment to get gen_* files with fields contents:
-            //LibGDXUtil.getFieldsContents(animationController, 2,  "", true);
         }
 
         // Select Box: Animations
@@ -444,9 +408,6 @@ public class ModelPreviewScreen extends ScreenAdapter {
         stage.animationSelectBox.setItems(itemsAnimation);
 
         stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(currMI));
-        // Uncomment to get gen_* files with fields contents:
-        //LibGDXUtil.getFieldsContents(perspectiveCamera, 2, "", true);
-        //LibGDXUtil.getFieldsContents(cameraInputController, 2,  "", true);
     }
 
     /**
@@ -465,8 +426,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
             for (Model m: models) {
                 String filename = assetManager.getAssetFileName(m);
                 if (filename.startsWith(animationsFolder.toString())) {
-//                    Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
-//                            LibgdxUtils.getFieldsContents(m, 0));
+//                    Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), LibgdxUtils.getFieldsContents(m, 0));
 
                     if (m.materials.size != 0) {
                         Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(),
@@ -483,8 +443,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
                     //modelInstance.copyAnimations(m.animations);
                     m.animations.forEach(animation -> {
-                        //Gdx.app.debug(Thread.currentThread().getStackTrace()[3].getMethodName(),
-                        // "animation: " + animation.id);
+                        //Gdx.app.debug(Thread.currentThread().getStackTrace()[3].getMethodName(), "animation: " + animation.id);
                         // this is to make sure that we don't add the same animation multiple times
                         // from different animation models
                         if (!animationsPresent.contains(animation.id, false)) {
@@ -566,8 +525,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         gridModel = mb.end();
         gridXZModelInstance = new ModelInstance(gridModel, "XZ");
         gridYModelInstance = new ModelInstance(gridModel, "Y");
-//        Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(),
-//                "GRID model instance: " + LibgdxUtils.getModelInstanceInfo(gridModelInstance));
+//        Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(), "GRID model instance: " + LibgdxUtils.getModelInstanceInfo(gridModelInstance));
     }
 
     private void resetLightsModel(float D, Vector3 c) {
