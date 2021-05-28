@@ -40,14 +40,11 @@ import com.badlogic.gdx.graphics.g3d.utils.*;
 import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.ArrowShapeBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.SphereShapeBuilder;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.hammergenics.HGGame;
 import com.hammergenics.HGModelInstance;
 import com.hammergenics.stages.ModelPreviewStage;
-import com.hammergenics.ui.AttributesManagerTable;
-import com.hammergenics.ui.attributes.BaseAttributeTable;
 import com.hammergenics.util.LibgdxUtils;
 
 import java.util.Arrays;
@@ -55,7 +52,6 @@ import java.util.Arrays;
 import static com.badlogic.gdx.Input.Buttons;
 import static com.badlogic.gdx.Input.Keys;
 import static com.badlogic.gdx.graphics.VertexAttributes.Usage;
-import static com.hammergenics.stages.ModelPreviewStage.COLOR_PRESSED;
 
 /**
  * Add description here
@@ -70,7 +66,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
     private PerspectiveCamera perspectiveCamera;
     private CameraInputController cameraInputController;
     // TODO: IMPORTANT see also FirstPersonCameraController
-    private Environment environment;
+    public Environment environment;
     public Array<Model> models = new Array<>();
     private Array<Texture> textures = new Array<>();
 
@@ -89,8 +85,6 @@ public class ModelPreviewScreen extends ScreenAdapter {
     public HGModelInstance currMI = null;
 
     private float clockFPS;
-
-    public BaseAttributeTable.EventListener eventListener;
 
     /**
      * @param game
@@ -124,42 +118,6 @@ public class ModelPreviewScreen extends ScreenAdapter {
         stage.setup2DStageLayout();
 
         environment = new Environment();
-
-        // temporarily placing it here:
-        eventListener = new BaseAttributeTable.EventListener() {
-            @Override
-            public void onAttributeEnabled(long type, String alias) {
-                stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(currMI));
-                stage.envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(environment,"", ""));
-
-                if (currMI != null && (type & (DirectionalLightsAttribute.Type | PointLightsAttribute.Type)) != 0) {
-                    resetLightsModel(currMI.maxD, currMI.center);
-                }
-//                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "onAttributeEnabled: 0x" + Long.toHexString(type) + " alias: " + alias);
-            }
-
-            @Override
-            public void onAttributeDisabled(long type, String alias) {
-                stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(currMI));
-                stage.envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(environment,"", ""));
-
-                if (currMI != null && (type & (DirectionalLightsAttribute.Type | PointLightsAttribute.Type)) != 0) {
-                    resetLightsModel(currMI.maxD, currMI.center);
-                }
-//                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "onAttributeDisabled: 0x" + Long.toHexString(type) + " alias: " + alias);
-            }
-
-            @Override
-            public void onAttributeChange(long type, String alias) {
-                stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(currMI));
-                stage.envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(environment,"", ""));
-
-                if (currMI != null && (type & (DirectionalLightsAttribute.Type | PointLightsAttribute.Type)) != 0) {
-                    resetLightsModel(currMI.maxD, currMI.center);
-                }
-//                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "onAttributeChange: 0x" + Long.toHexString(type) + " alias: " + alias);
-            }
-        };
 
         int i = 0;
         while (currMI == null && i < models.size) {
@@ -353,30 +311,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         resetEnvironment(currMI.maxD);
         resetLightsModel(currMI.maxD, currMI.center);
 
-        // **************************
-        // **** ATTRIBUTES 2D UI ****
-        // **************************
-        stage.envAttrTable = new AttributesManagerTable(stage.skin, environment, this);
-        stage.envAttrTable.setListener(eventListener);
-        stage.envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(environment,"", ""));
-        // TODO: this should be decoupled from screen eventually
-        if (stage.envTextButton.getColor().equals(COLOR_PRESSED)) {
-            stage.editCell.clearActor();
-            stage.editCell.setActor(stage.envAttrTable);
-        }
-
-        stage.textureImage.setDrawable(null);
-        if (currMI.materials != null && currMI.materials.size > 0) {
-            stage.mtlAttrTable = new AttributesManagerTable(stage.skin, currMI.materials.get(0), this);
-            stage.mtlAttrTable.setListener(eventListener);
-            // Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "" );
-
-            // TODO: this should be decoupled from screen eventually
-            if (stage.mtlTextButton.getColor().equals(COLOR_PRESSED)) {
-                stage.editCell.clearActor();
-                stage.editCell.setActor(stage.mtlAttrTable);
-            }
-        }
+        stage.resetPages();
 
         // ********************
         // **** ANIMATIONS ****
@@ -516,7 +451,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
 //        Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(), "GRID model instance: " + LibgdxUtils.getModelInstanceInfo(gridModelInstance));
     }
 
-    private void resetLightsModel(float D, Vector3 c) {
+    public void resetLightsModel(float D, Vector3 c) {
         // IMPORTANT
         if (lightsModel != null) {
             lightsModel.dispose();

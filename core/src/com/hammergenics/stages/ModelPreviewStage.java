@@ -20,6 +20,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
@@ -33,6 +35,8 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import com.hammergenics.config.Config;
 import com.hammergenics.screens.ModelPreviewScreen;
 import com.hammergenics.ui.AttributesManagerTable;
+import com.hammergenics.ui.attributes.BaseAttributeTable;
+import com.hammergenics.util.LibgdxUtils;
 
 /**
  * Add description here
@@ -43,7 +47,7 @@ public class ModelPreviewStage extends Stage {
     public static final Color COLOR_PRESSED = Color.RED;
     public static final Color COLOR_UNPRESSED = Color.GRAY;
 
-    public ModelPreviewScreen mpScreen;
+    public ModelPreviewScreen modelPS;
 
     // 2D Stage Styling:
     public Skin skin;
@@ -75,9 +79,11 @@ public class ModelPreviewStage extends Stage {
     public TextButton envTextButton = null;
     public TextButton camTextButton = null;
 
-    public ModelPreviewStage(Viewport viewport, ModelPreviewScreen mpScreen) {
+    public BaseAttributeTable.EventListener eventListener;
+    
+    public ModelPreviewStage(Viewport viewport, ModelPreviewScreen modelPS) {
         super(viewport);
-        this.mpScreen = mpScreen;
+        this.modelPS = modelPS;
     }
 
     /**
@@ -105,12 +111,12 @@ public class ModelPreviewStage extends Stage {
 
         // Select Box: Models
         Array<String> itemsModel = new Array<>();
-        for (Model model: mpScreen.models) {
+        for (Model model: modelPS.models) {
             if (model.materials.size == 0 && model.meshes.size == 0 && model.meshParts.size == 0) {
                 continue;
             }
 
-            itemsModel.add(mpScreen.assetManager.getAssetFileName(model));
+            itemsModel.add(modelPS.assetManager.getAssetFileName(model));
         }
 
         String noModelsAvailable = "No models available";
@@ -124,7 +130,7 @@ public class ModelPreviewStage extends Stage {
                 if (modelSelectBox.getSelected().equals(noModelsAvailable)) {
                     return;
                 }
-                mpScreen.switchModelInstance(modelSelectBox.getSelected(), null, -1);
+                modelPS.switchModelInstance(modelSelectBox.getSelected(), null, -1);
                 Gdx.app.debug(modelSelectBox.getClass().getSimpleName(),
                         "model selected: " + modelSelectBox.getSelected());
             }
@@ -136,13 +142,13 @@ public class ModelPreviewStage extends Stage {
         nodeSelectBox.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                if (mpScreen.currMI == null) {
+                if (modelPS.currMI == null) {
                     return; // we're in the init phase...
                 }
                 if (nodeSelectBox.getSelectedIndex() == 0) { // 'all' selected
-                    mpScreen.switchModelInstance(modelSelectBox.getSelected(), null, -1);
+                    modelPS.switchModelInstance(modelSelectBox.getSelected(), null, -1);
                 } else {
-                    mpScreen.switchModelInstance(modelSelectBox.getSelected(),
+                    modelPS.switchModelInstance(modelSelectBox.getSelected(),
                             nodeSelectBox.getSelected(), nodeSelectBox.getSelectedIndex() - 1); // -1 since there's 'all' item
                 }
             }
@@ -155,17 +161,17 @@ public class ModelPreviewStage extends Stage {
         animationSelectBox.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                mpScreen.currMI.animationIndex = animationSelectBox.getSelectedIndex() - 1; // -1 since we have "No Animation" item
-                if (mpScreen.currMI.animationController == null) { return; }
+                modelPS.currMI.animationIndex = animationSelectBox.getSelectedIndex() - 1; // -1 since we have "No Animation" item
+                if (modelPS.currMI.animationController == null) { return; }
 
-                if (mpScreen.currMI.animationIndex < 0) {
-                    mpScreen.currMI.animationController.setAnimation(null);
+                if (modelPS.currMI.animationIndex < 0) {
+                    modelPS.currMI.animationController.setAnimation(null);
                     return;
                 }
 
-                mpScreen.currMI.animationDesc = mpScreen.currMI.animationController.setAnimation(mpScreen.currMI.animations.get(mpScreen.currMI.animationIndex).id, -1);
+                modelPS.currMI.animationDesc = modelPS.currMI.animationController.setAnimation(modelPS.currMI.animations.get(modelPS.currMI.animationIndex).id, -1);
                 Gdx.app.debug(animationSelectBox.getClass().getSimpleName(),
-                        "animation selected: " + mpScreen.currMI.animations.get(mpScreen.currMI.animationIndex).id);
+                        "animation selected: " + modelPS.currMI.animations.get(modelPS.currMI.animationIndex).id);
                 // Uncomment to get gen_* files with fields contents:
                 //LibGDXUtil.getFieldsContents(animationDesc, 3,  "", true);
             }
@@ -266,6 +272,42 @@ public class ModelPreviewStage extends Stage {
         camTextButton = new TextButton("CAM", skin);
         camTextButton.getColor().set(COLOR_UNPRESSED);
 
+
+        // temporarily placing it here:
+        eventListener = new BaseAttributeTable.EventListener() {
+            @Override
+            public void onAttributeEnabled(long type, String alias) {
+                miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelPS.currMI));
+                envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(modelPS.environment,"", ""));
+
+                if (modelPS.currMI != null && (type & (DirectionalLightsAttribute.Type | PointLightsAttribute.Type)) != 0) {
+                    modelPS.resetLightsModel(modelPS.currMI.maxD, modelPS.currMI.center);
+                }
+//                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "onAttributeEnabled: 0x" + Long.toHexString(type) + " alias: " + alias);
+            }
+
+            @Override
+            public void onAttributeDisabled(long type, String alias) {
+                miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelPS.currMI));
+                envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(modelPS.environment,"", ""));
+
+                if (modelPS.currMI != null && (type & (DirectionalLightsAttribute.Type | PointLightsAttribute.Type)) != 0) {
+                    modelPS.resetLightsModel(modelPS.currMI.maxD, modelPS.currMI.center);
+                }
+//                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "onAttributeDisabled: 0x" + Long.toHexString(type) + " alias: " + alias);
+            }
+
+            @Override
+            public void onAttributeChange(long type, String alias) {
+                miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelPS.currMI));
+                envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(modelPS.environment,"", ""));
+
+                if (modelPS.currMI != null && (type & (DirectionalLightsAttribute.Type | PointLightsAttribute.Type)) != 0) {
+                    modelPS.resetLightsModel(modelPS.currMI.maxD, modelPS.currMI.center);
+                }
+//                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "onAttributeChange: 0x" + Long.toHexString(type) + " alias: " + alias);
+            }
+        };
     }
 
     /**
@@ -273,7 +315,7 @@ public class ModelPreviewStage extends Stage {
      */
     public void setup2DStageStyling() {
         // https://github.com/libgdx/libgdx/wiki/Managing-your-assets#loading-a-ttf-using-the-assethandler
-        labelBitmapFont = mpScreen.assetManager.get(Config.ASSET_FILE_NAME_FONT, BitmapFont.class);
+        labelBitmapFont = modelPS.assetManager.get(Config.ASSET_FILE_NAME_FONT, BitmapFont.class);
         labelStyle = new Label.LabelStyle(labelBitmapFont, Color.BLACK);
         // SKIN for 2D Stage Widgets
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#skin
@@ -355,5 +397,32 @@ public class ModelPreviewStage extends Stage {
         rootTable.add(lowerPanel).colspan(3).expandX().left();
 
         addActor(rootTable);
+    }
+
+    public void resetPages() {
+        // **************************
+        // **** ATTRIBUTES 2D UI ****
+        // **************************
+        envAttrTable = new AttributesManagerTable(skin, modelPS.environment, modelPS);
+        envAttrTable.setListener(eventListener);
+        envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(modelPS.environment,"", ""));
+        // TODO: this should be decoupled from screen eventually
+        if (envTextButton.getColor().equals(COLOR_PRESSED)) {
+            editCell.clearActor();
+            editCell.setActor(envAttrTable);
+        }
+
+        textureImage.setDrawable(null);
+        if (modelPS.currMI.materials != null && modelPS.currMI.materials.size > 0) {
+            mtlAttrTable = new AttributesManagerTable(skin, modelPS.currMI.materials.get(0), modelPS);
+            mtlAttrTable.setListener(eventListener);
+            // Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "" );
+
+            // TODO: this should be decoupled from screen eventually
+            if (mtlTextButton.getColor().equals(COLOR_PRESSED)) {
+                editCell.clearActor();
+                editCell.setActor(mtlAttrTable);
+            }
+        }
     }
 }
