@@ -158,12 +158,12 @@ public class LibgdxUtils {
             return null;
         }
 
-        Gdx.app.debug(getTag(), "looking for '" + fileSoughtFor + "' starting at: " + startFileHandle.path());
+        //Gdx.app.debug(getTag(), "looking for '" + fileSoughtFor + "' starting at: " + startFileHandle.path());
 
         rootLoop:
         do {
             parent = parent.parent();
-            Gdx.app.debug(getTag(), "looking in: '" + parent.toString() + "'");
+            //Gdx.app.debug(getTag(), "looking in: '" + parent.toString() + "'");
 
             for (FileHandle sub : parent.list()) {
                 if (sub.toString().toLowerCase().endsWith(fileSoughtFor)) { // sub.isDirectory() &&

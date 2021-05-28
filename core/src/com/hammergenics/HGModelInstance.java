@@ -44,7 +44,7 @@ public class HGModelInstance extends ModelInstance {
 
     public BoundingBox bb;
     public Vector3 dims;
-    public Vector3 center;
+    public Vector3 c;
     public float maxD;
     public AnimationController animationController = null;
     public AnimationController.AnimationDesc animationDesc = null;
@@ -62,6 +62,8 @@ public class HGModelInstance extends ModelInstance {
         this.rni = rootNodeIds;
     }
 
+    public Vector3 absCenter(Vector3 vector) { return transform.getTranslation(vector).add(c); }
+
     public void moveTo(Vector3 vector) { transform.setToTranslation(vector); }
 
     public void moveTo(float x, float y, float z) { transform.setToTranslation(x, y, z); }
@@ -72,7 +74,7 @@ public class HGModelInstance extends ModelInstance {
         bb = new BoundingBox();
         calculateBoundingBox(bb);
         dims = bb.getDimensions(new Vector3());
-        center = bb.getCenter(new Vector3());
+        c = bb.getCenter(new Vector3());
         maxD = Math.max(Math.max(dims.x, dims.y), dims.z);
     }
 }

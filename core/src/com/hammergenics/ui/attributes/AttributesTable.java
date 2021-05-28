@@ -93,9 +93,9 @@ public abstract class AttributesTable<T extends Attribute, Q extends AttributeTa
                 t2a.put(type, alias);
                 a2t.put(alias, type);
 
-                Gdx.app.debug(getClass().getSimpleName(),
-                        attributeClass.getSimpleName() + "." + field.getName() + ": 0x" + Long.toHexString(type)
-                                + " (alias: " + Attribute.getAttributeAlias(type) + ")");
+//                Gdx.app.debug(getClass().getSimpleName(),
+//                        attributeClass.getSimpleName() + "." + field.getName() + ": 0x" + Long.toHexString(type)
+//                                + " (alias: " + Attribute.getAttributeAlias(type) + ")");
             } catch (IllegalAccessException | IllegalArgumentException | NullPointerException e) {
                 Gdx.app.error(getClass().getSimpleName(),
                         "EXCEPTION while reading the field contents of the class: " + attributeClass.getName() + "\n" +

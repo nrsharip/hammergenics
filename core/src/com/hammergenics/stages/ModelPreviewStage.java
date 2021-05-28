@@ -22,6 +22,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
@@ -284,7 +285,7 @@ public class ModelPreviewStage extends Stage {
                 envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(modelPS.environment,"", ""));
 
                 if (modelPS.currMI != null && (type & (DirectionalLightsAttribute.Type | PointLightsAttribute.Type)) != 0) {
-                    modelPS.resetLightsModel(modelPS.currMI.maxD, modelPS.currMI.center);
+                    modelPS.resetLightsModel(modelPS.maxDofAll, modelPS.currMI.absCenter(Vector3.Zero.cpy()));
                 }
 //                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "onAttributeEnabled: 0x" + Long.toHexString(type) + " alias: " + alias);
             }
@@ -295,7 +296,7 @@ public class ModelPreviewStage extends Stage {
                 envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(modelPS.environment,"", ""));
 
                 if (modelPS.currMI != null && (type & (DirectionalLightsAttribute.Type | PointLightsAttribute.Type)) != 0) {
-                    modelPS.resetLightsModel(modelPS.currMI.maxD, modelPS.currMI.center);
+                    modelPS.resetLightsModel(modelPS.maxDofAll, modelPS.currMI.absCenter(Vector3.Zero.cpy()));
                 }
 //                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "onAttributeDisabled: 0x" + Long.toHexString(type) + " alias: " + alias);
             }
@@ -306,7 +307,7 @@ public class ModelPreviewStage extends Stage {
                 envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(modelPS.environment,"", ""));
 
                 if (modelPS.currMI != null && (type & (DirectionalLightsAttribute.Type | PointLightsAttribute.Type)) != 0) {
-                    modelPS.resetLightsModel(modelPS.currMI.maxD, modelPS.currMI.center);
+                    modelPS.resetLightsModel(modelPS.maxDofAll, modelPS.currMI.absCenter(Vector3.Zero.cpy()));
                 }
 //                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "onAttributeChange: 0x" + Long.toHexString(type) + " alias: " + alias);
             }

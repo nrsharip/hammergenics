@@ -82,7 +82,9 @@ public class ModelPreviewScreen extends ScreenAdapter {
     // 2D Stage - this is where all the widgets (buttons, checkboxes, labels etc.) are located
     public ModelPreviewStage stage;
 
-    // Current ModelInstance Related:
+    // ModelInstance Related:
+    public Array<HGModelInstance> hgMIs = new Array<HGModelInstance>(HGModelInstance.class);
+    public float maxDofAll = 0f;
     public HGModelInstance currMI = null;
 
     private float clockFPS;
@@ -125,16 +127,6 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // 2D Stage - https://github.com/libgdx/libgdx/wiki/Scene2d.ui#stage-setup
         stage = new ModelPreviewStage(new ScreenViewport(), this);
 
-        int i = 0;
-        while (currMI == null && i < hgModels.size) {
-            HGModel hgModel = hgModels.get(i++);
-
-            addModelInstance(hgModel.afh, null, -1);
-            if (currMI != null) {
-                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "model selected: " + hgModel.afh);
-            }
-        }
-
         testRenderRelated();
 
         InputMultiplexer inputMultiplexer = new InputMultiplexer();
@@ -151,12 +143,14 @@ public class ModelPreviewScreen extends ScreenAdapter {
     public void render(float delta) {
         cameraInputController.update();
 
-        if(currMI.animationController != null) {
-            currMI.animationController.update(delta);
-//            if (animationDesc.loopCount == 0) {
-//                // do something if the animation is over
-//            }
-        }
+        hgMIs.forEach(hgMI -> {
+            if(hgMI.animationController != null) {
+                hgMI.animationController.update(delta);
+//                if (animationDesc.loopCount == 0) {
+//                    // do something if the animation is over
+//                }
+            }
+        });
 
         // https://github.com/libgdx/libgdx/wiki/ModelBatch
         // https://encycolorpedia.com/96b0bc
@@ -184,7 +178,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // * there's a render(...) that could take an Iterable of ModelInstance's, e.g.
         //   modelBatch.render((Array<ModelInstance>) array, environment);
         // * Enable caching as soon as multiple instances are rendered: https://github.com/libgdx/libgdx/wiki/ModelCache
-        if (currMI != null && environment != null) { modelBatch.render(currMI, environment); }
+        if (hgMIs.size > 0 && environment != null) { modelBatch.render(hgMIs, environment); }
         if (gridXZModelInstance != null && stage.gridXZCheckBox.isChecked()) { modelBatch.render(gridXZModelInstance); }
         if (gridYModelInstance != null && stage.gridYCheckBox.isChecked()) { modelBatch.render(gridYModelInstance); }
         if (dlArrayModelInstance != null && stage.lightsCheckBox.isChecked()) { modelBatch.render(dlArrayModelInstance, environment); }
@@ -309,19 +303,10 @@ public class ModelPreviewScreen extends ScreenAdapter {
             }
         }
 
-        currMI.moveTo(0, 0, 0);
         currMI.recalculate();
-        float D = currMI.maxD;
+        hgMIs.add(currMI);
 
-        resetGridModel(D);
-        resetCamera(D, currMI.center);
-        resetCameraInputController(D, currMI.center);
-
-        resetEnvironment();
-        // adding one point light for the newly created model instance
-        environment.add(new PointLight().set(Color.WHITE, D/2, D/2, -D/2, D * 50f));
-        resetLightsModel(D, currMI.center);
-
+        resetScreen();
         stage.resetPages();
 
         // ********************
@@ -342,6 +327,32 @@ public class ModelPreviewScreen extends ScreenAdapter {
         stage.animationSelectBox.setItems(itemsAnimation);
 
         stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(currMI));
+    }
+
+    private void resetScreen() {
+        Vector3 tmpPosition;
+        tmpPosition = Vector3.Zero.cpy();
+        maxDofAll = 0f;
+        for(HGModelInstance hgMI: hgMIs) { if (hgMI.maxD > maxDofAll) { maxDofAll = hgMI.maxD; } }
+        for(HGModelInstance hgMI: hgMIs) {
+            hgMI.moveTo(tmpPosition);
+            tmpPosition.add(Vector3.Z.cpy().scl(maxDofAll / 2));
+            if (hgMI.maxD < maxDofAll) {
+                hgMI.scale(maxDofAll/hgMI.maxD);
+            }
+        }
+//        Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
+//                "transform.getTranslation = " + currMI.transform.getTranslation(new Vector3()));
+
+        tmpPosition = currMI.absCenter(Vector3.Zero.cpy());
+        resetGridModel(maxDofAll);
+        resetCamera(maxDofAll, tmpPosition);
+        resetCameraInputController(maxDofAll, tmpPosition);
+        resetEnvironment();
+        // adding one point light for the newly created model instance
+        Vector3 positionPL = tmpPosition.cpy().add(maxDofAll/2, maxDofAll/2, -maxDofAll/2);
+        environment.add(new PointLight().set(Color.WHITE, positionPL, 3 * maxDofAll * 50f));
+        resetLightsModel(maxDofAll, tmpPosition);
     }
 
     /**
