@@ -17,6 +17,7 @@
 package com.hammergenics.stages;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g3d.Model;
@@ -72,7 +73,7 @@ public class ModelPreviewStage extends Stage {
     public CheckBox gridXZCheckBox;
     public CheckBox gridYCheckBox;
     public CheckBox lightsCheckBox;
-    public SelectBox<String> modelSelectBox;
+    public SelectBox<FileHandle> modelSelectBox;
     public SelectBox<String> nodeSelectBox;
     public SelectBox<String> animationSelectBox = null;
     public TextButton mtlTextButton = null;
@@ -110,17 +111,18 @@ public class ModelPreviewStage extends Stage {
         modelSelectBox = new SelectBox<>(skin);
 
         // Select Box: Models
-        Array<String> itemsModel = new Array<>();
+        Array<FileHandle> itemsModel = new Array<>();
         for (Model model: modelPS.models) {
             if (model.materials.size == 0 && model.meshes.size == 0 && model.meshParts.size == 0) {
                 continue;
             }
 
-            itemsModel.add(modelPS.assetManager.getAssetFileName(model));
+            String filename = modelPS.assetManager.getAssetFileName(model);
+            itemsModel.add(modelPS.assetManager.getFileHandleResolver().resolve(filename));
         }
 
         String noModelsAvailable = "No models available";
-        if (itemsModel.size == 0) { itemsModel.add(noModelsAvailable); }
+        if (itemsModel.size == 0) { itemsModel.add(Gdx.files.local(noModelsAvailable)); }
 
         modelSelectBox.clearItems();
         modelSelectBox.setItems(itemsModel);

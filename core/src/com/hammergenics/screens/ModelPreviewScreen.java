@@ -122,7 +122,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         int i = 0;
         while (currMI == null && i < models.size) {
             String filename = assetManager.getAssetFileName(models.get(i++));
-            switchModelInstance(filename, null, -1);
+            switchModelInstance(assetManager.getFileHandleResolver().resolve(filename), null, -1);
             if (currMI != null) {
                 Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "model selected: " + filename);
             }
@@ -226,16 +226,16 @@ public class ModelPreviewScreen extends ScreenAdapter {
     }
 
     /**
-     * @param assetName
+     * @param assetFL
      */
-    public void switchModelInstance(String assetName, String nodeId, int nodeIndex) {
+    public void switchModelInstance(FileHandle assetFL, String nodeId, int nodeIndex) {
         // TODO: add checks for null perspectiveCamera, cameraInputController, and the size of models
 
-        Model model = assetManager.get(assetName, Model.class);
+        Model model = assetManager.get(assetFL.path(), Model.class);
         currMI = null;
         if (model.materials.size == 0 && model.meshes.size == 0 && model.meshParts.size == 0) {
             if (model.animations.size > 0) {
-                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "animations only model: " + assetName);
+                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "animations only model: " + assetFL);
             }
             return; // we got animations only model
         }
@@ -252,7 +252,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         }
 
         if (nodeId == null) {
-            currMI = new HGModelInstance(model, assetName);
+            currMI = new HGModelInstance(model, assetFL);
             stage.nodeSelectBox.getColor().set(Color.WHITE);
         } else {
             // TODO: maybe it's good to add a Tree for Node traversal
@@ -281,7 +281,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
                     // the keys(Nodes (head, leg, etc...)) and values (Matrix4's)...
                     // so the keys are getting invalidated (set to null) in ModelInstance.invalidate (Node node)
                     // because the nodes they refer to located in other root nodes (not the selected one)
-                    currMI = new HGModelInstance(model, assetName);
+                    currMI = new HGModelInstance(model, assetFL);
                     stage.nodeSelectBox.getColor().set(Color.PINK);
                     break;
                 }
@@ -290,7 +290,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
             if (currMI == null) {
                 Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),"nodeId: " + nodeId + " nodeIndex: " + nodeIndex);
                 //modelInstance = new ModelInstance(model);
-                currMI = new HGModelInstance(model, assetName, nodeId);
+                currMI = new HGModelInstance(model, assetFL, nodeId);
                 stage.nodeSelectBox.getColor().set(Color.WHITE);
                 // for some reasons getting this exception in case nodeId == null:
                 // (should be done like (String[])null maybe...)
@@ -316,7 +316,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // ********************
         // **** ANIMATIONS ****
         // ********************
-        copyExternalAnimations(assetName);
+        copyExternalAnimations(assetFL);
 
         currMI.animationController = null;
         if(currMI.animations.size > 0) {
@@ -334,12 +334,12 @@ public class ModelPreviewScreen extends ScreenAdapter {
     }
 
     /**
-     * @param assetName
+     * @param assetFL
      */
-    private void copyExternalAnimations(String assetName) {
+    private void copyExternalAnimations(FileHandle assetFL) {
         if (assetManager == null || currMI == null) { return; }
 
-        FileHandle animationsFolder = LibgdxUtils.fileOnPath(Gdx.files.local(assetName), "animations");
+        FileHandle animationsFolder = LibgdxUtils.fileOnPath(assetFL, "animations");
         if (animationsFolder != null && animationsFolder.isDirectory()) {
             // final since it goes to lambda closure
             final Array<String> animationsPresent = new Array<>();

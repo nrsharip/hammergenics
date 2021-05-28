@@ -129,7 +129,7 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
         itemsTexture.add("No Texture Selected");
 
         // All PNG files in the same directory and direct subdirecories the asset is located
-        FileHandle assetFileHandle = Gdx.files.local(mps.stage.modelSelectBox.getSelected());
+        FileHandle assetFileHandle = mps.stage.modelSelectBox.getSelected();
         Array<FileHandle> textureFileHandleArray = texturesLookUp(assetFileHandle);
 
         if (textureFileHandleArray.size > 0) {

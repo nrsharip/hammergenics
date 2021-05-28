@@ -16,6 +16,7 @@
 
 package com.hammergenics;
 
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
@@ -30,9 +31,9 @@ import com.badlogic.gdx.math.collision.BoundingBox;
 public class HGModelInstance extends ModelInstance {
     public Model model;
     /**
-     * asset name
+     * asset file handle
      */
-    public String an;
+    public FileHandle afh;
     /**
      * root node ids
      */
@@ -50,15 +51,15 @@ public class HGModelInstance extends ModelInstance {
     public AnimationController.AnimationDesc animationDesc = null;
     public int animationIndex = 0;
 
-    public HGModelInstance (final Model model, final String assetName) {
-        this(model, assetName, (String[])null);
+    public HGModelInstance (final Model model, final FileHandle assetFL) {
+        this(model, assetFL, (String[])null);
     }
 
-    public HGModelInstance (final Model model, final String assetName, final String... rootNodeIds) {
+    public HGModelInstance (final Model model, final FileHandle assetFL, final String... rootNodeIds) {
         super(model, rootNodeIds);
 
         this.model = model;
-        this.an = assetName;
+        this.afh = assetFL;
         this.rni = rootNodeIds;
     }
 
