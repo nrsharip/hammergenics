@@ -75,6 +75,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
     private Model gridModel = null;
     private ModelInstance gridXZModelInstance = null;
     private ModelInstance gridYModelInstance = null;
+    private ModelInstance gridOModelInstance = null;
     private Model lightsModel = null;
     private Array<ModelInstance> dlArrayModelInstance = null;
     private Array<ModelInstance> plArrayModelInstance = null;
@@ -179,7 +180,10 @@ public class ModelPreviewScreen extends ScreenAdapter {
         //   modelBatch.render((Array<ModelInstance>) array, environment);
         // * Enable caching as soon as multiple instances are rendered: https://github.com/libgdx/libgdx/wiki/ModelCache
         if (hgMIs.size > 0 && environment != null) { modelBatch.render(hgMIs, environment); }
-        if (gridXZModelInstance != null && stage.gridXZCheckBox.isChecked()) { modelBatch.render(gridXZModelInstance); }
+        if (gridXZModelInstance != null && stage.gridXZCheckBox.isChecked()) {
+            modelBatch.render(gridXZModelInstance);
+            modelBatch.render(gridOModelInstance);
+        }
         if (gridYModelInstance != null && stage.gridYCheckBox.isChecked()) { modelBatch.render(gridYModelInstance); }
         if (dlArrayModelInstance != null && stage.lightsCheckBox.isChecked()) { modelBatch.render(dlArrayModelInstance, environment); }
         if (plArrayModelInstance != null && stage.lightsCheckBox.isChecked()) { modelBatch.render(plArrayModelInstance, environment); }
@@ -306,7 +310,28 @@ public class ModelPreviewScreen extends ScreenAdapter {
         currMI.recalculate();
         hgMIs.add(currMI);
 
-        resetScreen();
+        Vector3 tmpPosBase = Vector3.Zero.cpy();
+        maxDofAll = 0f;
+        for(HGModelInstance hgMI: hgMIs) { if (hgMI.maxD > maxDofAll) { maxDofAll = hgMI.maxD; } }
+        for(HGModelInstance hgMI: hgMIs) {
+            float factor = 1f;
+            Vector3 center = hgMI.bb.getCenter(new Vector3());
+            Vector3 position;
+            // Scale: if the dimension of the current instance is less than maximum dimension of all instances scale it
+            if (hgMI.maxD < maxDofAll) { factor = maxDofAll/hgMI.maxD; }
+            // Position:
+            // 1. Move the instance (scaled center) to the current base position (tmpPosBase vector sub scaled center vector)
+            // 2. Add half of the scaled height to the current position so bounding box's bottom matches XZ plane
+            position = tmpPosBase.cpy().sub(center.cpy().scl(factor)).add(0, factor * hgMI.bb.getHeight()/2, 0);
+            hgMI.moveAndScale(position, factor); // tmpPosBase.cpy().sub(center.cpy().scl(factor))
+            // TODO: check if BB supposed to change on scaling...
+            // hgMI.recalculate();
+            // Increment current base position along Z axis
+            tmpPosBase.add(0, 0, maxDofAll);
+            //Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "tmpPosBase = " + tmpPosBase);
+        }
+
+        resetScreen(currMI);
         stage.resetPages();
 
         // ********************
@@ -329,22 +354,10 @@ public class ModelPreviewScreen extends ScreenAdapter {
         stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(currMI));
     }
 
-    private void resetScreen() {
+    private void resetScreen(HGModelInstance hgMI) {
         Vector3 tmpPosition;
-        tmpPosition = Vector3.Zero.cpy();
-        maxDofAll = 0f;
-        for(HGModelInstance hgMI: hgMIs) { if (hgMI.maxD > maxDofAll) { maxDofAll = hgMI.maxD; } }
-        for(HGModelInstance hgMI: hgMIs) {
-            hgMI.moveTo(tmpPosition);
-            tmpPosition.add(Vector3.Z.cpy().scl(maxDofAll / 2));
-            if (hgMI.maxD < maxDofAll) {
-                hgMI.scale(maxDofAll/hgMI.maxD);
-            }
-        }
-//        Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
-//                "transform.getTranslation = " + currMI.transform.getTranslation(new Vector3()));
 
-        tmpPosition = currMI.absCenter(Vector3.Zero.cpy());
+        tmpPosition = hgMI.absCenter(Vector3.Zero.cpy());
         resetGridModel(maxDofAll);
         resetCamera(maxDofAll, tmpPosition);
         resetCameraInputController(maxDofAll, tmpPosition);
@@ -452,6 +465,13 @@ public class ModelPreviewScreen extends ScreenAdapter {
             }
         }
 
+        mb.node().id = "origin"; // adding node Y
+        // MeshPart "point", see for primitive types: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glBegin.xml
+        mpb = mb.part("origin", GL20.GL_TRIANGLES, Usage.Position | Usage.Normal,
+                new Material(ColorAttribute.createDiffuse(Color.RED)));
+
+        SphereShapeBuilder.build(mpb, D/20, D/20, D/20, 100, 100);
+
         // see also com.badlogic.gdx.graphics.g3d.utils.shapebuilders:
         //  ArrowShapeBuilder
         //  BaseShapeBuilder
@@ -467,6 +487,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         gridModel = mb.end();
         gridXZModelInstance = new ModelInstance(gridModel, "XZ");
         gridYModelInstance = new ModelInstance(gridModel, "Y");
+        gridOModelInstance = new ModelInstance(gridModel, "origin");
 //        Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(), "GRID model instance: " + LibgdxUtils.getModelInstanceInfo(gridModelInstance));
     }
 

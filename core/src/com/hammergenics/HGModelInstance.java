@@ -16,9 +16,11 @@
 
 package com.hammergenics;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
+import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 
@@ -42,9 +44,7 @@ public class HGModelInstance extends ModelInstance {
      */
     public float sf = 1f;
 
-    public BoundingBox bb;
-    public Vector3 dims;
-    public Vector3 c;
+    public BoundingBox bb = new BoundingBox();
     public float maxD;
     public AnimationController animationController = null;
     public AnimationController.AnimationDesc animationDesc = null;
@@ -62,19 +62,50 @@ public class HGModelInstance extends ModelInstance {
         this.rni = rootNodeIds;
     }
 
-    public Vector3 absCenter(Vector3 vector) { return transform.getTranslation(vector).add(c); }
+    public String getTag(int depth) {
+        return Thread.currentThread().getStackTrace()[depth].getMethodName() + ":" + afh.name() + "@" + hashCode();
+    }
+
+    public void debug() {
+        Gdx.app.debug(getTag(3), "absCenter = " + absCenter(new Vector3()));
+        Gdx.app.debug(getTag(3), "bb.getDimensions = " + bb.getDimensions(new Vector3()));
+        Gdx.app.debug(getTag(3), "bb.getCenter = " + bb.getCenter(new Vector3()));
+        Gdx.app.debug(getTag(3), "bb.getMin = " + bb.getMin(new Vector3())); // the bb corner nearest to (0,0,0) = bb.getCorner000()
+        Gdx.app.debug(getTag(3), "bb.getMax = " + bb.getMax(new Vector3())); // the bb corner farthest from (0,0,0) = bb.getCorner111()
+        Gdx.app.debug(getTag(3), "transform.getTranslation = " + transform.getTranslation(new Vector3()));
+        Gdx.app.debug(getTag(3), "transform.getScale = " + transform.getScale(new Vector3()));
+        Gdx.app.debug(getTag(3), "transform.getRotation (nor false) = " + transform.getRotation(new Quaternion(0, 0, 0, 0)));
+        Gdx.app.debug(getTag(3), "transform.getRotation (nor  true) = " + transform.getRotation(new Quaternion(0, 0, 0, 0), true));
+        Gdx.app.debug(getTag(3), "transform = \n" + transform);
+    }
+
+    /**
+     * ATTENTION: scaling factor (sf) applied to the Bounding Box's center vector.
+     *
+     * @param vector
+     * @return
+     */
+    public Vector3 absCenter(Vector3 vector) {
+        return transform.getTranslation(vector).add(bb.getCenter(new Vector3()).scl(sf));
+    }
 
     public void moveTo(Vector3 vector) { transform.setToTranslation(vector); }
 
     public void moveTo(float x, float y, float z) { transform.setToTranslation(x, y, z); }
 
-    public void scale(float factor) { this.sf = factor; transform.setToScaling(factor, factor, factor); }
+    public void moveAndScale(Vector3 vector, float factor) {
+        this.sf = factor;
+        transform.setToTranslationAndScaling(vector.x, vector.y, vector.z, factor, factor, factor);
+    }
+
+    public void scale(float factor) {
+        this.sf = factor;
+        transform.setToScaling(factor, factor, factor);
+    }
 
     public void recalculate() {
-        bb = new BoundingBox();
         calculateBoundingBox(bb);
-        dims = bb.getDimensions(new Vector3());
-        c = bb.getCenter(new Vector3());
+        Vector3 dims = bb.getDimensions(new Vector3());
         maxD = Math.max(Math.max(dims.x, dims.y), dims.z);
     }
 }
