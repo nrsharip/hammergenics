@@ -14,7 +14,7 @@
  * limitations under the License.
  ******************************************************************************/
 
-package com.hammergenics.ui;
+package com.hammergenics.stages.ui;
 
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;

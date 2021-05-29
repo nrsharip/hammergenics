@@ -36,8 +36,8 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import com.hammergenics.HGModel;
 import com.hammergenics.config.Config;
 import com.hammergenics.screens.ModelPreviewScreen;
-import com.hammergenics.ui.AttributesManagerTable;
-import com.hammergenics.ui.attributes.BaseAttributeTable;
+import com.hammergenics.stages.ui.AttributesManagerTable;
+import com.hammergenics.stages.ui.attributes.BaseAttributeTable;
 import com.hammergenics.util.LibgdxUtils;
 
 /**

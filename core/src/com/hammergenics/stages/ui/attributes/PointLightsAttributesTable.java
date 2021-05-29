@@ -14,13 +14,13 @@
  * limitations under the License.
  ******************************************************************************/
 
-package com.hammergenics.ui.attributes;
+package com.hammergenics.stages.ui.attributes;
 
 import com.badlogic.gdx.graphics.g3d.Attributes;
-import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
+import com.badlogic.gdx.graphics.g3d.environment.PointLight;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.utils.ArrayMap;
 import com.hammergenics.screens.ModelPreviewScreen;
 
 /**
@@ -28,18 +28,15 @@ import com.hammergenics.screens.ModelPreviewScreen;
  *
  * @author nrsharip
  */
-public class ColorAttributesTable extends AttributesTable<ColorAttribute, ColorAttributeTable> {
-    /**
-     * @param skin
-     * @param container
-     * @param mps
-     */
-    public ColorAttributesTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
-        super(skin, container, mps, ColorAttribute.class);
+public class PointLightsAttributesTable
+        extends AttributesTable<PointLightsAttribute, BaseLightsAttributeTable<PointLightsAttribute, PointLight>> {
+
+    public PointLightsAttributesTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
+        super(skin, container, mps, PointLightsAttribute.class);
 
         // START - Candidate for move to AttributesTable
         t2a.forEach((entry) -> {
-            ColorAttributeTable table = new ColorAttributeTable(skin, container, mps);
+            PointLightsAttributeTable table = new PointLightsAttributeTable(skin, container, mps);
             t2Table.put(entry.key, table);   // type to table
             a2Table.put(entry.value, table); // alias to table
         });

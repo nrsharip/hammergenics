@@ -37,7 +37,6 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.hammergenics.config.Conventions;
-import com.hammergenics.ui.attributes.ColorAttributeTable;
 
 import java.io.FileFilter;
 import java.lang.reflect.Field;
@@ -106,7 +105,7 @@ public class LibgdxUtils {
         Field[] colorFields = scanPublicStaticFinalFields(Color.class, Color.class);
 
         if (colorFields.length == 0) {
-            Gdx.app.error(ColorAttributeTable.class.getSimpleName(), "ERROR: no colors found in: " + Color.class.getName());
+            Gdx.app.error(getTag(), "ERROR: no colors found in: " + Color.class.getName());
             return;
         }
 
