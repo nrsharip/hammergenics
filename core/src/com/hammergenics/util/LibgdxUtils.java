@@ -31,6 +31,7 @@ import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.model.NodePart;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Array;
@@ -610,5 +611,31 @@ public class LibgdxUtils {
         // [Ljava.lang.Object;@1c9cdff3
         out = out.replaceAll("@[0-9a-z]+","");
         return out;
+    }
+
+    /**
+     * Traverse the grid by spiral, return the next position after the given.
+     * </p>
+     * Starting from the point (0, 0) do the following moves:
+     * </p>
+     *  ↓ (1 time) ← (1 time) ↑ (2 times) → (2 times) ↓ (3 times) ← (3 times) ↑ (4 times) → (4 times) ...
+     * </p>
+     * If the given position is reached, do the last remaining step on it and return.
+     *
+     * @param inout Initial position
+     * @return Position shifted to the next position
+     */
+    public static Vector2 spiralGetNext(Vector2 inout) {
+        Vector2 tmp = Vector2.Zero.cpy();
+        int i = 0, j;
+
+        while (true) {
+            i++;
+            for (j = 0; j < i; j++) { if (tmp.equals(inout)) { return inout.sub(0, 1); } tmp.sub(0, 1); }
+            for (j = 0; j < i; j++) { if (tmp.equals(inout)) { return inout.sub(1, 0); } tmp.sub(1, 0); }
+            i++;
+            for (j = 0; j < i; j++) { if (tmp.equals(inout)) { return inout.add(0, 1); } tmp.add(0, 1); }
+            for (j = 0; j < i; j++) { if (tmp.equals(inout)) { return inout.add(1, 0); } tmp.add(1, 0); }
+        }
     }
 }

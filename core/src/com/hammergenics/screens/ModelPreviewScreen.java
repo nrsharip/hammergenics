@@ -40,6 +40,7 @@ import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import com.badlogic.gdx.graphics.g3d.utils.*;
 import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.ArrowShapeBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.SphereShapeBuilder;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
@@ -128,6 +129,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
         // 2D Stage - https://github.com/libgdx/libgdx/wiki/Scene2d.ui#stage-setup
         stage = new ModelPreviewStage(new ScreenViewport(), this);
+        // rendering all loaded models
+        hgModels.forEach(hgModel -> addModelInstance(hgModel.afh, null, -1));
 
         testRenderRelated();
 
@@ -311,7 +314,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
         hgMIs.add(currMI);
 
-        Vector3 tmpPosBase = Vector3.Zero.cpy();
+        Vector2 grid = Vector2.Zero.cpy();
         maxDofAll = 0f;
         for(HGModelInstance hgMI: hgMIs) { if (hgMI.maxD > maxDofAll) { maxDofAll = hgMI.maxD; } }
         for(HGModelInstance hgMI: hgMIs) {
@@ -321,14 +324,16 @@ public class ModelPreviewScreen extends ScreenAdapter {
             // Scale: if the dimension of the current instance is less than maximum dimension of all instances scale it
             if (hgMI.maxD < maxDofAll) { factor = maxDofAll/hgMI.maxD; }
             // Position:
-            // 1. Move the instance (scaled center) to the current base position (tmpPosBase vector sub scaled center vector)
+            // 1. Move the instance (scaled center) to the current base position ([grid.x, 0, grid.y] vector sub scaled center vector)
             // 2. Add half of the scaled height to the current position so bounding box's bottom matches XZ plane
-            position = tmpPosBase.cpy().sub(center.cpy().scl(factor)).add(0, factor * hgMI.bb.getHeight()/2, 0);
-            hgMI.moveAndScale(position, factor); // tmpPosBase.cpy().sub(center.cpy().scl(factor))
+            position = new Vector3(grid.x * 1.1f * maxDofAll, 0f, grid.y * 1.1f * maxDofAll)
+                    .sub(center.cpy().scl(factor))
+                    .add(0, factor * hgMI.bb.getHeight()/2, 0);
+            hgMI.moveAndScale(position, factor);
             // TODO: check if BB supposed to change on scaling...
             // hgMI.recalculate();
-            // Increment current base position along Z axis
-            tmpPosBase.add(0, 0, maxDofAll);
+            // spiral loop around (0, 0, 0)
+            LibgdxUtils.spiralGetNext(grid);
             //Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "tmpPosBase = " + tmpPosBase);
         }
 
