@@ -18,6 +18,8 @@ package com.hammergenics;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.g3d.Attribute;
+import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
 import com.badlogic.gdx.math.Quaternion;
@@ -107,5 +109,19 @@ public class HGModelInstance extends ModelInstance {
         calculateBoundingBox(bb);
         Vector3 dims = bb.getDimensions(new Vector3());
         maxD = Math.max(Math.max(dims.x, dims.y), dims.z);
+    }
+
+    public void setAttributes(final Attribute... attributes) {
+        for (int i = 0; i < materials.size; i++) { materials.get(i).set(attributes); }
+    }
+
+    public void setAttributes(int mtlIndex, final Attribute... attributes) {
+        if (materials.size == 0 || mtlIndex < 0 || mtlIndex > materials.size - 1) { return; }
+        materials.get(mtlIndex).set(attributes);
+    }
+
+    public void setAttributes(String mtlId, final Attribute... attributes) {
+        Material material = getMaterial(mtlId);
+        if (material != null) { getMaterial(mtlId).set(attributes); }
     }
 }

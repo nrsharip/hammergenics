@@ -26,6 +26,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g3d.*;
+import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
@@ -306,6 +307,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
         }
 
         currMI.recalculate();
+        currMI.setAttributes(new BlendingAttribute());
+
         hgMIs.add(currMI);
 
         Vector3 tmpPosBase = Vector3.Zero.cpy();
@@ -360,7 +363,10 @@ public class ModelPreviewScreen extends ScreenAdapter {
         resetEnvironment();
         // adding one point light for the newly created model instance
         Vector3 positionPL = position.cpy().add(size/2, size/2, -size/2);
-        environment.add(new PointLight().set(Color.WHITE, positionPL, 3 * size * 50f));
+        // FIXME: seems that intensity should grow exponentially over the distance, the table is:
+        //      size: 1.7   17    191    376    522
+        // intensity:   1  100  28708  56470  78397
+        environment.add(new PointLight().set(Color.WHITE, positionPL, 3 * size * 50f)); // syncup: pl
         resetLightsModel(size, position);
     }
 
@@ -566,7 +572,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
                 Array<DirectionalLight> dLights = new Array<>(DirectionalLight.class);
 
                 Vector3 dir = light.position.cpy().sub(c).nor();
-                float fraction = light.intensity / (2 * D * 50f);
+                float fraction = light.intensity / (2 * D * 50f); // syncup: pl
                 dLights.addAll(
                         new DirectionalLight().set(new Color(Color.BLACK).add(fraction, fraction, fraction, 0f), dir)
 //                ,new DirectionalLight().set(Color.WHITE,   0,   0, -1f) // xz
