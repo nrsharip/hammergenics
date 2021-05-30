@@ -331,7 +331,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
             //Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "tmpPosBase = " + tmpPosBase);
         }
 
-        resetScreen(currMI);
+        resetScreen(currMI.absCenter(Vector3.Zero.cpy()), maxDofAll);
         stage.resetPages();
 
         // ********************
@@ -354,18 +354,15 @@ public class ModelPreviewScreen extends ScreenAdapter {
         stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(currMI));
     }
 
-    private void resetScreen(HGModelInstance hgMI) {
-        Vector3 tmpPosition;
-
-        tmpPosition = hgMI.absCenter(Vector3.Zero.cpy());
-        resetGridModel(maxDofAll);
-        resetCamera(maxDofAll, tmpPosition);
-        resetCameraInputController(maxDofAll, tmpPosition);
+    private void resetScreen(Vector3 position, float size) {
+        resetGridModel(size);
+        resetCamera(size, position);
+        resetCameraInputController(size, position);
         resetEnvironment();
         // adding one point light for the newly created model instance
-        Vector3 positionPL = tmpPosition.cpy().add(maxDofAll/2, maxDofAll/2, -maxDofAll/2);
-        environment.add(new PointLight().set(Color.WHITE, positionPL, 3 * maxDofAll * 50f));
-        resetLightsModel(maxDofAll, tmpPosition);
+        Vector3 positionPL = position.cpy().add(size/2, size/2, -size/2);
+        environment.add(new PointLight().set(Color.WHITE, positionPL, 3 * size * 50f));
+        resetLightsModel(size, position);
     }
 
     /**
