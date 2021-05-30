@@ -234,8 +234,6 @@ public class ModelPreviewScreen extends ScreenAdapter {
      * @param assetFL
      */
     public void addModelInstance(FileHandle assetFL, String nodeId, int nodeIndex) {
-        // TODO: add checks for null perspectiveCamera, cameraInputController, and the size of models
-
         HGModel hgModel = new HGModel(assetManager.get(assetFL.path(), Model.class), assetFL);
         currMI = null;
         if (!hgModel.hasMaterials() && !hgModel.hasMeshes() && !hgModel.hasMeshParts()) {
@@ -355,6 +353,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
     }
 
     private void resetScreen(Vector3 position, float size) {
+        // TODO: add checks for null perspectiveCamera, cameraInputController, and the size of models
         resetGridModel(size);
         resetCamera(size, position);
         resetCameraInputController(size, position);

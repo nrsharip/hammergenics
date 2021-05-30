@@ -21,6 +21,7 @@ import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.assets.loaders.FileHandleResolver;
+import com.badlogic.gdx.assets.loaders.TextureLoader;
 import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Texture;
@@ -86,6 +87,71 @@ public class HGGame extends Game {
         // https://github.com/libgdx/fbx-conv
         // fbx-conv.exe -f -v .fbx .g3db
 
+        // Loading Process (where Model.class instance is created):
+        //   I. AssetManager.load(String fileName, Class<T> type, AssetLoaderParameters<T> parameter)
+        //      1. AssetLoader loader = getLoader(type, fileName);                           // used just for check if (loader == null) here
+        //         a. ObjectMap<String, AssetLoader> loaders = this.loaders.get(type);       // this.loaders - ObjectMap<Class, ObjectMap<String, AssetLoader>>
+        //                                                                                   //                map:asset type -> (map:<extension> -> AssetLoader)
+        //                                                                                   //                AssetManager.setLoader(...)
+        //                                                                                   //                   <extension>: loaders.put(suffix == null ? "" : suffix, loader);
+        //         b. for (Entry<String, AssetLoader> entry : loaders.entries()) {
+        //                if (entry.key.length() > length && fileName.endsWith(entry.key)) { // !!! fileName.endsWith(entry.key) entry.key = <extension> - might be ""
+        //                    result = entry.value;
+        //                    length = entry.key.length();
+        //                }
+        //            }
+        //      2. AssetDescriptor assetDesc = new AssetDescriptor(fileName, type, parameter);
+        //      3. loadQueue.add(assetDesc);
+        //
+        //  ATTENTION: 'gdx-1.10.0.jar' and 'gdx-backend-gwt-1.10.0.jar' both have (same packaged) AsyncExecutor and AssetLoadingTask inside
+        //  II. AssetManager.update()
+        //      1. nextTask()
+        //         a. AssetDescriptor assetDesc = loadQueue.removeIndex(0)
+        //         b. addTask(assetDesc)
+        //             i. AssetLoader loader = getLoader(assetDesc.type, assetDesc.fileName)
+        //            ii. tasks.add(new AssetLoadingTask(this, assetDesc, loader, executor)) // extends AsyncTask -> call()
+        //      2. return updateTask() -> (AssetLoadingTask)task.update()
+        //         if (loader instanceof SynchronousAssetLoader)
+        //            handleSyncLoader();
+        //         else
+        //            handleAsyncLoader(); // (AssetLoadingTask)
+        //            a. if (!dependenciesLoaded) {
+        //                                                         // TODO: revisit this
+        //                  if (depsFuture == null)                // AsyncResult<Void> depsFuture
+        //                     depsFuture = executor.submit(this); // -> (AssetLoadingTask)task.call()
+        //                  else if (depsFuture.isDone()) {        // AsyncResult<Void> depsFuture.isDone() -> Future.isDone() (see java.util.concurrent)
+        //                     try { depsFuture.get(); } catch (Exception e) { throw new GdxRuntimeException("Couldn't load dependencies of asset: " + assetDesc.fileName, e); }
+        //                     dependenciesLoaded = true;
+        //                     if (asyncDone) asset = asyncLoader.loadSync(manager, assetDesc.fileName, resolve(loader, assetDesc), assetDesc.params);
+        //                  }
+        //               } else if (loadFuture == null && !asyncDone)
+        //                  loadFuture = executor.submit(this);
+        //               else if (asyncDone)
+        //                  asset = asyncLoader.loadSync(manager, assetDesc.fileName, resolve(loader, assetDesc), assetDesc.params);
+        //               else if (loadFuture.isDone()) {
+        //                  try { loadFuture.get(); } catch (Exception e) { throw new GdxRuntimeException("Couldn't load asset: " + assetDesc.fileName, e); }
+        //                  asset = asyncLoader.loadSync(manager, assetDesc.fileName, resolve(loader, assetDesc), assetDesc.params);
+        //               }
+        //
+        // Model.class (g3db example) LOADER: // see AssetManager: setLoader(Model.class, ".g3db", new G3dModelLoader(new UBJsonReader(), resolver))
+        // 1. G3dModelLoader.loadAsync() -> ModelLoader.loadAsync (AssetManager manager, String fileName, FileHandle file, P parameters) { /* EMPTY */ }
+        // 2. G3dModelLoader.loadSync() -> ModelLoader.loadSync (AssetManager manager, String fileName, FileHandle file, P parameters)
+        //    a. !!! final Model result = new Model(data, new TextureProvider.AssetTextureProvider(manager));
+        //       (see TextureProvider.java):
+        //       - FileTextureProvider.load() : return new Texture(Gdx.files.internal(fileName), useMipMaps)
+        //       - AssetTextureProvider.load(): return assetManager.get(fileName, Texture.class)
+        //       (see Model.java where the textureProvider being used)
+        //       Model convertMaterial (ModelMaterial mtl, TextureProvider textureProvider)
+        //
+        // Texture.class LOADER: // see AssetManager: setLoader(Texture.class, new TextureLoader(resolver))
+        // 1. TextureLoader.loadAsync(): uses TextureLoader.TextureParameter
+        //    a. TODO: info.data = TextureData.Factory.loadFromFile(file, format, genMipMaps);
+        // 2. TextureLoader.loadSync(): uses TextureLoader.TextureParameter
+        //    if (parameter != null) {
+        //        texture.setFilter(parameter.minFilter, parameter.magFilter);
+        //        texture.setWrap(parameter.wrapU, parameter.wrapV);
+        //    }
+
         FileHandle rootFileHandle = Gdx.files.local(Conventions.modelsRootDirectory);
         Array<FileHandle> fileHandleList = LibgdxUtils.traversFileHandle(rootFileHandle,
                 file -> file.isDirectory()
@@ -98,6 +164,22 @@ public class HGGame extends Game {
                         || file.getName().toLowerCase().endsWith(".png")  // textures in PNG
                         || file.getName().toLowerCase().endsWith(".bmp")  // textures in BMP
         );
+
+        // See TextureLoader loadAsync() and loadSync() methods for use of this parameter
+        // ATTENTION: 'gdx-1.10.0.jar' and 'gdx-backend-gwt-1.10.0.jar' both have
+        //            com.badlogic.gdx.assets.loaders.TextureLoader inside (seemingly with different code)
+        final TextureLoader.TextureParameter textureParameter = new TextureLoader.TextureParameter();
+        // textureParameter.format;                                // default = null  (the format of the final Texture. Uses the source images format if null)
+        // textureParameter.genMipMaps;                            // default = false (whether to generate mipmaps)
+        // textureParameter.texture;                               // default = null  (The texture to put the TextureData in, optional)
+        // textureParameter.textureData;                           // default = null  (TextureData for textures created on the fly, optional.
+        //                                                         //                 When set, all format and genMipMaps are ignored)
+        // Using TextureProvider.FileTextureProvider defaults:
+        textureParameter.minFilter = Texture.TextureFilter.Linear; // default = TextureFilter.Nearest
+        textureParameter.magFilter = Texture.TextureFilter.Linear; // default = TextureFilter.Nearest
+        textureParameter.wrapU = Texture.TextureWrap.Repeat;       // default = TextureWrap.ClampToEdge
+        textureParameter.wrapV = Texture.TextureWrap.Repeat;       // default = TextureWrap.ClampToEdge
+
         fileHandleList.forEach(fileHandle -> {
             switch (fileHandle.extension().toLowerCase()) {
 //              case "3ds":  // converted to G3DB with fbx-conv
@@ -110,7 +192,7 @@ public class HGGame extends Game {
                 case "tga":
                 case "png":
                 case "bmp":
-                    assetManager.load(fileHandle.path(), Texture.class, null);
+                    assetManager.load(fileHandle.path(), Texture.class, textureParameter);
                     break;
                 case "XXX": // for testing purposes
                     assetManager.load(fileHandle.path(), ParticleEffect.class, null);
