@@ -129,11 +129,10 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // 2D Stage - https://github.com/libgdx/libgdx/wiki/Scene2d.ui#stage-setup
         stage = new ModelPreviewStage(new ScreenViewport(), this);
         // rendering all loaded models
-        hgModels.forEach(hgModel -> addModelInstance(hgModel.afh, null, -1));
+        hgModels.forEach(hgModel -> addModelInstance(hgModel.afh, null, -1, false));
 
         Vector2 grid = arrangeInSpiral(hgMIs);
         float distance = Math.max(Math.abs(grid.x), Math.abs(grid.y)) * maxDofAll;
-
         resetScreen(Vector3.Zero.cpy(), maxDofAll, distance == 0 ? maxDofAll : distance);
         stage.resetPages();
 
@@ -242,7 +241,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
     /**
      * @param assetFL
      */
-    public void addModelInstance(FileHandle assetFL, String nodeId, int nodeIndex) {
+    public void addModelInstance(FileHandle assetFL, String nodeId, int nodeIndex, boolean resetScreen) {
         HGModel hgModel = new HGModel(assetManager.get(assetFL.path(), Model.class), assetFL);
         if (!hgModel.hasMaterials() && !hgModel.hasMeshes() && !hgModel.hasMeshParts()) {
             if (hgModel.hasAnimations()) {
@@ -319,6 +318,13 @@ public class ModelPreviewScreen extends ScreenAdapter {
         currMI.recalculate();
         currMI.setAttributes(new BlendingAttribute());
         hgMIs.add(currMI);
+
+        if (resetScreen) {
+            Vector2 grid = arrangeInSpiral(hgMIs);
+            float distance = Math.max(Math.abs(grid.x), Math.abs(grid.y)) * maxDofAll;
+            resetScreen(currMI.absCenter(Vector3.Zero.cpy()), maxDofAll, distance == 0 ? maxDofAll : distance);
+            stage.resetPages();
+        }
 
         // ********************
         // **** ANIMATIONS ****

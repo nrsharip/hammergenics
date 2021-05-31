@@ -135,7 +135,7 @@ public class ModelPreviewStage extends Stage {
                 if (modelSelectBox.getSelected().equals(noModelsAvailable)) {
                     return;
                 }
-                modelPS.addModelInstance(modelSelectBox.getSelected(), null, -1);
+                modelPS.addModelInstance(modelSelectBox.getSelected(), null, -1, true);
                 Gdx.app.debug(modelSelectBox.getClass().getSimpleName(),
                         "model selected: " + modelSelectBox.getSelected());
             }
@@ -151,10 +151,10 @@ public class ModelPreviewStage extends Stage {
                     return; // we're in the init phase...
                 }
                 if (nodeSelectBox.getSelectedIndex() == 0) { // 'all' selected
-                    modelPS.addModelInstance(modelSelectBox.getSelected(), null, -1);
+                    modelPS.addModelInstance(modelSelectBox.getSelected(), null, -1, true);
                 } else {
                     modelPS.addModelInstance(modelSelectBox.getSelected(),
-                            nodeSelectBox.getSelected(), nodeSelectBox.getSelectedIndex() - 1); // -1 since there's 'all' item
+                            nodeSelectBox.getSelected(), nodeSelectBox.getSelectedIndex() - 1, true); // -1 since there's 'all' item
                 }
             }
         });
