@@ -138,7 +138,7 @@ public class DirectionalLightsAttributeTable extends BaseLightsAttributeTable<Di
             if (yTF != null) { yTF.setText(String.valueOf(attr.lights.get(index).direction.y)); }
             if (zTF != null) { zTF.setText(String.valueOf(attr.lights.get(index).direction.z)); }
         }
-        Gdx.app.debug(getClass().getSimpleName(), "lights size: " + lights.size);
+        //Gdx.app.debug(getClass().getSimpleName(), "lights size: " + lights.size);
     }
 
     @Override

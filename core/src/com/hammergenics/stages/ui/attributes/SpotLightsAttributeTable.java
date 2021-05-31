@@ -51,7 +51,7 @@ public class SpotLightsAttributeTable extends BaseLightsAttributeTable<SpotLight
             if (bTF != null) { bTF.setText(String.valueOf((int)(attr.lights.get(index).color.b * 255))); } // extending the range from [0:1] to [0:255]
             if (aTF != null) { aTF.setText(String.valueOf((int)(attr.lights.get(index).color.a * 255))); } // extending the range from [0:1] to [0:255]
         }
-        Gdx.app.debug(getClass().getSimpleName(), "lights size: " + lights.size);
+        //Gdx.app.debug(getClass().getSimpleName(), "lights size: " + lights.size);
     }
 
     @Override

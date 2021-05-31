@@ -313,29 +313,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         currMI.setAttributes(new BlendingAttribute());
 
         hgMIs.add(currMI);
-
-        Vector2 grid = Vector2.Zero.cpy();
-        maxDofAll = 0f;
-        for(HGModelInstance hgMI: hgMIs) { if (hgMI.maxD > maxDofAll) { maxDofAll = hgMI.maxD; } }
-        for(HGModelInstance hgMI: hgMIs) {
-            float factor = 1f;
-            Vector3 center = hgMI.bb.getCenter(new Vector3());
-            Vector3 position;
-            // Scale: if the dimension of the current instance is less than maximum dimension of all instances scale it
-            if (hgMI.maxD < maxDofAll) { factor = maxDofAll/hgMI.maxD; }
-            // Position:
-            // 1. Move the instance (scaled center) to the current base position ([grid.x, 0, grid.y] vector sub scaled center vector)
-            // 2. Add half of the scaled height to the current position so bounding box's bottom matches XZ plane
-            position = new Vector3(grid.x * 1.1f * maxDofAll, 0f, grid.y * 1.1f * maxDofAll)
-                    .sub(center.cpy().scl(factor))
-                    .add(0, factor * hgMI.bb.getHeight()/2, 0);
-            hgMI.moveAndScale(position, factor);
-            // TODO: check if BB supposed to change on scaling...
-            // hgMI.recalculate();
-            // spiral loop around (0, 0, 0)
-            LibgdxUtils.spiralGetNext(grid);
-            //Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "tmpPosBase = " + tmpPosBase);
-        }
+        arrangeInSpiral(hgMIs);
 
         resetScreen(currMI.absCenter(Vector3.Zero.cpy()), maxDofAll);
         stage.resetPages();
@@ -360,6 +338,31 @@ public class ModelPreviewScreen extends ScreenAdapter {
         stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(currMI));
     }
 
+    private void arrangeInSpiral(Array<HGModelInstance> hgModelInstances) {
+        Vector2 grid = Vector2.Zero.cpy();
+        maxDofAll = 0f;
+        for(HGModelInstance hgMI: hgModelInstances) { if (hgMI.maxD > maxDofAll) { maxDofAll = hgMI.maxD; } }
+        for(HGModelInstance hgMI: hgModelInstances) {
+            float factor = 1f;
+            Vector3 center = hgMI.bb.getCenter(new Vector3());
+            Vector3 position;
+            // Scale: if the dimension of the current instance is less than maximum dimension of all instances scale it
+            if (hgMI.maxD < maxDofAll) { factor = maxDofAll/hgMI.maxD; }
+            // Position:
+            // 1. Move the instance (scaled center) to the current base position ([grid.x, 0, grid.y] vector sub scaled center vector)
+            // 2. Add half of the scaled height to the current position so bounding box's bottom matches XZ plane
+            position = new Vector3(grid.x * 1.1f * maxDofAll, 0f, grid.y * 1.1f * maxDofAll)
+                    .sub(center.cpy().scl(factor))
+                    .add(0, factor * hgMI.bb.getHeight()/2, 0);
+            hgMI.moveAndScale(position, factor);
+            // TODO: check if BB supposed to change on scaling...
+            // hgMI.recalculate();
+            // spiral loop around (0, 0, 0)
+            LibgdxUtils.spiralGetNext(grid);
+            //Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "tmpPosBase = " + tmpPosBase);
+        }
+    }
+
     private void resetScreen(Vector3 position, float size) {
         // TODO: add checks for null perspectiveCamera, cameraInputController, and the size of models
         resetGridModel(size);
@@ -367,11 +370,12 @@ public class ModelPreviewScreen extends ScreenAdapter {
         resetCameraInputController(size, position);
         resetEnvironment();
         // adding one point light for the newly created model instance
-        Vector3 positionPL = position.cpy().add(size/2, size/2, -size/2);
         // FIXME: seems that intensity should grow exponentially over the distance, the table is:
         //      size: 1.7   17    191    376    522
         // intensity:   1  100  28708  56470  78397
-        environment.add(new PointLight().set(Color.WHITE, positionPL, 3 * size * 50f)); // syncup: pl
+        // Disabling until this is fixed...
+        // Vector3 positionPL = position.cpy().add(size/2, size/2, -size/2);
+        // environment.add(new PointLight().set(Color.WHITE, positionPL, 3 * size * 50f)); // syncup: pl
         resetLightsModel(size, position);
     }
 

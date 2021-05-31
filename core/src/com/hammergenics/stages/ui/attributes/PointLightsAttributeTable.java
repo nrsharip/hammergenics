@@ -130,7 +130,7 @@ public class PointLightsAttributeTable extends BaseLightsAttributeTable<PointLig
             if (zTF != null) { zTF.setText(String.valueOf(attr.lights.get(index).position.z)); }
             if (iTF != null) { iTF.setText(String.valueOf(attr.lights.get(index).intensity)); }
         }
-        Gdx.app.debug(getClass().getSimpleName(), "lights size: " + lights.size);
+        //Gdx.app.debug(getClass().getSimpleName(), "lights size: " + lights.size);
     }
 
     @Override
