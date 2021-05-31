@@ -31,7 +31,6 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
-import com.badlogic.gdx.graphics.g3d.environment.PointLight;
 import com.badlogic.gdx.graphics.g3d.model.Animation;
 import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.model.NodePart;
@@ -131,6 +130,11 @@ public class ModelPreviewScreen extends ScreenAdapter {
         stage = new ModelPreviewStage(new ScreenViewport(), this);
         // rendering all loaded models
         hgModels.forEach(hgModel -> addModelInstance(hgModel.afh, null, -1));
+
+        Vector2 grid = arrangeInSpiral(hgMIs);
+        float distance = Math.max(Math.abs(grid.x), Math.abs(grid.y)) * maxDofAll;
+        resetScreen(Vector3.Zero.cpy(), maxDofAll, distance == 0 ? maxDofAll : distance);
+        stage.resetPages();
 
         testRenderRelated();
 
@@ -239,7 +243,6 @@ public class ModelPreviewScreen extends ScreenAdapter {
      */
     public void addModelInstance(FileHandle assetFL, String nodeId, int nodeIndex) {
         HGModel hgModel = new HGModel(assetManager.get(assetFL.path(), Model.class), assetFL);
-        currMI = null;
         if (!hgModel.hasMaterials() && !hgModel.hasMeshes() && !hgModel.hasMeshParts()) {
             if (hgModel.hasAnimations()) {
                 // we got animations only model
@@ -249,6 +252,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
         }
 
         if (hgModel.hasNodes() && nodeId == null) { // switching the whole asset
+            // making sure no events fired during the nodeSelectBox reset
+            stage.nodeSelectBox.getSelection().setProgrammaticChangeEvents(false);
             stage.nodeSelectBox.clearItems();
 
             String array1[] = Arrays.stream(hgModel.obj.nodes.toArray(Node.class)).map(n->n.id).toArray(String[]::new);
@@ -257,6 +262,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
             array2[0] = "All";
 
             stage.nodeSelectBox.setItems(array2);
+            stage.nodeSelectBox.getSelection().setProgrammaticChangeEvents(true);
         }
 
         if (nodeId == null) {
@@ -311,12 +317,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
         currMI.recalculate();
         currMI.setAttributes(new BlendingAttribute());
-
         hgMIs.add(currMI);
-        arrangeInSpiral(hgMIs);
-
-        resetScreen(currMI.absCenter(Vector3.Zero.cpy()), maxDofAll);
-        stage.resetPages();
 
         // ********************
         // **** ANIMATIONS ****
@@ -324,9 +325,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         copyExternalAnimations(assetFL);
 
         currMI.animationController = null;
-        if(currMI.animations.size > 0) {
-            currMI.animationController = new AnimationController(currMI);
-        }
+        if(currMI.animations.size > 0) { currMI.animationController = new AnimationController(currMI); }
 
         // Select Box: Animations
         Array<String> itemsAnimation = new Array<>();
@@ -338,7 +337,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(currMI));
     }
 
-    public void arrangeInSpiral(Array<HGModelInstance> hgModelInstances) {
+    public Vector2 arrangeInSpiral(Array<HGModelInstance> hgModelInstances) {
         Vector2 grid = Vector2.Zero.cpy();
         maxDofAll = 0f;
         for(HGModelInstance hgMI: hgModelInstances) { if (hgMI.maxD > maxDofAll) { maxDofAll = hgMI.maxD; } }
@@ -363,22 +362,23 @@ public class ModelPreviewScreen extends ScreenAdapter {
             LibgdxUtils.spiralGetNext(grid);
             //Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "tmpPosBase = " + tmpPosBase);
         }
+        return grid;
     }
 
-    private void resetScreen(Vector3 position, float size) {
+    private void resetScreen(Vector3 position, float unitSize, float distance) {
         // TODO: add checks for null perspectiveCamera, cameraInputController, and the size of models
-        resetGridModel(size);
-        resetCamera(size, position);
-        resetCameraInputController(size, position);
+        resetGridModel(unitSize / 5);
+        resetCamera(distance, position);
+        resetCameraInputController(unitSize, position);
         resetEnvironment();
         // adding one point light for the newly created model instance
         // FIXME: seems that intensity should grow exponentially over the distance, the table is:
-        //      size: 1.7   17    191    376    522
+        //  unitSize: 1.7   17    191    376    522
         // intensity:   1  100  28708  56470  78397
         // Disabling until this is fixed...
-        // Vector3 positionPL = position.cpy().add(size/2, size/2, -size/2);
-        // environment.add(new PointLight().set(Color.WHITE, positionPL, 3 * size * 50f)); // syncup: pl
-        resetLightsModel(size, position);
+        // Vector3 positionPL = position.cpy().add(unitSize/2, unitSize/2, -unitSize/2);
+        // environment.add(new PointLight().set(Color.WHITE, positionPL, 3 * unitSize * 50f)); // syncup: pl
+        resetLightsModel(unitSize, position);
     }
 
     /**
@@ -394,8 +394,9 @@ public class ModelPreviewScreen extends ScreenAdapter {
             // populating with animations already present
             for (Animation animation : currMI.animations) { animationsPresent.add(animation.id); }
 
-            for (HGModel hgm: hgModels) {
-                String filename = hgm.afh.path();
+            for (int i = 0; i < hgModels.size; i++) {  // using for loop instead of for-each to avoid nested iterators exception:
+                HGModel hgm = hgModels.get(i);         // GdxRuntimeException: #iterator() cannot be used nested.
+                String filename = hgm.afh.path();      // thrown by Array$ArrayIterator...
                 if (filename.startsWith(animationsFolder.toString())) {
                     if (hgm.hasMaterials()) {
                         Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(),
@@ -429,7 +430,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
     /**
      * @return
      */
-    private void resetGridModel(float D) {
+    private void resetGridModel(float step) {
         // IMPORTANT
         if (gridModel != null) {
             gridModel.dispose();
@@ -438,9 +439,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
             gridYModelInstance = null;
         }
 
-        //int step = (int) Math.pow (10, (int) (Math.log10(D))) ; // 10 ^ (number of digits in D - 1)
-        float step = D / 5;
-        Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(),"grid step: " + step + " for max dimension: " + D);
+        Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(),"grid step: " + step);
 
         // see: ModelBuilder()
         // https://libgdx.badlogicgames.com/ci/nightlies/dist/docs/api/com/badlogic/gdx/graphics/g3d/utils/ModelBuilder.html
@@ -483,7 +482,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         mpb = mb.part("origin", GL20.GL_TRIANGLES, Usage.Position | Usage.Normal,
                 new Material(ColorAttribute.createDiffuse(Color.RED)));
 
-        SphereShapeBuilder.build(mpb, D/20, D/20, D/20, 100, 100);
+        SphereShapeBuilder.build(mpb, step/4, step/4, step/4, 100, 100);
 
         // see also com.badlogic.gdx.graphics.g3d.utils.shapebuilders:
         //  ArrowShapeBuilder
@@ -504,8 +503,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
 //        Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(), "GRID model instance: " + LibgdxUtils.getModelInstanceInfo(gridModelInstance));
     }
 
-    public void resetLightsModel(float D, Vector3 c) {
-        if (D == 0) { return; }
+    public void resetLightsModel(float unitSize, Vector3 c) {
+        if (unitSize == 0) { return; }
 
         // IMPORTANT
         if (lightsModel != null) {
@@ -523,7 +522,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         dlArrayModelInstance = new Array<>(ModelInstance.class);
         plArrayModelInstance = new Array<>(ModelInstance.class);
 
-        Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(), "max dimension: " + D + " center: " + c);
+        Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(), "max dimension: " + unitSize + " center: " + c);
 
         // see: ModelBuilder()
         // https://libgdx.badlogicgames.com/ci/nightlies/dist/docs/api/com/badlogic/gdx/graphics/g3d/utils/ModelBuilder.html
@@ -536,14 +535,14 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // MeshPart "directional", see for primitive types: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glBegin.xml
         mpb = mb.part("directional", GL20.GL_TRIANGLES, Usage.Position | Usage.Normal, new Material("base"));
 
-        // Vector (D/10, 0, 0):
-        ArrowShapeBuilder.build(mpb, 0, 0, 0, D/10, 0, 0, 0.2f, 0.5f, 100);
+        // Vector (unitSize/10, 0, 0):
+        ArrowShapeBuilder.build(mpb, 0, 0, 0, unitSize/10, 0, 0, 0.2f, 0.5f, 100);
 
         mb.node().id = "point"; // adding node Y
         // MeshPart "point", see for primitive types: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glBegin.xml
         mpb = mb.part("point", GL20.GL_TRIANGLES, Usage.Position | Usage.Normal, new Material("base"));
 
-        SphereShapeBuilder.build(mpb, D/10, D/10, D/10, 100, 100);
+        SphereShapeBuilder.build(mpb, unitSize/10, unitSize/10, unitSize/10, 100, 100);
 
         // see also com.badlogic.gdx.graphics.g3d.utils.shapebuilders:
         //  ArrowShapeBuilder
@@ -564,7 +563,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
             envDLAttribute.lights.forEach(light -> {
                 ModelInstance mi = new ModelInstance(lightsModel, "directional");
                 // from the center moving backwards to the direction of light
-                mi.transform.setToTranslation(c.cpy().sub(light.direction.cpy().nor().scl(D)));
+                mi.transform.setToTranslation(c.cpy().sub(light.direction.cpy().nor().scl(unitSize)));
                 // rotating the arrow from X vector (1,0,0) to the direction vector
                 mi.transform.rotate(Vector3.X, light.direction.cpy().nor());
                 mi.getMaterial("base", true).set(
@@ -583,7 +582,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
                 Array<DirectionalLight> dLights = new Array<>(DirectionalLight.class);
 
                 Vector3 dir = light.position.cpy().sub(c).nor();
-                float fraction = light.intensity / (2 * D * 50f); // syncup: pl
+                float fraction = light.intensity / (2 * unitSize * 50f); // syncup: pl
                 dLights.addAll(
                         new DirectionalLight().set(new Color(Color.BLACK).add(fraction, fraction, fraction, 0f), dir)
 //                ,new DirectionalLight().set(Color.WHITE,   0,   0, -1f) // xz
@@ -611,9 +610,9 @@ public class ModelPreviewScreen extends ScreenAdapter {
     }
 
     /**
-     * @param D
+     * @param distance
      */
-    private void resetCamera(float D, Vector3 c) {
+    private void resetCamera(float distance, Vector3 lookAtVector) {
         // IDEA finds 2 classes extending Camera:
         // 1. OrthographicCamera
         // 2. PerspectiveCamera
@@ -624,31 +623,31 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // https://gamefromscratch.com/libgdx-tutorial-7-camera-basics/
         // https://gamefromscratch.com/libgdx-tutorial-part-16-cameras/
         // TODO: need to visually debug this as well as switching between Orthographic and Perspective cameras (?)
-        perspectiveCamera.fieldOfView = 70f;                       // PerspectiveCamera: float fieldOfView
-                                                                   //                    the field of view of the height, in degrees
-        perspectiveCamera.position.set(c.x + D, c.y + D, c.z + D); // Camera: Vector3 position
-        perspectiveCamera.direction.set(0, 0, -1);                 // Camera: Vector3 direction
-        perspectiveCamera.up.set(0, 1, 0);                         // Camera: Vector3 up
-        perspectiveCamera.lookAt(c.x, c.y, c.z);                   //   camera.up and camera.direction must
-                                                                   //   ALWAYS be orthonormal vectors
-        //perspectiveCamera.projection;                            // Camera: Matrix4 projection
-        //perspectiveCamera.view;                                  // Camera: Matrix4 view
-        //perspectiveCamera.combined;                              // Camera: Matrix4 combined
-        //perspectiveCamera.invProjectionView;                     // Camera: Matrix4 invProjectionView
-        perspectiveCamera.near = Math.min(1f, D/10);               // Camera: float near
-        perspectiveCamera.far = 10*D;                              // Camera: float far
-        //perspectiveCamera.viewportWidth;                         // Camera: float viewportWidth
-        //perspectiveCamera.viewportHeight;                        // Camera: float viewportHeight
-        //perspectiveCamera.frustum;                               // Camera: Frustum frustum
-                                                                   //         A truncated rectangular pyramid.
-                                                                   //         Used to define the viewable region and
-                                                                   //         its projection onto the screen
-        //perspectiveCamera.frustum.planes;                        // Frustum: Plane[] planes
-                                                                   //          the six clipping planes:
-                                                                   //          near, far, left, right, top, bottom
-        //perspectiveCamera.frustum.planePoints;                   // Frustum: Vector3[] planePoints
-                                                                   //          eight points making up the near and far clipping "rectangles".
-                                                                   //          order is counter clockwise, starting at bottom left
+        perspectiveCamera.fieldOfView = 70f;                              // PerspectiveCamera: float fieldOfView
+                                                                          //                    the field of view of the height, in degrees
+        perspectiveCamera.position.set(lookAtVector.cpy().add(distance)); // Camera: Vector3 position
+        perspectiveCamera.direction.set(0, 0, -1);                        // Camera: Vector3 direction
+        perspectiveCamera.up.set(0, 1, 0);                                // Camera: Vector3 up
+        perspectiveCamera.lookAt(lookAtVector);                           //   camera.up and camera.direction must
+                                                                          //   ALWAYS be orthonormal vectors
+        //perspectiveCamera.projection;                                   // Camera: Matrix4 projection
+        //perspectiveCamera.view;                                         // Camera: Matrix4 view
+        //perspectiveCamera.combined;                                     // Camera: Matrix4 combined
+        //perspectiveCamera.invProjectionView;                            // Camera: Matrix4 invProjectionView
+        perspectiveCamera.near = Math.min(1f, distance/10);               // Camera: float near
+        perspectiveCamera.far = 10*distance;                              // Camera: float far
+        //perspectiveCamera.viewportWidth;                                // Camera: float viewportWidth
+        //perspectiveCamera.viewportHeight;                               // Camera: float viewportHeight
+        //perspectiveCamera.frustum;                                      // Camera: Frustum frustum
+                                                                          //         A truncated rectangular pyramid.
+                                                                          //         Used to define the viewable region and
+                                                                          //         its projection onto the screen
+        //perspectiveCamera.frustum.planes;                               // Frustum: Plane[] planes
+                                                                          //          the six clipping planes:
+                                                                          //          near, far, left, right, top, bottom
+        //perspectiveCamera.frustum.planePoints;                          // Frustum: Vector3[] planePoints
+                                                                          //          eight points making up the near and far clipping "rectangles".
+                                                                          //          order is counter clockwise, starting at bottom left
         // See also:
         // *   frustum culling : https://en.wikipedia.org/wiki/Hidden-surface_determination#Viewing-frustum_culling
         // * back-face culling : https://en.wikipedia.org/wiki/Back-face_culling
@@ -656,22 +655,22 @@ public class ModelPreviewScreen extends ScreenAdapter {
     }
 
     /**
-     * @param D
+     * @param unitSize
      */
-    private void resetCameraInputController(float D, Vector3 c) {
+    private void resetCameraInputController(float unitSize, Vector3 c) {
         // Uncomment to get gen_* files with fields contents:
         //LibGDXUtil.getFieldsContents(cameraInputController, 1,  "", true);
 
-        // Setting most of cameraInputController to defaults, except for scrollFactor and translateUnits.
+        // Setting most of cameraInputController to defaults, except for scrollFactor, translateUnits and target.
         // These are calculated based on the model's dimensions
         cameraInputController.rotateButton = Buttons.LEFT;     //     int rotateButton    = 0
         cameraInputController.rotateAngle = 360f;              //   float rotateAngle     = 360.0
         cameraInputController.translateButton = Buttons.RIGHT; //     int translateButton = 1
-        cameraInputController.translateUnits = 2*D;            //   float translateUnits  = 188.23 // "right button speed"
+        cameraInputController.translateUnits = 2*unitSize;     //   float translateUnits  = 188.23
         cameraInputController.forwardButton = Buttons.MIDDLE;  //     int forwardButton   = 2
         cameraInputController.activateKey = 0;                 //     int activateKey     = 0
         cameraInputController.alwaysScroll = true;             // boolean alwaysScroll    = true
-        cameraInputController.scrollFactor = -0.05f;           //   float scrollFactor    = -0.2 // "zoom speed"
+        cameraInputController.scrollFactor = -0.05f;           //   float scrollFactor    = -0.2
         cameraInputController.pinchZoomFactor = 10f;           //   float pinchZoomFactor = 10.0
         cameraInputController.autoUpdate = true;               // boolean autoUpdate      = true
         cameraInputController.target.set(c.x, c.y, c.z);       // Vector3 target          = (0.0,0.0,0.0)

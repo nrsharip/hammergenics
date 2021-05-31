@@ -425,7 +425,7 @@ public class ModelPreviewStage extends Stage {
         }
 
         textureImage.setDrawable(null);
-        if (modelPS.currMI.materials != null && modelPS.currMI.materials.size > 0) {
+        if (modelPS.currMI != null && modelPS.currMI.materials != null && modelPS.currMI.materials.size > 0) {
             mtlAttrTable = new AttributesManagerTable(skin, modelPS.currMI.materials.get(0), modelPS);
             mtlAttrTable.setListener(eventListener);
             // Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "" );
