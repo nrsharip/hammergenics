@@ -133,6 +133,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
         Vector2 grid = arrangeInSpiral(hgMIs);
         float distance = Math.max(Math.abs(grid.x), Math.abs(grid.y)) * maxDofAll;
+
         resetScreen(Vector3.Zero.cpy(), maxDofAll, distance == 0 ? maxDofAll : distance);
         stage.resetPages();
 
@@ -367,7 +368,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
     private void resetScreen(Vector3 position, float unitSize, float distance) {
         // TODO: add checks for null perspectiveCamera, cameraInputController, and the size of models
-        resetGridModel(unitSize / 5);
+        resetGridModel(unitSize / 5, distance * 5);
         resetCamera(distance, position);
         resetCameraInputController(unitSize, position);
         resetEnvironment();
@@ -430,7 +431,13 @@ public class ModelPreviewScreen extends ScreenAdapter {
     /**
      * @return
      */
-    private void resetGridModel(float step) {
+    private void resetGridModel(float step, float size) {
+        if (size < step) {
+            Gdx.app.error(Thread.currentThread().getStackTrace()[3].getMethodName(),
+                "the size of the grid: " + size + " is lesser than the grid step: " + step);
+            return;
+        }
+
         // IMPORTANT
         if (gridModel != null) {
             gridModel.dispose();
@@ -453,10 +460,10 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // see for primitive types: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glBegin.xml
         mpb = mb.part("XZ", GL20.GL_LINES, Usage.Position | Usage.Normal,
                 new Material(ColorAttribute.createDiffuse(Color.YELLOW)));
-        for (float pos = -1000 * step; pos < 1000 * step; pos += step ) {
+        for (float pos = -size/2; pos < size/2; pos += step ) {
             // see implementation: Add a line. Requires GL_LINES primitive type.
-            mpb.line(-1000 * step, 0,          pos, 1000 * step, 0,         pos); // along X-axis
-            mpb.line(         pos, 0, -1000 * step,         pos, 0, 1000 * step); // along Z-axis
+            mpb.line(-size/2, 0,     pos, size/2, 0,    pos); // along X-axis
+            mpb.line(    pos, 0, -size/2,    pos, 0, size/2); // along Z-axis
         }
 
         mb.node().id = "Y"; // adding node Y
@@ -464,8 +471,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // see for primitive types: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glBegin.xml
         mpb = mb.part("Y", GL20.GL_LINES, Usage.Position | Usage.Normal,
                 new Material(ColorAttribute.createDiffuse(Color.RED)));
-        for (float x = -1000 * step; x < 1000 * step; x += 20 * step ) {
-            for (float z = -1000 * step; z < 1000 * step; z += 20 * step ) {
+        for (float x = -size/2; x < size/2; x += 20 * step ) {
+            for (float z = -size/2; z < size/2; z += 20 * step ) {
                 // see implementation: Add a line. Requires GL_LINES primitive type.
                 mpb.line(x, -10 * step, z, x, 10 * step, z); // along Y-axis
                 // Exception in thread "LWJGL Application" com.badlogic.gdx.utils.GdxRuntimeException: Too many vertices used
