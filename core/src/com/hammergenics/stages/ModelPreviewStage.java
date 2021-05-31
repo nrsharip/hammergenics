@@ -74,6 +74,7 @@ public class ModelPreviewStage extends Stage {
     public CheckBox gridXZCheckBox;
     public CheckBox gridYCheckBox;
     public CheckBox lightsCheckBox;
+    public CheckBox origScaleCheckBox;
     public SelectBox<FileHandle> modelSelectBox;
     public SelectBox<String> nodeSelectBox;
     public SelectBox<String> animationSelectBox = null;
@@ -205,6 +206,13 @@ public class ModelPreviewStage extends Stage {
 
         lightsCheckBox = new CheckBox("lights (ENV)", skin);
         lightsCheckBox.setChecked(true);
+
+        origScaleCheckBox = new CheckBox("orig scale", skin);
+        origScaleCheckBox.setChecked(false);
+        origScaleCheckBox.addListener(new ChangeListener() {
+            @Override
+            public void changed (ChangeEvent event, Actor actor) { modelPS.arrangeInSpiral(modelPS.hgMIs); }
+        });
 
         // TEXT BUTTONS:
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textbutton
@@ -396,6 +404,7 @@ public class ModelPreviewStage extends Stage {
         lowerPanel.add(gridXZCheckBox).pad(3f);
         lowerPanel.add(gridYCheckBox).pad(3f);
         lowerPanel.add(lightsCheckBox).pad(3f);
+        lowerPanel.add(origScaleCheckBox).pad(3f);
         lowerPanel.add().expandX();
 
         rootTable.add(lowerPanel).colspan(3).expandX().left();

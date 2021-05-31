@@ -338,7 +338,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(currMI));
     }
 
-    private void arrangeInSpiral(Array<HGModelInstance> hgModelInstances) {
+    public void arrangeInSpiral(Array<HGModelInstance> hgModelInstances) {
         Vector2 grid = Vector2.Zero.cpy();
         maxDofAll = 0f;
         for(HGModelInstance hgMI: hgModelInstances) { if (hgMI.maxD > maxDofAll) { maxDofAll = hgMI.maxD; } }
@@ -346,8 +346,10 @@ public class ModelPreviewScreen extends ScreenAdapter {
             float factor = 1f;
             Vector3 center = hgMI.bb.getCenter(new Vector3());
             Vector3 position;
-            // Scale: if the dimension of the current instance is less than maximum dimension of all instances scale it
-            if (hgMI.maxD < maxDofAll) { factor = maxDofAll/hgMI.maxD; }
+            if (!stage.origScaleCheckBox.isChecked() && hgMI.maxD < maxDofAll) {
+                // Scale: if the dimension of the current instance is less than maximum dimension of all instances scale it
+                factor = maxDofAll/hgMI.maxD;
+            }
             // Position:
             // 1. Move the instance (scaled center) to the current base position ([grid.x, 0, grid.y] vector sub scaled center vector)
             // 2. Add half of the scaled height to the current position so bounding box's bottom matches XZ plane
