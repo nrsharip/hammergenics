@@ -380,33 +380,40 @@ public class LibgdxUtils {
      * @return
      */
     public static Array<FileHandle> traversFileHandle(FileHandle fileHandle, FileFilter filter) {
-        //Gdx.app.debug(LibGDXUtil.class.getSimpleName(), fileHandle.toString());
         Array<FileHandle> out = new Array<>();
         return traversFileHandle(fileHandle, filter, "\t", out);
     }
 
     /**
      * @param fileHandle
-     * @param out
      * @param filter
+     * @param out
      * @return
      */
-    public static Array<FileHandle> traversFileHandle(FileHandle fileHandle, Array<FileHandle> out, FileFilter filter) {
-        //Gdx.app.debug(LibGDXUtil.class.getSimpleName(), fileHandle.toString());
-        if (fileHandle == null) {
-            return out;
-        }
+    public static Array<FileHandle> traversFileHandle(FileHandle fileHandle, FileFilter filter, Array<FileHandle> out) {
         return traversFileHandle(fileHandle, filter, "\t", out);
     }
 
     /**
-     * @param fileHandle
-     * @param filter
-     * @param indent
-     * @param out
-     * @return
+     * Traverses the given file handle. Returns the array of file handles (if any) within current fileHandle (a folder presumably) <p>
+     * E.g. for "tmp" FileHandle the array would look like:
+     * <p>
+     * 0: tmp/subfolder1/file1 <br>
+     * 1: tmp/subfolder2/file1 <br>
+     * 2: tmp/subfolder2/file2 <br>
+     * 3: tmp/file1 <br>
+     * 4: tmp/file2 <br>
+     * ...
+     *
+     * @param fileHandle File Handle to start the traversal from
+     * @param filter A boolean function: returns True if the file is accepted, False otherwise
+     * @param indent This is an auxiliary internal variable for recursive execution
+     * @param out Output array to be provided beforehand
+     * @return Output array
      */
-    private static Array<FileHandle> traversFileHandle(FileHandle fileHandle, FileFilter filter, String indent, Array<FileHandle> out) {
+    public static Array<FileHandle> traversFileHandle(FileHandle fileHandle, FileFilter filter, String indent, Array<FileHandle> out) {
+        if (fileHandle == null) { return out; }
+
         for (FileHandle subFileHandle : fileHandle.list(filter)) {
             //Gdx.app.debug(LibGDXUtil.class.getSimpleName(), indent + subFileHandle);
             if (!subFileHandle.isDirectory()) { out.add(subFileHandle); }
@@ -415,6 +422,38 @@ public class LibgdxUtils {
         }
         return out;
     }
+
+    /**
+     * Traverses the given file handle. Returns the map: file handle to the array of file handles <p>
+     * E.g. for "tmp" FileHandle the map would look like: <br>
+     * <table><caption></caption>
+     * <tr><td>                                               key:</td><td>                 value:</td></tr>
+     * <tr><td rowspan=5 style="vertical-align:top">           tmp</td><td>0: tmp/subfolder1/file1</td></tr>
+     * <tr>                                                            <td>1: tmp/subfolder2/file1</td></tr>
+     * <tr>                                                            <td>2: tmp/subfolder2/file2</td></tr>
+     * <tr>                                                            <td>3: tmp/file1           </td></tr>
+     * <tr>                                                            <td>4: tmp/file2           </td></tr>
+     * <tr><td>                                     tmp/subfolder1</td><td>0: tmp/subfolder1/file1</td></tr>
+     * <tr><td rowspan=2 style="vertical-align:top">tmp/subfolder2</td><td>0: tmp/subfolder2/file1</td></tr>
+     * <tr>                                                            <td>1: tmp/subfolder2/file2</td></tr>
+     * </table>
+     * @param fileHandle File Handle to start the traversal from
+     * @param filter A boolean function: returns True if the file is accepted, False otherwise
+     * @param outMap Output map to be provided beforehand
+     * @return
+     */
+    public static ArrayMap<FileHandle, Array<FileHandle>> traversFileHandle(FileHandle fileHandle, FileFilter filter, ArrayMap<FileHandle, Array<FileHandle>> outMap) {
+        if (fileHandle == null) { return outMap; }
+
+        Array<FileHandle> outArray = traversFileHandle(fileHandle, filter);
+        if (outArray.size > 0) { outMap.put(fileHandle, outArray); }
+
+        for (FileHandle subFileHandle : fileHandle.list(filter)) {
+            if (subFileHandle.isDirectory()) { traversFileHandle(subFileHandle,filter, outMap); }
+        }
+        return outMap;
+    }
+
 
     /**
      * @param obj
@@ -615,11 +654,11 @@ public class LibgdxUtils {
 
     /**
      * Traverse the grid by spiral, return the next position after the given.
-     * </p>
+     * <p>
      * Starting from the point (0, 0) do the following moves:
-     * </p>
-     *  ↓ (1 time) ← (1 time) ↑ (2 times) → (2 times) ↓ (3 times) ← (3 times) ↑ (4 times) → (4 times) ...
-     * </p>
+     * <p>
+     * down (1 time) left (1 time) up (2 times) right (2 times) down (3 times) left (3 times) up (4 times) right (4 times) ...
+     * <p>
      * If the given position is reached, do the last remaining step on it and return.
      *
      * @param inout Initial position

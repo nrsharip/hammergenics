@@ -129,16 +129,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         environment = new Environment();
 
         // 2D Stage - https://github.com/libgdx/libgdx/wiki/Scene2d.ui#stage-setup
-        stage = new ModelPreviewStage(new ScreenViewport(), this);
-        // rendering all loaded models
-        hgModels.forEach(hgModel -> addModelInstance(hgModel.afh, null, -1, false));
-
-        if (hgMIs.size > 0) {
-            currGrid = arrangeInSpiral(hgMIs);
-            float distance = Math.max(Math.abs(currGrid.x), Math.abs(currGrid.y)) * maxDofAll;
-            resetScreen((currMI = hgMIs.get(0)).absCenter(Vector3.Zero.cpy()), maxDofAll, distance == 0 ? maxDofAll : distance);
-            stage.resetPages();
-        }
+        stage = new ModelPreviewStage(new ScreenViewport(), game, this);
 
         testRenderRelated();
 
@@ -240,6 +231,18 @@ public class ModelPreviewScreen extends ScreenAdapter {
         if (stage != null) { stage.dispose(); }
         if (gridModel != null) { gridModel.dispose(); }
         if (lightsModel != null) { lightsModel.dispose(); }
+    }
+
+    public void addModelInstances(Array<FileHandle> modelFHs) {
+        // rendering all loaded models
+        modelFHs.forEach(fileHandle -> addModelInstance(fileHandle, null, -1, false));
+
+        if (hgMIs.size > 0) {
+            currGrid = arrangeInSpiral(hgMIs);
+            float distance = Math.max(Math.abs(currGrid.x), Math.abs(currGrid.y)) * maxDofAll;
+            resetScreen((currMI = hgMIs.get(0)).absCenter(Vector3.Zero.cpy()), maxDofAll, distance == 0 ? maxDofAll : distance);
+            stage.resetPages();
+        }
     }
 
     /**
@@ -657,7 +660,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         //perspectiveCamera.combined;                                     // Camera: Matrix4 combined
         //perspectiveCamera.invProjectionView;                            // Camera: Matrix4 invProjectionView
         perspectiveCamera.near = Math.min(1f, distance/10);               // Camera: float near
-        perspectiveCamera.far = 100*distance;                             // Camera: float far
+        perspectiveCamera.far = 1000*distance;                            // Camera: float far
         //perspectiveCamera.viewportWidth;                                // Camera: float viewportWidth
         //perspectiveCamera.viewportHeight;                               // Camera: float viewportHeight
         //perspectiveCamera.frustum;                                      // Camera: Frustum frustum

@@ -30,10 +30,9 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Align;
-import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.Viewport;
-import com.hammergenics.HGModel;
+import com.hammergenics.HGGame;
 import com.hammergenics.config.Config;
 import com.hammergenics.screens.ModelPreviewScreen;
 import com.hammergenics.stages.ui.AttributesManagerTable;
@@ -49,7 +48,8 @@ public class ModelPreviewStage extends Stage {
     public static final Color COLOR_PRESSED = Color.RED;
     public static final Color COLOR_UNPRESSED = Color.GRAY;
 
-    public ModelPreviewScreen modelPS;
+    public final HGGame game;
+    public final ModelPreviewScreen modelPS;
 
     // 2D Stage Styling:
     public Skin skin;
@@ -75,6 +75,7 @@ public class ModelPreviewStage extends Stage {
     public CheckBox gridYCheckBox;
     public CheckBox lightsCheckBox;
     public CheckBox origScaleCheckBox;
+    public SelectBox<FileHandle> folderSelectBox;
     public SelectBox<FileHandle> modelSelectBox;
     public SelectBox<String> nodeSelectBox;
     public SelectBox<String> animationSelectBox = null;
@@ -84,8 +85,9 @@ public class ModelPreviewStage extends Stage {
 
     public BaseAttributeTable.EventListener eventListener;
     
-    public ModelPreviewStage(Viewport viewport, ModelPreviewScreen modelPS) {
+    public ModelPreviewStage(Viewport viewport, HGGame game, ModelPreviewScreen modelPS) {
         super(viewport);
+        this.game = game;
         this.modelPS = modelPS;
 
         setup2DStageStyling();
@@ -114,30 +116,50 @@ public class ModelPreviewStage extends Stage {
 
         // SELECT BOXES:
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#selectbox
-        modelSelectBox = new SelectBox<>(skin);
 
         // Select Box: Models
-        Array<FileHandle> itemsModel = new Array<>();
-        for (HGModel hgModel: modelPS.hgModels) {
-            if (!hgModel.hasMaterials() && !hgModel.hasMeshes() && !hgModel.hasMeshParts()) { continue; }
+        folderSelectBox = new SelectBox<>(skin);
+        folderSelectBox.getSelection().setProgrammaticChangeEvents(false); // even though the listeners are defined later
+        folderSelectBox.clearItems();
 
-            itemsModel.add(hgModel.afh);
-        }
+        FileHandle array1[] = game.folder2models.keys().toArray().toArray(FileHandle.class);
+        FileHandle array2[] = new FileHandle[array1.length + 1];
+        System.arraycopy(array1, 0, array2, 1, array1.length);
+        array2[0] = Gdx.files.local("Select Folder"); // syncup: folder select
 
-        String noModelsAvailable = "No models available";
-        if (itemsModel.size == 0) { itemsModel.add(Gdx.files.local(noModelsAvailable)); }
-
-        modelSelectBox.clearItems();
-        modelSelectBox.setItems(itemsModel);
-        modelSelectBox.addListener(new ChangeListener() {
+        folderSelectBox.setItems(array2);
+        folderSelectBox.getSelection().setProgrammaticChangeEvents(true);
+        folderSelectBox.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                if (modelSelectBox.getSelected().equals(noModelsAvailable)) {
-                    return;
+                if (modelSelectBox == null || folderSelectBox.getSelectedIndex() == 0) { return; } // syncup: folder select
+
+                FileHandle array1[] = game.folder2models.get(folderSelectBox.getSelected()).toArray(FileHandle.class);
+                FileHandle array2[] = new FileHandle[array1.length + 2];
+                System.arraycopy(array1, 0, array2, 2, array1.length);
+                array2[0] = Gdx.files.local("Select Model"); // syncup: model select
+                array2[1] = Gdx.files.local("ALL");
+
+                modelSelectBox.getSelection().setProgrammaticChangeEvents(false); // even though the listeners are defined later
+                modelSelectBox.clearItems();
+                modelSelectBox.setItems(array2);
+                modelSelectBox.getSelection().setProgrammaticChangeEvents(true);
+            }
+        });
+
+        modelSelectBox = new SelectBox<>(skin);
+        modelSelectBox.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {       // syncup: model select
+                if (modelSelectBox.getSelectedIndex() == 0) { return; } // 'Select Model' item
+                if (modelSelectBox.getSelectedIndex() == 1) {           // 'ALL' item
+                    modelPS.addModelInstances(game.folder2models.get(folderSelectBox.getSelected()));
+                    Gdx.app.debug(modelSelectBox.getClass().getSimpleName(), "model selected: ALL");
+                } else {
+                    modelPS.addModelInstance(modelSelectBox.getSelected(), null, -1, true);
+                    Gdx.app.debug(modelSelectBox.getClass().getSimpleName(),
+                            "model selected: " + modelSelectBox.getSelected());
                 }
-                modelPS.addModelInstance(modelSelectBox.getSelected(), null, -1, true);
-                Gdx.app.debug(modelSelectBox.getClass().getSimpleName(),
-                        "model selected: " + modelSelectBox.getSelected());
             }
         });
 
@@ -365,11 +387,13 @@ public class ModelPreviewStage extends Stage {
 
         // https://github.com/libgdx/libgdx/wiki/Table#adding-cells
         Table upperPanel = new Table();
-        upperPanel.add(new Label("Models: ", skin)).right();
+        upperPanel.add(new Label("Folder: ", skin)).right();
+        upperPanel.add(folderSelectBox).padLeft(5f).left();
+        upperPanel.add(new Label("Model: ", skin)).right();
         upperPanel.add(modelSelectBox).padLeft(5f).left();
-        upperPanel.add(new Label("Nodes: ", skin)).padLeft(5f).right();
+        upperPanel.add(new Label("Node: ", skin)).padLeft(5f).right();
         upperPanel.add(nodeSelectBox).padLeft(5f).left();
-        upperPanel.add(new Label("Animations: ", skin)).padLeft(5f).right();
+        upperPanel.add(new Label("Animation: ", skin)).padLeft(5f).right();
         upperPanel.add(animationSelectBox).padLeft(5f).left();
         upperPanel.add().expandX();
 

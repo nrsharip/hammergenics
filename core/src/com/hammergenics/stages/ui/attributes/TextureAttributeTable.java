@@ -132,7 +132,7 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
         FileHandle assetFileHandle = mps.stage.modelSelectBox.getSelected();
         Array<FileHandle> textureFileHandleArray = texturesLookUp(assetFileHandle);
 
-        if (textureFileHandleArray.size > 0) {
+        if (textureFileHandleArray != null && textureFileHandleArray.size > 0) {
             itemsTexture.addAll(textureFileHandleArray.toString(";").split(";"));
         }
 
@@ -187,6 +187,7 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
     }
 
     private Array<FileHandle> texturesLookUp (FileHandle assetFileHandle) {
+        if (assetFileHandle == null) { return null; }
         Array<FileHandle> textureFileHandleArray = LibgdxUtils.traversFileHandle(assetFileHandle.parent(),
                 file -> file.isDirectory()
                         || file.getName().toLowerCase().endsWith("png")  // textures in PNG
@@ -199,21 +200,21 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
         textureFileHandleArray = LibgdxUtils.traversFileHandle(
                 // starting at parent() since we already traversed current folder/subfolders above
                 LibgdxUtils.fileOnPath(assetFileHandle.parent(), "textures"),
-                textureFileHandleArray,
                 file -> file.isDirectory()
                         || file.getName().toLowerCase().endsWith("png")  // textures in PNG
                         || file.getName().toLowerCase().endsWith("tga")  // textures in TGA
-                        || file.getName().toLowerCase().endsWith("bmp")  // textures in BMP
+                        || file.getName().toLowerCase().endsWith("bmp"), // textures in BMP
+                textureFileHandleArray
         );
         // All PNG files in the "skins" directory and subdirectories (if any) on asset's path
         textureFileHandleArray = LibgdxUtils.traversFileHandle(
                 // starting at parent() since we already traversed current folder/subfolders above
                 LibgdxUtils.fileOnPath(assetFileHandle.parent(), "skins"),
-                textureFileHandleArray,
                 file -> file.isDirectory()
                         || file.getName().toLowerCase().endsWith("png")  // textures in PNG
                         || file.getName().toLowerCase().endsWith("tga")  // textures in TGA
-                        || file.getName().toLowerCase().endsWith("bmp")  // textures in BMP
+                        || file.getName().toLowerCase().endsWith("bmp"), // textures in BMP
+                textureFileHandleArray
         );
         return textureFileHandleArray;
     }

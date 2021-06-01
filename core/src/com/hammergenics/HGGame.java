@@ -35,6 +35,7 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import com.badlogic.gdx.graphics.g3d.utils.DefaultShaderProvider;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Logger;
 import com.hammergenics.config.Config;
 import com.hammergenics.config.Conventions;
@@ -49,6 +50,7 @@ import com.hammergenics.util.LibgdxUtils;
 public class HGGame extends Game {
     public final AssetManager assetManager = new AssetManager();
     public ModelBatch modelBatch;
+    public ArrayMap<FileHandle, Array<FileHandle>> folder2models;
 
     /**
      *
@@ -152,7 +154,7 @@ public class HGGame extends Game {
         //        texture.setWrap(parameter.wrapU, parameter.wrapV);
         //    }
 
-        FileHandle rootFileHandle = Gdx.files.local(Conventions.modelsRootDirectory);
+        FileHandle rootFileHandle = Gdx.files.local(Conventions.modelsRootDirectory); // syncup: asset manager
         Array<FileHandle> fileHandleList = LibgdxUtils.traversFileHandle(rootFileHandle,
                 file -> file.isDirectory()
 //                      || file.getName().toLowerCase().endsWith(".3ds")  // converted to G3DB with fbx-conv
@@ -202,6 +204,17 @@ public class HGGame extends Game {
                             "Unexpected file extension: " + fileHandle.extension());
             }
         });
+
+        folder2models = new ArrayMap<>(FileHandle.class, Array.class);
+        rootFileHandle = Gdx.files.local(Conventions.modelsRootDirectory); // syncup: asset manager
+        LibgdxUtils.traversFileHandle(rootFileHandle,
+                file -> file.isDirectory()
+                        || file.getName().toLowerCase().endsWith(".obj")  // wavefront
+//                      || file.getName().toLowerCase().endsWith(".gltf") // see for support: https://github.com/mgsx-dev/gdx-gltf
+//                      || file.getName().toLowerCase().endsWith(".g3dj") // json // disabling for now...
+                        || file.getName().toLowerCase().endsWith(".g3db"), // binary
+                folder2models
+        );
 
         // https://github.com/libgdx/libgdx/wiki/ModelBatch#default-shader
         // The behavior of DefaultShader class is configurable by supplying
