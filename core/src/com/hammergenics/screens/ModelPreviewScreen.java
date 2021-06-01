@@ -31,6 +31,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
+import com.badlogic.gdx.graphics.g3d.environment.PointLight;
 import com.badlogic.gdx.graphics.g3d.model.Animation;
 import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.model.NodePart;
@@ -88,6 +89,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
     public Array<HGModelInstance> hgMIs = new Array<HGModelInstance>(HGModelInstance.class);
     public float maxDofAll = 0f;
     public HGModelInstance currMI = null;
+    public Vector2 currGrid = Vector2.Zero.cpy();
 
     private float clockFPS;
 
@@ -131,10 +133,12 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // rendering all loaded models
         hgModels.forEach(hgModel -> addModelInstance(hgModel.afh, null, -1, false));
 
-        Vector2 grid = arrangeInSpiral(hgMIs);
-        float distance = Math.max(Math.abs(grid.x), Math.abs(grid.y)) * maxDofAll;
-        resetScreen(Vector3.Zero.cpy(), maxDofAll, distance == 0 ? maxDofAll : distance);
-        stage.resetPages();
+        if (hgMIs.size > 0) {
+            currGrid = arrangeInSpiral(hgMIs);
+            float distance = Math.max(Math.abs(currGrid.x), Math.abs(currGrid.y)) * maxDofAll;
+            resetScreen((currMI = hgMIs.get(0)).absCenter(Vector3.Zero.cpy()), maxDofAll, distance == 0 ? maxDofAll : distance);
+            stage.resetPages();
+        }
 
         testRenderRelated();
 
@@ -320,9 +324,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
         hgMIs.add(currMI);
 
         if (resetScreen) {
-            Vector2 grid = arrangeInSpiral(hgMIs);
-            float distance = Math.max(Math.abs(grid.x), Math.abs(grid.y)) * maxDofAll;
-            resetScreen(currMI.absCenter(Vector3.Zero.cpy()), maxDofAll, distance == 0 ? maxDofAll : distance);
+            currGrid = arrangeInSpiral(hgMIs);
+            resetScreen(currMI.absCenter(Vector3.Zero.cpy()), maxDofAll, maxDofAll);
             stage.resetPages();
         }
 
@@ -372,20 +375,23 @@ public class ModelPreviewScreen extends ScreenAdapter {
         return grid;
     }
 
-    private void resetScreen(Vector3 position, float unitSize, float distance) {
+    private void resetScreen(Vector3 position, float unitSize, float overallSize) {
         // TODO: add checks for null perspectiveCamera, cameraInputController, and the size of models
-        resetGridModel(unitSize / 5, distance * 5);
-        resetCamera(distance, position);
-        resetCameraInputController(unitSize, position);
-        resetEnvironment();
-        // adding one point light for the newly created model instance
-        // FIXME: seems that intensity should grow exponentially over the distance, the table is:
+        resetGridModel(unitSize / 5, (position.len() + overallSize) * 5);
+        resetCamera(overallSize, position.cpy());
+        resetCameraInputController(unitSize, position.cpy());
+        resetEnvironment(); // clears the point lights if any
+
+        // adding a single point light
+        Vector3 positionPL = position.cpy().add(unitSize/2, unitSize/2, -unitSize/2);
+        // seems that intensity should grow exponentially(?) over the distance, the table is:
         //  unitSize: 1.7   17    191    376    522
         // intensity:   1  100  28708  56470  78397
-        // Disabling until this is fixed...
-        // Vector3 positionPL = position.cpy().add(unitSize/2, unitSize/2, -unitSize/2);
-        // environment.add(new PointLight().set(Color.WHITE, positionPL, 3 * unitSize * 50f)); // syncup: pl
-        resetLightsModel(unitSize, position);
+        float intensity = (overallSize < 50f ? 10.10947f : 151.0947f) * overallSize - 90f; // TODO: temporal solution, revisit
+        intensity = intensity <= 0 ? 1f : intensity;                                       // TODO: temporal solution, revisit
+        environment.add(new PointLight().set(Color.WHITE, positionPL, intensity < 0 ? 0.5f : intensity)); // syncup: pl
+
+        resetEnvLightsModel(unitSize, position.cpy());
     }
 
     /**
@@ -516,8 +522,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
 //        Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(), "GRID model instance: " + LibgdxUtils.getModelInstanceInfo(gridModelInstance));
     }
 
-    public void resetLightsModel(float unitSize, Vector3 c) {
-        if (unitSize == 0) { return; }
+    public void resetEnvLightsModel(float distance, Vector3 c) {
+        if (distance == 0) { return; }
 
         // IMPORTANT
         if (lightsModel != null) {
@@ -535,7 +541,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         dlArrayModelInstance = new Array<>(ModelInstance.class);
         plArrayModelInstance = new Array<>(ModelInstance.class);
 
-        Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(), "max dimension: " + unitSize + " center: " + c);
+        Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(), "distance: " + distance + " center: " + c);
 
         // see: ModelBuilder()
         // https://libgdx.badlogicgames.com/ci/nightlies/dist/docs/api/com/badlogic/gdx/graphics/g3d/utils/ModelBuilder.html
@@ -548,14 +554,14 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // MeshPart "directional", see for primitive types: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glBegin.xml
         mpb = mb.part("directional", GL20.GL_TRIANGLES, Usage.Position | Usage.Normal, new Material("base"));
 
-        // Vector (unitSize/10, 0, 0):
-        ArrowShapeBuilder.build(mpb, 0, 0, 0, unitSize/10, 0, 0, 0.2f, 0.5f, 100);
+        // Vector (distance/10, 0, 0):
+        ArrowShapeBuilder.build(mpb, 0, 0, 0, distance/10, 0, 0, 0.2f, 0.5f, 100);
 
         mb.node().id = "point"; // adding node Y
         // MeshPart "point", see for primitive types: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glBegin.xml
         mpb = mb.part("point", GL20.GL_TRIANGLES, Usage.Position | Usage.Normal, new Material("base"));
 
-        SphereShapeBuilder.build(mpb, unitSize/10, unitSize/10, unitSize/10, 100, 100);
+        SphereShapeBuilder.build(mpb, distance/10, distance/10, distance/10, 100, 100);
 
         // see also com.badlogic.gdx.graphics.g3d.utils.shapebuilders:
         //  ArrowShapeBuilder
@@ -576,7 +582,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
             envDLAttribute.lights.forEach(light -> {
                 ModelInstance mi = new ModelInstance(lightsModel, "directional");
                 // from the center moving backwards to the direction of light
-                mi.transform.setToTranslation(c.cpy().sub(light.direction.cpy().nor().scl(unitSize)));
+                mi.transform.setToTranslation(c.cpy().sub(light.direction.cpy().nor().scl(distance)));
                 // rotating the arrow from X vector (1,0,0) to the direction vector
                 mi.transform.rotate(Vector3.X, light.direction.cpy().nor());
                 mi.getMaterial("base", true).set(
@@ -595,7 +601,10 @@ public class ModelPreviewScreen extends ScreenAdapter {
                 Array<DirectionalLight> dLights = new Array<>(DirectionalLight.class);
 
                 Vector3 dir = light.position.cpy().sub(c).nor();
-                float fraction = light.intensity / (2 * unitSize * 50f); // syncup: pl
+
+                float ref = (distance < 50f ? 10.10947f : 151.0947f) * distance - 90f; // TODO: temporal solution, revisit
+                ref = ref <= 0 ? 1f : ref;                                             // TODO: temporal solution, revisit
+                float fraction = light.intensity / (2 * ref); // syncup: pl
                 dLights.addAll(
                         new DirectionalLight().set(new Color(Color.BLACK).add(fraction, fraction, fraction, 0f), dir)
 //                ,new DirectionalLight().set(Color.WHITE,   0,   0, -1f) // xz
@@ -648,7 +657,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         //perspectiveCamera.combined;                                     // Camera: Matrix4 combined
         //perspectiveCamera.invProjectionView;                            // Camera: Matrix4 invProjectionView
         perspectiveCamera.near = Math.min(1f, distance/10);               // Camera: float near
-        perspectiveCamera.far = 10*distance;                              // Camera: float far
+        perspectiveCamera.far = 100*distance;                             // Camera: float far
         //perspectiveCamera.viewportWidth;                                // Camera: float viewportWidth
         //perspectiveCamera.viewportHeight;                               // Camera: float viewportHeight
         //perspectiveCamera.frustum;                                      // Camera: Frustum frustum
