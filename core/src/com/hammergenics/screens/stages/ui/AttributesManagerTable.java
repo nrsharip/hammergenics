@@ -14,12 +14,12 @@
  * limitations under the License.
  ******************************************************************************/
 
-package com.hammergenics.stages.ui;
+package com.hammergenics.screens.stages.ui;
 
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.hammergenics.screens.ModelPreviewScreen;
-import com.hammergenics.stages.ui.attributes.*;
+import com.hammergenics.screens.stages.ui.attributes.*;
 
 /**
  * Add description here

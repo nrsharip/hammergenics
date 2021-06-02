@@ -14,9 +14,8 @@
  * limitations under the License.
  ******************************************************************************/
 
-package com.hammergenics.stages.ui.attributes;
+package com.hammergenics.screens.stages.ui.attributes;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.attributes.SpotLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.SpotLight;

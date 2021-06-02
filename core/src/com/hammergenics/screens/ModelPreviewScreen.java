@@ -47,7 +47,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.hammergenics.HGGame;
 import com.hammergenics.HGModel;
 import com.hammergenics.HGModelInstance;
-import com.hammergenics.stages.ModelPreviewStage;
+import com.hammergenics.screens.stages.ModelPreviewStage;
 import com.hammergenics.utils.LibgdxUtils;
 
 import java.util.Arrays;

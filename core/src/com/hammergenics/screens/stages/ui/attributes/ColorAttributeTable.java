@@ -14,7 +14,7 @@
  * limitations under the License.
  ******************************************************************************/
 
-package com.hammergenics.stages.ui.attributes;
+package com.hammergenics.screens.stages.ui.attributes;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Attributes;

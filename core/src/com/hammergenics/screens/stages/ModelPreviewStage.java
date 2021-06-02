@@ -14,7 +14,7 @@
  * limitations under the License.
  ******************************************************************************/
 
-package com.hammergenics.stages;
+package com.hammergenics.screens.stages;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
@@ -35,8 +35,8 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import com.hammergenics.HGGame;
 import com.hammergenics.config.Config;
 import com.hammergenics.screens.ModelPreviewScreen;
-import com.hammergenics.stages.ui.AttributesManagerTable;
-import com.hammergenics.stages.ui.attributes.BaseAttributeTable;
+import com.hammergenics.screens.stages.ui.AttributesManagerTable;
+import com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable;
 import com.hammergenics.utils.LibgdxUtils;
 
 /**
