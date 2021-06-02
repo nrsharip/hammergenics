@@ -19,6 +19,8 @@ package com.hammergenics.screens.input;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.IntSet;
 
 /**
@@ -27,22 +29,30 @@ import com.badlogic.gdx.utils.IntSet;
  * @author nrsharip
  */
 public class HGInputController extends GestureDetector {
+    protected ArrayMap<Integer, KeyInfo> code2keyInfo;
+    protected ArrayMap<Character, KeyInfo> char2keyInfo;
+
     private IntSet keysPressed = new IntSet();
 
-    public HGInputController() {
-        this(new HGGestureListener());
+    public HGInputController(Array<KeyInfo> keys) {
+        this(new HGGestureListener(), keys);
     }
 
-    public HGInputController(GestureListener listener) {
+    public HGInputController(GestureListener listener, Array<KeyInfo> keys) {
         super(listener);
+        setKeys(keys);
     }
 
-    public HGInputController(float halfTapSquareSize, float tapCountInterval, float longPressDuration, float maxFlingDelay, GestureListener listener) {
+    public HGInputController(float halfTapSquareSize, float tapCountInterval, float longPressDuration,
+                             float maxFlingDelay, GestureListener listener, Array<KeyInfo> keys) {
         super(halfTapSquareSize, tapCountInterval, longPressDuration, maxFlingDelay, listener);
+        setKeys(keys);
     }
 
-    public HGInputController(float halfTapRectangleWidth, float halfTapRectangleHeight, float tapCountInterval, float longPressDuration, float maxFlingDelay, GestureListener listener) {
+    public HGInputController(float halfTapRectangleWidth, float halfTapRectangleHeight, float tapCountInterval,
+                             float longPressDuration, float maxFlingDelay, GestureListener listener, Array<KeyInfo> keys) {
         super(halfTapRectangleWidth, halfTapRectangleHeight, tapCountInterval, longPressDuration, maxFlingDelay, listener);
+        setKeys(keys);
     }
 
     protected static class HGGestureListener extends GestureDetector.GestureAdapter {
@@ -108,11 +118,50 @@ public class HGInputController extends GestureDetector {
         }
     }
 
+    public static class KeyInfo {
+        public int code;
+        public char character;
+        public String description;
+        public KeyListener keyListener;
+
+        public KeyInfo(int code) { this(code, new KeyAdapter()); }
+
+        public KeyInfo(int code, KeyListener keyListener) { this(code, Character.MIN_VALUE, "", keyListener); }
+
+        public KeyInfo(int code, char character, String description, KeyListener keyListener) {
+            this.code = code;
+            this.character = character;
+            this.description = description;
+            this.keyListener = keyListener;
+        }
+    }
+
+    public static class KeyAdapter implements KeyListener{
+        @Override
+        public void onKeyDown(int keycode) { Gdx.app.debug(getTag(), String.format("keycode: %5d", keycode)); }
+        @Override
+        public void onKeyUp(int keycode) { Gdx.app.debug(getTag(), String.format("keycode: %5d", keycode)); }
+        @Override
+        public void onKeyTyped(char character) { Gdx.app.debug(getTag(), String.format("character: %c", character)); }
+
+        private static String getTag() {
+            StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+
+            return stackTrace[3].getMethodName() + "->" + stackTrace[2].getMethodName();
+        }
+    }
+
+    public interface KeyListener {
+        void onKeyDown(int keycode);
+        void onKeyUp(int keycode);
+        void onKeyTyped(char character);
+    }
+
     @Override
     public boolean keyDown(int keycode) {
         Gdx.app.debug(getTag(), String.format("keycode: %5d", keycode));
         keysPressed.add(keycode);
-        processKeysPressed();
+        processKeysDown();
         return super.keyDown(keycode);
     }
 
@@ -120,13 +169,26 @@ public class HGInputController extends GestureDetector {
     public boolean keyUp(int keycode) {
         Gdx.app.debug(getTag(), String.format("keycode: %5d", keycode));
         keysPressed.remove(keycode);
-        processKeysPressed();
+
+        if (code2keyInfo == null) { return super.keyUp(keycode); }
+        KeyInfo keyInfo = code2keyInfo.get(keycode);
+        if (keyInfo != null && keyInfo.keyListener != null) {
+            code2keyInfo.get(keycode).keyListener.onKeyUp(keycode);
+        }
+
         return super.keyUp(keycode);
     }
 
     @Override
     public boolean keyTyped(char character) {
         Gdx.app.debug(getTag(), String.format("character: %c", character));
+
+        if (char2keyInfo == null) { return super.keyTyped(character); }
+        KeyInfo keyInfo = char2keyInfo.get(character);
+        if (keyInfo != null && keyInfo.keyListener != null) {
+            char2keyInfo.get(character).keyListener.onKeyTyped(character);
+        }
+
         return super.keyTyped(character);
     }
 
@@ -148,9 +210,29 @@ public class HGInputController extends GestureDetector {
         return stackTrace[3].getMethodName() + "->" + stackTrace[2].getMethodName();
     }
 
-    private void processKeysPressed() {
-        if (keysPressed == null) { return; }
-
+    private void processKeysDown() {
+        if (keysPressed == null || code2keyInfo == null) { return; }
         Gdx.app.debug(getTag(), String.format("keysPressed: %s", keysPressed.toString()));
+
+        IntSet.IntSetIterator iterator = keysPressed.iterator();
+        while (iterator.hasNext) {
+            int code = iterator.next();
+            KeyInfo keyInfo = code2keyInfo.get(code);
+
+            if (keyInfo != null && keyInfo.keyListener != null) {
+                code2keyInfo.get(code).keyListener.onKeyDown(code);
+            }
+        }
+    }
+
+    public void setKeys(Array<KeyInfo> keys) {
+        if (keys == null) { return; }
+
+        code2keyInfo = new ArrayMap<>(Integer.class, KeyInfo.class);
+        char2keyInfo = new ArrayMap<>(Character.class, KeyInfo.class);
+        keys.forEach(key -> {
+            code2keyInfo.put(key.code, key);
+            char2keyInfo.put(key.character, key);
+        });
     }
 }
