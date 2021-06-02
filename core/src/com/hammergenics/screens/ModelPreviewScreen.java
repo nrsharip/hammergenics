@@ -45,8 +45,8 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.hammergenics.HGGame;
-import com.hammergenics.HGModel;
-import com.hammergenics.HGModelInstance;
+import com.hammergenics.screens.graphics.g3d.HGModel;
+import com.hammergenics.screens.graphics.g3d.HGModelInstance;
 import com.hammergenics.screens.stages.ModelPreviewStage;
 import com.hammergenics.utils.LibgdxUtils;
 
