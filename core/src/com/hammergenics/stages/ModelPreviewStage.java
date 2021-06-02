@@ -37,7 +37,7 @@ import com.hammergenics.config.Config;
 import com.hammergenics.screens.ModelPreviewScreen;
 import com.hammergenics.stages.ui.AttributesManagerTable;
 import com.hammergenics.stages.ui.attributes.BaseAttributeTable;
-import com.hammergenics.util.LibgdxUtils;
+import com.hammergenics.utils.LibgdxUtils;
 
 /**
  * Add description here

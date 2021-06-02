@@ -40,7 +40,7 @@ import com.badlogic.gdx.utils.Logger;
 import com.hammergenics.config.Config;
 import com.hammergenics.config.Conventions;
 import com.hammergenics.screens.LoadScreen;
-import com.hammergenics.util.LibgdxUtils;
+import com.hammergenics.utils.LibgdxUtils;
 
 /**
  * Add description here

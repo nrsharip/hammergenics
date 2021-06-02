@@ -30,7 +30,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
 import com.hammergenics.screens.ModelPreviewScreen;
-import com.hammergenics.util.LibgdxUtils;
+import com.hammergenics.utils.LibgdxUtils;
 
 import java.util.Arrays;
 

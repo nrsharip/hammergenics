@@ -27,8 +27,8 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.hammergenics.screens.ModelPreviewScreen;
 
-import static com.hammergenics.util.LibgdxUtils.gl20_i2s;
-import static com.hammergenics.util.LibgdxUtils.gl20_s2i;
+import static com.hammergenics.utils.LibgdxUtils.gl20_i2s;
+import static com.hammergenics.utils.LibgdxUtils.gl20_s2i;
 
 /**
  * Add description here
