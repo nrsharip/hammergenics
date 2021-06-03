@@ -22,6 +22,7 @@ import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.hammergenics.screens.ModelPreviewScreen;
+import com.hammergenics.utils.LibgdxUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -34,11 +35,11 @@ import java.util.Arrays;
  */
 public abstract class AttributesTable<T extends Attribute, Q extends AttributeTable<T>> extends BaseAttributeTable<T> {
     /**
-     * attribute type to color attribute table map
+     * attribute type to the attribute table map
      */
     protected ArrayMap<Long, Q> t2Table = new ArrayMap<>();
     /**
-     * attribute alias to color attribute table map
+     * attribute alias to the attribute table map
      */
     protected ArrayMap<String, Q> a2Table = new ArrayMap<>();
 
@@ -67,11 +68,7 @@ public abstract class AttributesTable<T extends Attribute, Q extends AttributeTa
      *
      */
     private void traverse() {
-        Field[] attrTypesFields = Arrays.stream(attributeClass.getFields()) // getting all accessible public fields
-                .filter(field -> field.getType().equals(Long.TYPE))         // taking only fields of type 'long'
-                .filter(field -> Modifier.isFinal(field.getModifiers()))    // taking only final fields
-                .filter(field -> Modifier.isStatic(field.getModifiers()))   // taking only static fields
-                .toArray(Field[]::new);                                     // retrieving the array
+        Field[] attrTypesFields = LibgdxUtils.scanPublicStaticFinalFields(attributeClass, Long.TYPE);
 
         if (attrTypesFields.length == 0) {
             Gdx.app.error(getClass().getSimpleName(), "ERROR: no type fields found in: " + attributeClass.getName());
@@ -84,24 +81,20 @@ public abstract class AttributesTable<T extends Attribute, Q extends AttributeTa
                 String alias = Attribute.getAttributeAlias(type);
 
                 if (alias == null) {
-                    Gdx.app.debug(getClass().getSimpleName(),
-                            "WARNING: field value is not a registered Attribute Type: "
-                                    + attributeClass.getSimpleName() + "." + field.getName() + " = 0x" + Long.toHexString(type));
+                    Gdx.app.debug(getClass().getSimpleName(), "WARNING: field value is not a registered Attribute Type: "
+                            + attributeClass.getSimpleName() + "." + field.getName() + " = 0x" + Long.toHexString(type));
                     continue;
                 }
 
                 t2a.put(type, alias);
                 a2t.put(alias, type);
 
-//                Gdx.app.debug(getClass().getSimpleName(),
-//                        attributeClass.getSimpleName() + "." + field.getName() + ": 0x" + Long.toHexString(type)
-//                                + " (alias: " + Attribute.getAttributeAlias(type) + ")");
+//                Gdx.app.debug(getClass().getSimpleName(), attributeClass.getSimpleName() + "." + field.getName()
+//                        + ": 0x" + Long.toHexString(type) + " (alias: " + Attribute.getAttributeAlias(type) + ")");
             } catch (IllegalAccessException | IllegalArgumentException | NullPointerException e) {
-                Gdx.app.error(getClass().getSimpleName(),
-                        "EXCEPTION while reading the field contents of the class: " + attributeClass.getName() + "\n" +
-                                Arrays.stream(e.getStackTrace())
-                                        .map(element -> String.valueOf(element) + "\n")
-                                        .reduce("", String::concat));
+                Gdx.app.error(getClass().getSimpleName(), "EXCEPTION while reading the field contents of the class: "
+                        + attributeClass.getName() + "\n" + Arrays.stream(e.getStackTrace())
+                            .map(element -> String.valueOf(element) + "\n").reduce("", String::concat));
             }
         }
     }
