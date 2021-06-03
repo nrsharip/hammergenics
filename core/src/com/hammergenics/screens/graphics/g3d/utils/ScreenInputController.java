@@ -34,8 +34,8 @@ public class ScreenInputController extends HGInputController {
     public float unitSize = 1f;
     public Vector3 rotateAround = new Vector3();
 
-    public ScreenInputController(Camera camera, ScreenGestureProcessor gp) {
-        this(camera, gp, null);
+    public ScreenInputController(Camera camera) {
+        this(camera, new ScreenGestureProcessor(), null);
 
         Array<KeyInfo> keys = new Array<>(KeyInfo.class);
         keys.add(new KeyInfo(Keys.W, new KeyListener() {
@@ -49,6 +49,10 @@ public class ScreenInputController extends HGInputController {
         setKeys(keys);
     }
 
+    public ScreenInputController(Camera camera, Array<KeyInfo> keys) {
+        this(camera, new ScreenGestureProcessor(), keys);
+    }
+
     protected ScreenInputController(Camera camera, ScreenGestureProcessor gp, Array<KeyInfo> keys) {
         super(gp, keys);
         gp.sic = this; // this is a workaround since GestureDetector.listener isn't visible here and have no getters...
@@ -56,7 +60,7 @@ public class ScreenInputController extends HGInputController {
     }
 
     public static class ScreenGestureProcessor extends HGGestureProcessor {
-        private ScreenInputController sic;
+        public ScreenInputController sic;
 
         @Override
         public boolean pan(float x, float y, float deltaX, float deltaY) {
@@ -69,9 +73,9 @@ public class ScreenInputController extends HGInputController {
             switch (touchDownButton) {
                 case Buttons.LEFT:
                     // X delta: Moving the camera position along the cross product of camera's direction and up vectors
-                    sic.camera.translate(v1.set(sic.camera.direction).crs(sic.camera.up).nor().scl(-fracX * sic.unitSize));
+                    sic.camera.translate(v1.set(sic.camera.direction).crs(sic.camera.up).nor().scl(2 * -fracX * sic.unitSize));
                     // Y delta: Moving the camera position along the camera's up vector
-                    sic.camera.translate(v2.set(sic.camera.up).scl(fracY * sic.unitSize));
+                    sic.camera.translate(v2.set(sic.camera.up).scl(2 * fracY * sic.unitSize));
                     // in summary, the camera moves within the [Direction x Up][Up] plane.
                     sic.rotateAround.add(v1).add(v2); // shifting the rotation point along with the camera position
                     break;
@@ -80,7 +84,9 @@ public class ScreenInputController extends HGInputController {
                 case Buttons.RIGHT:
                     // camera Direction and camera Up vectors cross product XZ projection
                     v1.set(sic.camera.direction).crs(sic.camera.up).y = 0f;
+                    // Y delta: point = rotateAround, axis = unit [Direction x Up], angle = fraction Y * -360 degrees
                     sic.camera.rotateAround(sic.rotateAround, v1.nor(), fracY * -360f);
+                    // X delta: point = rotateAround, axis = unit Y (0, 1, 0), angle = fraction X * -360 degrees
                     sic.camera.rotateAround(sic.rotateAround, Vector3.Y, fracX * -360f);
                     sic.camera.update();
                     break;
@@ -90,11 +96,18 @@ public class ScreenInputController extends HGInputController {
         }
     }
 
+    @Override
+    public boolean scrolled(float amountX, float amountY) {
+        boolean result = super.scrolled(amountX, amountY);
+
+        camera.translate(new Vector3(camera.direction).scl(-amountY * unitSize));
+
+        return result;
+    }
+
     private String getTag() {
         return getClass().getSimpleName() + "." + Thread.currentThread().getStackTrace()[2].getMethodName();
     }
 
-    public void update(float delta) {
-        camera.update();
-    }
+    public void update(float delta) { camera.update(); }
 }

@@ -189,7 +189,7 @@ public class HGInputController extends GestureDetector {
 
     @Override
     public boolean scrolled(float amountX, float amountY) {
-        Gdx.app.debug(getTag(), String.format("screenX: %5.3f screenY: %5.3f", amountX, amountY));
+        Gdx.app.debug(getTag(), String.format("amountX: %5.3f amountY: %5.3f", amountX, amountY));
         return super.scrolled(amountX, amountY);
     }
 

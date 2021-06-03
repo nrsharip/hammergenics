@@ -122,7 +122,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
         // Camera related
         perspectiveCamera = new PerspectiveCamera(70f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        screenInputController = new ScreenInputController(perspectiveCamera, new ScreenInputController.ScreenGestureProcessor());
+        screenInputController = new ScreenInputController(perspectiveCamera);
         // Environment related
         environment = new Environment();
 
@@ -377,7 +377,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // TODO: add checks for null perspectiveCamera, cameraInputController, and the size of models
         resetGridModel(unitSize / 5, (position.len() + overallSize) * 5);
         resetCamera(overallSize, position.cpy());
-        resetScreenInputController(unitSize, position.cpy());
+        resetScreenInputController(overallSize, position.cpy());
         resetEnvironment(); // clears the point lights if any
 
         // adding a single point light
@@ -675,10 +675,10 @@ public class ModelPreviewScreen extends ScreenAdapter {
     }
 
     /**
-     * @param unitSize
+     * @param overallSize
      */
-    private void resetScreenInputController(float unitSize, Vector3 c) {
-        screenInputController.unitSize = 2*unitSize;
+    private void resetScreenInputController(float overallSize, Vector3 c) {
+        screenInputController.unitSize = overallSize;
         screenInputController.rotateAround.set(c);
         screenInputController.update(-1f);
     }
