@@ -35,7 +35,7 @@ public class HGInputController extends GestureDetector {
     private IntSet keysPressed = new IntSet();
 
     public HGInputController(Array<KeyInfo> keys) {
-        this(new HGGestureListener(), keys);
+        this(new HGGestureProcessor(), keys);
     }
 
     public HGInputController(GestureListener listener, Array<KeyInfo> keys) {
@@ -55,46 +55,72 @@ public class HGInputController extends GestureDetector {
         setKeys(keys);
     }
 
-    protected static class HGGestureListener extends GestureDetector.GestureAdapter {
+    protected static class HGGestureProcessor extends GestureDetector.GestureAdapter {
+        protected float touchDownX, touchDownY, tapX, tapY, longPressX, longPressY, flingVelocityX, flingVelocityY;
+        protected int touchDownPointer, touchDownButton, tapCount, tapButton, flingButton, panStopPointer, panStopButton;
+        protected float panX, panY, panDeltaX, panDeltaY, panStopX, panStopY, zoomInitialDistance, zoomDistance;
+        protected Vector2 pinchInitialPointer1, pinchInitialPointer2, pinchPointer1, pinchPointer2;
+
+        protected HGGestureProcessor() {
+            touchDownX = touchDownY = tapX = tapY = longPressX = longPressY = flingVelocityX = flingVelocityY = -1f;
+            touchDownPointer = touchDownButton = tapCount = tapButton = flingButton = panStopPointer = panStopButton = -1;
+            panX = panY = panDeltaX = panDeltaY = panStopX = panStopY = zoomInitialDistance = zoomDistance = -1f;
+            pinchInitialPointer1 = Vector2.Zero.cpy();
+            pinchInitialPointer2 = Vector2.Zero.cpy();
+            pinchPointer1 = Vector2.Zero.cpy();
+            pinchPointer2 = Vector2.Zero.cpy();
+        }
+
         @Override
         public boolean touchDown(float x, float y, int pointer, int button) {
             Gdx.app.debug(getTag(), String.format("x: %5.3f y: %5.3f pointer: %5d button: %5d", x, y, pointer, button));
+            touchDownX = x; touchDownY = y; touchDownPointer = pointer; touchDownButton = button;
             return super.touchDown(x, y, pointer, button);
         }
 
         @Override
         public boolean tap(float x, float y, int count, int button) {
             Gdx.app.debug(getTag(), String.format("x: %5.3f y: %5.3f pointer: %5d button: %5d", x, y, count, button));
+            tapX = x; tapY = y; tapCount = count; tapButton = button;
+            // touchUp fired - invalidating the touchDown values:
+            touchDownX = touchDownY = -1f; touchDownPointer = touchDownButton = -1;
             return super.tap(x, y, count, button);
         }
 
         @Override
         public boolean longPress(float x, float y) {
             Gdx.app.debug(getTag(), String.format("x: %5.3f y: %5.3f", x, y));
+            longPressX = x; longPressY = y;
             return super.longPress(x, y);
         }
 
         @Override
         public boolean fling(float velocityX, float velocityY, int button) {
             Gdx.app.debug(getTag(), String.format("velocityX: %5.3f velocityY: %5.3f button: %5d", velocityX, velocityY, button));
+            flingVelocityX = velocityX; flingVelocityY = velocityY; flingButton = button;
             return super.fling(velocityX, velocityY, button);
         }
 
         @Override
         public boolean pan(float x, float y, float deltaX, float deltaY) {
             Gdx.app.debug(getTag(), String.format("x: %5.3f y: %5.3f dX: %5.3f dY: %5.3f", x, y, deltaX, deltaY));
+            panX = x; panY = y; panDeltaX = deltaX; panDeltaY = deltaY;
             return super.pan(x, y, deltaX, deltaY);
         }
 
         @Override
         public boolean panStop(float x, float y, int pointer, int button) {
             Gdx.app.debug(getTag(), String.format("x: %5.3f y: %5.3f pointer: %5d button: %5d", x, y, pointer, button));
+            panStopX = x; panStopY = y; panStopPointer = pointer; panStopButton = button;
+            // touchUp fired - invalidating the touchDown values:
+            touchDownX = touchDownY = -1f; touchDownPointer = touchDownButton = -1;
             return super.panStop(x, y, pointer, button);
         }
 
         @Override
         public boolean zoom(float initialDistance, float distance) {
             Gdx.app.debug(getTag(), String.format("init: %5.3f dist: %5.3f", initialDistance, distance));
+            zoomInitialDistance = initialDistance; zoomDistance = distance;
             return super.zoom(initialDistance, distance);
         }
 
@@ -102,6 +128,8 @@ public class HGInputController extends GestureDetector {
         public boolean pinch(Vector2 initialPointer1, Vector2 initialPointer2, Vector2 pointer1, Vector2 pointer2) {
             Gdx.app.debug(getTag(), String.format("initialPointer1: %s initialPointer2: %s pointer1: %s pointer2: %s",
                     initialPointer1.toString(), initialPointer2.toString(), pointer1.toString(), pointer2.toString()));
+            pinchInitialPointer1.set(initialPointer1); pinchInitialPointer2.set(initialPointer2);
+            pinchPointer1.set(pointer1); pinchPointer2.set(pointer2);
             return super.pinch(initialPointer1, initialPointer2, pointer1, pointer2);
         }
 
@@ -111,10 +139,10 @@ public class HGInputController extends GestureDetector {
             super.pinchStop();
         }
 
-        private static String getTag() {
+        protected static String getTag() {
             StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
 
-            return stackTrace[3].getMethodName() + "->" + stackTrace[2].getMethodName();
+            return stackTrace[4].getMethodName() + "->" + stackTrace[3].getMethodName() + "->" + stackTrace[2].getMethodName();
         }
     }
 
@@ -210,7 +238,7 @@ public class HGInputController extends GestureDetector {
         return stackTrace[3].getMethodName() + "->" + stackTrace[2].getMethodName();
     }
 
-    private void processKeysDown() {
+    protected void processKeysDown() {
         if (keysPressed == null || code2keyInfo == null) { return; }
         Gdx.app.debug(getTag(), String.format("keysPressed: %s", keysPressed.toString()));
 

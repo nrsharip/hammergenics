@@ -47,13 +47,12 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.hammergenics.HGGame;
 import com.hammergenics.screens.graphics.g3d.HGModel;
 import com.hammergenics.screens.graphics.g3d.HGModelInstance;
+import com.hammergenics.screens.graphics.g3d.utils.ScreenInputController;
 import com.hammergenics.screens.stages.ModelPreviewStage;
 import com.hammergenics.utils.LibgdxUtils;
 
 import java.util.Arrays;
 
-import static com.badlogic.gdx.Input.Buttons;
-import static com.badlogic.gdx.Input.Keys;
 import static com.badlogic.gdx.graphics.VertexAttributes.Usage;
 
 /**
@@ -67,8 +66,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
     private final ModelBatch modelBatch;
 
     private PerspectiveCamera perspectiveCamera;
-    private CameraInputController cameraInputController;
-    // TODO: IMPORTANT see also FirstPersonCameraController
+    private ScreenInputController screenInputController;
     public Environment environment;
     public Array<HGModel> hgModels = new Array<>();
     private Array<Texture> textures = new Array<>();
@@ -124,7 +122,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
         // Camera related
         perspectiveCamera = new PerspectiveCamera(70f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        cameraInputController = new CameraInputController(perspectiveCamera);
+        screenInputController = new ScreenInputController(perspectiveCamera, new ScreenInputController.ScreenGestureProcessor());
         // Environment related
         environment = new Environment();
 
@@ -136,7 +134,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         InputMultiplexer inputMultiplexer = new InputMultiplexer();
         // order of addProcessor matter
         inputMultiplexer.addProcessor(stage);
-        inputMultiplexer.addProcessor(cameraInputController);
+        inputMultiplexer.addProcessor(screenInputController);
         Gdx.input.setInputProcessor(inputMultiplexer);
     }
 
@@ -145,7 +143,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
      */
     @Override
     public void render(float delta) {
-        cameraInputController.update();
+        screenInputController.update(delta);
 
         hgMIs.forEach(hgMI -> {
             if(hgMI.animationController != null) {
@@ -209,13 +207,10 @@ public class ModelPreviewScreen extends ScreenAdapter {
     @Override
     public void resize(int width, int height) {
         super.resize(width, height);
-        if (cameraInputController != null) {
-            cameraInputController.camera.viewportWidth = width;
-            cameraInputController.camera.viewportHeight = height;
-            // camera should be updated explicitly since CameraInputController updates camera only on:
-            // rotateRightPressed || rotateLeftPressed || forwardPressed || backwardPressed
-            cameraInputController.camera.update();
-            cameraInputController.update();
+        if (screenInputController != null) {
+            screenInputController.camera.viewportWidth = width;
+            screenInputController.camera.viewportHeight = height;
+            screenInputController.update(-1f);
         }
         if (stage != null) {
             stage.getViewport().update(width, height, true);
@@ -382,7 +377,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // TODO: add checks for null perspectiveCamera, cameraInputController, and the size of models
         resetGridModel(unitSize / 5, (position.len() + overallSize) * 5);
         resetCamera(overallSize, position.cpy());
-        resetCameraInputController(unitSize, position.cpy());
+        resetScreenInputController(unitSize, position.cpy());
         resetEnvironment(); // clears the point lights if any
 
         // adding a single point light
@@ -682,32 +677,10 @@ public class ModelPreviewScreen extends ScreenAdapter {
     /**
      * @param unitSize
      */
-    private void resetCameraInputController(float unitSize, Vector3 c) {
-        // Uncomment to get gen_* files with fields contents:
-        //LibGDXUtil.getFieldsContents(cameraInputController, 1,  "", true);
-
-        // Setting most of cameraInputController to defaults, except for scrollFactor, translateUnits and target.
-        // These are calculated based on the model's dimensions
-        cameraInputController.rotateButton = Buttons.LEFT;     //     int rotateButton    = 0
-        cameraInputController.rotateAngle = 360f;              //   float rotateAngle     = 360.0
-        cameraInputController.translateButton = Buttons.RIGHT; //     int translateButton = 1
-        cameraInputController.translateUnits = 2*unitSize;     //   float translateUnits  = 188.23
-        cameraInputController.forwardButton = Buttons.MIDDLE;  //     int forwardButton   = 2
-        cameraInputController.activateKey = 0;                 //     int activateKey     = 0
-        cameraInputController.alwaysScroll = true;             // boolean alwaysScroll    = true
-        cameraInputController.scrollFactor = -0.05f;           //   float scrollFactor    = -0.2
-        cameraInputController.pinchZoomFactor = 10f;           //   float pinchZoomFactor = 10.0
-        cameraInputController.autoUpdate = true;               // boolean autoUpdate      = true
-        cameraInputController.target.set(c.x, c.y, c.z);       // Vector3 target          = (0.0,0.0,0.0)
-        cameraInputController.translateTarget = true;          // boolean translateTarget = true
-        cameraInputController.forwardTarget = true;            // boolean forwardTarget   = true
-        cameraInputController.scrollTarget = false;            // boolean scrollTarget    = false
-        cameraInputController.forwardKey = Keys.W;             //     int forwardKey      = 51
-        cameraInputController.backwardKey = Keys.S;            //     int backwardKey     = 47
-        cameraInputController.rotateRightKey = Keys.A;         //     int rotateRightKey  = 29
-        cameraInputController.rotateLeftKey = Keys.D;          //     int rotateLeftKey   = 32
-        //cameraInputController.camera = ;
-        cameraInputController.update();
+    private void resetScreenInputController(float unitSize, Vector3 c) {
+        screenInputController.unitSize = 2*unitSize;
+        screenInputController.rotateAround.set(c);
+        screenInputController.update(-1f);
     }
 
     /**
