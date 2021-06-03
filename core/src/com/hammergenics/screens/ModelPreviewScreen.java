@@ -677,9 +677,10 @@ public class ModelPreviewScreen extends ScreenAdapter {
     /**
      * @param overallSize
      */
-    private void resetScreenInputController(float overallSize, Vector3 c) {
-        screenInputController.unitSize = overallSize;
-        screenInputController.rotateAround.set(c);
+    private void resetScreenInputController(float overallSize, Vector3 rotateAroundVector) {
+        screenInputController.unitDistance = overallSize;
+        screenInputController.overallDistance = overallSize;
+        screenInputController.rotateAround.set(rotateAroundVector);
         screenInputController.update(-1f);
     }
 

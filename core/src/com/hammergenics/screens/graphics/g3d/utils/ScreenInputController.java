@@ -31,7 +31,8 @@ import com.hammergenics.screens.input.HGInputController;
  */
 public class ScreenInputController extends HGInputController {
     public Camera camera;
-    public float unitSize = 1f;
+    public float unitDistance = 1f;
+    public float overallDistance = 1f;
     public Vector3 rotateAround = new Vector3();
 
     public ScreenInputController(Camera camera) {
@@ -72,17 +73,19 @@ public class ScreenInputController extends HGInputController {
             float fracX = deltaX / Gdx.graphics.getWidth(), fracY = deltaY / Gdx.graphics.getHeight();
             switch (touchDownButton) {
                 case Buttons.LEFT:
+                    float distance = Math.max(sic.unitDistance, sic.overallDistance);
                     // X delta: Moving the camera position along the cross product of camera's direction and up vectors
-                    sic.camera.translate(v1.set(sic.camera.direction).crs(sic.camera.up).nor().scl(2 * -fracX * sic.unitSize));
-                    // Y delta: Moving the camera position along the camera's up vector
-                    sic.camera.translate(v2.set(sic.camera.up).scl(2 * fracY * sic.unitSize));
-                    // in summary, the camera moves within the [Direction x Up][Up] plane.
+                    sic.camera.translate(v1.set(sic.camera.direction).crs(sic.camera.up).nor().scl(2 * -fracX * distance));
+                    // Y delta: Moving the camera position along the camera's up vector's XZ projection
+                    v2.set(sic.camera.up).scl(2 * fracY * distance).y = 0;
+                    sic.camera.translate(v2);
+                    // in summary, the camera moves within the [Direction x Up][Up's XZ projection] plane.
                     sic.rotateAround.add(v1).add(v2); // shifting the rotation point along with the camera position
                     break;
                 case Buttons.MIDDLE:
                     break;
                 case Buttons.RIGHT:
-                    // camera Direction and camera Up vectors cross product XZ projection
+                    // camera Direction and camera Up vectors cross product's XZ projection
                     v1.set(sic.camera.direction).crs(sic.camera.up).y = 0f;
                     // Y delta: point = rotateAround, axis = unit [Direction x Up], angle = fraction Y * -360 degrees
                     sic.camera.rotateAround(sic.rotateAround, v1.nor(), fracY * -360f);
@@ -100,7 +103,14 @@ public class ScreenInputController extends HGInputController {
     public boolean scrolled(float amountX, float amountY) {
         boolean result = super.scrolled(amountX, amountY);
 
-        camera.translate(new Vector3(camera.direction).scl(-amountY * unitSize));
+        float step = amountY * unitDistance;
+        // making sure we don't step beyond the rotation point.
+        // assuming that camera's [direction vector] and [rotateAround vector sub camera position vector] are collinear.
+        // if they are not use the dot product between the two.
+        if (step + new Vector3(rotateAround).sub(camera.position).len() > 0) {
+            camera.translate(new Vector3(camera.direction).scl(-step));
+            overallDistance += step;
+        }
 
         return result;
     }
