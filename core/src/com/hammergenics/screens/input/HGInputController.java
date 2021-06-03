@@ -146,45 +146,6 @@ public class HGInputController extends GestureDetector {
         }
     }
 
-    public static class KeyInfo {
-        public int code;
-        public char character;
-        public String description;
-        public KeyListener keyListener;
-
-        public KeyInfo(int code) { this(code, new KeyAdapter()); }
-
-        public KeyInfo(int code, KeyListener keyListener) { this(code, Character.MIN_VALUE, "", keyListener); }
-
-        public KeyInfo(int code, char character, String description, KeyListener keyListener) {
-            this.code = code;
-            this.character = character;
-            this.description = description;
-            this.keyListener = keyListener;
-        }
-    }
-
-    public static class KeyAdapter implements KeyListener{
-        @Override
-        public void onKeyDown(int keycode) { Gdx.app.debug(getTag(), String.format("keycode: %5d", keycode)); }
-        @Override
-        public void onKeyUp(int keycode) { Gdx.app.debug(getTag(), String.format("keycode: %5d", keycode)); }
-        @Override
-        public void onKeyTyped(char character) { Gdx.app.debug(getTag(), String.format("character: %c", character)); }
-
-        private static String getTag() {
-            StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-
-            return stackTrace[3].getMethodName() + "->" + stackTrace[2].getMethodName();
-        }
-    }
-
-    public interface KeyListener {
-        void onKeyDown(int keycode);
-        void onKeyUp(int keycode);
-        void onKeyTyped(char character);
-    }
-
     @Override
     public boolean keyDown(int keycode) {
         Gdx.app.debug(getTag(), String.format("keycode: %5d", keycode));
@@ -230,6 +191,45 @@ public class HGInputController extends GestureDetector {
     public boolean scrolled(float amountX, float amountY) {
         Gdx.app.debug(getTag(), String.format("screenX: %5.3f screenY: %5.3f", amountX, amountY));
         return super.scrolled(amountX, amountY);
+    }
+
+    public static class KeyInfo {
+        public int code;
+        public char character;
+        public String description;
+        public KeyListener keyListener;
+
+        public KeyInfo(int code) { this(code, new KeyAdapter()); }
+
+        public KeyInfo(int code, KeyListener keyListener) { this(code, Character.MIN_VALUE, "", keyListener); }
+
+        public KeyInfo(int code, char character, String description, KeyListener keyListener) {
+            this.code = code;
+            this.character = character;
+            this.description = description;
+            this.keyListener = keyListener;
+        }
+    }
+
+    public static class KeyAdapter implements KeyListener{
+        @Override
+        public void onKeyDown(int keycode) { Gdx.app.debug(getTag(), String.format("keycode: %5d", keycode)); }
+        @Override
+        public void onKeyUp(int keycode) { Gdx.app.debug(getTag(), String.format("keycode: %5d", keycode)); }
+        @Override
+        public void onKeyTyped(char character) { Gdx.app.debug(getTag(), String.format("character: %c", character)); }
+
+        private static String getTag() {
+            StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+
+            return stackTrace[3].getMethodName() + "->" + stackTrace[2].getMethodName();
+        }
+    }
+
+    public interface KeyListener {
+        void onKeyDown(int keycode);
+        void onKeyUp(int keycode);
+        void onKeyTyped(char character);
     }
 
     private String getTag() {
