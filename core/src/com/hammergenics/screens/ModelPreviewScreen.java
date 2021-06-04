@@ -240,7 +240,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         if (hgMIs.size > 0) {
             currGrid = arrangeInSpiral(hgMIs);
             float distance = Math.max(Math.abs(currGrid.x), Math.abs(currGrid.y)) * maxDofAll;
-            resetScreen((currMI = hgMIs.get(0)).absCenter(Vector3.Zero.cpy()), maxDofAll, distance == 0 ? maxDofAll : distance);
+            resetScreen((currMI = hgMIs.get(0)).getBB().getCenter(Vector3.Zero.cpy()), maxDofAll, distance == 0 ? maxDofAll : distance);
             stage.resetPages();
         }
     }
@@ -322,13 +322,12 @@ public class ModelPreviewScreen extends ScreenAdapter {
             }
         }
 
-        currMI.recalculate();
         currMI.setAttributes(new BlendingAttribute());
         hgMIs.add(currMI);
 
         if (resetScreen) {
             currGrid = arrangeInSpiral(hgMIs);
-            resetScreen(currMI.absCenter(Vector3.Zero.cpy()), maxDofAll, maxDofAll);
+            resetScreen(currMI.getBB().getCenter(Vector3.Zero.cpy()), maxDofAll, maxDofAll);
             stage.resetPages();
         }
 
@@ -356,22 +355,21 @@ public class ModelPreviewScreen extends ScreenAdapter {
         for(HGModelInstance hgMI: hgModelInstances) { if (hgMI.maxD > maxDofAll) { maxDofAll = hgMI.maxD; } }
         for(HGModelInstance hgMI: hgModelInstances) {
             float factor = 1f;
-            Vector3 center = hgMI.bb.getCenter(new Vector3());
-            Vector3 position;
             if (!stage.origScaleCheckBox.isChecked() && hgMI.maxD < maxDofAll) {
                 // Scale: if the dimension of the current instance is less than maximum dimension of all instances scale it
                 factor = maxDofAll/hgMI.maxD;
             }
+            Vector3 center = hgMI.getBB().getCenter(new Vector3());
+            Vector3 position;
             // Position:
             // 1. Move the instance (scaled center) to the current base position ([grid.x, 0, grid.y] vector sub scaled center vector)
             // 2. Add half of the scaled height to the current position so bounding box's bottom matches XZ plane
             position = new Vector3(grid.x * 1.1f * maxDofAll, 0f, grid.y * 1.1f * maxDofAll)
                     .sub(center.cpy().scl(factor))
-                    .add(0, factor * hgMI.bb.getHeight()/2, 0);
-            hgMI.moveAndScale(position, factor);
+                    .add(0, factor * hgMI.getBB().getHeight()/2, 0);
+            hgMI.moveAndScaleTo(position, Vector3.Zero.cpy().add(factor));
             // spiral loop around (0, 0, 0)
             LibgdxUtils.spiralGetNext(grid);
-            //Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "tmpPosBase = " + tmpPosBase);
         }
         return grid;
     }
@@ -566,7 +564,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
         for (HGModelInstance mi:hgMIs) {
             ModelInstance bb = new ModelInstance(bbModel, "box");
-
+            bb.transform.setToTranslationAndScaling(mi.getBB().getCenter(new Vector3()), mi.getBB().getDimensions(new Vector3()));
             bbArrayModelInstance.add(bb);
         }
     }

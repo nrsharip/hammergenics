@@ -41,13 +41,9 @@ public class HGModelInstance extends ModelInstance {
      * root node ids
      */
     public String[] rni;
-    /**
-     * scaling factor (default 1)
-     */
-    public float sf = 1f;
 
-    public BoundingBox bb = new BoundingBox();
-    public float maxD;
+    private final BoundingBox bb = new BoundingBox();
+    public final float maxD;
     public AnimationController animationController = null;
     public AnimationController.AnimationDesc animationDesc = null;
     public int animationIndex = 0;
@@ -62,6 +58,10 @@ public class HGModelInstance extends ModelInstance {
         this.hgModel = hgModel;
         this.afh = assetFL;
         this.rni = rootNodeIds;
+
+        calculateBoundingBox(bb);
+        Vector3 dims = bb.getDimensions(new Vector3());
+        maxD = Math.max(Math.max(dims.x, dims.y), dims.z);
     }
 
     public String getTag(int depth) {
@@ -69,7 +69,6 @@ public class HGModelInstance extends ModelInstance {
     }
 
     public void debug() {
-        Gdx.app.debug(getTag(3), "absCenter = " + absCenter(new Vector3()));
         Gdx.app.debug(getTag(3), "bb.getDimensions = " + bb.getDimensions(new Vector3()));
         Gdx.app.debug(getTag(3), "bb.getCenter = " + bb.getCenter(new Vector3()));
         Gdx.app.debug(getTag(3), "bb.getMin = " + bb.getMin(new Vector3())); // the bb corner nearest to (0,0,0) = bb.getCorner000()
@@ -92,35 +91,19 @@ public class HGModelInstance extends ModelInstance {
     //              trn() - adds the (x,y,z) translation to M03 M13 M23
     //        translate() - adds to M03 M13 M23 M33 (see implementation)
 
-    /**
-     * ATTENTION: scaling factor (sf) applied to the Bounding Box's center vector.
-     *
-     * @param vector
-     * @return
-     */
-    public Vector3 absCenter(Vector3 vector) {
-        return transform.getTranslation(vector).add(bb.getCenter(new Vector3()).scl(sf));
-    }
-
+    public void moveBy(Vector3 vector) { transform.trn(vector); }
+    public void moveBy(float x, float y, float z) { transform.trn(x, y, z); }
     public void moveTo(Vector3 vector) { transform.setToTranslation(vector); }
-
     public void moveTo(float x, float y, float z) { transform.setToTranslation(x, y, z); }
+    public void moveAndScaleTo(Vector3 vector, Vector3 factor) { transform.setToTranslationAndScaling(vector, factor); }
+    public void scaleBy(float factor) { transform.scl(factor, factor, factor); }
+    public void scaleBy(Vector3 factor) { transform.scl(factor); }
+    public void scaleTo(float factor) { transform.setToScaling(factor, factor, factor); }
+    public void scaleTo(Vector3 factor) { transform.setToScaling(factor); }
 
-    public void moveAndScale(Vector3 vector, float factor) {
-        this.sf = factor;
-        transform.setToTranslationAndScaling(vector.x, vector.y, vector.z, factor, factor, factor);
-    }
-
-    public void scale(float factor) {
-        this.sf = factor;
-        transform.setToScaling(factor, factor, factor);
-    }
-
-    public void recalculate() {
-        calculateBoundingBox(bb);
-        Vector3 dims = bb.getDimensions(new Vector3());
-        maxD = Math.max(Math.max(dims.x, dims.y), dims.z);
-    }
+    public float getMaxScale() { Vector3 s = transform.getScale(new Vector3()); return Math.max(Math.max(s.x, s.y), s.z); }
+    // see Matrix4 set(...) for the entire map of translation rotation and scale
+    public BoundingBox getBB() { return new BoundingBox(bb).mul(transform); }
 
     public void setAttributes(final Attribute... attributes) {
         for (int i = 0; i < materials.size; i++) { materials.get(i).set(attributes); }

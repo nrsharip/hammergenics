@@ -238,7 +238,7 @@ public class ModelPreviewStage extends Stage {
         });
 
         bbCheckBox = new CheckBox("BB", skin);
-        bbCheckBox.setChecked(true);
+        bbCheckBox.setChecked(false);
 
         // TEXT BUTTONS:
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textbutton
@@ -319,9 +319,9 @@ public class ModelPreviewStage extends Stage {
                 envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(modelPS.environment,"", ""));
 
                 if (modelPS.currMI != null && (type & (DirectionalLightsAttribute.Type | PointLightsAttribute.Type)) != 0) {
-                    modelPS.resetEnvLightsModel(modelPS.maxDofAll, modelPS.currMI.absCenter(Vector3.Zero.cpy()));
+                    modelPS.resetEnvLightsModel(modelPS.maxDofAll, modelPS.currMI.getBB().getCenter(Vector3.Zero.cpy()));
                 }
-//                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "onAttributeEnabled: 0x" + Long.toHexString(type) + " alias: " + alias);
+                //Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "onAttributeEnabled: 0x" + Long.toHexString(type) + " alias: " + alias);
             }
 
             @Override
@@ -330,9 +330,9 @@ public class ModelPreviewStage extends Stage {
                 envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(modelPS.environment,"", ""));
 
                 if (modelPS.currMI != null && (type & (DirectionalLightsAttribute.Type | PointLightsAttribute.Type)) != 0) {
-                    modelPS.resetEnvLightsModel(modelPS.maxDofAll, modelPS.currMI.absCenter(Vector3.Zero.cpy()));
+                    modelPS.resetEnvLightsModel(modelPS.maxDofAll, modelPS.currMI.getBB().getCenter(Vector3.Zero.cpy()));
                 }
-//                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "onAttributeDisabled: 0x" + Long.toHexString(type) + " alias: " + alias);
+                //Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "onAttributeDisabled: 0x" + Long.toHexString(type) + " alias: " + alias);
             }
 
             @Override
@@ -341,9 +341,9 @@ public class ModelPreviewStage extends Stage {
                 envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(modelPS.environment,"", ""));
 
                 if (modelPS.currMI != null && (type & (DirectionalLightsAttribute.Type | PointLightsAttribute.Type)) != 0) {
-                    modelPS.resetEnvLightsModel(modelPS.maxDofAll, modelPS.currMI.absCenter(Vector3.Zero.cpy()));
+                    modelPS.resetEnvLightsModel(modelPS.maxDofAll, modelPS.currMI.getBB().getCenter(Vector3.Zero.cpy()));
                 }
-//                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "onAttributeChange: 0x" + Long.toHexString(type) + " alias: " + alias);
+                //Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "onAttributeChange: 0x" + Long.toHexString(type) + " alias: " + alias);
             }
         };
     }
