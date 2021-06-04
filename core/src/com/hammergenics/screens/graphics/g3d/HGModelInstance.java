@@ -81,6 +81,17 @@ public class HGModelInstance extends ModelInstance {
         Gdx.app.debug(getTag(3), "transform = \n" + transform);
     }
 
+    // NOTE:
+    // Make a clear distinction between Matrix4: setToScaling(), scl() and scale().
+    //     setToScaling() - overrides M00 M11 M22 with an (x,y,z) scaling factor /* sets the matrix to an identity matrix first */
+    //              scl() - multiplies M00 M11 M22 by the (x,y,z) scaling factor
+    //            scale() - multiplies 3x3 submatrix by the (x,y,z) scaling factor (M00*x M01*y M02*z M10*x M11*y M12*z...)
+    //
+    // Make a clear distinction between Matrix4: setTranslation(), trn() and translate().
+    //   setTranslation() - overrides M03 M13 M23 with an (x,y,z) translation /* sets the matrix to an identity matrix first */
+    //              trn() - adds the (x,y,z) translation to M03 M13 M23
+    //        translate() - adds to M03 M13 M23 M33 (see implementation)
+
     /**
      * ATTENTION: scaling factor (sf) applied to the Bounding Box's center vector.
      *

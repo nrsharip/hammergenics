@@ -19,9 +19,11 @@ package com.hammergenics.screens.graphics.g3d.utils;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.Input.Keys;
+import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
+import com.hammergenics.screens.ModelPreviewScreen;
 import com.hammergenics.screens.input.HGInputController;
 
 /**
@@ -30,13 +32,14 @@ import com.hammergenics.screens.input.HGInputController;
  * @author nrsharip
  */
 public class ScreenInputController extends HGInputController {
+    public Screen screen;
     public Camera camera;
     public float unitDistance = 1f;
     public float overallDistance = 1f;
     public Vector3 rotateAround = new Vector3();
 
-    public ScreenInputController(Camera camera) {
-        this(camera, new ScreenGestureProcessor(), null);
+    public ScreenInputController(Screen screen, Camera camera) {
+        this(screen, camera, new ScreenGestureProcessor(), null);
 
         Array<KeyInfo> keys = new Array<>(KeyInfo.class);
         keys.add(new KeyInfo(Keys.W, new KeyListener() {
@@ -50,18 +53,29 @@ public class ScreenInputController extends HGInputController {
         setKeys(keys);
     }
 
-    public ScreenInputController(Camera camera, Array<KeyInfo> keys) {
-        this(camera, new ScreenGestureProcessor(), keys);
+    public ScreenInputController(Screen screen, Camera camera, Array<KeyInfo> keys) {
+        this(screen, camera, new ScreenGestureProcessor(), keys);
     }
 
-    protected ScreenInputController(Camera camera, ScreenGestureProcessor gp, Array<KeyInfo> keys) {
+    protected ScreenInputController(Screen screen, Camera camera, ScreenGestureProcessor gp, Array<KeyInfo> keys) {
         super(gp, keys);
         gp.sic = this; // this is a workaround since GestureDetector.listener isn't visible here and have no getters...
+        this.screen = screen;
         this.camera = camera;
     }
 
     public static class ScreenGestureProcessor extends HGGestureProcessor {
         public ScreenInputController sic;
+
+        @Override
+        public boolean tap(float x, float y, int count, int button) {
+            boolean result = super.tap(x, y, count, button);
+
+            if (sic.screen instanceof ModelPreviewScreen) {
+                ((ModelPreviewScreen)sic.screen).checkTap(x, y, count, button);
+            }
+            return result;
+        }
 
         @Override
         public boolean pan(float x, float y, float deltaX, float deltaY) {
@@ -75,10 +89,11 @@ public class ScreenInputController extends HGInputController {
                 case Buttons.LEFT:
                     float distance = Math.max(sic.unitDistance, sic.overallDistance);
                     // X delta: Moving the camera position along the cross product of camera's direction and up vectors
-                    sic.camera.translate(v1.set(sic.camera.direction).crs(sic.camera.up).nor().scl(2 * -fracX * distance));
+                    sic.camera.translate(v1.set(sic.camera.direction).crs(sic.camera.up).nor().scl(4 * -fracX * distance));
+                    // camera's up vector XZ projection
+                    v2.set(sic.camera.up).y = 0;
                     // Y delta: Moving the camera position along the camera's up vector's XZ projection
-                    v2.set(sic.camera.up).scl(2 * fracY * distance).y = 0;
-                    sic.camera.translate(v2);
+                    sic.camera.translate(v2.nor().scl(4 * fracY * distance));
                     // in summary, the camera moves within the [Direction x Up][Up's XZ projection] plane.
                     sic.rotateAround.add(v1).add(v2); // shifting the rotation point along with the camera position
                     break;
@@ -94,9 +109,18 @@ public class ScreenInputController extends HGInputController {
                     sic.camera.update();
                     break;
             }
-
             return result;
         }
+    }
+
+    @Override
+    public boolean mouseMoved(int screenX, int screenY) {
+        boolean result = super.mouseMoved(screenX, screenY);
+
+        if (screen instanceof ModelPreviewScreen) {
+            ((ModelPreviewScreen)screen).checkMouseMoved(screenX, screenY);
+        }
+        return result;
     }
 
     @Override
@@ -111,7 +135,6 @@ public class ScreenInputController extends HGInputController {
             camera.translate(new Vector3(camera.direction).scl(-step));
             overallDistance += step;
         }
-
         return result;
     }
 

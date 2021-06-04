@@ -17,6 +17,7 @@
 package com.hammergenics.screens;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.assets.AssetManager;
@@ -39,9 +40,11 @@ import com.badlogic.gdx.graphics.g3d.shaders.BaseShader;
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import com.badlogic.gdx.graphics.g3d.utils.*;
 import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.ArrowShapeBuilder;
+import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.BoxShapeBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.SphereShapeBuilder;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.hammergenics.HGGame;
@@ -79,6 +82,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
     private Model lightsModel = null;
     private Array<ModelInstance> dlArrayModelInstance = null;
     private Array<ModelInstance> plArrayModelInstance = null;
+    private Model bbModel = null;
+    private Array<ModelInstance> bbArrayModelInstance = null;
 
     // 2D Stage - this is where all the widgets (buttons, checkboxes, labels etc.) are located
     public ModelPreviewStage stage;
@@ -122,7 +127,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
         // Camera related
         perspectiveCamera = new PerspectiveCamera(70f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        screenInputController = new ScreenInputController(perspectiveCamera);
+        screenInputController = new ScreenInputController(this, perspectiveCamera);
         // Environment related
         environment = new Environment();
 
@@ -188,13 +193,14 @@ public class ModelPreviewScreen extends ScreenAdapter {
         if (gridYModelInstance != null && stage.gridYCheckBox.isChecked()) { modelBatch.render(gridYModelInstance); }
         if (dlArrayModelInstance != null && stage.lightsCheckBox.isChecked()) { modelBatch.render(dlArrayModelInstance, environment); }
         if (plArrayModelInstance != null && stage.lightsCheckBox.isChecked()) { modelBatch.render(plArrayModelInstance, environment); }
+        if (bbArrayModelInstance != null && stage.bbCheckBox.isChecked()) { modelBatch.render(bbArrayModelInstance, environment); }
 
         // https://github.com/libgdx/libgdx/wiki/ModelBatch
         // The actual rendering is performed at the call to end();.
         // If you want to force rendering in between, then you can use the modelBatch.flush(); method
         modelBatch.end();
 
-        checkFPS(delta);
+        updateFPS(delta);
 
         stage.act(delta);
         stage.draw();
@@ -229,7 +235,6 @@ public class ModelPreviewScreen extends ScreenAdapter {
     }
 
     public void addModelInstances(Array<FileHandle> modelFHs) {
-        // rendering all loaded models
         modelFHs.forEach(fileHandle -> addModelInstance(fileHandle, null, -1, false));
 
         if (hgMIs.size > 0) {
@@ -364,8 +369,6 @@ public class ModelPreviewScreen extends ScreenAdapter {
                     .sub(center.cpy().scl(factor))
                     .add(0, factor * hgMI.bb.getHeight()/2, 0);
             hgMI.moveAndScale(position, factor);
-            // TODO: check if BB supposed to change on scaling...
-            // hgMI.recalculate();
             // spiral loop around (0, 0, 0)
             LibgdxUtils.spiralGetNext(grid);
             //Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "tmpPosBase = " + tmpPosBase);
@@ -377,7 +380,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // TODO: add checks for null perspectiveCamera, cameraInputController, and the size of models
         resetGridModel(unitSize / 5, (position.len() + overallSize) * 5);
         resetCamera(overallSize, position.cpy());
-        resetScreenInputController(overallSize, position.cpy());
+        resetScreenInputController(unitSize, overallSize, position.cpy());
         resetEnvironment(); // clears the point lights if any
 
         // adding a single point light
@@ -390,6 +393,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         environment.add(new PointLight().set(Color.WHITE, positionPL, intensity < 0 ? 0.5f : intensity)); // syncup: pl
 
         resetEnvLightsModel(unitSize, position.cpy());
+        resetBBModel();
     }
 
     /**
@@ -520,6 +524,53 @@ public class ModelPreviewScreen extends ScreenAdapter {
 //        Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(), "GRID model instance: " + LibgdxUtils.getModelInstanceInfo(gridModelInstance));
     }
 
+    public void resetBBModel() {
+        if (bbModel != null) {
+            bbModel.dispose();
+            bbModel = null;
+        }
+        if (bbArrayModelInstance != null) {
+            bbArrayModelInstance.clear();
+            bbArrayModelInstance = null;
+        }
+        bbArrayModelInstance = new Array<>(ModelInstance.class);
+
+        // see: ModelBuilder()
+        // https://libgdx.badlogicgames.com/ci/nightlies/dist/docs/api/com/badlogic/gdx/graphics/g3d/utils/ModelBuilder.html
+        ModelBuilder mb = new ModelBuilder();
+        MeshPartBuilder mpb;
+
+        mb.begin();
+
+        mb.node().id = "box"; // adding node XZ
+        // MeshPart "box", see for primitive types: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glBegin.xml
+        mpb = mb.part("box", GL20.GL_LINES, Usage.Position | Usage.Normal,
+                new Material("base", ColorAttribute.createDiffuse(Color.BLACK)));
+
+        // Requires GL_POINTS, GL_LINES or GL_TRIANGLES
+        BoxShapeBuilder.build(mpb, 1f, 1f, 1f); // a unit box
+
+        // see also com.badlogic.gdx.graphics.g3d.utils.shapebuilders:
+        //  ArrowShapeBuilder
+        //  BaseShapeBuilder
+        //  BoxShapeBuilder
+        //  CapsuleShapeBuilder
+        //  ConeShapeBuilder
+        //  CylinderShapeBuilder
+        //  EllipseShapeBuilder
+        //  FrustumShapeBuilder
+        //  PatchShapeBuilder
+        //  RenderableShapeBuilder
+        //  SphereShapeBuilder
+        bbModel = mb.end();
+
+        for (HGModelInstance mi:hgMIs) {
+            ModelInstance bb = new ModelInstance(bbModel, "box");
+
+            bbArrayModelInstance.add(bb);
+        }
+    }
+
     public void resetEnvLightsModel(float distance, Vector3 c) {
         if (distance == 0) { return; }
 
@@ -575,9 +626,9 @@ public class ModelPreviewScreen extends ScreenAdapter {
         //  SphereShapeBuilder
         lightsModel = mb.end();
 
-        DirectionalLightsAttribute envDLAttribute = environment.get(DirectionalLightsAttribute.class, DirectionalLightsAttribute.Type);
-        if (envDLAttribute != null) {
-            envDLAttribute.lights.forEach(light -> {
+        DirectionalLightsAttribute dlEnvAttribute = environment.get(DirectionalLightsAttribute.class, DirectionalLightsAttribute.Type);
+        if (dlEnvAttribute != null) {
+            dlEnvAttribute.lights.forEach(light -> {
                 ModelInstance mi = new ModelInstance(lightsModel, "directional");
                 // from the center moving backwards to the direction of light
                 mi.transform.setToTranslation(c.cpy().sub(light.direction.cpy().nor().scl(distance)));
@@ -592,9 +643,9 @@ public class ModelPreviewScreen extends ScreenAdapter {
             });
         }
 
-        PointLightsAttribute envPLAttribute = environment.get(PointLightsAttribute.class, PointLightsAttribute.Type);
-        if (envPLAttribute != null) {
-            envPLAttribute.lights.forEach(light -> {
+        PointLightsAttribute plEnvAttribute = environment.get(PointLightsAttribute.class, PointLightsAttribute.Type);
+        if (plEnvAttribute != null) {
+            plEnvAttribute.lights.forEach(light -> {
                 DirectionalLightsAttribute dlAttribute = new DirectionalLightsAttribute();
                 Array<DirectionalLight> dLights = new Array<>(DirectionalLight.class);
 
@@ -677,8 +728,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
     /**
      * @param overallSize
      */
-    private void resetScreenInputController(float overallSize, Vector3 rotateAroundVector) {
-        screenInputController.unitDistance = overallSize;
+    private void resetScreenInputController(float unitSize, float overallSize, Vector3 rotateAroundVector) {
+        screenInputController.unitDistance = unitSize;
         screenInputController.overallDistance = overallSize;
         screenInputController.rotateAround.set(rotateAroundVector);
         screenInputController.update(-1f);
@@ -687,7 +738,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
     /**
      * @param delta
      */
-    private void checkFPS(float delta) {
+    private void updateFPS(float delta) {
         clockFPS += delta; // add the time since the last frame
         if (clockFPS > 1) { // every second
             int fps = Gdx.graphics.getFramesPerSecond();
@@ -755,6 +806,24 @@ public class ModelPreviewScreen extends ScreenAdapter {
         environment.add(new DirectionalLight().set(Color.WHITE, -1f, -0.5f, -1f));     // min enabled
 
         if (environment.has(PointLightsAttribute.Type)) { environment.remove(PointLightsAttribute.Type); }
+    }
+
+    public void checkMouseMoved(int screenX, int screenY) {
+        Ray ray = perspectiveCamera.getPickRay(screenX, screenY);
+        Vector3 camPos = perspectiveCamera.position.cpy();
+    }
+
+    public void checkTap(float x, float y, int count, int button) {
+        Ray ray = perspectiveCamera.getPickRay(x, y);
+        Vector3 camPos = perspectiveCamera.position.cpy();
+        switch (button) {
+            case Input.Buttons.LEFT:
+                break;
+            case Input.Buttons.MIDDLE:
+                break;
+            case Input.Buttons.RIGHT:
+                break;
+        }
     }
 
     /**
