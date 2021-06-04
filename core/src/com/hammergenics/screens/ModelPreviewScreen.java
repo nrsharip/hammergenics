@@ -354,6 +354,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         maxDofAll = 0f;
         for(HGModelInstance hgMI: hgModelInstances) { if (hgMI.maxD > maxDofAll) { maxDofAll = hgMI.maxD; } }
         for(HGModelInstance hgMI: hgModelInstances) {
+            hgMI.transform.idt(); // first cancel any previous transform
             float factor = 1f;
             if (!stage.origScaleCheckBox.isChecked() && hgMI.maxD < maxDofAll) {
                 // Scale: if the dimension of the current instance is less than maximum dimension of all instances scale it
@@ -371,6 +372,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
             // spiral loop around (0, 0, 0)
             LibgdxUtils.spiralGetNext(grid);
         }
+        resetBBModel();
         return grid;
     }
 
