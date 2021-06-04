@@ -42,10 +42,13 @@ import com.badlogic.gdx.graphics.g3d.utils.*;
 import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.ArrowShapeBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.BoxShapeBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.SphereShapeBuilder;
+import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.ArrayMap;
+import com.badlogic.gdx.utils.Sort;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.hammergenics.HGGame;
 import com.hammergenics.screens.graphics.g3d.HGModel;
@@ -93,6 +96,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
     public float maxDofAll = 0f;
     public HGModelInstance currMI = null;
     public Vector2 currGrid = Vector2.Zero.cpy();
+    public HGModelInstance hoveredOverMI = null;
+    public ArrayMap<Attributes, ColorAttribute> hoveredOverMIAttributes = null;
 
     private float clockFPS;
 
@@ -232,6 +237,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         if (stage != null) { stage.dispose(); }
         if (gridModel != null) { gridModel.dispose(); }
         if (lightsModel != null) { lightsModel.dispose(); }
+        if (bbModel != null) { bbModel.dispose(); }
     }
 
     public void addModelInstances(Array<FileHandle> modelFHs) {
@@ -810,20 +816,84 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
     public void checkMouseMoved(int screenX, int screenY) {
         Ray ray = perspectiveCamera.getPickRay(screenX, screenY);
-        Vector3 camPos = perspectiveCamera.position.cpy();
+
+        Array<HGModelInstance> out = rayMICollision(ray, hgMIs, new Array<>(HGModelInstance.class));
+
+        if (out.size > 0 && !out.get(0).equals(hoveredOverMI)) {
+            restoreAttributes();
+            hoveredOverMI = out.get(0);
+            persistAttributes();
+            hoveredOverMI.setAttributes(ColorAttribute.createEmissive(Color.DARK_GRAY.cpy()));
+        } else if (out.size == 0) {
+            restoreAttributes();
+            hoveredOverMI = null;
+            if (hoveredOverMIAttributes != null) { hoveredOverMIAttributes.clear(); }
+            hoveredOverMIAttributes = null;
+        }
+    }
+
+    private void persistAttributes() {
+        if (hoveredOverMI != null) {
+            hoveredOverMIAttributes = new ArrayMap<>(Attributes.class, ColorAttribute.class);
+            hoveredOverMI.materials.forEach(attributes -> {
+                ColorAttribute attr = attributes.get(ColorAttribute.class, ColorAttribute.Emissive);
+                if (attr != null) { attr = (ColorAttribute) attr.copy(); }
+                hoveredOverMIAttributes.put(attributes, attr);
+            });
+        }
+    }
+
+    private void restoreAttributes() {
+        if (hoveredOverMI != null && hoveredOverMIAttributes != null) {
+            hoveredOverMI.materials.forEach(attributes -> {
+                ColorAttribute attr = hoveredOverMIAttributes.get(attributes);
+                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
+                        "attr: " + attr);
+                if (attr != null) { attributes.set(attr); } else { attributes.remove(ColorAttribute.Emissive); }
+            });
+        }
     }
 
     public void checkTap(float x, float y, int count, int button) {
         Ray ray = perspectiveCamera.getPickRay(x, y);
-        Vector3 camPos = perspectiveCamera.position.cpy();
         switch (button) {
             case Input.Buttons.LEFT:
+                Array<HGModelInstance> out = rayMICollision(ray, hgMIs, new Array<>(HGModelInstance.class));
+                out.forEach(mi -> Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
+                        "object intersected: " + mi.afh + " @" + mi.hashCode()));
                 break;
             case Input.Buttons.MIDDLE:
                 break;
             case Input.Buttons.RIGHT:
                 break;
         }
+    }
+
+    /**
+     * Checks if the ray collides with any of the model instances' Bounding Boxes.<br>
+     * If it does adds such model instance to the out array allocated beforehand.
+     * @param ray
+     * @param modelInstances
+     * @param out
+     * @return An array of model instances sorted by the distance from camera position (ascending order)
+     */
+    public Array<HGModelInstance> rayMICollision(Ray ray, Array<HGModelInstance> modelInstances, Array<HGModelInstance> out) {
+        // TODO: revisit this later when the Bullet Collision Physics is added
+        final Vector3 camPos = perspectiveCamera.position.cpy();
+
+        for (HGModelInstance mi:modelInstances) {
+            Vector3 bbCenter = mi.getBB().getCenter(new Vector3());
+            if (Intersector.intersectRayBoundsFast(ray, mi.getBB())) { out.add(mi); }
+        }
+        Sort.instance().sort(out, (mi1, mi2) -> {
+            Vector3 bbc1 = mi1.getBB().getCenter(new Vector3());
+            Vector3 bbc2 = mi2.getBB().getCenter(new Vector3());
+
+            if (camPos.cpy().sub(bbc1).len() < camPos.cpy().sub(bbc2).len()) { return -1; }
+            if (camPos.cpy().sub(bbc1).len() > camPos.cpy().sub(bbc2).len()) { return 1; }
+            return 0;
+        });
+        return out;
     }
 
     /**
