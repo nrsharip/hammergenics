@@ -537,7 +537,8 @@ public class ModelPreviewScreen extends ScreenAdapter {
         bbArrayModelInstance = new Array<>(ModelInstance.class);
 
         for (HGModelInstance mi:hgMIs) {
-            bbArrayModelInstance.add(mi.getBBModelInstance());
+            if (mi.equals(currMI)) { bbArrayModelInstance.add(mi.getBBModelInstance(Color.GREEN, Color.RED)); }
+            else { bbArrayModelInstance.add(mi.getBBModelInstance(Color.BLACK, Color.RED)); }
         }
     }
 

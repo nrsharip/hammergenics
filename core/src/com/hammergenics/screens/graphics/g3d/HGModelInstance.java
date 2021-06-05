@@ -25,11 +25,13 @@ import com.badlogic.gdx.graphics.g3d.Attribute;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
 import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.BoxShapeBuilder;
+import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.SphereShapeBuilder;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
@@ -146,13 +148,23 @@ public class HGModelInstance extends ModelInstance {
 
         mb.begin();
 
-        mb.node().id = "box"; // adding node XZ
+        mb.node().id = "box";
         // MeshPart "box", see for primitive types: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glBegin.xml
         mpb = mb.part("box", GL20.GL_LINES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
-                new Material("base", ColorAttribute.createDiffuse(Color.BLACK)));
+                new Material("box"));
 
         // Requires GL_POINTS, GL_LINES or GL_TRIANGLES
         BoxShapeBuilder.build(mpb, 1f, 1f, 1f); // a unit box
+
+        for (int i = 0; i < 8; i++) { // BB corners
+            String id = String.format("corner%3s", Integer.toBinaryString(i)).replace(' ', '0');
+            mb.node().id = id;
+            // MeshPart "cornerBBB", see for primitive types: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glBegin.xml
+            mpb = mb.part(id, GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
+                    new Material(id));
+
+            SphereShapeBuilder.build(mpb, 1, 1, 1, 100, 100); // a unit sphere
+        }
 
         // see also com.badlogic.gdx.graphics.g3d.utils.shapebuilders:
         //  ArrowShapeBuilder
@@ -169,11 +181,36 @@ public class HGModelInstance extends ModelInstance {
         bbModel = mb.end();
     }
     // TODO: keep this separate for now - move to another class?
-    public ModelInstance getBBModelInstance() {
+    public ModelInstance getBBModelInstance(Color boxColor, Color cornerColor) {
         if (bbModel == null) { return null; }
 
-        ModelInstance bbMI = new ModelInstance(bbModel, "box");
-        bbMI.transform.setToTranslationAndScaling(getBB().getCenter(new Vector3()), getBB().getDimensions(new Vector3()));
+        final BoundingBox bb = getBB();
+        final Vector3 bbMin = bb.getMin(new Vector3());
+        final Vector3 bbMax = bb.getMax(new Vector3());
+
+        ModelInstance bbMI = new ModelInstance(bbModel);
+
+        bbMI.getMaterial("box").set(ColorAttribute.createDiffuse(boxColor), new BlendingAttribute(0.1f));
+        bbMI.getNode("box").globalTransform.setToTranslationAndScaling(bb.getCenter(new Vector3()), bb.getDimensions(new Vector3()));
+
+        for (int i = 0; i < 8; i++) { // BB corners
+            String id = String.format("corner%3s", Integer.toBinaryString(i)).replace(' ', '0');
+            bbMI.getMaterial(id).set(ColorAttribute.createDiffuse(cornerColor), new BlendingAttribute(0.3f));
+
+            Vector3 translate = Vector3.Zero.cpy();
+            // 000 - translate(min.x, min.y, min.z)
+            // 001 - translate(min.x, min.y, max.z)
+            // 010 - translate(min.x, max.y, min.z)
+            // ...
+            if ((i & (1 << 2)) == 0) { translate.x = bbMin.x; } else { translate.x = bbMax.x; }
+            if ((i & (1 << 1)) == 0) { translate.y = bbMin.y; } else { translate.y = bbMax.y; }
+            if ((i & (1 << 0)) == 0) { translate.z = bbMin.z; } else { translate.z = bbMax.z; }
+
+            Vector3 scale = Vector3.Zero.cpy();
+            scale.add(maxD * getMaxScale()).scl(1f/30f);
+
+            bbMI.getNode(id).globalTransform.setToTranslationAndScaling(translate, scale);
+        }
         return bbMI;
     }
 }
