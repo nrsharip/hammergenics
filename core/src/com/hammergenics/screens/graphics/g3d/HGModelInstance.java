@@ -18,10 +18,18 @@ package com.hammergenics.screens.graphics.g3d;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Attribute;
 import com.badlogic.gdx.graphics.g3d.Material;
+import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
+import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
+import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
+import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.BoxShapeBuilder;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
@@ -48,6 +56,9 @@ public class HGModelInstance extends ModelInstance {
     public AnimationController.AnimationDesc animationDesc = null;
     public int animationIndex = 0;
 
+    // TODO: keep this separate for now - move to another class?
+    public Model bbModel = null;
+
     public HGModelInstance (final HGModel hgModel, final FileHandle assetFL) {
         this(hgModel, assetFL, (String[])null);
     }
@@ -62,6 +73,8 @@ public class HGModelInstance extends ModelInstance {
         calculateBoundingBox(bb);
         Vector3 dims = bb.getDimensions(new Vector3());
         maxD = Math.max(Math.max(dims.x, dims.y), dims.z);
+
+        createBBModel();
     }
 
     public String getTag(int depth) {
@@ -117,5 +130,50 @@ public class HGModelInstance extends ModelInstance {
     public void setAttributes(String mtlId, final Attribute... attributes) {
         Material material = getMaterial(mtlId);
         if (material != null) { getMaterial(mtlId).set(attributes); }
+    }
+
+    // TODO: keep this separate for now - move to another class?
+    private void createBBModel() {
+        if (bbModel != null) {
+            bbModel.dispose();
+            bbModel = null;
+        }
+
+        // see: ModelBuilder()
+        // https://libgdx.badlogicgames.com/ci/nightlies/dist/docs/api/com/badlogic/gdx/graphics/g3d/utils/ModelBuilder.html
+        ModelBuilder mb = new ModelBuilder();
+        MeshPartBuilder mpb;
+
+        mb.begin();
+
+        mb.node().id = "box"; // adding node XZ
+        // MeshPart "box", see for primitive types: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glBegin.xml
+        mpb = mb.part("box", GL20.GL_LINES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
+                new Material("base", ColorAttribute.createDiffuse(Color.BLACK)));
+
+        // Requires GL_POINTS, GL_LINES or GL_TRIANGLES
+        BoxShapeBuilder.build(mpb, 1f, 1f, 1f); // a unit box
+
+        // see also com.badlogic.gdx.graphics.g3d.utils.shapebuilders:
+        //  ArrowShapeBuilder
+        //  BaseShapeBuilder
+        //  BoxShapeBuilder
+        //  CapsuleShapeBuilder
+        //  ConeShapeBuilder
+        //  CylinderShapeBuilder
+        //  EllipseShapeBuilder
+        //  FrustumShapeBuilder
+        //  PatchShapeBuilder
+        //  RenderableShapeBuilder
+        //  SphereShapeBuilder
+        bbModel = mb.end();
+    }
+    // TODO: keep this separate for now - move to another class?
+    public ModelInstance getBBModelInstance() {
+        if (bbModel == null) { return null; }
+
+        ModelInstance bbMI = new ModelInstance(bbModel, "box");
+        bbMI.transform.setToTranslationAndScaling(getBB().getCenter(new Vector3()), getBB().getDimensions(new Vector3()));
+        return bbMI;
     }
 }

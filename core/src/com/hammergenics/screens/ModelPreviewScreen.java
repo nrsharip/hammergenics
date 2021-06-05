@@ -85,7 +85,6 @@ public class ModelPreviewScreen extends ScreenAdapter {
     private Model lightsModel = null;
     private Array<ModelInstance> dlArrayModelInstance = null;
     private Array<ModelInstance> plArrayModelInstance = null;
-    private Model bbModel = null;
     private Array<ModelInstance> bbArrayModelInstance = null;
 
     // 2D Stage - this is where all the widgets (buttons, checkboxes, labels etc.) are located
@@ -237,7 +236,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         if (stage != null) { stage.dispose(); }
         if (gridModel != null) { gridModel.dispose(); }
         if (lightsModel != null) { lightsModel.dispose(); }
-        if (bbModel != null) { bbModel.dispose(); }
+        for (HGModelInstance mi:hgMIs) { mi.bbModel.dispose(); }
     }
 
     public void addModelInstances(Array<FileHandle> modelFHs) {
@@ -531,49 +530,14 @@ public class ModelPreviewScreen extends ScreenAdapter {
     }
 
     public void resetBBModel() {
-        if (bbModel != null) {
-            bbModel.dispose();
-            bbModel = null;
-        }
         if (bbArrayModelInstance != null) {
             bbArrayModelInstance.clear();
             bbArrayModelInstance = null;
         }
         bbArrayModelInstance = new Array<>(ModelInstance.class);
 
-        // see: ModelBuilder()
-        // https://libgdx.badlogicgames.com/ci/nightlies/dist/docs/api/com/badlogic/gdx/graphics/g3d/utils/ModelBuilder.html
-        ModelBuilder mb = new ModelBuilder();
-        MeshPartBuilder mpb;
-
-        mb.begin();
-
-        mb.node().id = "box"; // adding node XZ
-        // MeshPart "box", see for primitive types: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glBegin.xml
-        mpb = mb.part("box", GL20.GL_LINES, Usage.Position | Usage.Normal,
-                new Material("base", ColorAttribute.createDiffuse(Color.BLACK)));
-
-        // Requires GL_POINTS, GL_LINES or GL_TRIANGLES
-        BoxShapeBuilder.build(mpb, 1f, 1f, 1f); // a unit box
-
-        // see also com.badlogic.gdx.graphics.g3d.utils.shapebuilders:
-        //  ArrowShapeBuilder
-        //  BaseShapeBuilder
-        //  BoxShapeBuilder
-        //  CapsuleShapeBuilder
-        //  ConeShapeBuilder
-        //  CylinderShapeBuilder
-        //  EllipseShapeBuilder
-        //  FrustumShapeBuilder
-        //  PatchShapeBuilder
-        //  RenderableShapeBuilder
-        //  SphereShapeBuilder
-        bbModel = mb.end();
-
         for (HGModelInstance mi:hgMIs) {
-            ModelInstance bb = new ModelInstance(bbModel, "box");
-            bb.transform.setToTranslationAndScaling(mi.getBB().getCenter(new Vector3()), mi.getBB().getDimensions(new Vector3()));
-            bbArrayModelInstance.add(bb);
+            bbArrayModelInstance.add(mi.getBBModelInstance());
         }
     }
 
