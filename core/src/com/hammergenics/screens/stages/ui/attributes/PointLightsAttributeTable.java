@@ -18,6 +18,8 @@ package com.hammergenics.screens.stages.ui.attributes;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Attributes;
+import com.badlogic.gdx.graphics.g3d.Environment;
+import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.PointLight;
 import com.badlogic.gdx.math.Vector3;
@@ -101,7 +103,7 @@ public class PointLightsAttributeTable extends BaseLightsAttributeTable<PointLig
                             }
                         }
 
-                        if (attr != null && listener != null) { listener.onAttributeChange(currentType, currentTypeAlias); }
+                        if (attr != null && listener != null) { listener.onAttributeChange(container, currentType, currentTypeAlias); }
                     }
                     textField.getColor().set(Color.WHITE);
                 } catch (NumberFormatException e) {
@@ -166,18 +168,39 @@ public class PointLightsAttributeTable extends BaseLightsAttributeTable<PointLig
 
     @Override
     protected PointLight createLight() {
-        Vector3 pos;
+        Vector3 position;
         float intensity;
 
         if (lights != null && lights.size != 0) {
             PointLight pl = lights.get(lights.size - 1);
-            pos = pl.position.cpy().rotate(-45f, 0, 1, 0);
+
+            if (container instanceof Environment) {
+                position = pl.position.cpy().rotate(Vector3.Y.cpy(), -45f);
+            } else if (container instanceof Material) {
+                position = pl.position.cpy().sub(mps.currMI.getBB().getCenter(new Vector3()));
+                position.rotate(Vector3.Y.cpy(), -45f);
+                position.add(mps.currMI.getBB().getCenter(new Vector3()));
+            } else { return null; } // so the IDE is not complaining
+
             intensity = pl.intensity;
         } else {
-            pos = new Vector3(100f, 100f, 100f);
-            intensity = 5000f;
-        }
+            float overallSize;
+            if (container instanceof Environment) {
+                overallSize = Math.max(Math.abs(mps.currGrid.x), Math.abs(mps.currGrid.y)) * mps.maxDofAll;
+                position = mps.hgMIs.get(0).getBB().getCenter(new Vector3()).cpy();
+            } else if (container instanceof Material) {
+                overallSize = mps.maxDofAll;
+                position = mps.currMI.getBB().getCenter(new Vector3()).cpy();
+            } else { return null; } // so the IDE is not complaining
 
-        return new PointLight().set(Color.WHITE, pos, intensity);
+            position.add(-overallSize/2, overallSize/2, overallSize/2);
+            // seems that intensity should grow exponentially(?) over the distance, the table is:
+            //  unitSize: 1.7   17    191    376    522
+            // intensity:   1  100  28708  56470  78397
+            intensity = (overallSize < 50f ? 10.10947f : 151.0947f) * overallSize - 90f; // TODO: temporal solution, revisit
+            intensity = intensity <= 0 ? 1f : intensity;                                 // TODO: temporal solution, revisit
+            // syncup: pl
+        }
+        return new PointLight().set(Color.WHITE, position, intensity);
     }
 }

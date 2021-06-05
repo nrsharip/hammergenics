@@ -27,10 +27,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g3d.*;
-import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
-import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
-import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
-import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.*;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.environment.PointLight;
 import com.badlogic.gdx.graphics.g3d.model.Animation;
@@ -40,7 +37,6 @@ import com.badlogic.gdx.graphics.g3d.shaders.BaseShader;
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import com.badlogic.gdx.graphics.g3d.utils.*;
 import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.ArrowShapeBuilder;
-import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.BoxShapeBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.SphereShapeBuilder;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Vector2;
@@ -244,8 +240,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
         if (hgMIs.size > 0) {
             currGrid = arrangeInSpiral(hgMIs);
-            float distance = Math.max(Math.abs(currGrid.x), Math.abs(currGrid.y)) * maxDofAll;
-            resetScreen((currMI = hgMIs.get(0)).getBB().getCenter(Vector3.Zero.cpy()), maxDofAll, distance == 0 ? maxDofAll : distance);
+            resetScreen((currMI = hgMIs.get(0)).getBB().getCenter(Vector3.Zero.cpy()));
             stage.resetPages();
         }
     }
@@ -332,7 +327,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
         if (resetScreen) {
             currGrid = arrangeInSpiral(hgMIs);
-            resetScreen(currMI.getBB().getCenter(Vector3.Zero.cpy()), maxDofAll, maxDofAll);
+            resetScreen(currMI.getBB().getCenter(Vector3.Zero.cpy()));
             stage.resetPages();
         }
 
@@ -381,23 +376,52 @@ public class ModelPreviewScreen extends ScreenAdapter {
         return grid;
     }
 
-    private void resetScreen(Vector3 position, float unitSize, float overallSize) {
+    private void resetScreen(Vector3 position) {
+        float unitSize = maxDofAll;
+        float overallSize = Math.max(Math.abs(currGrid.x), Math.abs(currGrid.y)) * maxDofAll;
+        overallSize = overallSize == 0 ? maxDofAll : overallSize;
+
         // TODO: add checks for null perspectiveCamera, cameraInputController, and the size of models
         resetGridModel(unitSize / 5, (position.len() + overallSize) * 5);
         resetCamera(overallSize, position.cpy());
         resetScreenInputController(unitSize, overallSize, position.cpy());
-        resetEnvironment(); // clears the point lights if any
+        resetEnvironment(); // clears the all lights as well
 
+        // ADDING LIGHTS TO THE ENVIRONMENT
+        // https://github.com/libgdx/libgdx/wiki/Material-and-environment#lights
+        // you can attach a light to either an environment or a material.
+        // Adding a light to an environment can still be done using the environment.add(light) method.
+        // However, you can also use the
+        // - DirectionalLightsAttribute
+        // - PointLightsAttribute
+        // - SpotLightsAttribute
+        // attributes.
+        // Each of these attributes has an array which you can use to attach one or more lights to it.
+        // TODO: keep for now
+        // !!! If you add a light to the PointLightsAttribute of the environment
+        // and then add another light to the PointLightsAttribute of the material,
+        // then the DefaultShader will ignore the point light(s) added to the environment.
+        // !!! Lights are always used by reference.
+        // IMPORTANT NOTE ON SHADER CONFIG: https://github.com/libgdx/libgdx/wiki/ModelBatch#default-shader
+
+        // TODO: keep for now
+        // Lights should be sorted by importance. Usually this means that lights should be sorted on distance.
+        // !!! The DefaultShader for example by default (configurable) only uses the first five point lights for shader lighting.
+        // Any remaining lights will be added to an ambient cubemap which is much less accurate.
+
+        // adding a single directional light
+        environment.add(new DirectionalLight().set(Color.WHITE, -1f, -0.5f, -1f));
         // adding a single point light
-        Vector3 positionPL = position.cpy().add(unitSize/2, unitSize/2, -unitSize/2);
+        Vector3 plPosition = hgMIs.get(0).getBB().getCenter(new Vector3());
+        plPosition.add(-overallSize/2, overallSize/2, overallSize/2);
         // seems that intensity should grow exponentially(?) over the distance, the table is:
         //  unitSize: 1.7   17    191    376    522
         // intensity:   1  100  28708  56470  78397
         float intensity = (overallSize < 50f ? 10.10947f : 151.0947f) * overallSize - 90f; // TODO: temporal solution, revisit
         intensity = intensity <= 0 ? 1f : intensity;                                       // TODO: temporal solution, revisit
-        environment.add(new PointLight().set(Color.WHITE, positionPL, intensity < 0 ? 0.5f : intensity)); // syncup: pl
+        environment.add(new PointLight().set(Color.WHITE, plPosition, intensity < 0 ? 0.5f : intensity)); // syncup: pl
 
-        resetEnvLightsModel(unitSize, position.cpy());
+        resetLightsModel(unitSize, position.cpy());
         resetBBModel();
     }
 
@@ -542,8 +566,9 @@ public class ModelPreviewScreen extends ScreenAdapter {
         }
     }
 
-    public void resetEnvLightsModel(float distance, Vector3 c) {
-        if (distance == 0) { return; }
+    public void resetLightsModel(float unitDistance, Vector3 center) {
+        float overallDistance = Math.max(Math.abs(currGrid.x), Math.abs(currGrid.y)) * maxDofAll;
+        overallDistance = overallDistance == 0 ? maxDofAll : overallDistance;
 
         // IMPORTANT
         if (lightsModel != null) {
@@ -561,94 +586,88 @@ public class ModelPreviewScreen extends ScreenAdapter {
         dlArrayModelInstance = new Array<>(ModelInstance.class);
         plArrayModelInstance = new Array<>(ModelInstance.class);
 
-        Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(), "distance: " + distance + " center: " + c);
+        Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(),
+                "overallDistance: " + overallDistance + " center: " + center);
 
         // see: ModelBuilder()
         // https://libgdx.badlogicgames.com/ci/nightlies/dist/docs/api/com/badlogic/gdx/graphics/g3d/utils/ModelBuilder.html
         ModelBuilder mb = new ModelBuilder();
         MeshPartBuilder mpb;
-
         mb.begin();
-
-        mb.node().id = "directional"; // adding node XZ
-        // MeshPart "directional", see for primitive types: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glBegin.xml
+        mb.node().id = "directional";
         mpb = mb.part("directional", GL20.GL_TRIANGLES, Usage.Position | Usage.Normal, new Material("base"));
-
-        // Vector (distance/10, 0, 0):
-        ArrowShapeBuilder.build(mpb, 0, 0, 0, distance/10, 0, 0, 0.2f, 0.5f, 100);
-
-        mb.node().id = "point"; // adding node Y
-        // MeshPart "point", see for primitive types: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glBegin.xml
+        ArrowShapeBuilder.build(mpb, 0, 0, 0, 1, 0, 0, 0.2f, 0.5f, 100); // unit arrow
+        mb.node().id = "point";
         mpb = mb.part("point", GL20.GL_TRIANGLES, Usage.Position | Usage.Normal, new Material("base"));
+        SphereShapeBuilder.build(mpb, 1, 1, 1, 100, 100); // unit sphere
 
-        SphereShapeBuilder.build(mpb, distance/10, distance/10, distance/10, 100, 100);
-
-        // see also com.badlogic.gdx.graphics.g3d.utils.shapebuilders:
-        //  ArrowShapeBuilder
-        //  BaseShapeBuilder
-        //  BoxShapeBuilder
-        //  CapsuleShapeBuilder
-        //  ConeShapeBuilder
-        //  CylinderShapeBuilder
-        //  EllipseShapeBuilder
-        //  FrustumShapeBuilder
-        //  PatchShapeBuilder
-        //  RenderableShapeBuilder
-        //  SphereShapeBuilder
         lightsModel = mb.end();
 
+        // Environment Lights
         DirectionalLightsAttribute dlEnvAttribute = environment.get(DirectionalLightsAttribute.class, DirectionalLightsAttribute.Type);
         if (dlEnvAttribute != null) {
-            dlEnvAttribute.lights.forEach(light -> {
-                ModelInstance mi = new ModelInstance(lightsModel, "directional");
-                // from the center moving backwards to the direction of light
-                mi.transform.setToTranslation(c.cpy().sub(light.direction.cpy().nor().scl(distance)));
-                // rotating the arrow from X vector (1,0,0) to the direction vector
-                mi.transform.rotate(Vector3.X, light.direction.cpy().nor());
-                mi.getMaterial("base", true).set(
-                        ColorAttribute.createDiffuse(light.color),
-                        ColorAttribute.createEmissive(light.color)
-                );
-
-                dlArrayModelInstance.add(mi);
-            });
+            for (DirectionalLight light:dlEnvAttribute.lights) {
+                dlArrayModelInstance.add(createDLModelInstance(light, hgMIs.get(0).getBB().getCenter(new Vector3()), overallDistance));
+            }
         }
-
         PointLightsAttribute plEnvAttribute = environment.get(PointLightsAttribute.class, PointLightsAttribute.Type);
         if (plEnvAttribute != null) {
-            plEnvAttribute.lights.forEach(light -> {
-                DirectionalLightsAttribute dlAttribute = new DirectionalLightsAttribute();
-                Array<DirectionalLight> dLights = new Array<>(DirectionalLight.class);
+            for (PointLight light:plEnvAttribute.lights) {
+                plArrayModelInstance.add(createPLModelInstance(light, hgMIs.get(0).getBB().getCenter(new Vector3()), overallDistance));
+            }
+        }
 
-                Vector3 dir = light.position.cpy().sub(c).nor();
-
-                float ref = (distance < 50f ? 10.10947f : 151.0947f) * distance - 90f; // TODO: temporal solution, revisit
-                ref = ref <= 0 ? 1f : ref;                                             // TODO: temporal solution, revisit
-                float fraction = light.intensity / (2 * ref); // syncup: pl
-                dLights.addAll(
-                        new DirectionalLight().set(new Color(Color.BLACK).add(fraction, fraction, fraction, 0f), dir)
-//                ,new DirectionalLight().set(Color.WHITE,   0,   0, -1f) // xz
-//                ,new DirectionalLight().set(Color.WHITE,  1f,   0,   0) // xz
-//                ,new DirectionalLight().set(Color.WHITE,   0,   0,  1f) // xz
-//                ,new DirectionalLight().set(Color.WHITE, -1f,   0,   0) // xz
-//                ,new DirectionalLight().set(Color.WHITE,   0, -1f,   0) // y
-//                ,new DirectionalLight().set(Color.WHITE,   0,  1f,   0) // y
-                );
-
-                dlAttribute.lights.addAll(dLights);
-                ModelInstance mi = new ModelInstance(lightsModel, "point");
-                mi.transform.setToTranslation(light.position);
-                mi.getMaterial("base", true).set(
-                        dlAttribute,
-                        ColorAttribute.createDiffuse(light.color),
-                        ColorAttribute.createEmissive(light.color)
-                );
-
-                plArrayModelInstance.add(mi);
+        // Current Model Instance's Material Lights
+        if (currMI != null) {
+            currMI.materials.forEach(material -> {
+                DirectionalLightsAttribute dlMatAttribute = material.get(DirectionalLightsAttribute.class, DirectionalLightsAttribute.Type);
+                if (dlMatAttribute != null) {
+                    dlMatAttribute.lights.forEach(light ->
+                            dlArrayModelInstance.add(createDLModelInstance(light, center, unitDistance)));
+                }
+                PointLightsAttribute plMatAttribute = material.get(PointLightsAttribute.class, PointLightsAttribute.Type);
+                if (plMatAttribute != null) {
+                    plMatAttribute.lights.forEach(light ->
+                            plArrayModelInstance.add(createPLModelInstance(light, center, unitDistance)));
+                }
             });
         }
 
         // Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(), "");
+    }
+
+    private ModelInstance createDLModelInstance(DirectionalLight dl, Vector3 directTo, float distance) {
+        ModelInstance mi = new ModelInstance(lightsModel, "directional");
+        // from the center moving backwards to the direction of light
+        mi.transform.setToTranslationAndScaling(
+                directTo.cpy().sub(dl.direction.cpy().nor().scl(distance)), Vector3.Zero.cpy().add(distance/10));
+        // rotating the arrow from X vector (1,0,0) to the direction vector
+        mi.transform.rotate(Vector3.X, dl.direction.cpy().nor());
+        mi.getMaterial("base", true).set(
+                ColorAttribute.createDiffuse(dl.color), ColorAttribute.createEmissive(dl.color)
+        );
+        return mi;
+    }
+
+    private ModelInstance createPLModelInstance(PointLight pl, Vector3 directTo, float distance) {
+        // This a directional light added to the sphere itself to create
+        // a perception of glowing reflecting point lights' intensity
+        DirectionalLightsAttribute dlAttribute = new DirectionalLightsAttribute();
+        Array<DirectionalLight> dLights = new Array<>(DirectionalLight.class);
+        Vector3 dir = pl.position.cpy().sub(directTo).nor();
+        float ref = (distance < 50f ? 10.10947f : 151.0947f) * distance - 90f; // TODO: temporal solution, revisit
+        ref = ref <= 0 ? 1f : ref;                                             // TODO: temporal solution, revisit
+        float fraction = pl.intensity / (2 * ref); // syncup: pl
+        dLights.addAll(new DirectionalLight().set(new Color(Color.BLACK).add(fraction, fraction, fraction, 0f), dir));
+        dlAttribute.lights.addAll(dLights);
+        // directional light part over
+
+        ModelInstance mi = new ModelInstance(lightsModel, "point");
+        mi.transform.setToTranslationAndScaling(pl.position, Vector3.Zero.cpy().add(distance/10));
+        mi.getMaterial("base", true).set(
+                dlAttribute, ColorAttribute.createDiffuse(pl.color), ColorAttribute.createEmissive(pl.color)
+        );
+        return mi;
     }
 
     /**
@@ -754,29 +773,9 @@ public class ModelPreviewScreen extends ScreenAdapter {
         environment.set(ColorAttribute.createAmbientLight(Color.DARK_GRAY)); // min enabled            // JdxLib v1.10.0
         environment.set(ColorAttribute.createFog(Color.GRAY));               // min enabled            // JdxLib v1.10.0
 
-        // https://github.com/libgdx/libgdx/wiki/Material-and-environment#lights
-        // you can attach a light to either an environment or a material.
-        // Adding a light to an environment can still be done using the environment.add(light) method.
-        // However, you can also use the
-        // - DirectionalLightsAttribute
-        // - PointLightsAttribute
-        // - SpotLightsAttribute
-        // attributes.
-        // Each of these attributes has an array which you can use to attach one or more lights to it.
-        // TODO: keep for now
-        // !!! If you add a light to the PointLightsAttribute of the environment
-        // and then add another light to the PointLightsAttribute of the material,
-        // then the DefaultShader will ignore the point light(s) added to the environment.
-        // !!! Lights are always used by reference.
-        // IMPORTANT NOTE ON SHADER CONFIG: https://github.com/libgdx/libgdx/wiki/ModelBatch#default-shader
-
-        // TODO: keep for now
-        // Lights should be sorted by importance. Usually this means that lights should be sorted on distance.
-        // !!! The DefaultShader for example by default (configurable) only uses the first five point lights for shader lighting.
-        // Any remaining lights will be added to an ambient cubemap which is much less accurate.
-        environment.add(new DirectionalLight().set(Color.WHITE, -1f, -0.5f, -1f));     // min enabled
-
+        if (environment.has(DirectionalLightsAttribute.Type)) { environment.remove(DirectionalLightsAttribute.Type); }
         if (environment.has(PointLightsAttribute.Type)) { environment.remove(PointLightsAttribute.Type); }
+        if (environment.has(SpotLightsAttribute.Type)) { environment.remove(SpotLightsAttribute.Type); }
     }
 
     public void checkMouseMoved(int screenX, int screenY) {

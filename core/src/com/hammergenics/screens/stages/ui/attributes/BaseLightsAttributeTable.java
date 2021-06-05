@@ -92,7 +92,7 @@ public abstract class BaseLightsAttributeTable<T extends Attribute, L extends Ba
                 mnsTextButton.getColor().set(COLOR_UNPRESSED);
                 mnsTextButton.getLabel().getColor().set(COLOR_UNPRESSED);
 
-                if (listener != null) { listener.onAttributeChange(currentType, currentTypeAlias); }
+                if (listener != null) { listener.onAttributeChange(container, currentType, currentTypeAlias); }
             }
         });
 
@@ -124,7 +124,7 @@ public abstract class BaseLightsAttributeTable<T extends Attribute, L extends Ba
 
                 postButtonRemove();
 
-                if (listener != null) { listener.onAttributeChange(currentType, currentTypeAlias); }
+                if (listener != null) { listener.onAttributeChange(container, currentType, currentTypeAlias); }
             }
         });
 
@@ -230,7 +230,7 @@ public abstract class BaseLightsAttributeTable<T extends Attribute, L extends Ba
                             case ACTOR_A: color.a = value; break;
                         }
 
-                        if (attr != null && listener != null) { listener.onAttributeChange(currentType, currentTypeAlias); }
+                        if (attr != null && listener != null) { listener.onAttributeChange(container, currentType, currentTypeAlias); }
                     }
                     textField.getColor().set(Color.WHITE);
                 } catch (NumberFormatException e) {
@@ -269,7 +269,7 @@ public abstract class BaseLightsAttributeTable<T extends Attribute, L extends Ba
                         }
                     }
 
-                    if (listener != null) { listener.onAttributeChange(currentType, currentTypeAlias); }
+                    if (listener != null) { listener.onAttributeChange(container, currentType, currentTypeAlias); }
                 }
             }
         };

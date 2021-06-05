@@ -71,7 +71,7 @@ public abstract class AttributeTable<T extends Attribute> extends BaseAttributeT
                         Gdx.app.debug("enabledCheckBox", "Setting the attribute: type = 0x"
                                 + Long.toHexString(currentType) + " alias = " + currentTypeAlias);
 
-                        if (listener != null) { listener.onAttributeEnabled(currentType, currentTypeAlias); }
+                        if (listener != null) { listener.onAttributeEnabled(container, currentType, currentTypeAlias); }
                     } else { // removing the attribute
                         if (container.get(currentType) != null) {
                             container.remove(currentType);
@@ -81,7 +81,7 @@ public abstract class AttributeTable<T extends Attribute> extends BaseAttributeT
                             Gdx.app.debug("enabledCheckBox", "Clearing the attribute: type = 0x"
                                     + Long.toHexString(currentType) + " alias = " + currentTypeAlias);
 
-                            if (listener != null) { listener.onAttributeDisabled(currentType, currentTypeAlias); }
+                            if (listener != null) { listener.onAttributeDisabled(container, currentType, currentTypeAlias); }
                         } else {
                             Gdx.app.error("enabledCheckBox", "ERROR: we shouldn't be here: type = 0x"
                                     + Long.toHexString(currentType) + " alias = " + currentTypeAlias);

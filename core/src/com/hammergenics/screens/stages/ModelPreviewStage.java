@@ -20,6 +20,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
 import com.badlogic.gdx.math.Vector3;
@@ -37,7 +38,10 @@ import com.hammergenics.config.Config;
 import com.hammergenics.screens.ModelPreviewScreen;
 import com.hammergenics.screens.stages.ui.AttributesManagerTable;
 import com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable;
+import com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable.EventType;
 import com.hammergenics.utils.LibgdxUtils;
+
+import static com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable.EventType.*;
 
 /**
  * Add description here
@@ -314,38 +318,36 @@ public class ModelPreviewStage extends Stage {
         // temporarily placing it here:
         eventListener = new BaseAttributeTable.EventListener() {
             @Override
-            public void onAttributeEnabled(long type, String alias) {
-                miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelPS.currMI));
-                envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(modelPS.environment,"", ""));
-
-                if (modelPS.currMI != null && (type & (DirectionalLightsAttribute.Type | PointLightsAttribute.Type)) != 0) {
-                    modelPS.resetEnvLightsModel(modelPS.maxDofAll, modelPS.currMI.getBB().getCenter(Vector3.Zero.cpy()));
-                }
-                //Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "onAttributeEnabled: 0x" + Long.toHexString(type) + " alias: " + alias);
+            public void onAttributeEnabled(Attributes container, long type, String alias) {
+                handleAttributeUpdate(ATTR_ENABLED, container, type, alias);
             }
 
             @Override
-            public void onAttributeDisabled(long type, String alias) {
-                miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelPS.currMI));
-                envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(modelPS.environment,"", ""));
-
-                if (modelPS.currMI != null && (type & (DirectionalLightsAttribute.Type | PointLightsAttribute.Type)) != 0) {
-                    modelPS.resetEnvLightsModel(modelPS.maxDofAll, modelPS.currMI.getBB().getCenter(Vector3.Zero.cpy()));
-                }
-                //Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "onAttributeDisabled: 0x" + Long.toHexString(type) + " alias: " + alias);
+            public void onAttributeDisabled(Attributes container, long type, String alias) {
+                handleAttributeUpdate(ATTR_DISABLED, container, type, alias);
             }
 
             @Override
-            public void onAttributeChange(long type, String alias) {
-                miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelPS.currMI));
-                envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(modelPS.environment,"", ""));
-
-                if (modelPS.currMI != null && (type & (DirectionalLightsAttribute.Type | PointLightsAttribute.Type)) != 0) {
-                    modelPS.resetEnvLightsModel(modelPS.maxDofAll, modelPS.currMI.getBB().getCenter(Vector3.Zero.cpy()));
-                }
-                //Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "onAttributeChange: 0x" + Long.toHexString(type) + " alias: " + alias);
+            public void onAttributeChange(Attributes container, long type, String alias) {
+                handleAttributeUpdate(ATTR_CHANGED, container, type, alias);
             }
         };
+    }
+
+    /**
+     * Keeping the attribute change event in one place.
+     * @param container
+     * @param type
+     * @param alias
+     */
+    private void handleAttributeUpdate(EventType eType, Attributes container, long type, String alias) {
+        miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelPS.currMI));
+        envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(modelPS.environment,"", ""));
+
+        if ((type & (DirectionalLightsAttribute.Type | PointLightsAttribute.Type)) != 0) {
+            modelPS.resetLightsModel(modelPS.maxDofAll, modelPS.currMI.getBB().getCenter(Vector3.Zero.cpy()));
+        }
+        //Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "onAttributeDisabled: 0x" + Long.toHexString(type) + " alias: " + alias);
     }
 
     /**

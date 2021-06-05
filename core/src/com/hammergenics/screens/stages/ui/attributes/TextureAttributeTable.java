@@ -285,7 +285,7 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
                                     break;
                             }
                         }
-                        if (attr != null && listener != null) { listener.onAttributeChange(currentType, currentTypeAlias); }
+                        if (attr != null && listener != null) { listener.onAttributeChange(container, currentType, currentTypeAlias); }
                     }
                     textField.getColor().set(Color.WHITE);
                 } catch (NumberFormatException e) {
@@ -325,7 +325,7 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
                                 break;
                         }
                     }
-                    if (listener != null) { listener.onAttributeChange(currentType, currentTypeAlias); }
+                    if (listener != null) { listener.onAttributeChange(container, currentType, currentTypeAlias); }
                 }
             }
         };
@@ -338,7 +338,7 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
                     if (textureSelectBox.getSelectedIndex() != 0) { // == 0 - 'No Texture Selected'
                         enabledCheckBox.setChecked(true);           // relying on 'enabled' check box event processing
                     }
-                    if (listener != null) { listener.onAttributeChange(currentType, currentTypeAlias); }
+                    if (listener != null) { listener.onAttributeChange(container, currentType, currentTypeAlias); }
                 }
             }
         };

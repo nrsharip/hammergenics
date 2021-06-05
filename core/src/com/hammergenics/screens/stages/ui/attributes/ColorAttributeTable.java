@@ -153,7 +153,7 @@ public class ColorAttributeTable extends AttributeTable<ColorAttribute> {
                                 break;
                         }
 
-                        if (attr != null && listener != null) { listener.onAttributeChange(currentType, currentTypeAlias); }
+                        if (attr != null && listener != null) { listener.onAttributeChange(container, currentType, currentTypeAlias); }
                     }
                     textField.getColor().set(Color.WHITE);
                 } catch (NumberFormatException e) {
@@ -184,7 +184,7 @@ public class ColorAttributeTable extends AttributeTable<ColorAttribute> {
                     attr = container.get(ColorAttribute.class, currentType);
                     if (attr != null) { attr.color.set(color); }
 
-                    if (listener != null) { listener.onAttributeChange(currentType, currentTypeAlias); }
+                    if (listener != null) { listener.onAttributeChange(container, currentType, currentTypeAlias); }
                 }
             }
         };

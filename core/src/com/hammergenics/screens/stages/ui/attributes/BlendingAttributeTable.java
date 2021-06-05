@@ -141,7 +141,7 @@ public class BlendingAttributeTable extends AttributeTable<BlendingAttribute> {
 
                         if (attr != null) { attr.opacity = value; }
 
-                        if (listener != null) { listener.onAttributeChange(currentType, currentTypeAlias); }
+                        if (listener != null) { listener.onAttributeChange(container, currentType, currentTypeAlias); }
                     }
                     textField.getColor().set(Color.WHITE);
                 } catch (NumberFormatException e) {
@@ -185,7 +185,7 @@ public class BlendingAttributeTable extends AttributeTable<BlendingAttribute> {
                         }
                     }
 
-                    if (listener != null) { listener.onAttributeChange(currentType, currentTypeAlias); }
+                    if (listener != null) { listener.onAttributeChange(container, currentType, currentTypeAlias); }
                 }
             }
         };

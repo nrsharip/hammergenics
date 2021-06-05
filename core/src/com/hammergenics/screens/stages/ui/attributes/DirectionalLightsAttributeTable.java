@@ -112,7 +112,7 @@ public class DirectionalLightsAttributeTable extends BaseLightsAttributeTable<Di
                         );
                     }
 
-                    if (attr != null && listener != null) { listener.onAttributeChange(currentType, currentTypeAlias); }
+                    if (attr != null && listener != null) { listener.onAttributeChange(container, currentType, currentTypeAlias); }
                 }
 
                 return super.touchDown(event, x, y, pointer, button);
@@ -176,10 +176,10 @@ public class DirectionalLightsAttributeTable extends BaseLightsAttributeTable<Di
         Vector3 dir;
 
         if (lights != null && lights.size != 0) {
-            DirectionalLight pl = lights.get(lights.size - 1);
-            dir = pl.direction.cpy().rotate(-90f, 0, 1, 0).nor();
+            DirectionalLight dl = lights.get(lights.size - 1);
+            dir = dl.direction.cpy().rotate(Vector3.Y.cpy(), -90f).nor();
         } else {
-            dir = new Vector3(0f, -0.5f, -1f);
+            dir = new Vector3(-1f, -0.5f, -1f);
         }
 
         return new DirectionalLight().set(Color.WHITE, dir);

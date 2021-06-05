@@ -43,8 +43,11 @@ public abstract class BaseAttributeTable<T extends Attribute> extends HGTable {
     public abstract void setListener(EventListener listener);
 
     public interface EventListener {
-        void onAttributeEnabled(long type, String alias);
-        void onAttributeDisabled(long type, String alias);
-        void onAttributeChange(long type, String alias);
+        void onAttributeEnabled(Attributes container, long type, String alias);
+        void onAttributeDisabled(Attributes container, long type, String alias);
+        void onAttributeChange(Attributes container, long type, String alias);
+    }
+    public enum EventType {
+        ATTR_ENABLED, ATTR_DISABLED, ATTR_CHANGED
     }
 }
