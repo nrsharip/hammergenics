@@ -18,12 +18,8 @@ package com.hammergenics.screens.graphics.g3d.utils;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Buttons;
-import com.badlogic.gdx.Input.Keys;
-import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.utils.Array;
-import com.hammergenics.screens.ModelPreviewScreen;
 import com.hammergenics.screens.input.HGInputController;
 
 /**
@@ -31,57 +27,28 @@ import com.hammergenics.screens.input.HGInputController;
  *
  * @author nrsharip
  */
-public class ScreenInputController extends HGInputController {
-    public Screen screen;
+public class SpectatorInputController extends HGInputController {
     public Camera camera;
     public float unitDistance = 1f;
     public float overallDistance = 1f;
     public Vector3 rotateAround = new Vector3();
 
-    public ScreenInputController(Screen screen, Camera camera) {
-        this(screen, camera, new ScreenGestureProcessor(), null);
-
-        Array<KeyInfo> keys = new Array<>(KeyInfo.class);
-        keys.add(new KeyInfo(Keys.W, new KeyListener() {
-            @Override
-            public void onKeyDown(int keycode) { Gdx.app.debug(getTag(), "W pressed"); }
-            @Override
-            public void onKeyUp(int keycode) { Gdx.app.debug(getTag(), "W unpressed"); }
-            @Override
-            public void onKeyTyped(char character) { Gdx.app.debug(getTag(), "W Typed"); }
-        }));
-        setKeys(keys);
+    public SpectatorInputController(Camera camera) {
+        this(camera, new SpectatorGestureProcessor(), null, null);
     }
 
-    public ScreenInputController(Screen screen, Camera camera, Array<KeyInfo> keys) {
-        this(screen, camera, new ScreenGestureProcessor(), keys);
-    }
-
-    protected ScreenInputController(Screen screen, Camera camera, ScreenGestureProcessor gp, Array<KeyInfo> keys) {
-        super(gp, keys);
+    public SpectatorInputController(Camera camera, SpectatorGestureProcessor gp, KeyListener keyListener, MouseListener mouseListener) {
+        super(gp, keyListener, mouseListener);
         gp.sic = this; // this is a workaround since GestureDetector.listener isn't visible here and have no getters...
-        this.screen = screen;
         this.camera = camera;
     }
 
-    public static class ScreenGestureProcessor extends HGGestureProcessor {
-        public ScreenInputController sic;
-
-        @Override
-        public boolean tap(float x, float y, int count, int button) {
-            boolean result = super.tap(x, y, count, button);
-
-            if (sic.screen instanceof ModelPreviewScreen) {
-                ((ModelPreviewScreen)sic.screen).checkTap(x, y, count, button);
-            }
-            return result;
-        }
+    public static class SpectatorGestureProcessor extends HGGestureProcessor {
+        public SpectatorInputController sic;
 
         @Override
         public boolean pan(float x, float y, float deltaX, float deltaY) {
-            boolean result = super.pan(x, y, deltaX, deltaY);
-
-            if (sic == null) return result;
+            if (sic == null) return super.pan(x, y, deltaX, deltaY);
 
             Vector3 v1 = Vector3.Zero.cpy(), v2 = Vector3.Zero.cpy();
             float fracX = deltaX / Gdx.graphics.getWidth(), fracY = deltaY / Gdx.graphics.getHeight();
@@ -109,24 +76,17 @@ public class ScreenInputController extends HGInputController {
                     sic.camera.update();
                     break;
             }
-            return result;
+            return super.pan(x, y, deltaX, deltaY);
         }
     }
 
     @Override
     public boolean mouseMoved(int screenX, int screenY) {
-        boolean result = super.mouseMoved(screenX, screenY);
-
-        if (screen instanceof ModelPreviewScreen) {
-            ((ModelPreviewScreen)screen).checkMouseMoved(screenX, screenY);
-        }
-        return result;
+        return super.mouseMoved(screenX, screenY);
     }
 
     @Override
     public boolean scrolled(float amountX, float amountY) {
-        boolean result = super.scrolled(amountX, amountY);
-
         float step = amountY * unitDistance;
         // making sure we don't step beyond the rotation point.
         // assuming that camera's [direction vector] and [rotateAround vector sub camera position vector] are collinear.
@@ -135,7 +95,7 @@ public class ScreenInputController extends HGInputController {
             camera.translate(new Vector3(camera.direction).scl(-step));
             overallDistance += step;
         }
-        return result;
+        return super.scrolled(amountX, amountY);
     }
 
     private String getTag() {

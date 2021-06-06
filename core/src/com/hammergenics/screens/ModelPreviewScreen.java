@@ -50,7 +50,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.hammergenics.HGGame;
 import com.hammergenics.screens.graphics.g3d.HGModel;
 import com.hammergenics.screens.graphics.g3d.HGModelInstance;
-import com.hammergenics.screens.graphics.g3d.utils.ScreenInputController;
+import com.hammergenics.screens.graphics.g3d.utils.ModelEditorInputController;
 import com.hammergenics.screens.stages.ModelPreviewStage;
 import com.hammergenics.utils.LibgdxUtils;
 
@@ -70,7 +70,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
     private final ModelBatch modelBatch;
 
     private PerspectiveCamera perspectiveCamera;
-    private ScreenInputController screenInputController;
+    private ModelEditorInputController modelEditorInputController;
     public Environment environment;
     public Array<HGModel> hgModels = new Array<>();
     private Array<Texture> textures = new Array<>();
@@ -134,7 +134,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
         // Camera related
         perspectiveCamera = new PerspectiveCamera(70f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        screenInputController = new ScreenInputController(this, perspectiveCamera);
+        modelEditorInputController = new ModelEditorInputController(this, perspectiveCamera);
         // Environment related
         environment = new Environment();
 
@@ -146,7 +146,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         InputMultiplexer inputMultiplexer = new InputMultiplexer();
         // order of addProcessor matter
         inputMultiplexer.addProcessor(stage);
-        inputMultiplexer.addProcessor(screenInputController);
+        inputMultiplexer.addProcessor(modelEditorInputController);
         Gdx.input.setInputProcessor(inputMultiplexer);
     }
 
@@ -155,7 +155,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
      */
     @Override
     public void render(float delta) {
-        screenInputController.update(delta);
+        modelEditorInputController.update(delta);
 
         hgMIs.forEach(hgMI -> {
             if(hgMI.animationController != null) {
@@ -220,10 +220,10 @@ public class ModelPreviewScreen extends ScreenAdapter {
     @Override
     public void resize(int width, int height) {
         super.resize(width, height);
-        if (screenInputController != null) {
-            screenInputController.camera.viewportWidth = width;
-            screenInputController.camera.viewportHeight = height;
-            screenInputController.update(-1f);
+        if (modelEditorInputController != null) {
+            modelEditorInputController.camera.viewportWidth = width;
+            modelEditorInputController.camera.viewportHeight = height;
+            modelEditorInputController.update(-1f);
         }
         if (stage != null) {
             stage.getViewport().update(width, height, true);
@@ -575,10 +575,10 @@ public class ModelPreviewScreen extends ScreenAdapter {
      * @param overallSize
      */
     private void resetScreenInputController(float unitSize, float overallSize, Vector3 rotateAroundVector) {
-        screenInputController.unitDistance = unitSize;
-        screenInputController.overallDistance = overallSize;
-        screenInputController.rotateAround.set(rotateAroundVector);
-        screenInputController.update(-1f);
+        modelEditorInputController.unitDistance = unitSize;
+        modelEditorInputController.overallDistance = overallSize;
+        modelEditorInputController.rotateAround.set(rotateAroundVector);
+        modelEditorInputController.update(-1f);
     }
 
     /**

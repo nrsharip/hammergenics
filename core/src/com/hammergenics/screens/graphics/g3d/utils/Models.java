@@ -57,8 +57,8 @@ public class Models {
         mb.node().id = "Y"; // adding node Y
         mpb = mb.part("Y", GL20.GL_LINES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
                 new Material(ColorAttribute.createDiffuse(Color.RED)));
-        for (float x = -units; x < units + 1; x += units/2f) {
-            for (float z = -units; z < units + 1; z += units/2f) {
+        for (float x = -units; x < units + 1; x += units) {
+            for (float z = -units; z < units + 1; z += units) {
                 // see implementation: Add a line. Requires GL_LINES primitive type.
                 mpb.line(x, -10, z, x, 10, z); // along Y-axis
                 // Exception in thread "LWJGL Application" com.badlogic.gdx.utils.GdxRuntimeException: Too many vertices used
