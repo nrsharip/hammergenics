@@ -155,7 +155,7 @@ public class ModelPreviewStage extends Stage {
         modelSelectBox = new SelectBox<>(skin);
         modelSelectBox.addListener(new ChangeListener() {
             @Override
-            public void changed(ChangeEvent event, Actor actor) {       // syncup: model select
+            public void changed(ChangeEvent event, Actor actor) {  // syncup: model select
                 if (modelSelectBox.getSelectedIndex() == 0) { return; } // 'Select Model' item
                 if (modelSelectBox.getSelectedIndex() == 1) {           // 'ALL' item
                     modelPS.addModelInstances(game.folder2models.get(folderSelectBox.getSelected()));
@@ -231,14 +231,14 @@ public class ModelPreviewStage extends Stage {
         gridYCheckBox = new CheckBox("Y", skin);
         gridYCheckBox.setChecked(true);
 
-        lightsCheckBox = new CheckBox("lights (ENV)", skin);
+        lightsCheckBox = new CheckBox("lights", skin);
         lightsCheckBox.setChecked(true);
 
         origScaleCheckBox = new CheckBox("orig scale", skin);
         origScaleCheckBox.setChecked(false);
         origScaleCheckBox.addListener(new ChangeListener() {
             @Override
-            public void changed (ChangeEvent event, Actor actor) { modelPS.currGrid = modelPS.arrangeInSpiral(modelPS.hgMIs); }
+            public void changed (ChangeEvent event, Actor actor) { modelPS.arrangeInSpiral(); }
         });
 
         bbCheckBox = new CheckBox("BB", skin);
@@ -345,7 +345,7 @@ public class ModelPreviewStage extends Stage {
         envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(modelPS.environment,"", ""));
 
         if ((type & (DirectionalLightsAttribute.Type | PointLightsAttribute.Type)) != 0) {
-            modelPS.resetLightsModel(modelPS.maxDofAll, modelPS.currMI.getBB().getCenter(Vector3.Zero.cpy()));
+            modelPS.resetLightsModelInstances(modelPS.currMI.getBB().getCenter(Vector3.Zero.cpy()));
         }
         //Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "onAttributeDisabled: 0x" + Long.toHexString(type) + " alias: " + alias);
     }

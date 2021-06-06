@@ -35,9 +35,10 @@ import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.model.NodePart;
 import com.badlogic.gdx.graphics.g3d.shaders.BaseShader;
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
-import com.badlogic.gdx.graphics.g3d.utils.*;
-import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.ArrowShapeBuilder;
-import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.SphereShapeBuilder;
+import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
+import com.badlogic.gdx.graphics.g3d.utils.BaseShaderProvider;
+import com.badlogic.gdx.graphics.g3d.utils.DefaultShaderProvider;
+import com.badlogic.gdx.graphics.g3d.utils.DefaultTextureBinder;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
@@ -55,7 +56,8 @@ import com.hammergenics.utils.LibgdxUtils;
 
 import java.util.Arrays;
 
-import static com.badlogic.gdx.graphics.VertexAttributes.Usage;
+import static com.hammergenics.screens.graphics.g3d.utils.Models.createGridModel;
+import static com.hammergenics.screens.graphics.g3d.utils.Models.createLightsModel;
 
 /**
  * Add description here
@@ -79,18 +81,19 @@ public class ModelPreviewScreen extends ScreenAdapter {
     private ModelInstance gridYModelInstance = null;
     private ModelInstance gridOModelInstance = null;
     private Model lightsModel = null;
-    private Array<ModelInstance> dlArrayModelInstance = null;
-    private Array<ModelInstance> plArrayModelInstance = null;
-    private Array<ModelInstance> bbArrayModelInstance = null;
+    private Array<ModelInstance> dlArrayModelInstance = null; // directional lights
+    private Array<ModelInstance> plArrayModelInstance = null; // point lights
+    private Array<ModelInstance> bbArrayModelInstance = null; // bounding boxes
 
     // 2D Stage - this is where all the widgets (buttons, checkboxes, labels etc.) are located
     public ModelPreviewStage stage;
 
     // ModelInstance Related:
-    public Array<HGModelInstance> hgMIs = new Array<HGModelInstance>(HGModelInstance.class);
-    public float maxDofAll = 0f;
+    public Array<HGModelInstance> hgMIs = new Array<>(HGModelInstance.class);
+    public float unitSize = 0f;
+    public float overallSize = 0f;
     public HGModelInstance currMI = null;
-    public Vector2 currGrid = Vector2.Zero.cpy();
+    public Vector2 currCell = Vector2.Zero.cpy();
     public HGModelInstance hoveredOverMI = null;
     public ArrayMap<Attributes, ColorAttribute> hoveredOverMIAttributes = null;
 
@@ -124,6 +127,10 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
         assetManager.getAll(Texture.class, textures);
         Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "textures loaded: " + textures.size);
+
+        // Creating the Aux Models beforehand:
+        gridModel = createGridModel();
+        lightsModel = createLightsModel();
 
         // Camera related
         perspectiveCamera = new PerspectiveCamera(70f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -239,7 +246,6 @@ public class ModelPreviewScreen extends ScreenAdapter {
         modelFHs.forEach(fileHandle -> addModelInstance(fileHandle, null, -1, false));
 
         if (hgMIs.size > 0) {
-            currGrid = arrangeInSpiral(hgMIs);
             resetScreen((currMI = hgMIs.get(0)).getBB().getCenter(Vector3.Zero.cpy()));
             stage.resetPages();
         }
@@ -326,7 +332,6 @@ public class ModelPreviewScreen extends ScreenAdapter {
         hgMIs.add(currMI);
 
         if (resetScreen) {
-            currGrid = arrangeInSpiral(hgMIs);
             resetScreen(currMI.getBB().getCenter(Vector3.Zero.cpy()));
             stage.resetPages();
         }
@@ -347,82 +352,6 @@ public class ModelPreviewScreen extends ScreenAdapter {
         stage.animationSelectBox.setItems(itemsAnimation);
 
         stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(currMI));
-    }
-
-    public Vector2 arrangeInSpiral(Array<HGModelInstance> hgModelInstances) {
-        Vector2 grid = Vector2.Zero.cpy();
-        maxDofAll = 0f;
-        for(HGModelInstance hgMI: hgModelInstances) { if (hgMI.maxD > maxDofAll) { maxDofAll = hgMI.maxD; } }
-        for(HGModelInstance hgMI: hgModelInstances) {
-            hgMI.transform.idt(); // first cancel any previous transform
-            float factor = 1f;
-            if (!stage.origScaleCheckBox.isChecked() && hgMI.maxD < maxDofAll) {
-                // Scale: if the dimension of the current instance is less than maximum dimension of all instances scale it
-                factor = maxDofAll/hgMI.maxD;
-            }
-            Vector3 center = hgMI.getBB().getCenter(new Vector3());
-            Vector3 position;
-            // Position:
-            // 1. Move the instance (scaled center) to the current base position ([grid.x, 0, grid.y] vector sub scaled center vector)
-            // 2. Add half of the scaled height to the current position so bounding box's bottom matches XZ plane
-            position = new Vector3(grid.x * 1.1f * maxDofAll, 0f, grid.y * 1.1f * maxDofAll)
-                    .sub(center.cpy().scl(factor))
-                    .add(0, factor * hgMI.getBB().getHeight()/2, 0);
-            hgMI.moveAndScaleTo(position, Vector3.Zero.cpy().add(factor));
-            // spiral loop around (0, 0, 0)
-            LibgdxUtils.spiralGetNext(grid);
-        }
-        resetBBModel();
-        return grid;
-    }
-
-    private void resetScreen(Vector3 position) {
-        float unitSize = maxDofAll;
-        float overallSize = Math.max(Math.abs(currGrid.x), Math.abs(currGrid.y)) * maxDofAll;
-        overallSize = overallSize == 0 ? maxDofAll : overallSize;
-
-        // TODO: add checks for null perspectiveCamera, cameraInputController, and the size of models
-        resetGridModel(unitSize / 5, (position.len() + overallSize) * 5);
-        resetCamera(overallSize, position.cpy());
-        resetScreenInputController(unitSize, overallSize, position.cpy());
-        resetEnvironment(); // clears the all lights as well
-
-        // ADDING LIGHTS TO THE ENVIRONMENT
-        // https://github.com/libgdx/libgdx/wiki/Material-and-environment#lights
-        // you can attach a light to either an environment or a material.
-        // Adding a light to an environment can still be done using the environment.add(light) method.
-        // However, you can also use the
-        // - DirectionalLightsAttribute
-        // - PointLightsAttribute
-        // - SpotLightsAttribute
-        // attributes.
-        // Each of these attributes has an array which you can use to attach one or more lights to it.
-        // TODO: keep for now
-        // !!! If you add a light to the PointLightsAttribute of the environment
-        // and then add another light to the PointLightsAttribute of the material,
-        // then the DefaultShader will ignore the point light(s) added to the environment.
-        // !!! Lights are always used by reference.
-        // IMPORTANT NOTE ON SHADER CONFIG: https://github.com/libgdx/libgdx/wiki/ModelBatch#default-shader
-
-        // TODO: keep for now
-        // Lights should be sorted by importance. Usually this means that lights should be sorted on distance.
-        // !!! The DefaultShader for example by default (configurable) only uses the first five point lights for shader lighting.
-        // Any remaining lights will be added to an ambient cubemap which is much less accurate.
-
-        // adding a single directional light
-        environment.add(new DirectionalLight().set(Color.WHITE, -1f, -0.5f, -1f));
-        // adding a single point light
-        Vector3 plPosition = hgMIs.get(0).getBB().getCenter(new Vector3());
-        plPosition.add(-overallSize/2, overallSize/2, overallSize/2);
-        // seems that intensity should grow exponentially(?) over the distance, the table is:
-        //  unitSize: 1.7   17    191    376    522
-        // intensity:   1  100  28708  56470  78397
-        float intensity = (overallSize < 50f ? 10.10947f : 151.0947f) * overallSize - 90f; // TODO: temporal solution, revisit
-        intensity = intensity <= 0 ? 1f : intensity;                                       // TODO: temporal solution, revisit
-        environment.add(new PointLight().set(Color.WHITE, plPosition, intensity < 0 ? 0.5f : intensity)); // syncup: pl
-
-        resetLightsModel(unitSize, position.cpy());
-        resetBBModel();
     }
 
     /**
@@ -471,89 +400,68 @@ public class ModelPreviewScreen extends ScreenAdapter {
         }
     }
 
+    public Vector2 arrangeInSpiral() {
+        Vector2 cell = Vector2.Zero.cpy();
+        unitSize = 0f;
+        for(HGModelInstance hgMI: hgMIs) { if (hgMI.maxD > unitSize) { unitSize = hgMI.maxD; } }
+        for(HGModelInstance hgMI: hgMIs) {
+            hgMI.transform.idt(); // first cancel any previous transform
+            float factor = 1f;
+            if (!stage.origScaleCheckBox.isChecked() && hgMI.maxD < unitSize) {
+                // Scale: if the dimension of the current instance is less than maximum dimension of all instances scale it
+                factor = unitSize/hgMI.maxD;
+            }
+            Vector3 center = hgMI.getBB().getCenter(new Vector3());
+            Vector3 position;
+            // Position:
+            // 1. Move the instance (scaled center) to the current base position ([cell.x, 0, cell.y] vector sub scaled center vector)
+            // 2. Add half of the scaled height to the current position so bounding box's bottom matches XZ plane
+            position = new Vector3(cell.x * 1.1f * unitSize, 0f, cell.y * 1.1f * unitSize)
+                    .sub(center.cpy().scl(factor))
+                    .add(0, factor * hgMI.getBB().getHeight()/2, 0);
+            hgMI.moveAndScaleTo(position, Vector3.Zero.cpy().add(factor));
+            // spiral loop around (0, 0, 0)
+            LibgdxUtils.spiralGetNext(cell);
+        }
+
+        overallSize = Math.max(Math.abs(cell.x), Math.abs(cell.y)) * unitSize;
+        overallSize = overallSize == 0 ? unitSize : overallSize;
+        currCell = cell;
+
+        resetBBModelInstances();
+
+        return cell;
+    }
+
+    private void resetScreen(Vector3 position) {
+        arrangeInSpiral();
+
+        resetCamera(overallSize, position.cpy());
+        resetScreenInputController(unitSize, overallSize, position.cpy());
+        resetEnvironment();    // clears all lights
+
+        addInitialEnvLights(); // adds 1 directional and 1 point light
+
+        resetGridModelInstances();
+        resetLightsModelInstances(position.cpy());
+    }
+
     /**
      * @return
      */
-    private void resetGridModel(float step, float size) {
-        if (size < step) {
-            Gdx.app.error(Thread.currentThread().getStackTrace()[3].getMethodName(),
-                "the size of the grid: " + size + " is lesser than the grid step: " + step);
-            return;
-        }
+    private void resetGridModelInstances() {
+        if (gridModel == null) { return; }
 
-        // IMPORTANT
-        if (gridModel != null) {
-            gridModel.dispose();
-            gridModel = null;
-            gridXZModelInstance = null;
-            gridYModelInstance = null;
-        }
-
-        Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(),"grid step: " + step);
-
-        // see: ModelBuilder()
-        // https://libgdx.badlogicgames.com/ci/nightlies/dist/docs/api/com/badlogic/gdx/graphics/g3d/utils/ModelBuilder.html
-        ModelBuilder mb = new ModelBuilder();
-        MeshPartBuilder mpb;
-
-        mb.begin();
-
-        mb.node().id = "XZ"; // adding node XZ
-        // MeshPart "XZ"
-        // see for primitive types: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glBegin.xml
-        mpb = mb.part("XZ", GL20.GL_LINES, Usage.Position | Usage.Normal,
-                new Material(ColorAttribute.createDiffuse(Color.YELLOW)));
-        for (float pos = -size/2; pos < size/2; pos += step ) {
-            // see implementation: Add a line. Requires GL_LINES primitive type.
-            mpb.line(-size/2, 0,     pos, size/2, 0,    pos); // along X-axis
-            mpb.line(    pos, 0, -size/2,    pos, 0, size/2); // along Z-axis
-        }
-
-        mb.node().id = "Y"; // adding node Y
-        // MeshPart "Y"
-        // see for primitive types: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glBegin.xml
-        mpb = mb.part("Y", GL20.GL_LINES, Usage.Position | Usage.Normal,
-                new Material(ColorAttribute.createDiffuse(Color.RED)));
-        for (float x = -size/2; x < size/2; x += 20 * step ) {
-            for (float z = -size/2; z < size/2; z += 20 * step ) {
-                // see implementation: Add a line. Requires GL_LINES primitive type.
-                mpb.line(x, -10 * step, z, x, 10 * step, z); // along Y-axis
-                // Exception in thread "LWJGL Application" com.badlogic.gdx.utils.GdxRuntimeException: Too many vertices used
-                //        at com.badlogic.gdx.graphics.g3d.utils.MeshBuilder.vertex(MeshBuilder.java:547)
-                //        at com.badlogic.gdx.graphics.g3d.utils.MeshBuilder.vertex(MeshBuilder.java:590)
-                //        at com.badlogic.gdx.graphics.g3d.utils.MeshBuilder.line(MeshBuilder.java:657)
-                //        at com.badlogic.gdx.graphics.g3d.utils.MeshBuilder.line(MeshBuilder.java:667)
-                //        at com.hammergenics.screens.ModelPreviewScreen.createGridModel(ModelPreviewScreen.java:605)
-            }
-        }
-
-        mb.node().id = "origin"; // adding node Y
-        // MeshPart "point", see for primitive types: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glBegin.xml
-        mpb = mb.part("origin", GL20.GL_TRIANGLES, Usage.Position | Usage.Normal,
-                new Material(ColorAttribute.createDiffuse(Color.RED)));
-
-        SphereShapeBuilder.build(mpb, step/4, step/4, step/4, 100, 100);
-
-        // see also com.badlogic.gdx.graphics.g3d.utils.shapebuilders:
-        //  ArrowShapeBuilder
-        //  BaseShapeBuilder
-        //  BoxShapeBuilder
-        //  CapsuleShapeBuilder
-        //  ConeShapeBuilder
-        //  CylinderShapeBuilder
-        //  EllipseShapeBuilder
-        //  FrustumShapeBuilder
-        //  PatchShapeBuilder
-        //  RenderableShapeBuilder
-        //  SphereShapeBuilder
-        gridModel = mb.end();
         gridXZModelInstance = new ModelInstance(gridModel, "XZ");
         gridYModelInstance = new ModelInstance(gridModel, "Y");
         gridOModelInstance = new ModelInstance(gridModel, "origin");
-//        Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(), "GRID model instance: " + LibgdxUtils.getModelInstanceInfo(gridModelInstance));
+
+        gridXZModelInstance.transform.setToScaling(Vector3.Zero.cpy().add(overallSize/4f));
+        gridYModelInstance.transform.setToScaling(Vector3.Zero.cpy().add(overallSize/4f));
+        gridOModelInstance.transform.setToScaling(Vector3.Zero.cpy().add(unitSize/4f));
     }
 
-    public void resetBBModel() {
+    public void resetBBModelInstances() {
         if (bbArrayModelInstance != null) {
             bbArrayModelInstance.clear();
             bbArrayModelInstance = null;
@@ -566,81 +474,46 @@ public class ModelPreviewScreen extends ScreenAdapter {
         }
     }
 
-    public void resetLightsModel(float unitDistance, Vector3 center) {
-        float overallDistance = Math.max(Math.abs(currGrid.x), Math.abs(currGrid.y)) * maxDofAll;
-        overallDistance = overallDistance == 0 ? maxDofAll : overallDistance;
-
-        // IMPORTANT
-        if (lightsModel != null) {
-            lightsModel.dispose();
-            lightsModel = null;
-        }
-        if (dlArrayModelInstance != null) {
-            dlArrayModelInstance.clear();
-            dlArrayModelInstance = null;
-        }
-        if (plArrayModelInstance != null) {
-            plArrayModelInstance.clear();
-            plArrayModelInstance = null;
-        }
+    public void resetLightsModelInstances(Vector3 center) {
+        if (dlArrayModelInstance != null) { dlArrayModelInstance.clear(); dlArrayModelInstance = null; }
+        if (plArrayModelInstance != null) { plArrayModelInstance.clear(); plArrayModelInstance = null; }
         dlArrayModelInstance = new Array<>(ModelInstance.class);
         plArrayModelInstance = new Array<>(ModelInstance.class);
 
-        Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(),
-                "overallDistance: " + overallDistance + " center: " + center);
-
-        // see: ModelBuilder()
-        // https://libgdx.badlogicgames.com/ci/nightlies/dist/docs/api/com/badlogic/gdx/graphics/g3d/utils/ModelBuilder.html
-        ModelBuilder mb = new ModelBuilder();
-        MeshPartBuilder mpb;
-        mb.begin();
-        mb.node().id = "directional";
-        mpb = mb.part("directional", GL20.GL_TRIANGLES, Usage.Position | Usage.Normal, new Material("base"));
-        ArrowShapeBuilder.build(mpb, 0, 0, 0, 1, 0, 0, 0.2f, 0.5f, 100); // unit arrow
-        mb.node().id = "point";
-        mpb = mb.part("point", GL20.GL_TRIANGLES, Usage.Position | Usage.Normal, new Material("base"));
-        SphereShapeBuilder.build(mpb, 1, 1, 1, 100, 100); // unit sphere
-
-        lightsModel = mb.end();
-
         // Environment Lights
-        DirectionalLightsAttribute dlEnvAttribute = environment.get(DirectionalLightsAttribute.class, DirectionalLightsAttribute.Type);
-        if (dlEnvAttribute != null) {
-            for (DirectionalLight light:dlEnvAttribute.lights) {
-                dlArrayModelInstance.add(createDLModelInstance(light, hgMIs.get(0).getBB().getCenter(new Vector3()), overallDistance));
+        DirectionalLightsAttribute dlAttribute = environment.get(DirectionalLightsAttribute.class, DirectionalLightsAttribute.Type);
+        if (dlAttribute != null) {
+            for (DirectionalLight light:dlAttribute.lights) {
+                dlArrayModelInstance.add(createDLModelInstance(light, hgMIs.get(0).getBB().getCenter(new Vector3()), overallSize));
             }
         }
-        PointLightsAttribute plEnvAttribute = environment.get(PointLightsAttribute.class, PointLightsAttribute.Type);
-        if (plEnvAttribute != null) {
-            for (PointLight light:plEnvAttribute.lights) {
-                plArrayModelInstance.add(createPLModelInstance(light, hgMIs.get(0).getBB().getCenter(new Vector3()), overallDistance));
+        PointLightsAttribute plAttribute = environment.get(PointLightsAttribute.class, PointLightsAttribute.Type);
+        if (plAttribute != null) {
+            for (PointLight light:plAttribute.lights) {
+                plArrayModelInstance.add(createPLModelInstance(light, hgMIs.get(0).getBB().getCenter(new Vector3()), overallSize));
             }
         }
 
         // Current Model Instance's Material Lights
         if (currMI != null) {
-            currMI.materials.forEach(material -> {
-                DirectionalLightsAttribute dlMatAttribute = material.get(DirectionalLightsAttribute.class, DirectionalLightsAttribute.Type);
-                if (dlMatAttribute != null) {
-                    dlMatAttribute.lights.forEach(light ->
-                            dlArrayModelInstance.add(createDLModelInstance(light, center, unitDistance)));
+            for (Material material:currMI.materials) {
+                dlAttribute = material.get(DirectionalLightsAttribute.class, DirectionalLightsAttribute.Type);
+                if (dlAttribute != null) {
+                    dlAttribute.lights.forEach(light -> dlArrayModelInstance.add(createDLModelInstance(light, center, unitSize)));
                 }
-                PointLightsAttribute plMatAttribute = material.get(PointLightsAttribute.class, PointLightsAttribute.Type);
-                if (plMatAttribute != null) {
-                    plMatAttribute.lights.forEach(light ->
-                            plArrayModelInstance.add(createPLModelInstance(light, center, unitDistance)));
+                plAttribute = material.get(PointLightsAttribute.class, PointLightsAttribute.Type);
+                if (plAttribute != null) {
+                    plAttribute.lights.forEach(light -> plArrayModelInstance.add(createPLModelInstance(light, center, unitSize)));
                 }
-            });
+            }
         }
-
-        // Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(), "");
     }
 
-    private ModelInstance createDLModelInstance(DirectionalLight dl, Vector3 directTo, float distance) {
+    private ModelInstance createDLModelInstance(DirectionalLight dl, Vector3 passThrough, float distance) {
         ModelInstance mi = new ModelInstance(lightsModel, "directional");
         // from the center moving backwards to the direction of light
         mi.transform.setToTranslationAndScaling(
-                directTo.cpy().sub(dl.direction.cpy().nor().scl(distance)), Vector3.Zero.cpy().add(distance/10));
+                passThrough.cpy().sub(dl.direction.cpy().nor().scl(distance)), Vector3.Zero.cpy().add(distance/10));
         // rotating the arrow from X vector (1,0,0) to the direction vector
         mi.transform.rotate(Vector3.X, dl.direction.cpy().nor());
         mi.getMaterial("base", true).set(
@@ -776,6 +649,42 @@ public class ModelPreviewScreen extends ScreenAdapter {
         if (environment.has(DirectionalLightsAttribute.Type)) { environment.remove(DirectionalLightsAttribute.Type); }
         if (environment.has(PointLightsAttribute.Type)) { environment.remove(PointLightsAttribute.Type); }
         if (environment.has(SpotLightsAttribute.Type)) { environment.remove(SpotLightsAttribute.Type); }
+    }
+
+    private void addInitialEnvLights() {
+        // ADDING LIGHTS TO THE ENVIRONMENT
+        // https://github.com/libgdx/libgdx/wiki/Material-and-environment#lights
+        // you can attach a light to either an environment or a material.
+        // Adding a light to an environment can still be done using the environment.add(light) method.
+        // However, you can also use the
+        // - DirectionalLightsAttribute
+        // - PointLightsAttribute
+        // - SpotLightsAttribute
+        // attributes.
+        // Each of these attributes has an array which you can use to attach one or more lights to it.
+        // TODO: keep for now
+        // !!! If you add a light to the PointLightsAttribute of the environment
+        // and then add another light to the PointLightsAttribute of the material,
+        // then the DefaultShader will ignore the point light(s) added to the environment.
+        // !!! Lights are always used by reference.
+        // IMPORTANT NOTE ON SHADER CONFIG: https://github.com/libgdx/libgdx/wiki/ModelBatch#default-shader
+
+        // TODO: keep for now
+        // Lights should be sorted by importance. Usually this means that lights should be sorted on distance.
+        // !!! The DefaultShader for example by default (configurable) only uses the first five point lights for shader lighting.
+        // Any remaining lights will be added to an ambient cubemap which is much less accurate.
+
+        // adding a single directional light
+        environment.add(new DirectionalLight().set(Color.WHITE, -1f, -0.5f, -1f));
+        // adding a single point light
+        Vector3 plPosition = hgMIs.get(0).getBB().getCenter(new Vector3());
+        plPosition.add(-overallSize/2, overallSize/2, overallSize/2);
+        // seems that intensity should grow exponentially(?) over the distance, the table is:
+        //  unitSize: 1.7   17    191    376    522
+        // intensity:   1  100  28708  56470  78397
+        float intensity = (overallSize < 50f ? 10.10947f : 151.0947f) * overallSize - 90f; // TODO: temporal solution, revisit
+        intensity = intensity <= 0 ? 1f : intensity;                                       // TODO: temporal solution, revisit
+        environment.add(new PointLight().set(Color.WHITE, plPosition, intensity < 0 ? 0.5f : intensity)); // syncup: pl
     }
 
     public void checkMouseMoved(int screenX, int screenY) {

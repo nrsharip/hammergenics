@@ -184,20 +184,20 @@ public class PointLightsAttributeTable extends BaseLightsAttributeTable<PointLig
 
             intensity = pl.intensity;
         } else {
-            float overallSize;
+            float size;
             if (container instanceof Environment) {
-                overallSize = Math.max(Math.abs(mps.currGrid.x), Math.abs(mps.currGrid.y)) * mps.maxDofAll;
+                size = mps.overallSize;
                 position = mps.hgMIs.get(0).getBB().getCenter(new Vector3()).cpy();
             } else if (container instanceof Material) {
-                overallSize = mps.maxDofAll;
+                size = mps.unitSize;
                 position = mps.currMI.getBB().getCenter(new Vector3()).cpy();
             } else { return null; } // so the IDE is not complaining
 
-            position.add(-overallSize/2, overallSize/2, overallSize/2);
+            position.add(-size/2, size/2, size/2);
             // seems that intensity should grow exponentially(?) over the distance, the table is:
             //  unitSize: 1.7   17    191    376    522
             // intensity:   1  100  28708  56470  78397
-            intensity = (overallSize < 50f ? 10.10947f : 151.0947f) * overallSize - 90f; // TODO: temporal solution, revisit
+            intensity = (size < 50f ? 10.10947f : 151.0947f) * size - 90f; // TODO: temporal solution, revisit
             intensity = intensity <= 0 ? 1f : intensity;                                 // TODO: temporal solution, revisit
             // syncup: pl
         }
