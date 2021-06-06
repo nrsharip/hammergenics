@@ -40,7 +40,7 @@ public class Models {
     public static Model createGridModel() {
         ModelBuilder mb;
         MeshPartBuilder mpb;
-        int units = 40;
+        int units = 30;
 
         mb = new ModelBuilder();
         mb.begin();

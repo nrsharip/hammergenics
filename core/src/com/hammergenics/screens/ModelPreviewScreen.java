@@ -246,8 +246,9 @@ public class ModelPreviewScreen extends ScreenAdapter {
         modelFHs.forEach(fileHandle -> addModelInstance(fileHandle, null, -1, false));
 
         if (hgMIs.size > 0) {
-            resetScreen((currMI = hgMIs.get(0)).getBB().getCenter(Vector3.Zero.cpy()));
-            stage.resetPages();
+            currMI = hgMIs.get(0);
+            reset();
+            stage.reset();
         }
     }
 
@@ -262,20 +263,6 @@ public class ModelPreviewScreen extends ScreenAdapter {
                 Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "animations only model: " + assetFL);
             }
             return;
-        }
-
-        if (hgModel.hasNodes() && nodeId == null) { // switching the whole asset
-            // making sure no events fired during the nodeSelectBox reset
-            stage.nodeSelectBox.getSelection().setProgrammaticChangeEvents(false);
-            stage.nodeSelectBox.clearItems();
-
-            String array1[] = Arrays.stream(hgModel.obj.nodes.toArray(Node.class)).map(n->n.id).toArray(String[]::new);
-            String array2[] = new String[array1.length + 1];
-            System.arraycopy(array1, 0, array2, 1, array1.length);
-            array2[0] = "All";
-
-            stage.nodeSelectBox.setItems(array2);
-            stage.nodeSelectBox.getSelection().setProgrammaticChangeEvents(true);
         }
 
         if (nodeId == null) {
@@ -308,32 +295,27 @@ public class ModelPreviewScreen extends ScreenAdapter {
                     // the keys(Nodes (head, leg, etc...)) and values (Matrix4's)...
                     // so the keys are getting invalidated (set to null) in ModelInstance.invalidate (Node node)
                     // because the nodes they refer to located in other root nodes (not the selected one)
-                    currMI = new HGModelInstance(hgModel, assetFL);
                     stage.nodeSelectBox.getColor().set(Color.PINK);
-                    break;
+                    return;
                 }
             }
-
-            if (currMI == null) {
-                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),"nodeId: " + nodeId + " nodeIndex: " + nodeIndex);
-                //modelInstance = new ModelInstance(model);
-                currMI = new HGModelInstance(hgModel, assetFL, nodeId);
-                stage.nodeSelectBox.getColor().set(Color.WHITE);
-                // for some reasons getting this exception in case nodeId == null:
-                // (should be done like (String[])null maybe...)
-                // Exception in thread "LWJGL Application" java.lang.NullPointerException
-                //        at com.badlogic.gdx.graphics.g3d.ModelInstance.copyNodes(ModelInstance.java:232)
-                //        at com.badlogic.gdx.graphics.g3d.ModelInstance.<init>(ModelInstance.java:155)
-                //        at com.badlogic.gdx.graphics.g3d.ModelInstance.<init>(ModelInstance.java:145)
-            }
+            Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),"nodeId: " + nodeId + " nodeIndex: " + nodeIndex);
+            currMI = new HGModelInstance(hgModel, assetFL, nodeId);
+            // for some reasons getting this exception in case nodeId == null:
+            // (should be done like (String[])null maybe...)
+            // Exception in thread "LWJGL Application" java.lang.NullPointerException
+            //        at com.badlogic.gdx.graphics.g3d.ModelInstance.copyNodes(ModelInstance.java:232)
+            //        at com.badlogic.gdx.graphics.g3d.ModelInstance.<init>(ModelInstance.java:155)
+            //        at com.badlogic.gdx.graphics.g3d.ModelInstance.<init>(ModelInstance.java:145)
+            stage.nodeSelectBox.getColor().set(Color.WHITE);
         }
 
         currMI.setAttributes(new BlendingAttribute());
         hgMIs.add(currMI);
 
         if (resetScreen) {
-            resetScreen(currMI.getBB().getCenter(Vector3.Zero.cpy()));
-            stage.resetPages();
+            reset();
+            stage.reset();
         }
 
         // ********************
@@ -433,17 +415,18 @@ public class ModelPreviewScreen extends ScreenAdapter {
         return cell;
     }
 
-    private void resetScreen(Vector3 position) {
+    private void reset() {
         arrangeInSpiral();
 
-        resetCamera(overallSize, position.cpy());
-        resetScreenInputController(unitSize, overallSize, position.cpy());
-        resetEnvironment();    // clears all lights
+        Vector3 center = currMI.getBB().getCenter(Vector3.Zero.cpy());
 
-        addInitialEnvLights(); // adds 1 directional and 1 point light
+        resetCamera(overallSize, center.cpy());
+        resetScreenInputController(unitSize, overallSize, center.cpy());
+        resetEnvironment();    // clears all lights
+        addInitialEnvLights(); // adds 1 directional and 1 point light to the environment
 
         resetGridModelInstances();
-        resetLightsModelInstances(position.cpy());
+        resetLightsModelInstances(center.cpy());
     }
 
     /**

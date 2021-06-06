@@ -23,6 +23,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
+import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -40,6 +41,8 @@ import com.hammergenics.screens.stages.ui.AttributesManagerTable;
 import com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable;
 import com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable.EventType;
 import com.hammergenics.utils.LibgdxUtils;
+
+import java.util.Arrays;
 
 import static com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable.EventType.*;
 
@@ -162,8 +165,7 @@ public class ModelPreviewStage extends Stage {
                     Gdx.app.debug(modelSelectBox.getClass().getSimpleName(), "model selected: ALL");
                 } else {
                     modelPS.addModelInstance(modelSelectBox.getSelected(), null, -1, true);
-                    Gdx.app.debug(modelSelectBox.getClass().getSimpleName(),
-                            "model selected: " + modelSelectBox.getSelected());
+                    Gdx.app.debug(modelSelectBox.getClass().getSimpleName(), "model selected: " + modelSelectBox.getSelected());
                 }
             }
         });
@@ -174,13 +176,11 @@ public class ModelPreviewStage extends Stage {
         nodeSelectBox.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                if (modelPS.currMI == null) {
-                    return; // we're in the init phase...
-                }
+                if (modelPS.currMI == null) { return; }
                 if (nodeSelectBox.getSelectedIndex() == 0) { // 'all' selected
-                    modelPS.addModelInstance(modelSelectBox.getSelected(), null, -1, true);
+                    modelPS.addModelInstance(modelPS.currMI.afh, null, -1, true);
                 } else {
-                    modelPS.addModelInstance(modelSelectBox.getSelected(),
+                    modelPS.addModelInstance(modelPS.currMI.afh,
                             nodeSelectBox.getSelected(), nodeSelectBox.getSelectedIndex() - 1, true); // -1 since there's 'all' item
                 }
             }
@@ -443,19 +443,22 @@ public class ModelPreviewStage extends Stage {
         addActor(rootTable);
     }
 
-    public void resetPages() {
+    public void reset() {
+        if (modelPS == null) { return; }
+
         // **************************
         // **** ATTRIBUTES 2D UI ****
         // **************************
-        envAttrTable = new AttributesManagerTable(skin, modelPS.environment, modelPS);
-        envAttrTable.setListener(eventListener);
-        envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(modelPS.environment,"", ""));
-        if (envTextButton.getColor().equals(COLOR_PRESSED)) {
-            editCell.clearActor();
-            editCell.setActor(envAttrTable);
+        if (modelPS.environment != null) {
+            envAttrTable = new AttributesManagerTable(skin, modelPS.environment, modelPS);
+            envAttrTable.setListener(eventListener);
+            envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(modelPS.environment,"", ""));
+            if (envTextButton.getColor().equals(COLOR_PRESSED)) {
+                editCell.clearActor();
+                editCell.setActor(envAttrTable);
+            }
         }
 
-        textureImage.setDrawable(null);
         if (modelPS.currMI != null && modelPS.currMI.materials != null && modelPS.currMI.materials.size > 0) {
             mtlAttrTable = new AttributesManagerTable(skin, modelPS.currMI.materials.get(0), modelPS);
             mtlAttrTable.setListener(eventListener);
@@ -465,6 +468,22 @@ public class ModelPreviewStage extends Stage {
                 editCell.clearActor();
                 editCell.setActor(mtlAttrTable);
             }
+        }
+
+        textureImage.setDrawable(null);
+
+        if (modelPS.currMI != null && modelPS.currMI.hgModel.hasNodes()) {
+            // making sure no events fired during the nodeSelectBox reset
+            nodeSelectBox.getSelection().setProgrammaticChangeEvents(false);
+            nodeSelectBox.clearItems();
+
+            String array1[] = Arrays.stream(modelPS.currMI.hgModel.obj.nodes.toArray(Node.class)).map(n->n.id).toArray(String[]::new);
+            String array2[] = new String[array1.length + 1];
+            System.arraycopy(array1, 0, array2, 1, array1.length);
+            array2[0] = "All";
+
+            nodeSelectBox.setItems(array2);
+            nodeSelectBox.getSelection().setProgrammaticChangeEvents(true);
         }
     }
 }
