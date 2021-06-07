@@ -20,7 +20,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.ScreenAdapter;
-import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
@@ -52,6 +52,9 @@ import com.hammergenics.HGGame;
 import com.hammergenics.screens.graphics.g3d.HGModelInstance;
 import com.hammergenics.screens.graphics.g3d.utils.ModelEditInputController;
 import com.hammergenics.screens.stages.ModelEditStage;
+import com.hammergenics.utils.LibgdxUtils;
+
+import static com.hammergenics.HGEngine.filterModels;
 
 /**
  * Add description here
@@ -60,7 +63,6 @@ import com.hammergenics.screens.stages.ModelEditStage;
  */
 public class ModelEditScreen extends ScreenAdapter {
     public final HGGame game;
-    public final AssetManager assetManager;
     private final ModelBatch modelBatch;
 
     private PerspectiveCamera perspectiveCamera;
@@ -72,16 +74,15 @@ public class ModelEditScreen extends ScreenAdapter {
     // 2D Stage - this is where all the widgets (buttons, checkboxes, labels etc.) are located
     public ModelEditStage stage;
 
-    private float clockFPS;
+    private float clock1s;
 
     /**
      * @param game
      */
     public ModelEditScreen(HGGame game) {
         this.game = game;
-        this.assetManager = game.assetManager;   // https://github.com/libgdx/libgdx/wiki/Managing-your-assets
-        this.modelBatch = game.modelBatch;       // https://github.com/libgdx/libgdx/wiki/ModelBatch
         this.eng = game.engine;
+        this.modelBatch = game.modelBatch; // https://github.com/libgdx/libgdx/wiki/ModelBatch
 
         eng.getAssets();
 
@@ -108,6 +109,11 @@ public class ModelEditScreen extends ScreenAdapter {
      */
     @Override
     public void render(float delta) {
+        if (!eng.assetsLoaded && eng.assetManager.update()) {
+            eng.getAssets();
+            eng.assetsLoaded = true;
+        }
+
         modelEditInputController.update(delta);
 
         eng.hgMIs.forEach(hgMI -> {
@@ -160,7 +166,7 @@ public class ModelEditScreen extends ScreenAdapter {
         // If you want to force rendering in between, then you can use the modelBatch.flush(); method
         modelBatch.end();
 
-        updateFPS(delta);
+        checkTimerEvents(delta);
 
         stage.act(delta);
         stage.draw();
@@ -265,14 +271,24 @@ public class ModelEditScreen extends ScreenAdapter {
     /**
      * @param delta
      */
-    private void updateFPS(float delta) {
-        clockFPS += delta; // add the time since the last frame
-        if (clockFPS > 1) { // every second
+    private void checkTimerEvents(float delta) {
+        clock1s += delta;  // add the time since the last frame
+        if (clock1s > 1) { // every second
+            // updating FPS
             int fps = Gdx.graphics.getFramesPerSecond();
             stage.fpsLabel.setText("FPS: " + fps);
-            //Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
-            // "time elapsed: " + clockFPS + " seconds passed. FPS = " + fps);
-            clockFPS = 0; // reset your variable to 0
+
+            // check if there're changes made in the root directory
+            // the map should be ordered: see resetFolderSelectBoxItems
+            ArrayMap<FileHandle, Array<FileHandle>> f2m = new ArrayMap<>(true, 16, FileHandle.class, Array.class);
+            LibgdxUtils.traversFileHandle(Gdx.files.local("./"), filterModels, f2m); // syncup: asset manager
+
+            if (!eng.folder2models.equals(f2m)) {
+                eng.folder2models = f2m;
+                stage.resetFolderSelectBoxItems(f2m);
+            }
+
+            clock1s = 0;
         }
     }
 

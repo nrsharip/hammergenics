@@ -33,6 +33,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.hammergenics.HGGame;
@@ -128,22 +129,13 @@ public class ModelEditStage extends Stage {
 
         // Select Box: Models
         folderSelectBox = new SelectBox<>(skin);
-        folderSelectBox.getSelection().setProgrammaticChangeEvents(false); // even though the listeners are defined later
-        folderSelectBox.clearItems();
-
-        FileHandle array1[] = game.folder2models.keys().toArray().toArray(FileHandle.class);
-        FileHandle array2[] = new FileHandle[array1.length + 1];
-        System.arraycopy(array1, 0, array2, 1, array1.length);
-        array2[0] = Gdx.files.local("Select Folder"); // syncup: folder select
-
-        folderSelectBox.setItems(array2);
-        folderSelectBox.getSelection().setProgrammaticChangeEvents(true);
+        resetFolderSelectBoxItems(game.engine.folder2models);
         folderSelectBox.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 if (modelSelectBox == null || folderSelectBox.getSelectedIndex() == 0) { return; } // syncup: folder select
 
-                FileHandle array1[] = game.folder2models.get(folderSelectBox.getSelected()).toArray(FileHandle.class);
+                FileHandle array1[] = game.engine.folder2models.get(folderSelectBox.getSelected()).toArray(FileHandle.class);
                 FileHandle array2[] = new FileHandle[array1.length + 2];
                 System.arraycopy(array1, 0, array2, 2, array1.length);
                 array2[0] = Gdx.files.local("Select Model"); // syncup: model select
@@ -153,6 +145,8 @@ public class ModelEditStage extends Stage {
                 modelSelectBox.clearItems();
                 modelSelectBox.setItems(array2);
                 modelSelectBox.getSelection().setProgrammaticChangeEvents(true);
+
+                modelES.eng.queueAssets(folderSelectBox.getSelected());
             }
         });
 
@@ -162,7 +156,7 @@ public class ModelEditStage extends Stage {
             public void changed(ChangeEvent event, Actor actor) {  // syncup: model select
                 if (modelSelectBox.getSelectedIndex() == 0) { return; } // 'Select Model' item
                 if (modelSelectBox.getSelectedIndex() == 1) {           // 'ALL' item
-                    modelES.eng.addModelInstances(game.folder2models.get(folderSelectBox.getSelected()));
+                    modelES.eng.addModelInstances(game.engine.folder2models.get(folderSelectBox.getSelected()));
                     afterModelInstanceAdded();
                     Gdx.app.debug(modelSelectBox.getClass().getSimpleName(), "model selected: ALL");
                 } else {
@@ -372,12 +366,46 @@ public class ModelEditStage extends Stage {
         miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelES.eng.currMI));
     }
 
+    public void resetFolderSelectBoxItems(ArrayMap<FileHandle, Array<FileHandle>> f2m) {
+        folderSelectBox.getSelection().setProgrammaticChangeEvents(false); // even though the listeners are defined later
+        folderSelectBox.clearItems();
+
+        if (f2m.size > 0) {
+            // making sure the map doesn't have folders with the same set of models, e.g.
+            // ./          -> (model1, model2)
+            // ./tmp1      -> (model1, model2)
+            // ./tmp1/tmp2 -> (model1, model2)
+            // with the only models:
+            // ./tmp1/tmp2/model1
+            // ./tmp1/tmp2/model2
+            // Assuming the map is ordered and arranged in such a way that
+            // the children folders located precisely after their parent folder
+            ArrayMap<FileHandle, Array<FileHandle>> copy = new ArrayMap<>(f2m);
+            Array<FileHandle>[] values = copy.values;
+            Array<FileHandle> value = values[copy.size - 1];
+            for (int i = copy.size - 2; i >= 0; i--) {
+                if (values[i].equals(value)) { copy.removeIndex(i); }
+                else { value = values[i]; }
+            }
+
+            FileHandle array1[] = copy.keys().toArray().toArray(FileHandle.class);
+            FileHandle array2[] = new FileHandle[array1.length + 1];
+            System.arraycopy(array1, 0, array2, 1, array1.length);
+            array2[0] = Gdx.files.local("Choose Folder..."); // syncup: folder select
+            folderSelectBox.setItems(array2);
+        } else {
+            folderSelectBox.setItems(Gdx.files.local("No Models Available"));
+        }
+
+        folderSelectBox.getSelection().setProgrammaticChangeEvents(true);
+    }
+
     /**
      *
      */
     public void setup2DStageStyling() {
         // https://github.com/libgdx/libgdx/wiki/Managing-your-assets#loading-a-ttf-using-the-assethandler
-        labelBitmapFont = modelES.assetManager.get(Config.ASSET_FILE_NAME_FONT, BitmapFont.class);
+        labelBitmapFont = modelES.eng.assetManager.get(Config.ASSET_FILE_NAME_FONT, BitmapFont.class);
         labelStyle = new Label.LabelStyle(labelBitmapFont, Color.BLACK);
         // SKIN for 2D Stage Widgets
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#skin

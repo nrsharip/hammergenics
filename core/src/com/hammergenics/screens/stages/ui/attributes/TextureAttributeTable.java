@@ -35,6 +35,7 @@ import com.hammergenics.utils.LibgdxUtils;
 import java.util.Arrays;
 
 import static com.badlogic.gdx.scenes.scene2d.ui.TextField.TextFieldListener;
+import static com.hammergenics.HGEngine.filterTextures;
 
 /**
  * Add description here
@@ -188,32 +189,21 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
 
     private Array<FileHandle> texturesLookUp (FileHandle assetFileHandle) {
         if (assetFileHandle == null) { return null; }
-        Array<FileHandle> textureFileHandleArray = LibgdxUtils.traversFileHandle(assetFileHandle.parent(),
-                file -> file.isDirectory()
-                        || file.getName().toLowerCase().endsWith("png")  // textures in PNG
-                        || file.getName().toLowerCase().endsWith("tga")  // textures in TGA
-                        || file.getName().toLowerCase().endsWith("bmp")  // textures in BMP
-        );
+        Array<FileHandle> textureFileHandleArray = LibgdxUtils.traversFileHandle(assetFileHandle.parent(), filterTextures);
 
         // TODO: Add unified convention like "textures | skins" to specify all folders at once
-        // All PNG files in the "textures" directory and subdirectories (if any) on asset's path
+        // All texture files in the "textures" directory and subdirectories (if any) on asset's path
         textureFileHandleArray = LibgdxUtils.traversFileHandle(
                 // starting at parent() since we already traversed current folder/subfolders above
                 LibgdxUtils.fileOnPath(assetFileHandle.parent(), "textures"),
-                file -> file.isDirectory()
-                        || file.getName().toLowerCase().endsWith("png")  // textures in PNG
-                        || file.getName().toLowerCase().endsWith("tga")  // textures in TGA
-                        || file.getName().toLowerCase().endsWith("bmp"), // textures in BMP
+                filterTextures,
                 textureFileHandleArray
         );
-        // All PNG files in the "skins" directory and subdirectories (if any) on asset's path
+        // All texture files in the "skins" directory and subdirectories (if any) on asset's path
         textureFileHandleArray = LibgdxUtils.traversFileHandle(
                 // starting at parent() since we already traversed current folder/subfolders above
                 LibgdxUtils.fileOnPath(assetFileHandle.parent(), "skins"),
-                file -> file.isDirectory()
-                        || file.getName().toLowerCase().endsWith("png")  // textures in PNG
-                        || file.getName().toLowerCase().endsWith("tga")  // textures in TGA
-                        || file.getName().toLowerCase().endsWith("bmp"), // textures in BMP
+                filterTextures,
                 textureFileHandleArray
         );
         return textureFileHandleArray;
@@ -356,7 +346,7 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
                     + Long.toHexString(currentType) + " alias = " + currentTypeAlias);
             return false;
         } else {
-            texture = modelES.assetManager.get(textureSelectBox.getSelected(), Texture.class);
+            texture = modelES.eng.assetManager.get(textureSelectBox.getSelected(), Texture.class);
             if (texture == null) {
                 Gdx.app.debug("enabledCheckBox", "Texture is not loaded from: " + textureSelectBox.getSelected()
                         + " (attribute: type = 0x" + Long.toHexString(currentType) + " alias = " + currentTypeAlias + ")");
