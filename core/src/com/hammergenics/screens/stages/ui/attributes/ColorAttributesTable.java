@@ -20,7 +20,7 @@ import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.hammergenics.screens.ModelPreviewScreen;
+import com.hammergenics.screens.ModelEditScreen;
 
 /**
  * Add description here
@@ -31,14 +31,14 @@ public class ColorAttributesTable extends AttributesTable<ColorAttribute, ColorA
     /**
      * @param skin
      * @param container
-     * @param mps
+     * @param modelES
      */
-    public ColorAttributesTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
-        super(skin, container, mps, ColorAttribute.class);
+    public ColorAttributesTable(Skin skin, Attributes container, ModelEditScreen modelES) {
+        super(skin, container, modelES, ColorAttribute.class);
 
         // START - Candidate for move to AttributesTable
         t2a.forEach((entry) -> {
-            ColorAttributeTable table = new ColorAttributeTable(skin, container, mps);
+            ColorAttributeTable table = new ColorAttributeTable(skin, container, modelES);
             t2Table.put(entry.key, table);   // type to table
             a2Table.put(entry.value, table); // alias to table
         });

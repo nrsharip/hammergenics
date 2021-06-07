@@ -23,7 +23,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.SelectBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
-import com.hammergenics.screens.ModelPreviewScreen;
+import com.hammergenics.screens.ModelEditScreen;
 
 /**
  * Add description here
@@ -40,8 +40,8 @@ public class TextureAttributesTable extends AttributesTable<TextureAttribute, Te
      * @param skin
      * @param container
      */
-    public TextureAttributesTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
-        super(skin, container, mps, TextureAttribute.class);
+    public TextureAttributesTable(Skin skin, Attributes container, ModelEditScreen modelES) {
+        super(skin, container, modelES, TextureAttribute.class);
 
         textureAttributeSelectBox = new SelectBox<String>(uiSkin);
         textureAttributeSelectBox.clearItems();
@@ -58,7 +58,7 @@ public class TextureAttributesTable extends AttributesTable<TextureAttribute, Te
         add(textureAttributeSelectBox).left();
         add().expandX();
         row();
-        add(currentTextureAttributeTable = new TextureAttributeTable(skin, container, mps)).colspan(3).fillX();
+        add(currentTextureAttributeTable = new TextureAttributeTable(skin, container, modelES)).colspan(3).fillX();
     }
 
     /**

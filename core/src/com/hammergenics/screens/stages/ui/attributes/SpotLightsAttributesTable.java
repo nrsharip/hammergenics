@@ -21,7 +21,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.SpotLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.SpotLight;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.hammergenics.screens.ModelPreviewScreen;
+import com.hammergenics.screens.ModelEditScreen;
 
 /**
  * Add description here
@@ -31,12 +31,12 @@ import com.hammergenics.screens.ModelPreviewScreen;
 public class SpotLightsAttributesTable
         extends AttributesTable<SpotLightsAttribute, BaseLightsAttributeTable<SpotLightsAttribute, SpotLight>> {
 
-    public SpotLightsAttributesTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
-        super(skin, container, mps, SpotLightsAttribute.class);
+    public SpotLightsAttributesTable(Skin skin, Attributes container, ModelEditScreen modelES) {
+        super(skin, container, modelES, SpotLightsAttribute.class);
 
         // START - Candidate for move to AttributesTable
         t2a.forEach((entry) -> {
-            SpotLightsAttributeTable table = new SpotLightsAttributeTable(skin, container, mps);
+            SpotLightsAttributeTable table = new SpotLightsAttributeTable(skin, container, modelES);
             t2Table.put(entry.key, table);   // type to table
             a2Table.put(entry.value, table); // alias to table
         });

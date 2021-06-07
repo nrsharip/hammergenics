@@ -20,7 +20,7 @@ import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.hammergenics.screens.ModelPreviewScreen;
+import com.hammergenics.screens.ModelEditScreen;
 
 /**
  * Add description here
@@ -28,12 +28,12 @@ import com.hammergenics.screens.ModelPreviewScreen;
  * @author nrsharip
  */
 public class BlendingAttributesTable extends AttributesTable<BlendingAttribute, BlendingAttributeTable> {
-    public BlendingAttributesTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
-        super(skin, container, mps, BlendingAttribute.class);
+    public BlendingAttributesTable(Skin skin, Attributes container, ModelEditScreen modelES) {
+        super(skin, container, modelES, BlendingAttribute.class);
 
         // START - Candidate for move to AttributesTable
         t2a.forEach((entry) -> {
-            BlendingAttributeTable table = new BlendingAttributeTable(skin, container, mps);
+            BlendingAttributeTable table = new BlendingAttributeTable(skin, container, modelES);
             t2Table.put(entry.key, table);   // type to table
             a2Table.put(entry.value, table); // alias to table
         });

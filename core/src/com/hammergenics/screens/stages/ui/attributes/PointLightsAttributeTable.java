@@ -27,7 +27,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
-import com.hammergenics.screens.ModelPreviewScreen;
+import com.hammergenics.screens.ModelEditScreen;
 
 /**
  * Add description here
@@ -49,8 +49,8 @@ public class PointLightsAttributeTable extends BaseLightsAttributeTable<PointLig
 
     private TextField.TextFieldListener xyziTextFieldListener;
 
-    public PointLightsAttributeTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
-        super(skin, container, mps, PointLightsAttribute.class, PointLight.class);
+    public PointLightsAttributeTable(Skin skin, Attributes container, ModelEditScreen modelES) {
+        super(skin, container, modelES, PointLightsAttribute.class, PointLight.class);
 
         createListeners();
 
@@ -177,20 +177,20 @@ public class PointLightsAttributeTable extends BaseLightsAttributeTable<PointLig
             if (container instanceof Environment) {
                 position = pl.position.cpy().rotate(Vector3.Y.cpy(), -45f);
             } else if (container instanceof Material) {
-                position = pl.position.cpy().sub(mps.e.currMI.getBB().getCenter(new Vector3()));
+                position = pl.position.cpy().sub(modelES.eng.currMI.getBB().getCenter(new Vector3()));
                 position.rotate(Vector3.Y.cpy(), -45f);
-                position.add(mps.e.currMI.getBB().getCenter(new Vector3()));
+                position.add(modelES.eng.currMI.getBB().getCenter(new Vector3()));
             } else { return null; } // so the IDE is not complaining
 
             intensity = pl.intensity;
         } else {
             float size;
             if (container instanceof Environment) {
-                size = mps.e.overallSize;
-                position = mps.e.hgMIs.get(0).getBB().getCenter(new Vector3()).cpy();
+                size = modelES.eng.overallSize;
+                position = modelES.eng.hgMIs.get(0).getBB().getCenter(new Vector3()).cpy();
             } else if (container instanceof Material) {
-                size = mps.e.unitSize;
-                position = mps.e.currMI.getBB().getCenter(new Vector3()).cpy();
+                size = modelES.eng.unitSize;
+                position = modelES.eng.currMI.getBB().getCenter(new Vector3()).cpy();
             } else { return null; } // so the IDE is not complaining
 
             position.add(-size/2, size/2, size/2);

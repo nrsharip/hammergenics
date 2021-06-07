@@ -50,56 +50,56 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.hammergenics.HGEngine;
 import com.hammergenics.HGGame;
 import com.hammergenics.screens.graphics.g3d.HGModelInstance;
-import com.hammergenics.screens.graphics.g3d.utils.ModelEditorInputController;
-import com.hammergenics.screens.stages.ModelPreviewStage;
+import com.hammergenics.screens.graphics.g3d.utils.ModelEditInputController;
+import com.hammergenics.screens.stages.ModelEditStage;
 
 /**
  * Add description here
  *
  * @author nrsharip
  */
-public class ModelPreviewScreen extends ScreenAdapter {
+public class ModelEditScreen extends ScreenAdapter {
     public final HGGame game;
     public final AssetManager assetManager;
     private final ModelBatch modelBatch;
 
     private PerspectiveCamera perspectiveCamera;
-    private ModelEditorInputController modelEditorInputController;
+    private ModelEditInputController modelEditInputController;
     public Environment environment;
 
-    public HGEngine e;
+    public HGEngine eng;
 
     // 2D Stage - this is where all the widgets (buttons, checkboxes, labels etc.) are located
-    public ModelPreviewStage stage;
+    public ModelEditStage stage;
 
     private float clockFPS;
 
     /**
      * @param game
      */
-    public ModelPreviewScreen(HGGame game) {
+    public ModelEditScreen(HGGame game) {
         this.game = game;
         this.assetManager = game.assetManager;   // https://github.com/libgdx/libgdx/wiki/Managing-your-assets
         this.modelBatch = game.modelBatch;       // https://github.com/libgdx/libgdx/wiki/ModelBatch
-        this.e = game.engine;
+        this.eng = game.engine;
 
-        e.getAssets();
+        eng.getAssets();
 
         // Camera related
         perspectiveCamera = new PerspectiveCamera(70f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        modelEditorInputController = new ModelEditorInputController(this, perspectiveCamera);
+        modelEditInputController = new ModelEditInputController(this, perspectiveCamera);
         // Environment related
         environment = new Environment();
 
         // 2D Stage - https://github.com/libgdx/libgdx/wiki/Scene2d.ui#stage-setup
-        stage = new ModelPreviewStage(new ScreenViewport(), game, this);
+        stage = new ModelEditStage(new ScreenViewport(), game, this);
 
         testRenderRelated();
 
         InputMultiplexer inputMultiplexer = new InputMultiplexer();
         // order of addProcessor matter
         inputMultiplexer.addProcessor(stage);
-        inputMultiplexer.addProcessor(modelEditorInputController);
+        inputMultiplexer.addProcessor(modelEditInputController);
         Gdx.input.setInputProcessor(inputMultiplexer);
     }
 
@@ -108,9 +108,9 @@ public class ModelPreviewScreen extends ScreenAdapter {
      */
     @Override
     public void render(float delta) {
-        modelEditorInputController.update(delta);
+        modelEditInputController.update(delta);
 
-        e.hgMIs.forEach(hgMI -> {
+        eng.hgMIs.forEach(hgMI -> {
             if(hgMI.animationController != null) {
                 hgMI.animationController.update(delta);
 //                if (animationDesc.loopCount == 0) {
@@ -145,15 +145,15 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // * there's a render(...) that could take an Iterable of ModelInstance's, e.g.
         //   modelBatch.render((Array<ModelInstance>) array, environment);
         // * Enable caching as soon as multiple instances are rendered: https://github.com/libgdx/libgdx/wiki/ModelCache
-        if (e.hgMIs.size > 0 && environment != null) { modelBatch.render(e.hgMIs, environment); }
-        if (e.gridXZModelInstance != null && stage.gridXZCheckBox.isChecked()) {
-            modelBatch.render(e.gridXZModelInstance);
-            modelBatch.render(e.gridOModelInstance);
+        if (eng.hgMIs.size > 0 && environment != null) { modelBatch.render(eng.hgMIs, environment); }
+        if (eng.gridXZModelInstance != null && stage.gridXZCheckBox.isChecked()) {
+            modelBatch.render(eng.gridXZModelInstance);
+            modelBatch.render(eng.gridOModelInstance);
         }
-        if (e.gridYModelInstance != null && stage.gridYCheckBox.isChecked()) { modelBatch.render(e.gridYModelInstance); }
-        if (e.dlArrayModelInstance != null && stage.lightsCheckBox.isChecked()) { modelBatch.render(e.dlArrayModelInstance, environment); }
-        if (e.plArrayModelInstance != null && stage.lightsCheckBox.isChecked()) { modelBatch.render(e.plArrayModelInstance, environment); }
-        if (e.bbArrayModelInstance != null && stage.bbCheckBox.isChecked()) { modelBatch.render(e.bbArrayModelInstance, environment); }
+        if (eng.gridYModelInstance != null && stage.gridYCheckBox.isChecked()) { modelBatch.render(eng.gridYModelInstance); }
+        if (eng.dlArrayModelInstance != null && stage.lightsCheckBox.isChecked()) { modelBatch.render(eng.dlArrayModelInstance, environment); }
+        if (eng.plArrayModelInstance != null && stage.lightsCheckBox.isChecked()) { modelBatch.render(eng.plArrayModelInstance, environment); }
+        if (eng.bbArrayModelInstance != null && stage.bbCheckBox.isChecked()) { modelBatch.render(eng.bbArrayModelInstance, environment); }
 
         // https://github.com/libgdx/libgdx/wiki/ModelBatch
         // The actual rendering is performed at the call to end();.
@@ -173,10 +173,10 @@ public class ModelPreviewScreen extends ScreenAdapter {
     @Override
     public void resize(int width, int height) {
         super.resize(width, height);
-        if (modelEditorInputController != null) {
-            modelEditorInputController.camera.viewportWidth = width;
-            modelEditorInputController.camera.viewportHeight = height;
-            modelEditorInputController.update(-1f);
+        if (modelEditInputController != null) {
+            modelEditInputController.camera.viewportWidth = width;
+            modelEditInputController.camera.viewportHeight = height;
+            modelEditInputController.update(-1f);
         }
         if (stage != null) {
             stage.getViewport().update(width, height, true);
@@ -190,21 +190,21 @@ public class ModelPreviewScreen extends ScreenAdapter {
     public void dispose() {
         super.dispose();
         if (stage != null) { stage.dispose(); }
-        if (e != null) { e.dispose(); }
+        if (eng != null) { eng.dispose(); }
     }
 
     public void reset() {
-        e.arrangeInSpiral(stage.origScaleCheckBox.isChecked());
+        eng.arrangeInSpiral(stage.origScaleCheckBox.isChecked());
 
-        Vector3 center = e.currMI.getBB().getCenter(Vector3.Zero.cpy());
+        Vector3 center = eng.currMI.getBB().getCenter(Vector3.Zero.cpy());
 
-        resetCamera(e.overallSize, center.cpy());
-        resetScreenInputController(e.unitSize, e.overallSize, center.cpy());
+        resetCamera(eng.overallSize, center.cpy());
+        resetScreenInputController(eng.unitSize, eng.overallSize, center.cpy());
         resetEnvironment();    // clears all lights
         addInitialEnvLights(); // adds 1 directional and 1 point light to the environment
 
-        e.resetGridModelInstances();
-        e.resetLightsModelInstances(center.cpy(), environment);
+        eng.resetGridModelInstances();
+        eng.resetLightsModelInstances(center.cpy(), environment);
     }
 
     /**
@@ -256,10 +256,10 @@ public class ModelPreviewScreen extends ScreenAdapter {
      * @param overallSize
      */
     private void resetScreenInputController(float unitSize, float overallSize, Vector3 rotateAroundVector) {
-        modelEditorInputController.unitDistance = unitSize;
-        modelEditorInputController.overallDistance = overallSize;
-        modelEditorInputController.rotateAround.set(rotateAroundVector);
-        modelEditorInputController.update(-1f);
+        modelEditInputController.unitDistance = unitSize;
+        modelEditInputController.overallDistance = overallSize;
+        modelEditInputController.rotateAround.set(rotateAroundVector);
+        modelEditInputController.update(-1f);
     }
 
     /**
@@ -341,12 +341,12 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // adding a single directional light
         environment.add(new DirectionalLight().set(Color.WHITE, -1f, -0.5f, -1f));
         // adding a single point light
-        Vector3 plPosition = e.hgMIs.get(0).getBB().getCenter(new Vector3());
-        plPosition.add(-e.overallSize/2, e.overallSize/2, e.overallSize/2);
+        Vector3 plPosition = eng.hgMIs.get(0).getBB().getCenter(new Vector3());
+        plPosition.add(-eng.overallSize/2, eng.overallSize/2, eng.overallSize/2);
         // seems that intensity should grow exponentially(?) over the distance, the table is:
         //  unitSize: 1.7   17    191    376    522
         // intensity:   1  100  28708  56470  78397
-        float intensity = (e.overallSize < 50f ? 10.10947f : 151.0947f) * e.overallSize - 90f; // TODO: temporal solution, revisit
+        float intensity = (eng.overallSize < 50f ? 10.10947f : 151.0947f) * eng.overallSize - 90f; // TODO: temporal solution, revisit
         intensity = intensity <= 0 ? 1f : intensity;                                       // TODO: temporal solution, revisit
         environment.add(new PointLight().set(Color.WHITE, plPosition, intensity < 0 ? 0.5f : intensity)); // syncup: pl
     }
@@ -354,36 +354,36 @@ public class ModelPreviewScreen extends ScreenAdapter {
     public void checkMouseMoved(int screenX, int screenY) {
         Ray ray = perspectiveCamera.getPickRay(screenX, screenY);
 
-        Array<HGModelInstance> out = rayMICollision(ray, e.hgMIs, new Array<>(HGModelInstance.class));
+        Array<HGModelInstance> out = rayMICollision(ray, eng.hgMIs, new Array<>(HGModelInstance.class));
 
-        if (out.size > 0 && !out.get(0).equals(e.hoveredOverMI)) {
+        if (out.size > 0 && !out.get(0).equals(eng.hoveredOverMI)) {
             restoreAttributes();
-            e.hoveredOverMI = out.get(0);
+            eng.hoveredOverMI = out.get(0);
             persistAttributes();
-            e.hoveredOverMI.setAttributes(ColorAttribute.createEmissive(Color.DARK_GRAY.cpy()));
+            eng.hoveredOverMI.setAttributes(ColorAttribute.createEmissive(Color.DARK_GRAY.cpy()));
         } else if (out.size == 0) {
             restoreAttributes();
-            e.hoveredOverMI = null;
-            if (e.hoveredOverMIAttributes != null) { e.hoveredOverMIAttributes.clear(); }
-            e.hoveredOverMIAttributes = null;
+            eng.hoveredOverMI = null;
+            if (eng.hoveredOverMIAttributes != null) { eng.hoveredOverMIAttributes.clear(); }
+            eng.hoveredOverMIAttributes = null;
         }
     }
 
     private void persistAttributes() {
-        if (e.hoveredOverMI != null) {
-            e.hoveredOverMIAttributes = new ArrayMap<>(Attributes.class, ColorAttribute.class);
-            e.hoveredOverMI.materials.forEach(attributes -> {
+        if (eng.hoveredOverMI != null) {
+            eng.hoveredOverMIAttributes = new ArrayMap<>(Attributes.class, ColorAttribute.class);
+            eng.hoveredOverMI.materials.forEach(attributes -> {
                 ColorAttribute attr = attributes.get(ColorAttribute.class, ColorAttribute.Emissive);
                 if (attr != null) { attr = (ColorAttribute) attr.copy(); }
-                e.hoveredOverMIAttributes.put(attributes, attr);
+                eng.hoveredOverMIAttributes.put(attributes, attr);
             });
         }
     }
 
     private void restoreAttributes() {
-        if (e.hoveredOverMI != null && e.hoveredOverMIAttributes != null) {
-            e.hoveredOverMI.materials.forEach(attributes -> {
-                ColorAttribute attr = e.hoveredOverMIAttributes.get(attributes);
+        if (eng.hoveredOverMI != null && eng.hoveredOverMIAttributes != null) {
+            eng.hoveredOverMI.materials.forEach(attributes -> {
+                ColorAttribute attr = eng.hoveredOverMIAttributes.get(attributes);
                 Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
                         "attr: " + attr);
                 if (attr != null) { attributes.set(attr); } else { attributes.remove(ColorAttribute.Emissive); }
@@ -395,7 +395,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         Ray ray = perspectiveCamera.getPickRay(x, y);
         switch (button) {
             case Input.Buttons.LEFT:
-                Array<HGModelInstance> out = rayMICollision(ray, e.hgMIs, new Array<>(HGModelInstance.class));
+                Array<HGModelInstance> out = rayMICollision(ray, eng.hgMIs, new Array<>(HGModelInstance.class));
                 out.forEach(mi -> Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
                         "object intersected: " + mi.afh + " @" + mi.hashCode()));
                 break;
@@ -437,7 +437,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
      *
      */
     public void testRenderRelated() {
-        if (e.currMI == null) { return; }
+        if (eng.currMI == null) { return; }
 
         // Regarding Pool<T>:
         // see example:
@@ -483,7 +483,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
 //     renderable.shader = shaderProvider.getShader(renderable); // note this double assignment
 // ... (see ModelBatch.java for the complete list of render()'s)
 
-        if (e.currMI.materials == null || e.currMI.materials.size == 0) { return; }
+        if (eng.currMI.materials == null || eng.currMI.materials.size == 0) { return; }
         // Getting this exception in case there's no material defined.
         // Exception in thread "LWJGL Application" java.lang.IndexOutOfBoundsException: index can't be >= size: 0 >= 0
         //        at com.badlogic.gdx.utils.Array.get(Array.java:155)
@@ -493,9 +493,9 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
         // Getting the Renderable
         Renderable renderable = null;
-        for (Node node: e.currMI.nodes) {
+        for (Node node: eng.currMI.nodes) {
             if (node.parts.size == 0) continue;
-            renderable = e.currMI.getRenderable(new Renderable(), node);
+            renderable = eng.currMI.getRenderable(new Renderable(), node);
             break;
         }
         if (renderable == null) { return; }

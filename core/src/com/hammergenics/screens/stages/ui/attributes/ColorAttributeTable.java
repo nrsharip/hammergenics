@@ -25,7 +25,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.SelectBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
-import com.hammergenics.screens.ModelPreviewScreen;
+import com.hammergenics.screens.ModelEditScreen;
 
 import static com.badlogic.gdx.scenes.scene2d.ui.TextField.TextFieldListener;
 import static com.hammergenics.utils.LibgdxUtils.color_s2c;
@@ -53,8 +53,8 @@ public class ColorAttributeTable extends AttributeTable<ColorAttribute> {
 
     private Color color = new Color().set(Color.GRAY);
 
-    public ColorAttributeTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
-        super(skin, container, mps, ColorAttribute.class);
+    public ColorAttributeTable(Skin skin, Attributes container, ModelEditScreen modelES) {
+        super(skin, container, modelES, ColorAttribute.class);
 
         createListeners();
 

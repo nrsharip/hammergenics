@@ -23,7 +23,7 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
-import com.hammergenics.screens.ModelPreviewScreen;
+import com.hammergenics.screens.ModelEditScreen;
 
 /**
  * Add description here
@@ -38,8 +38,8 @@ public abstract class AttributeTable<T extends Attribute> extends BaseAttributeT
 
     protected ChangeListener checkBoxListener;
 
-    public AttributeTable(Skin skin, Attributes container, ModelPreviewScreen mps, Class<T> aClass) {
-        super(skin, container, mps, aClass);
+    public AttributeTable(Skin skin, Attributes container, ModelEditScreen modelES, Class<T> aClass) {
+        super(skin, container, modelES, aClass);
 
         enabledCheckBox = new CheckBox("enabled", skin);
 

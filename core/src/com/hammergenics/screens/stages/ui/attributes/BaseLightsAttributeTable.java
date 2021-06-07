@@ -27,7 +27,7 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Array;
-import com.hammergenics.screens.ModelPreviewScreen;
+import com.hammergenics.screens.ModelEditScreen;
 
 import static com.hammergenics.screens.stages.ui.attributes.ColorAttributeTable.*;
 import static com.hammergenics.utils.LibgdxUtils.color_s2c;
@@ -68,8 +68,8 @@ public abstract class BaseLightsAttributeTable<T extends Attribute, L extends Ba
 
     protected abstract L createLight();
 
-    public BaseLightsAttributeTable(Skin skin, Attributes container, ModelPreviewScreen mps, Class<T> aClass, Class<L> lightClass) {
-        super(skin, container, mps, aClass);
+    public BaseLightsAttributeTable(Skin skin, Attributes container, ModelEditScreen modelES, Class<T> aClass, Class<L> lightClass) {
+        super(skin, container, modelES, aClass);
         this.lightClass = lightClass;
         lights = new Array<>(lightClass);
 

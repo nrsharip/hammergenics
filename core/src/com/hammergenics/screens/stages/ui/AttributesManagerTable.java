@@ -18,7 +18,7 @@ package com.hammergenics.screens.stages.ui;
 
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.hammergenics.screens.ModelPreviewScreen;
+import com.hammergenics.screens.ModelEditScreen;
 import com.hammergenics.screens.stages.ui.attributes.*;
 
 /**
@@ -29,7 +29,7 @@ import com.hammergenics.screens.stages.ui.attributes.*;
 public class AttributesManagerTable extends HGTable {
     public Attributes container;
     protected BaseAttributeTable.EventListener listener = null;
-    protected ModelPreviewScreen mps;
+    protected ModelEditScreen modelES;
 
     public ColorAttributesTable colorAttrTable;
     public TextureAttributesTable textureAttrTable;
@@ -38,17 +38,17 @@ public class AttributesManagerTable extends HGTable {
     public PointLightsAttributesTable plAttrTable;
     public SpotLightsAttributesTable slAttrTable;
 
-    public AttributesManagerTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
+    public AttributesManagerTable(Skin skin, Attributes container, ModelEditScreen modelES) {
         super(skin);
         this.container = container;
-        this.mps = mps;
+        this.modelES = modelES;
 
-        textureAttrTable = new TextureAttributesTable(skin, container, mps);
-        colorAttrTable = new ColorAttributesTable(skin, container, mps);
-        blendingAttrTable = new BlendingAttributesTable(skin, container, mps);
-        dlAttrTable = new DirectionalLightsAttributesTable(skin, container, mps);
-        plAttrTable = new PointLightsAttributesTable(skin, container, mps);
-        slAttrTable = new SpotLightsAttributesTable(skin, container, mps);
+        textureAttrTable = new TextureAttributesTable(skin, container, modelES);
+        colorAttrTable = new ColorAttributesTable(skin, container, modelES);
+        blendingAttrTable = new BlendingAttributesTable(skin, container, modelES);
+        dlAttrTable = new DirectionalLightsAttributesTable(skin, container, modelES);
+        plAttrTable = new PointLightsAttributesTable(skin, container, modelES);
+        slAttrTable = new SpotLightsAttributesTable(skin, container, modelES);
 
         textureAttrTable.resetAttributes();
         colorAttrTable.resetAttributes();

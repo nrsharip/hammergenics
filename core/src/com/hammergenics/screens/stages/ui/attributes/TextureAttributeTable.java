@@ -29,7 +29,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
-import com.hammergenics.screens.ModelPreviewScreen;
+import com.hammergenics.screens.ModelEditScreen;
 import com.hammergenics.utils.LibgdxUtils;
 
 import java.util.Arrays;
@@ -71,8 +71,8 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
 
     private Texture texture;
 
-    public TextureAttributeTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
-        super(skin, container, mps, TextureAttribute.class);
+    public TextureAttributeTable(Skin skin, Attributes container, ModelEditScreen modelES) {
+        super(skin, container, modelES, TextureAttribute.class);
 
         createListeners();
 
@@ -129,7 +129,7 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
         itemsTexture.add("No Texture Selected");
 
         // All PNG files in the same directory and direct subdirecories the asset is located
-        FileHandle assetFileHandle = mps.stage.modelSelectBox.getSelected();
+        FileHandle assetFileHandle = modelES.stage.modelSelectBox.getSelected();
         Array<FileHandle> textureFileHandleArray = texturesLookUp(assetFileHandle);
 
         if (textureFileHandleArray != null && textureFileHandleArray.size > 0) {
@@ -356,7 +356,7 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
                     + Long.toHexString(currentType) + " alias = " + currentTypeAlias);
             return false;
         } else {
-            texture = mps.assetManager.get(textureSelectBox.getSelected(), Texture.class);
+            texture = modelES.assetManager.get(textureSelectBox.getSelected(), Texture.class);
             if (texture == null) {
                 Gdx.app.debug("enabledCheckBox", "Texture is not loaded from: " + textureSelectBox.getSelected()
                         + " (attribute: type = 0x" + Long.toHexString(currentType) + " alias = " + currentTypeAlias + ")");
@@ -371,7 +371,7 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
 
     @Override
     protected void postRemoveAttr() {
-        mps.stage.textureImage.setDrawable(null);
+        modelES.stage.textureImage.setDrawable(null);
     }
 
     @Override
@@ -399,7 +399,7 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
 
         preCreateAttr(); // to setup a texture
         if (texture != null) {
-            mps.stage.textureImage.setDrawable(new TextureRegionDrawable(new TextureRegion(texture)));
+            modelES.stage.textureImage.setDrawable(new TextureRegionDrawable(new TextureRegion(texture)));
         }
     }
 

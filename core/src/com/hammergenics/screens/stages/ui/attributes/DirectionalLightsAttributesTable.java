@@ -21,7 +21,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.hammergenics.screens.ModelPreviewScreen;
+import com.hammergenics.screens.ModelEditScreen;
 
 /**
  * Add description here
@@ -31,12 +31,12 @@ import com.hammergenics.screens.ModelPreviewScreen;
 public class DirectionalLightsAttributesTable
         extends AttributesTable<DirectionalLightsAttribute, BaseLightsAttributeTable<DirectionalLightsAttribute, DirectionalLight>> {
 
-    public DirectionalLightsAttributesTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
-        super(skin, container, mps, DirectionalLightsAttribute.class);
+    public DirectionalLightsAttributesTable(Skin skin, Attributes container, ModelEditScreen modelES) {
+        super(skin, container, modelES, DirectionalLightsAttribute.class);
 
         // START - Candidate for move to AttributesTable
         t2a.forEach((entry) -> {
-            DirectionalLightsAttributeTable table = new DirectionalLightsAttributeTable(skin, container, mps);
+            DirectionalLightsAttributeTable table = new DirectionalLightsAttributeTable(skin, container, modelES);
             t2Table.put(entry.key, table);   // type to table
             a2Table.put(entry.value, table); // alias to table
         });

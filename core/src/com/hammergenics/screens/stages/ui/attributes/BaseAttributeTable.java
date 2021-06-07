@@ -19,7 +19,7 @@ package com.hammergenics.screens.stages.ui.attributes;
 import com.badlogic.gdx.graphics.g3d.Attribute;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.hammergenics.screens.ModelPreviewScreen;
+import com.hammergenics.screens.ModelEditScreen;
 import com.hammergenics.screens.stages.ui.HGTable;
 
 /**
@@ -31,11 +31,11 @@ public abstract class BaseAttributeTable<T extends Attribute> extends HGTable {
     public Attributes container;
     public Class<T> attributeClass;
     protected EventListener listener = null;
-    protected ModelPreviewScreen mps;
+    protected ModelEditScreen modelES;
 
-    public BaseAttributeTable(Skin skin, Attributes container, ModelPreviewScreen mps, Class<T> aClass) {
+    public BaseAttributeTable(Skin skin, Attributes container, ModelEditScreen modelES, Class<T> aClass) {
         super(skin);
-        this.mps = mps;
+        this.modelES = modelES;
         this.attributeClass = aClass;
         this.container = container;
     }

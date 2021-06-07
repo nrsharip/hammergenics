@@ -21,11 +21,10 @@ import com.badlogic.gdx.graphics.g3d.Attribute;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.ArrayMap;
-import com.hammergenics.screens.ModelPreviewScreen;
+import com.hammergenics.screens.ModelEditScreen;
 import com.hammergenics.utils.LibgdxUtils;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.Arrays;
 
 /**
@@ -56,8 +55,8 @@ public abstract class AttributesTable<T extends Attribute, Q extends AttributeTa
      * @param skin
      * @param container
      */
-    public AttributesTable(Skin skin, Attributes container, ModelPreviewScreen mps, Class<T> aClass) {
-        super(skin, container, mps, aClass);
+    public AttributesTable(Skin skin, Attributes container, ModelEditScreen modelES, Class<T> aClass) {
+        super(skin, container, modelES, aClass);
 
         t2a = new ArrayMap<>();
         a2t = new ArrayMap<>();

@@ -24,7 +24,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
-import com.hammergenics.screens.ModelPreviewScreen;
+import com.hammergenics.screens.ModelEditScreen;
 
 /**
  * Add description here
@@ -45,8 +45,8 @@ public class DirectionalLightsAttributeTable extends BaseLightsAttributeTable<Di
     private TextField.TextFieldListener xyzTextFieldListener;
     private InputListener setInputListener;
 
-    public DirectionalLightsAttributeTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
-        super(skin, container, mps, DirectionalLightsAttribute.class, DirectionalLight.class);
+    public DirectionalLightsAttributeTable(Skin skin, Attributes container, ModelEditScreen modelES) {
+        super(skin, container, modelES, DirectionalLightsAttribute.class, DirectionalLight.class);
 
         createListeners();
 

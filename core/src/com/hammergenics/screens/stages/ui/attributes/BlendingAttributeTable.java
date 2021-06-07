@@ -25,7 +25,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
-import com.hammergenics.screens.ModelPreviewScreen;
+import com.hammergenics.screens.ModelEditScreen;
 
 import static com.hammergenics.utils.LibgdxUtils.gl20_i2s;
 import static com.hammergenics.utils.LibgdxUtils.gl20_s2i;
@@ -57,8 +57,8 @@ public class BlendingAttributeTable extends AttributeTable<BlendingAttribute> {
     private ChangeListener selectBoxListener = null;
     private ChangeListener blendedCBListener = null;
 
-    public BlendingAttributeTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
-        super(skin, container, mps, BlendingAttribute.class);
+    public BlendingAttributeTable(Skin skin, Attributes container, ModelEditScreen modelES) {
+        super(skin, container, modelES, BlendingAttribute.class);
 
         createListeners();
 

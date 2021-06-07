@@ -37,7 +37,7 @@ import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.hammergenics.HGGame;
 import com.hammergenics.config.Config;
-import com.hammergenics.screens.ModelPreviewScreen;
+import com.hammergenics.screens.ModelEditScreen;
 import com.hammergenics.screens.stages.ui.AttributesManagerTable;
 import com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable;
 import com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable.EventType;
@@ -52,12 +52,12 @@ import static com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable.E
  *
  * @author nrsharip
  */
-public class ModelPreviewStage extends Stage {
+public class ModelEditStage extends Stage {
     public static final Color COLOR_PRESSED = Color.RED;
     public static final Color COLOR_UNPRESSED = Color.GRAY;
 
     public final HGGame game;
-    public final ModelPreviewScreen modelPS;
+    public final ModelEditScreen modelES;
 
     // 2D Stage Styling:
     public Skin skin;
@@ -94,10 +94,10 @@ public class ModelPreviewStage extends Stage {
 
     public BaseAttributeTable.EventListener eventListener;
     
-    public ModelPreviewStage(Viewport viewport, HGGame game, ModelPreviewScreen modelPS) {
+    public ModelEditStage(Viewport viewport, HGGame game, ModelEditScreen modelES) {
         super(viewport);
         this.game = game;
-        this.modelPS = modelPS;
+        this.modelES = modelES;
 
         setup2DStageStyling();
         setup2DStageWidgets();
@@ -162,12 +162,11 @@ public class ModelPreviewStage extends Stage {
             public void changed(ChangeEvent event, Actor actor) {  // syncup: model select
                 if (modelSelectBox.getSelectedIndex() == 0) { return; } // 'Select Model' item
                 if (modelSelectBox.getSelectedIndex() == 1) {           // 'ALL' item
-                    modelPS.e.addModelInstances(game.folder2models.get(folderSelectBox.getSelected()));
-                    modelPS.reset();
-                    reset();
+                    modelES.eng.addModelInstances(game.folder2models.get(folderSelectBox.getSelected()));
+                    afterModelInstanceAdded();
                     Gdx.app.debug(modelSelectBox.getClass().getSimpleName(), "model selected: ALL");
                 } else {
-                    modelPS.e.addModelInstance(modelSelectBox.getSelected(), null, -1);
+                    modelES.eng.addModelInstance(modelSelectBox.getSelected(), null, -1);
                     afterModelInstanceAdded();
                     Gdx.app.debug(modelSelectBox.getClass().getSimpleName(), "model selected: " + modelSelectBox.getSelected());
                 }
@@ -180,12 +179,12 @@ public class ModelPreviewStage extends Stage {
         nodeSelectBox.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                if (modelPS.e.currMI == null) { return; }
+                if (modelES.eng.currMI == null) { return; }
                 if (nodeSelectBox.getSelectedIndex() == 0) { // 'all' selected
-                    modelPS.e.addModelInstance(modelPS.e.currMI.afh, null, -1);
+                    modelES.eng.addModelInstance(modelES.eng.currMI.afh, null, -1);
                     afterModelInstanceAdded();
                 } else {
-                    if (!modelPS.e.addModelInstance(modelPS.e.currMI.afh, nodeSelectBox.getSelected(),
+                    if (!modelES.eng.addModelInstance(modelES.eng.currMI.afh, nodeSelectBox.getSelected(),
                             nodeSelectBox.getSelectedIndex() - 1)) { // -1 since there's 'all' item
                         nodeSelectBox.getColor().set(Color.PINK);
                     } else {
@@ -202,17 +201,17 @@ public class ModelPreviewStage extends Stage {
         animationSelectBox.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                modelPS.e.currMI.animationIndex = animationSelectBox.getSelectedIndex() - 1; // -1 since we have "No Animation" item
-                if (modelPS.e.currMI.animationController == null) { return; }
+                modelES.eng.currMI.animationIndex = animationSelectBox.getSelectedIndex() - 1; // -1 since we have "No Animation" item
+                if (modelES.eng.currMI.animationController == null) { return; }
 
-                if (modelPS.e.currMI.animationIndex < 0) {
-                    modelPS.e.currMI.animationController.setAnimation(null);
+                if (modelES.eng.currMI.animationIndex < 0) {
+                    modelES.eng.currMI.animationController.setAnimation(null);
                     return;
                 }
 
-                modelPS.e.currMI.animationDesc = modelPS.e.currMI.animationController.setAnimation(modelPS.e.currMI.animations.get(modelPS.e.currMI.animationIndex).id, -1);
+                modelES.eng.currMI.animationDesc = modelES.eng.currMI.animationController.setAnimation(modelES.eng.currMI.animations.get(modelES.eng.currMI.animationIndex).id, -1);
                 Gdx.app.debug(animationSelectBox.getClass().getSimpleName(),
-                        "animation selected: " + modelPS.e.currMI.animations.get(modelPS.e.currMI.animationIndex).id);
+                        "animation selected: " + modelES.eng.currMI.animations.get(modelES.eng.currMI.animationIndex).id);
                 // Uncomment to get gen_* files with fields contents:
                 //LibGDXUtil.getFieldsContents(animationDesc, 3,  "", true);
             }
@@ -247,7 +246,7 @@ public class ModelPreviewStage extends Stage {
         origScaleCheckBox.setChecked(false);
         origScaleCheckBox.addListener(new ChangeListener() {
             @Override
-            public void changed (ChangeEvent event, Actor actor) { modelPS.e.arrangeInSpiral(origScaleCheckBox.isChecked()); }
+            public void changed (ChangeEvent event, Actor actor) { modelES.eng.arrangeInSpiral(origScaleCheckBox.isChecked()); }
         });
 
         bbCheckBox = new CheckBox("BB", skin);
@@ -323,7 +322,6 @@ public class ModelPreviewStage extends Stage {
         camTextButton = new TextButton("CAM", skin);
         camTextButton.getColor().set(COLOR_UNPRESSED);
 
-
         // temporarily placing it here:
         eventListener = new BaseAttributeTable.EventListener() {
             @Override
@@ -350,28 +348,28 @@ public class ModelPreviewStage extends Stage {
      * @param alias
      */
     private void handleAttributeUpdate(EventType eType, Attributes container, long type, String alias) {
-        miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelPS.e.currMI));
-        envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(modelPS.environment,"", ""));
+        miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelES.eng.currMI));
+        envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(modelES.environment,"", ""));
 
         if ((type & (DirectionalLightsAttribute.Type | PointLightsAttribute.Type)) != 0) {
-            modelPS.e.resetLightsModelInstances(modelPS.e.currMI.getBB().getCenter(Vector3.Zero.cpy()), modelPS.environment);
+            modelES.eng.resetLightsModelInstances(modelES.eng.currMI.getBB().getCenter(Vector3.Zero.cpy()), modelES.environment);
         }
         //Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "onAttributeDisabled: 0x" + Long.toHexString(type) + " alias: " + alias);
     }
 
     private void afterModelInstanceAdded() {
-        modelPS.reset();
+        modelES.reset();
         reset();
         nodeSelectBox.getColor().set(Color.WHITE);
         // Select Box: Animations
         Array<String> itemsAnimation = new Array<>();
         itemsAnimation.add("No Animation");
-        modelPS.e.currMI.animations.forEach(a -> itemsAnimation.add(a.id));
+        modelES.eng.currMI.animations.forEach(a -> itemsAnimation.add(a.id));
         animationSelectBox.getSelection().setProgrammaticChangeEvents(false);
         animationSelectBox.clearItems();
         animationSelectBox.setItems(itemsAnimation);
         animationSelectBox.getSelection().setProgrammaticChangeEvents(true);
-        miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelPS.e.currMI));
+        miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelES.eng.currMI));
     }
 
     /**
@@ -379,7 +377,7 @@ public class ModelPreviewStage extends Stage {
      */
     public void setup2DStageStyling() {
         // https://github.com/libgdx/libgdx/wiki/Managing-your-assets#loading-a-ttf-using-the-assethandler
-        labelBitmapFont = modelPS.assetManager.get(Config.ASSET_FILE_NAME_FONT, BitmapFont.class);
+        labelBitmapFont = modelES.assetManager.get(Config.ASSET_FILE_NAME_FONT, BitmapFont.class);
         labelStyle = new Label.LabelStyle(labelBitmapFont, Color.BLACK);
         // SKIN for 2D Stage Widgets
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#skin
@@ -468,23 +466,23 @@ public class ModelPreviewStage extends Stage {
     }
 
     public void reset() {
-        if (modelPS == null) { return; }
+        if (modelES == null) { return; }
 
         // **************************
         // **** ATTRIBUTES 2D UI ****
         // **************************
-        if (modelPS.environment != null) {
-            envAttrTable = new AttributesManagerTable(skin, modelPS.environment, modelPS);
+        if (modelES.environment != null) {
+            envAttrTable = new AttributesManagerTable(skin, modelES.environment, modelES);
             envAttrTable.setListener(eventListener);
-            envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(modelPS.environment,"", ""));
+            envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(modelES.environment,"", ""));
             if (envTextButton.getColor().equals(COLOR_PRESSED)) {
                 editCell.clearActor();
                 editCell.setActor(envAttrTable);
             }
         }
 
-        if (modelPS.e.currMI != null && modelPS.e.currMI.materials != null && modelPS.e.currMI.materials.size > 0) {
-            mtlAttrTable = new AttributesManagerTable(skin, modelPS.e.currMI.materials.get(0), modelPS);
+        if (modelES.eng.currMI != null && modelES.eng.currMI.materials != null && modelES.eng.currMI.materials.size > 0) {
+            mtlAttrTable = new AttributesManagerTable(skin, modelES.eng.currMI.materials.get(0), modelES);
             mtlAttrTable.setListener(eventListener);
             // Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "" );
 
@@ -496,12 +494,12 @@ public class ModelPreviewStage extends Stage {
 
         textureImage.setDrawable(null);
 
-        if (modelPS.e.currMI != null && modelPS.e.currMI.hgModel.hasNodes()) {
+        if (modelES.eng.currMI != null && modelES.eng.currMI.hgModel.hasNodes()) {
             // making sure no events fired during the nodeSelectBox reset
             nodeSelectBox.getSelection().setProgrammaticChangeEvents(false);
             nodeSelectBox.clearItems();
 
-            String array1[] = Arrays.stream(modelPS.e.currMI.hgModel.obj.nodes.toArray(Node.class)).map(n->n.id).toArray(String[]::new);
+            String array1[] = Arrays.stream(modelES.eng.currMI.hgModel.obj.nodes.toArray(Node.class)).map(n->n.id).toArray(String[]::new);
             String array2[] = new String[array1.length + 1];
             System.arraycopy(array1, 0, array2, 1, array1.length);
             array2[0] = "All";

@@ -51,7 +51,7 @@ public class LoadScreen extends ScreenAdapter {
 
         // https://github.com/libgdx/libgdx/wiki/Managing-your-assets#actually-loading-the-assets
         if (game.assetManager.update()) {
-            game.setScreen(new ModelPreviewScreen(game));
+            game.setScreen(new ModelEditScreen(game));
             dispose();
         }
     }

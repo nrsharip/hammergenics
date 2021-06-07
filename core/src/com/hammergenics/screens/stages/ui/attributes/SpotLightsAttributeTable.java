@@ -20,7 +20,7 @@ import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.attributes.SpotLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.SpotLight;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.hammergenics.screens.ModelPreviewScreen;
+import com.hammergenics.screens.ModelEditScreen;
 
 /**
  * Add description here
@@ -33,8 +33,8 @@ public class SpotLightsAttributeTable extends BaseLightsAttributeTable<SpotLight
     // IMPORTANT: Note that the default shader doesn't support spot lights,
     //            you'll have to supply your own shader to use this class.
 
-    public SpotLightsAttributeTable(Skin skin, Attributes container, ModelPreviewScreen mps) {
-        super(skin, container, mps, SpotLightsAttribute.class, SpotLight.class);
+    public SpotLightsAttributeTable(Skin skin, Attributes container, ModelEditScreen modelES) {
+        super(skin, container, modelES, SpotLightsAttribute.class, SpotLight.class);
     }
 
     @Override
