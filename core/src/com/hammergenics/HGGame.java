@@ -51,6 +51,7 @@ public class HGGame extends Game {
     public final AssetManager assetManager = new AssetManager();
     public ModelBatch modelBatch;
     public ArrayMap<FileHandle, Array<FileHandle>> folder2models;
+    public HGEngine engine;
 
     /**
      *
@@ -235,6 +236,8 @@ public class HGGame extends Game {
         // You'd typically create a ModelBatch in the create() method.
         modelBatch = new ModelBatch(new DefaultShaderProvider(config));
         //modelBatch = new ModelBatch();
+
+        engine = new HGEngine(this);
 
         this.setScreen(new LoadScreen(this));
     }

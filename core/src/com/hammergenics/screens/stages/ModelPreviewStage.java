@@ -32,6 +32,7 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Align;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.hammergenics.HGGame;
@@ -161,10 +162,13 @@ public class ModelPreviewStage extends Stage {
             public void changed(ChangeEvent event, Actor actor) {  // syncup: model select
                 if (modelSelectBox.getSelectedIndex() == 0) { return; } // 'Select Model' item
                 if (modelSelectBox.getSelectedIndex() == 1) {           // 'ALL' item
-                    modelPS.addModelInstances(game.folder2models.get(folderSelectBox.getSelected()));
+                    modelPS.e.addModelInstances(game.folder2models.get(folderSelectBox.getSelected()));
+                    modelPS.reset();
+                    reset();
                     Gdx.app.debug(modelSelectBox.getClass().getSimpleName(), "model selected: ALL");
                 } else {
-                    modelPS.addModelInstance(modelSelectBox.getSelected(), null, -1, true);
+                    modelPS.e.addModelInstance(modelSelectBox.getSelected(), null, -1);
+                    afterModelInstanceAdded();
                     Gdx.app.debug(modelSelectBox.getClass().getSimpleName(), "model selected: " + modelSelectBox.getSelected());
                 }
             }
@@ -176,12 +180,17 @@ public class ModelPreviewStage extends Stage {
         nodeSelectBox.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                if (modelPS.currMI == null) { return; }
+                if (modelPS.e.currMI == null) { return; }
                 if (nodeSelectBox.getSelectedIndex() == 0) { // 'all' selected
-                    modelPS.addModelInstance(modelPS.currMI.afh, null, -1, true);
+                    modelPS.e.addModelInstance(modelPS.e.currMI.afh, null, -1);
+                    afterModelInstanceAdded();
                 } else {
-                    modelPS.addModelInstance(modelPS.currMI.afh,
-                            nodeSelectBox.getSelected(), nodeSelectBox.getSelectedIndex() - 1, true); // -1 since there's 'all' item
+                    if (!modelPS.e.addModelInstance(modelPS.e.currMI.afh, nodeSelectBox.getSelected(),
+                            nodeSelectBox.getSelectedIndex() - 1)) { // -1 since there's 'all' item
+                        nodeSelectBox.getColor().set(Color.PINK);
+                    } else {
+                        afterModelInstanceAdded();
+                    }
                 }
             }
         });
@@ -193,17 +202,17 @@ public class ModelPreviewStage extends Stage {
         animationSelectBox.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                modelPS.currMI.animationIndex = animationSelectBox.getSelectedIndex() - 1; // -1 since we have "No Animation" item
-                if (modelPS.currMI.animationController == null) { return; }
+                modelPS.e.currMI.animationIndex = animationSelectBox.getSelectedIndex() - 1; // -1 since we have "No Animation" item
+                if (modelPS.e.currMI.animationController == null) { return; }
 
-                if (modelPS.currMI.animationIndex < 0) {
-                    modelPS.currMI.animationController.setAnimation(null);
+                if (modelPS.e.currMI.animationIndex < 0) {
+                    modelPS.e.currMI.animationController.setAnimation(null);
                     return;
                 }
 
-                modelPS.currMI.animationDesc = modelPS.currMI.animationController.setAnimation(modelPS.currMI.animations.get(modelPS.currMI.animationIndex).id, -1);
+                modelPS.e.currMI.animationDesc = modelPS.e.currMI.animationController.setAnimation(modelPS.e.currMI.animations.get(modelPS.e.currMI.animationIndex).id, -1);
                 Gdx.app.debug(animationSelectBox.getClass().getSimpleName(),
-                        "animation selected: " + modelPS.currMI.animations.get(modelPS.currMI.animationIndex).id);
+                        "animation selected: " + modelPS.e.currMI.animations.get(modelPS.e.currMI.animationIndex).id);
                 // Uncomment to get gen_* files with fields contents:
                 //LibGDXUtil.getFieldsContents(animationDesc, 3,  "", true);
             }
@@ -238,7 +247,7 @@ public class ModelPreviewStage extends Stage {
         origScaleCheckBox.setChecked(false);
         origScaleCheckBox.addListener(new ChangeListener() {
             @Override
-            public void changed (ChangeEvent event, Actor actor) { modelPS.arrangeInSpiral(); }
+            public void changed (ChangeEvent event, Actor actor) { modelPS.e.arrangeInSpiral(origScaleCheckBox.isChecked()); }
         });
 
         bbCheckBox = new CheckBox("BB", skin);
@@ -341,13 +350,28 @@ public class ModelPreviewStage extends Stage {
      * @param alias
      */
     private void handleAttributeUpdate(EventType eType, Attributes container, long type, String alias) {
-        miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelPS.currMI));
+        miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelPS.e.currMI));
         envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(modelPS.environment,"", ""));
 
         if ((type & (DirectionalLightsAttribute.Type | PointLightsAttribute.Type)) != 0) {
-            modelPS.resetLightsModelInstances(modelPS.currMI.getBB().getCenter(Vector3.Zero.cpy()));
+            modelPS.e.resetLightsModelInstances(modelPS.e.currMI.getBB().getCenter(Vector3.Zero.cpy()), modelPS.environment);
         }
         //Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "onAttributeDisabled: 0x" + Long.toHexString(type) + " alias: " + alias);
+    }
+
+    private void afterModelInstanceAdded() {
+        modelPS.reset();
+        reset();
+        nodeSelectBox.getColor().set(Color.WHITE);
+        // Select Box: Animations
+        Array<String> itemsAnimation = new Array<>();
+        itemsAnimation.add("No Animation");
+        modelPS.e.currMI.animations.forEach(a -> itemsAnimation.add(a.id));
+        animationSelectBox.getSelection().setProgrammaticChangeEvents(false);
+        animationSelectBox.clearItems();
+        animationSelectBox.setItems(itemsAnimation);
+        animationSelectBox.getSelection().setProgrammaticChangeEvents(true);
+        miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelPS.e.currMI));
     }
 
     /**
@@ -459,8 +483,8 @@ public class ModelPreviewStage extends Stage {
             }
         }
 
-        if (modelPS.currMI != null && modelPS.currMI.materials != null && modelPS.currMI.materials.size > 0) {
-            mtlAttrTable = new AttributesManagerTable(skin, modelPS.currMI.materials.get(0), modelPS);
+        if (modelPS.e.currMI != null && modelPS.e.currMI.materials != null && modelPS.e.currMI.materials.size > 0) {
+            mtlAttrTable = new AttributesManagerTable(skin, modelPS.e.currMI.materials.get(0), modelPS);
             mtlAttrTable.setListener(eventListener);
             // Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "" );
 
@@ -472,12 +496,12 @@ public class ModelPreviewStage extends Stage {
 
         textureImage.setDrawable(null);
 
-        if (modelPS.currMI != null && modelPS.currMI.hgModel.hasNodes()) {
+        if (modelPS.e.currMI != null && modelPS.e.currMI.hgModel.hasNodes()) {
             // making sure no events fired during the nodeSelectBox reset
             nodeSelectBox.getSelection().setProgrammaticChangeEvents(false);
             nodeSelectBox.clearItems();
 
-            String array1[] = Arrays.stream(modelPS.currMI.hgModel.obj.nodes.toArray(Node.class)).map(n->n.id).toArray(String[]::new);
+            String array1[] = Arrays.stream(modelPS.e.currMI.hgModel.obj.nodes.toArray(Node.class)).map(n->n.id).toArray(String[]::new);
             String array2[] = new String[array1.length + 1];
             System.arraycopy(array1, 0, array2, 1, array1.length);
             array2[0] = "All";

@@ -35,13 +35,14 @@ import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.SphereShapeBuilder;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
+import com.badlogic.gdx.utils.Disposable;
 
 /**
  * Add description here
  *
  * @author nrsharip
  */
-public class HGModelInstance extends ModelInstance {
+public class HGModelInstance extends ModelInstance implements Disposable {
     public HGModel hgModel;
     /**
      * asset file handle
@@ -77,6 +78,12 @@ public class HGModelInstance extends ModelInstance {
         maxD = Math.max(Math.max(dims.x, dims.y), dims.z);
 
         createBBModel();
+    }
+
+    @Override
+    public void dispose() {
+        // hgModel is being disposed by the AssetManager
+        bbModel.dispose();
     }
 
     public String getTag(int depth) {

@@ -21,43 +21,37 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.assets.AssetManager;
-import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g3d.*;
-import com.badlogic.gdx.graphics.g3d.attributes.*;
+import com.badlogic.gdx.graphics.g3d.Attributes;
+import com.badlogic.gdx.graphics.g3d.Environment;
+import com.badlogic.gdx.graphics.g3d.ModelBatch;
+import com.badlogic.gdx.graphics.g3d.Renderable;
+import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.SpotLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.environment.PointLight;
-import com.badlogic.gdx.graphics.g3d.model.Animation;
 import com.badlogic.gdx.graphics.g3d.model.Node;
-import com.badlogic.gdx.graphics.g3d.model.NodePart;
 import com.badlogic.gdx.graphics.g3d.shaders.BaseShader;
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
-import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
 import com.badlogic.gdx.graphics.g3d.utils.BaseShaderProvider;
 import com.badlogic.gdx.graphics.g3d.utils.DefaultShaderProvider;
 import com.badlogic.gdx.graphics.g3d.utils.DefaultTextureBinder;
 import com.badlogic.gdx.math.Intersector;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Sort;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.hammergenics.HGEngine;
 import com.hammergenics.HGGame;
-import com.hammergenics.screens.graphics.g3d.HGModel;
 import com.hammergenics.screens.graphics.g3d.HGModelInstance;
 import com.hammergenics.screens.graphics.g3d.utils.ModelEditorInputController;
 import com.hammergenics.screens.stages.ModelPreviewStage;
-import com.hammergenics.utils.LibgdxUtils;
-
-import java.util.Arrays;
-
-import static com.hammergenics.screens.graphics.g3d.utils.Models.createGridModel;
-import static com.hammergenics.screens.graphics.g3d.utils.Models.createLightsModel;
 
 /**
  * Add description here
@@ -72,30 +66,11 @@ public class ModelPreviewScreen extends ScreenAdapter {
     private PerspectiveCamera perspectiveCamera;
     private ModelEditorInputController modelEditorInputController;
     public Environment environment;
-    public Array<HGModel> hgModels = new Array<>();
-    private Array<Texture> textures = new Array<>();
 
-    // Auxiliary models:
-    private Model gridModel = null;
-    private ModelInstance gridXZModelInstance = null;
-    private ModelInstance gridYModelInstance = null;
-    private ModelInstance gridOModelInstance = null;
-    private Model lightsModel = null;
-    private Array<ModelInstance> dlArrayModelInstance = null; // directional lights
-    private Array<ModelInstance> plArrayModelInstance = null; // point lights
-    private Array<ModelInstance> bbArrayModelInstance = null; // bounding boxes
+    public HGEngine e;
 
     // 2D Stage - this is where all the widgets (buttons, checkboxes, labels etc.) are located
     public ModelPreviewStage stage;
-
-    // ModelInstance Related:
-    public Array<HGModelInstance> hgMIs = new Array<>(HGModelInstance.class);
-    public float unitSize = 0f;
-    public float overallSize = 0f;
-    public HGModelInstance currMI = null;
-    public Vector2 currCell = Vector2.Zero.cpy();
-    public HGModelInstance hoveredOverMI = null;
-    public ArrayMap<Attributes, ColorAttribute> hoveredOverMIAttributes = null;
 
     private float clockFPS;
 
@@ -104,33 +79,11 @@ public class ModelPreviewScreen extends ScreenAdapter {
      */
     public ModelPreviewScreen(HGGame game) {
         this.game = game;
-        assetManager = game.assetManager;
-        // https://github.com/libgdx/libgdx/wiki/ModelBatch
-        modelBatch = game.modelBatch;
-        // https://github.com/libgdx/libgdx/wiki/Managing-your-assets#getting-assets
+        this.assetManager = game.assetManager;   // https://github.com/libgdx/libgdx/wiki/Managing-your-assets
+        this.modelBatch = game.modelBatch;       // https://github.com/libgdx/libgdx/wiki/ModelBatch
+        this.e = game.engine;
 
-        Array<Model> models = new Array<>(Model.class);
-        assetManager.getAll(Model.class, models);
-        hgModels = Arrays.stream(models.toArray())
-                            .map(model -> {
-                                String fn = assetManager.getAssetFileName(model);
-                                FileHandle fh = assetManager.getFileHandleResolver().resolve(fn);
-                                return new HGModel(model, fh); })                                  // Array<Model> -> Array<HGModel>
-                            .collect(() -> new Array<>(HGModel.class), Array::add, Array::addAll); // retrieving the Array<HGModel>
-
-        Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "models loaded: " + hgModels.size);
-        if (hgModels.size == 0) {
-            Gdx.app.error(Thread.currentThread().getStackTrace()[1].getMethodName(), "No models available");
-            Gdx.app.exit(); // On iOS this should be avoided in production as it breaks Apples guidelines
-            return;
-        }
-
-        assetManager.getAll(Texture.class, textures);
-        Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "textures loaded: " + textures.size);
-
-        // Creating the Aux Models beforehand:
-        gridModel = createGridModel();
-        lightsModel = createLightsModel();
+        e.getAssets();
 
         // Camera related
         perspectiveCamera = new PerspectiveCamera(70f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -157,7 +110,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
     public void render(float delta) {
         modelEditorInputController.update(delta);
 
-        hgMIs.forEach(hgMI -> {
+        e.hgMIs.forEach(hgMI -> {
             if(hgMI.animationController != null) {
                 hgMI.animationController.update(delta);
 //                if (animationDesc.loopCount == 0) {
@@ -192,15 +145,15 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // * there's a render(...) that could take an Iterable of ModelInstance's, e.g.
         //   modelBatch.render((Array<ModelInstance>) array, environment);
         // * Enable caching as soon as multiple instances are rendered: https://github.com/libgdx/libgdx/wiki/ModelCache
-        if (hgMIs.size > 0 && environment != null) { modelBatch.render(hgMIs, environment); }
-        if (gridXZModelInstance != null && stage.gridXZCheckBox.isChecked()) {
-            modelBatch.render(gridXZModelInstance);
-            modelBatch.render(gridOModelInstance);
+        if (e.hgMIs.size > 0 && environment != null) { modelBatch.render(e.hgMIs, environment); }
+        if (e.gridXZModelInstance != null && stage.gridXZCheckBox.isChecked()) {
+            modelBatch.render(e.gridXZModelInstance);
+            modelBatch.render(e.gridOModelInstance);
         }
-        if (gridYModelInstance != null && stage.gridYCheckBox.isChecked()) { modelBatch.render(gridYModelInstance); }
-        if (dlArrayModelInstance != null && stage.lightsCheckBox.isChecked()) { modelBatch.render(dlArrayModelInstance, environment); }
-        if (plArrayModelInstance != null && stage.lightsCheckBox.isChecked()) { modelBatch.render(plArrayModelInstance, environment); }
-        if (bbArrayModelInstance != null && stage.bbCheckBox.isChecked()) { modelBatch.render(bbArrayModelInstance, environment); }
+        if (e.gridYModelInstance != null && stage.gridYCheckBox.isChecked()) { modelBatch.render(e.gridYModelInstance); }
+        if (e.dlArrayModelInstance != null && stage.lightsCheckBox.isChecked()) { modelBatch.render(e.dlArrayModelInstance, environment); }
+        if (e.plArrayModelInstance != null && stage.lightsCheckBox.isChecked()) { modelBatch.render(e.plArrayModelInstance, environment); }
+        if (e.bbArrayModelInstance != null && stage.bbCheckBox.isChecked()) { modelBatch.render(e.bbArrayModelInstance, environment); }
 
         // https://github.com/libgdx/libgdx/wiki/ModelBatch
         // The actual rendering is performed at the call to end();.
@@ -237,293 +190,21 @@ public class ModelPreviewScreen extends ScreenAdapter {
     public void dispose() {
         super.dispose();
         if (stage != null) { stage.dispose(); }
-        if (gridModel != null) { gridModel.dispose(); }
-        if (lightsModel != null) { lightsModel.dispose(); }
-        for (HGModelInstance mi:hgMIs) { mi.bbModel.dispose(); }
+        if (e != null) { e.dispose(); }
     }
 
-    public void addModelInstances(Array<FileHandle> modelFHs) {
-        modelFHs.forEach(fileHandle -> addModelInstance(fileHandle, null, -1, false));
+    public void reset() {
+        e.arrangeInSpiral(stage.origScaleCheckBox.isChecked());
 
-        if (hgMIs.size > 0) {
-            currMI = hgMIs.get(0);
-            reset();
-            stage.reset();
-        }
-    }
+        Vector3 center = e.currMI.getBB().getCenter(Vector3.Zero.cpy());
 
-    /**
-     * @param assetFL
-     */
-    public void addModelInstance(FileHandle assetFL, String nodeId, int nodeIndex, boolean resetScreen) {
-        HGModel hgModel = new HGModel(assetManager.get(assetFL.path(), Model.class), assetFL);
-        if (!hgModel.hasMaterials() && !hgModel.hasMeshes() && !hgModel.hasMeshParts()) {
-            if (hgModel.hasAnimations()) {
-                // we got animations only model
-                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "animations only model: " + assetFL);
-            }
-            return;
-        }
-
-        if (nodeId == null) {
-            currMI = new HGModelInstance(hgModel, assetFL);
-            stage.nodeSelectBox.getColor().set(Color.WHITE);
-        } else {
-            // TODO: maybe it's good to add a Tree for Node traversal
-            // https://libgdx.badlogicgames.com/ci/nightlies/docs/api/com/badlogic/gdx/scenes/scene2d/ui/Tree.html
-//            Array<String> nodeTree = new Array<>();
-//            for (Node node:model.nodes) {
-//                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
-//                        "node '" + node.id + "': \n" + LibgdxUtils.traverseNode(node, nodeTree, " ").toString("\n"));
-//                nodeTree.clear();
-//            }
-
-            for (NodePart part:hgModel.obj.nodes.get(nodeIndex).parts) {
-                // see model.nodePartBones
-                // ModelInstance.copyNodes(model.nodes, rootNodeIds); - fills in the bones...
-                if (part.invBoneBindTransforms != null) {
-                    // see Node.calculateBoneTransforms. It fails with:
-                    // Caused by: java.lang.NullPointerException
-                    //        at com.badlogic.gdx.graphics.g3d.model.Node.calculateBoneTransforms(Node.java:94)
-                    //        at com.badlogic.gdx.graphics.g3d.ModelInstance.calculateTransforms(ModelInstance.java:406)
-                    //        at com.badlogic.gdx.graphics.g3d.ModelInstance.<init>(ModelInstance.java:157)
-                    //        at com.badlogic.gdx.graphics.g3d.ModelInstance.<init>(ModelInstance.java:145)
-                    // (this line: part.bones[i].set(part.invBoneBindTransforms.keys[i].globalTransform).mul(part.invBoneBindTransforms.values[i]);)
-                    //
-                    // part.invBoneBindTransforms.keys[i] == null, giving the exception
-                    // model.nodes.get(nodeIndex).parts.get(<any>).invBoneBindTransforms actually contains both
-                    // the keys(Nodes (head, leg, etc...)) and values (Matrix4's)...
-                    // so the keys are getting invalidated (set to null) in ModelInstance.invalidate (Node node)
-                    // because the nodes they refer to located in other root nodes (not the selected one)
-                    stage.nodeSelectBox.getColor().set(Color.PINK);
-                    return;
-                }
-            }
-            Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),"nodeId: " + nodeId + " nodeIndex: " + nodeIndex);
-            currMI = new HGModelInstance(hgModel, assetFL, nodeId);
-            // for some reasons getting this exception in case nodeId == null:
-            // (should be done like (String[])null maybe...)
-            // Exception in thread "LWJGL Application" java.lang.NullPointerException
-            //        at com.badlogic.gdx.graphics.g3d.ModelInstance.copyNodes(ModelInstance.java:232)
-            //        at com.badlogic.gdx.graphics.g3d.ModelInstance.<init>(ModelInstance.java:155)
-            //        at com.badlogic.gdx.graphics.g3d.ModelInstance.<init>(ModelInstance.java:145)
-            stage.nodeSelectBox.getColor().set(Color.WHITE);
-        }
-
-        currMI.setAttributes(new BlendingAttribute());
-        hgMIs.add(currMI);
-
-        if (resetScreen) {
-            reset();
-            stage.reset();
-        }
-
-        // ********************
-        // **** ANIMATIONS ****
-        // ********************
-        copyExternalAnimations(assetFL);
-
-        currMI.animationController = null;
-        if(currMI.animations.size > 0) { currMI.animationController = new AnimationController(currMI); }
-
-        // Select Box: Animations
-        Array<String> itemsAnimation = new Array<>();
-        itemsAnimation.add("No Animation");
-        currMI.animations.forEach(a -> itemsAnimation.add(a.id));
-        stage.animationSelectBox.clearItems();
-        stage.animationSelectBox.setItems(itemsAnimation);
-
-        stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(currMI));
-    }
-
-    /**
-     * @param assetFL
-     */
-    private void copyExternalAnimations(FileHandle assetFL) {
-        if (assetManager == null || currMI == null) { return; }
-
-        FileHandle animationsFolder = LibgdxUtils.fileOnPath(assetFL, "animations");
-        if (animationsFolder != null && animationsFolder.isDirectory()) {
-            // final since it goes to lambda closure
-            final Array<String> animationsPresent = new Array<>();
-            // populating with animations already present
-            for (Animation animation : currMI.animations) { animationsPresent.add(animation.id); }
-
-            for (int i = 0; i < hgModels.size; i++) {  // using for loop instead of for-each to avoid nested iterators exception:
-                HGModel hgm = hgModels.get(i);         // GdxRuntimeException: #iterator() cannot be used nested.
-                String filename = hgm.afh.path();      // thrown by Array$ArrayIterator...
-                if (filename.startsWith(animationsFolder.toString())) {
-                    if (hgm.hasMaterials()) {
-                        Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(),
-                                "WARNING: animation only model has materials (" + hgm.obj.materials.size+ "): " + filename);
-                    }
-                    if (hgm.hasMeshes()) {
-                        Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(),
-                                "WARNING: animation only model has meshes (" + hgm.obj.meshes.size+ "): " + filename);
-                    }
-                    if (hgm.hasMeshParts()) {
-                        Gdx.app.log(Thread.currentThread().getStackTrace()[1].getMethodName(),
-                                "WARNING: animation only model has meshParts (" + hgm.obj.meshParts.size+ "): " + filename);
-                    }
-
-                    //modelInstance.copyAnimations(m.animations);
-                    hgm.obj.animations.forEach(animation -> {
-                        //Gdx.app.debug(Thread.currentThread().getStackTrace()[3].getMethodName(), "animation: " + animation.id);
-                        // this is to make sure that we don't add the same animation multiple times from different animation models
-                        if (!animationsPresent.contains(animation.id, false)) {
-                            Gdx.app.debug(Thread.currentThread().getStackTrace()[3].getMethodName(),
-                                    "adding animation: " + animation.id);
-                            currMI.copyAnimation(animation);
-                            animationsPresent.add(animation.id);
-                        }
-                    });
-                }
-            }
-        }
-    }
-
-    public Vector2 arrangeInSpiral() {
-        Vector2 cell = Vector2.Zero.cpy();
-        unitSize = 0f;
-        for(HGModelInstance hgMI: hgMIs) { if (hgMI.maxD > unitSize) { unitSize = hgMI.maxD; } }
-        for(HGModelInstance hgMI: hgMIs) {
-            hgMI.transform.idt(); // first cancel any previous transform
-            float factor = 1f;
-            if (!stage.origScaleCheckBox.isChecked() && hgMI.maxD < unitSize) {
-                // Scale: if the dimension of the current instance is less than maximum dimension of all instances scale it
-                factor = unitSize/hgMI.maxD;
-            }
-            Vector3 center = hgMI.getBB().getCenter(new Vector3());
-            Vector3 position;
-            // Position:
-            // 1. Move the instance (scaled center) to the current base position ([cell.x, 0, cell.y] vector sub scaled center vector)
-            // 2. Add half of the scaled height to the current position so bounding box's bottom matches XZ plane
-            position = new Vector3(cell.x * 1.1f * unitSize, 0f, cell.y * 1.1f * unitSize)
-                    .sub(center.cpy().scl(factor))
-                    .add(0, factor * hgMI.getBB().getHeight()/2, 0);
-            hgMI.moveAndScaleTo(position, Vector3.Zero.cpy().add(factor));
-            // spiral loop around (0, 0, 0)
-            LibgdxUtils.spiralGetNext(cell);
-        }
-
-        overallSize = Math.max(Math.abs(cell.x), Math.abs(cell.y)) * unitSize;
-        overallSize = overallSize == 0 ? unitSize : overallSize;
-        currCell = cell;
-
-        resetBBModelInstances();
-
-        return cell;
-    }
-
-    private void reset() {
-        arrangeInSpiral();
-
-        Vector3 center = currMI.getBB().getCenter(Vector3.Zero.cpy());
-
-        resetCamera(overallSize, center.cpy());
-        resetScreenInputController(unitSize, overallSize, center.cpy());
+        resetCamera(e.overallSize, center.cpy());
+        resetScreenInputController(e.unitSize, e.overallSize, center.cpy());
         resetEnvironment();    // clears all lights
         addInitialEnvLights(); // adds 1 directional and 1 point light to the environment
 
-        resetGridModelInstances();
-        resetLightsModelInstances(center.cpy());
-    }
-
-    /**
-     * @return
-     */
-    private void resetGridModelInstances() {
-        if (gridModel == null) { return; }
-
-        gridXZModelInstance = new ModelInstance(gridModel, "XZ");
-        gridYModelInstance = new ModelInstance(gridModel, "Y");
-        gridOModelInstance = new ModelInstance(gridModel, "origin");
-
-        gridXZModelInstance.transform.setToScaling(Vector3.Zero.cpy().add(overallSize/4f));
-        gridYModelInstance.transform.setToScaling(Vector3.Zero.cpy().add(overallSize/4f));
-        gridOModelInstance.transform.setToScaling(Vector3.Zero.cpy().add(unitSize/4f));
-    }
-
-    public void resetBBModelInstances() {
-        if (bbArrayModelInstance != null) {
-            bbArrayModelInstance.clear();
-            bbArrayModelInstance = null;
-        }
-        bbArrayModelInstance = new Array<>(ModelInstance.class);
-
-        for (HGModelInstance mi:hgMIs) {
-            if (mi.equals(currMI)) { bbArrayModelInstance.add(mi.getBBModelInstance(Color.GREEN, Color.RED)); }
-            else { bbArrayModelInstance.add(mi.getBBModelInstance(Color.BLACK, Color.RED)); }
-        }
-    }
-
-    public void resetLightsModelInstances(Vector3 center) {
-        if (dlArrayModelInstance != null) { dlArrayModelInstance.clear(); dlArrayModelInstance = null; }
-        if (plArrayModelInstance != null) { plArrayModelInstance.clear(); plArrayModelInstance = null; }
-        dlArrayModelInstance = new Array<>(ModelInstance.class);
-        plArrayModelInstance = new Array<>(ModelInstance.class);
-
-        // Environment Lights
-        DirectionalLightsAttribute dlAttribute = environment.get(DirectionalLightsAttribute.class, DirectionalLightsAttribute.Type);
-        if (dlAttribute != null) {
-            for (DirectionalLight light:dlAttribute.lights) {
-                dlArrayModelInstance.add(createDLModelInstance(light, hgMIs.get(0).getBB().getCenter(new Vector3()), overallSize));
-            }
-        }
-        PointLightsAttribute plAttribute = environment.get(PointLightsAttribute.class, PointLightsAttribute.Type);
-        if (plAttribute != null) {
-            for (PointLight light:plAttribute.lights) {
-                plArrayModelInstance.add(createPLModelInstance(light, hgMIs.get(0).getBB().getCenter(new Vector3()), overallSize));
-            }
-        }
-
-        // Current Model Instance's Material Lights
-        if (currMI != null) {
-            for (Material material:currMI.materials) {
-                dlAttribute = material.get(DirectionalLightsAttribute.class, DirectionalLightsAttribute.Type);
-                if (dlAttribute != null) {
-                    dlAttribute.lights.forEach(light -> dlArrayModelInstance.add(createDLModelInstance(light, center, unitSize)));
-                }
-                plAttribute = material.get(PointLightsAttribute.class, PointLightsAttribute.Type);
-                if (plAttribute != null) {
-                    plAttribute.lights.forEach(light -> plArrayModelInstance.add(createPLModelInstance(light, center, unitSize)));
-                }
-            }
-        }
-    }
-
-    private ModelInstance createDLModelInstance(DirectionalLight dl, Vector3 passThrough, float distance) {
-        ModelInstance mi = new ModelInstance(lightsModel, "directional");
-        // from the center moving backwards to the direction of light
-        mi.transform.setToTranslationAndScaling(
-                passThrough.cpy().sub(dl.direction.cpy().nor().scl(distance)), Vector3.Zero.cpy().add(distance/10));
-        // rotating the arrow from X vector (1,0,0) to the direction vector
-        mi.transform.rotate(Vector3.X, dl.direction.cpy().nor());
-        mi.getMaterial("base", true).set(
-                ColorAttribute.createDiffuse(dl.color), ColorAttribute.createEmissive(dl.color)
-        );
-        return mi;
-    }
-
-    private ModelInstance createPLModelInstance(PointLight pl, Vector3 directTo, float distance) {
-        // This a directional light added to the sphere itself to create
-        // a perception of glowing reflecting point lights' intensity
-        DirectionalLightsAttribute dlAttribute = new DirectionalLightsAttribute();
-        Array<DirectionalLight> dLights = new Array<>(DirectionalLight.class);
-        Vector3 dir = pl.position.cpy().sub(directTo).nor();
-        float ref = (distance < 50f ? 10.10947f : 151.0947f) * distance - 90f; // TODO: temporal solution, revisit
-        ref = ref <= 0 ? 1f : ref;                                             // TODO: temporal solution, revisit
-        float fraction = pl.intensity / (2 * ref); // syncup: pl
-        dLights.addAll(new DirectionalLight().set(new Color(Color.BLACK).add(fraction, fraction, fraction, 0f), dir));
-        dlAttribute.lights.addAll(dLights);
-        // directional light part over
-
-        ModelInstance mi = new ModelInstance(lightsModel, "point");
-        mi.transform.setToTranslationAndScaling(pl.position, Vector3.Zero.cpy().add(distance/10));
-        mi.getMaterial("base", true).set(
-                dlAttribute, ColorAttribute.createDiffuse(pl.color), ColorAttribute.createEmissive(pl.color)
-        );
-        return mi;
+        e.resetGridModelInstances();
+        e.resetLightsModelInstances(center.cpy(), environment);
     }
 
     /**
@@ -660,12 +341,12 @@ public class ModelPreviewScreen extends ScreenAdapter {
         // adding a single directional light
         environment.add(new DirectionalLight().set(Color.WHITE, -1f, -0.5f, -1f));
         // adding a single point light
-        Vector3 plPosition = hgMIs.get(0).getBB().getCenter(new Vector3());
-        plPosition.add(-overallSize/2, overallSize/2, overallSize/2);
+        Vector3 plPosition = e.hgMIs.get(0).getBB().getCenter(new Vector3());
+        plPosition.add(-e.overallSize/2, e.overallSize/2, e.overallSize/2);
         // seems that intensity should grow exponentially(?) over the distance, the table is:
         //  unitSize: 1.7   17    191    376    522
         // intensity:   1  100  28708  56470  78397
-        float intensity = (overallSize < 50f ? 10.10947f : 151.0947f) * overallSize - 90f; // TODO: temporal solution, revisit
+        float intensity = (e.overallSize < 50f ? 10.10947f : 151.0947f) * e.overallSize - 90f; // TODO: temporal solution, revisit
         intensity = intensity <= 0 ? 1f : intensity;                                       // TODO: temporal solution, revisit
         environment.add(new PointLight().set(Color.WHITE, plPosition, intensity < 0 ? 0.5f : intensity)); // syncup: pl
     }
@@ -673,36 +354,36 @@ public class ModelPreviewScreen extends ScreenAdapter {
     public void checkMouseMoved(int screenX, int screenY) {
         Ray ray = perspectiveCamera.getPickRay(screenX, screenY);
 
-        Array<HGModelInstance> out = rayMICollision(ray, hgMIs, new Array<>(HGModelInstance.class));
+        Array<HGModelInstance> out = rayMICollision(ray, e.hgMIs, new Array<>(HGModelInstance.class));
 
-        if (out.size > 0 && !out.get(0).equals(hoveredOverMI)) {
+        if (out.size > 0 && !out.get(0).equals(e.hoveredOverMI)) {
             restoreAttributes();
-            hoveredOverMI = out.get(0);
+            e.hoveredOverMI = out.get(0);
             persistAttributes();
-            hoveredOverMI.setAttributes(ColorAttribute.createEmissive(Color.DARK_GRAY.cpy()));
+            e.hoveredOverMI.setAttributes(ColorAttribute.createEmissive(Color.DARK_GRAY.cpy()));
         } else if (out.size == 0) {
             restoreAttributes();
-            hoveredOverMI = null;
-            if (hoveredOverMIAttributes != null) { hoveredOverMIAttributes.clear(); }
-            hoveredOverMIAttributes = null;
+            e.hoveredOverMI = null;
+            if (e.hoveredOverMIAttributes != null) { e.hoveredOverMIAttributes.clear(); }
+            e.hoveredOverMIAttributes = null;
         }
     }
 
     private void persistAttributes() {
-        if (hoveredOverMI != null) {
-            hoveredOverMIAttributes = new ArrayMap<>(Attributes.class, ColorAttribute.class);
-            hoveredOverMI.materials.forEach(attributes -> {
+        if (e.hoveredOverMI != null) {
+            e.hoveredOverMIAttributes = new ArrayMap<>(Attributes.class, ColorAttribute.class);
+            e.hoveredOverMI.materials.forEach(attributes -> {
                 ColorAttribute attr = attributes.get(ColorAttribute.class, ColorAttribute.Emissive);
                 if (attr != null) { attr = (ColorAttribute) attr.copy(); }
-                hoveredOverMIAttributes.put(attributes, attr);
+                e.hoveredOverMIAttributes.put(attributes, attr);
             });
         }
     }
 
     private void restoreAttributes() {
-        if (hoveredOverMI != null && hoveredOverMIAttributes != null) {
-            hoveredOverMI.materials.forEach(attributes -> {
-                ColorAttribute attr = hoveredOverMIAttributes.get(attributes);
+        if (e.hoveredOverMI != null && e.hoveredOverMIAttributes != null) {
+            e.hoveredOverMI.materials.forEach(attributes -> {
+                ColorAttribute attr = e.hoveredOverMIAttributes.get(attributes);
                 Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
                         "attr: " + attr);
                 if (attr != null) { attributes.set(attr); } else { attributes.remove(ColorAttribute.Emissive); }
@@ -714,7 +395,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
         Ray ray = perspectiveCamera.getPickRay(x, y);
         switch (button) {
             case Input.Buttons.LEFT:
-                Array<HGModelInstance> out = rayMICollision(ray, hgMIs, new Array<>(HGModelInstance.class));
+                Array<HGModelInstance> out = rayMICollision(ray, e.hgMIs, new Array<>(HGModelInstance.class));
                 out.forEach(mi -> Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
                         "object intersected: " + mi.afh + " @" + mi.hashCode()));
                 break;
@@ -756,7 +437,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
      *
      */
     public void testRenderRelated() {
-        if (currMI == null) { return; }
+        if (e.currMI == null) { return; }
 
         // Regarding Pool<T>:
         // see example:
@@ -802,7 +483,7 @@ public class ModelPreviewScreen extends ScreenAdapter {
 //     renderable.shader = shaderProvider.getShader(renderable); // note this double assignment
 // ... (see ModelBatch.java for the complete list of render()'s)
 
-        if (currMI.materials == null || currMI.materials.size == 0) { return; }
+        if (e.currMI.materials == null || e.currMI.materials.size == 0) { return; }
         // Getting this exception in case there's no material defined.
         // Exception in thread "LWJGL Application" java.lang.IndexOutOfBoundsException: index can't be >= size: 0 >= 0
         //        at com.badlogic.gdx.utils.Array.get(Array.java:155)
@@ -812,9 +493,9 @@ public class ModelPreviewScreen extends ScreenAdapter {
 
         // Getting the Renderable
         Renderable renderable = null;
-        for (Node node: currMI.nodes) {
+        for (Node node: e.currMI.nodes) {
             if (node.parts.size == 0) continue;
-            renderable = currMI.getRenderable(new Renderable(), node);
+            renderable = e.currMI.getRenderable(new Renderable(), node);
             break;
         }
         if (renderable == null) { return; }
