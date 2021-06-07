@@ -30,14 +30,9 @@ public class HGInputController extends GestureDetector {
     final public IntSet keysPressed = new IntSet();
     final public IntSet buttonsPressed = new IntSet();
 
-    protected KeyListener keyListener;
-    protected MouseListener mouseListener;
-
-    public HGInputController(HGGestureProcessor gp, KeyListener keyListener, MouseListener mouseListener) {
+    public HGInputController(HGGestureProcessor gp) {
         super(gp);
         gp.ic = this;  // this is a workaround since GestureDetector.listener isn't visible here and have no getters...
-        this.keyListener = keyListener;
-        this.mouseListener = mouseListener;
     }
 
     protected static class HGGestureProcessor extends GestureDetector.GestureAdapter {
@@ -140,7 +135,6 @@ public class HGInputController extends GestureDetector {
     public boolean keyDown(int keycode) {
         Gdx.app.debug(getTag(), String.format("keycode: %5d", keycode));
         keysPressed.add(keycode);
-        if (keyListener != null) { return keyListener.onKeyDown(keycode); }
         return super.keyDown(keycode);
     }
 
@@ -148,57 +142,25 @@ public class HGInputController extends GestureDetector {
     public boolean keyUp(int keycode) {
         Gdx.app.debug(getTag(), String.format("keycode: %5d", keycode));
         keysPressed.remove(keycode);
-        if (keyListener != null) { return keyListener.onKeyUp(keycode); }
         return super.keyUp(keycode);
     }
 
     @Override
     public boolean keyTyped(char character) {
         Gdx.app.debug(getTag(), String.format("character: %c", character));
-        if (keyListener != null) { return keyListener.onKeyTyped(character); }
         return super.keyTyped(character);
-    }
-
-    public interface KeyListener {
-        boolean onKeyDown(int keycode);
-        boolean onKeyUp(int keycode);
-        boolean onKeyTyped(char character);
-    }
-
-    public static class KeyAdapter implements KeyListener{
-        @Override
-        public boolean onKeyDown(int keycode) { return false; }
-        @Override
-        public boolean onKeyUp(int keycode) { return false; }
-        @Override
-        public boolean onKeyTyped(char character) { return false; }
     }
 
     @Override
     public boolean mouseMoved(int screenX, int screenY) {
         Gdx.app.debug(getTag(), String.format("screenX: %5d screenY: %5d", screenX, screenY));
-        if (mouseListener != null) { return mouseListener.onMouseMoved(screenX, screenY); }
         return super.mouseMoved(screenX, screenY);
     }
 
     @Override
     public boolean scrolled(float amountX, float amountY) {
         Gdx.app.debug(getTag(), String.format("amountX: %5.3f amountY: %5.3f", amountX, amountY));
-        if (mouseListener != null) { return mouseListener.onScrolled(amountX, amountY); }
         return super.scrolled(amountX, amountY);
-    }
-
-    public interface MouseListener {
-        boolean onMouseMoved(int screenX, int screenY);
-        boolean onScrolled(float amountX, float amountY);
-    }
-
-    public static class MouseAdapter implements MouseListener {
-        @Override
-        public boolean onMouseMoved(int screenX, int screenY) { return false; }
-
-        @Override
-        public boolean onScrolled(float amountX, float amountY) { return false; }
     }
 
     private String getTag() {

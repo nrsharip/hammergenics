@@ -28,16 +28,13 @@ public class ModelEditorInputController extends SpectatorInputController {
     public ModelPreviewScreen screen;
 
     public ModelEditorInputController(ModelPreviewScreen screen, Camera camera) {
-        this(screen, camera, new ModelEditorGestureProcessor(), new KeyProcessor(), new MouseProcessor());
+        this(screen, camera, new ModelEditorGestureProcessor());
     }
 
-    public ModelEditorInputController(ModelPreviewScreen screen, Camera camera, ModelEditorGestureProcessor megp,
-                                      KeyProcessor kl, MouseProcessor ml) {
-        super(camera, megp, kl, ml);
+    public ModelEditorInputController(ModelPreviewScreen screen, Camera camera, ModelEditorGestureProcessor megp) {
+        super(camera, megp);
         this.screen = screen;
         megp.meic = this;
-        kl.meic = this;
-        ml.meic = this;
     }
 
     public static class ModelEditorGestureProcessor extends SpectatorGestureProcessor {
@@ -50,18 +47,10 @@ public class ModelEditorInputController extends SpectatorInputController {
         }
     }
 
-    public static class KeyProcessor extends KeyAdapter {
-        public ModelEditorInputController meic;
-    }
+    @Override
+    public boolean mouseMoved(int screenX, int screenY) {
+        if (screen != null) { screen.checkMouseMoved(screenX, screenY); }
 
-    public static class MouseProcessor extends MouseAdapter {
-        public ModelEditorInputController meic;
-
-        @Override
-        public boolean onMouseMoved(int screenX, int screenY) {
-            if (meic.screen != null) { meic.screen.checkMouseMoved(screenX, screenY); }
-
-            return super.onMouseMoved(screenX, screenY);
-        }
+        return super.mouseMoved(screenX, screenY);
     }
 }

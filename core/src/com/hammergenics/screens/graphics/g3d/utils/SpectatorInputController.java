@@ -33,12 +33,10 @@ public class SpectatorInputController extends HGInputController {
     public float overallDistance = 1f;
     public Vector3 rotateAround = new Vector3();
 
-    public SpectatorInputController(Camera camera) {
-        this(camera, new SpectatorGestureProcessor(), null, null);
-    }
+    public SpectatorInputController(Camera camera) { this(camera, new SpectatorGestureProcessor()); }
 
-    public SpectatorInputController(Camera camera, SpectatorGestureProcessor gp, KeyListener keyListener, MouseListener mouseListener) {
-        super(gp, keyListener, mouseListener);
+    public SpectatorInputController(Camera camera, SpectatorGestureProcessor gp) {
+        super(gp);
         gp.sic = this; // this is a workaround since GestureDetector.listener isn't visible here and have no getters...
         this.camera = camera;
     }
@@ -78,11 +76,6 @@ public class SpectatorInputController extends HGInputController {
             }
             return super.pan(x, y, deltaX, deltaY);
         }
-    }
-
-    @Override
-    public boolean mouseMoved(int screenX, int screenY) {
-        return super.mouseMoved(screenX, screenY);
     }
 
     @Override
