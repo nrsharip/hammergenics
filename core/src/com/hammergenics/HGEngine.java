@@ -63,17 +63,20 @@ import static com.hammergenics.screens.graphics.g3d.utils.Models.createLightsMod
  */
 public class HGEngine implements Disposable {
     public ArrayMap<FileHandle, Array<FileHandle>> folder2models;
+    public static final FileFilter filterBitmapFonts = file -> file.isDirectory()
+            || file.getName().toLowerCase().endsWith(".fnt"); // BitmapFont
     public static final FileFilter filterTextures = file -> file.isDirectory()
-            || file.getName().toLowerCase().endsWith("bmp")  // textures in BMP
-            || file.getName().toLowerCase().endsWith("png")  // textures in PNG
-            || file.getName().toLowerCase().endsWith("tga"); // textures in TGA
+            || file.getName().toLowerCase().endsWith(".bmp")  // textures in BMP
+            || file.getName().toLowerCase().endsWith(".png")  // textures in PNG
+            || file.getName().toLowerCase().endsWith(".tga"); // textures in TGA
     public static final FileFilter filterModels = file -> file.isDirectory()
 //          || file.getName().toLowerCase().endsWith(".3ds")  // converted to G3DB with fbx-conv
             || file.getName().toLowerCase().endsWith(".g3db") // binary
             || file.getName().toLowerCase().endsWith(".g3dj") // json
 //          || file.getName().toLowerCase().endsWith(".gltf") // see for support: https://github.com/mgsx-dev/gdx-gltf
             || file.getName().toLowerCase().endsWith(".obj"); // wavefront
-    public static final FileFilter filterAll = file -> filterTextures.accept(file) | filterModels.accept(file);
+    public static final FileFilter filterAll = file ->
+            filterBitmapFonts.accept(file) | filterTextures.accept(file) | filterModels.accept(file);
 
     public final HGGame game;
     public final AssetManager assetManager = new AssetManager();
@@ -107,26 +110,8 @@ public class HGEngine implements Disposable {
         // see public BitmapFont ()
         // Gdx.files.classpath("com/badlogic/gdx/utils/arial-15.fnt"), Gdx.files.classpath("com/badlogic/gdx/utils/arial-15.png")
 
-        // https://github.com/libgdx/libgdx/wiki/Managing-your-assets#loading-a-ttf-using-the-assethandler
-        // Adding TTF loader
-        FileHandleResolver fileHandleResolver = new InternalFileHandleResolver();
-        assetManager.setLoader(FreeTypeFontGenerator.class, new FreeTypeFontGeneratorLoader(fileHandleResolver));
-        assetManager.setLoader(BitmapFont.class, ".ttf", new FreetypeFontLoader(fileHandleResolver));
-
-        // https://github.com/libgdx/libgdx/wiki/Managing-your-assets#loading-a-ttf-using-the-assethandler
-        FreetypeFontLoader.FreeTypeFontLoaderParameter param = new FreetypeFontLoader.FreeTypeFontLoaderParameter();
-        param.fontFileName = Config.ASSET_FILE_NAME_FONT;
-        param.fontParameters.size = 16;
-        assetManager.load(Config.ASSET_FILE_NAME_FONT, BitmapFont.class, param);
-
+        assetManager.load(Config.ASSET_FILE_NAME_FONT, BitmapFont.class, null);
         assetManager.finishLoading();
-
-        // FIXME: Seems like TTF is breaking :html project
-//[ERROR] Line 55: No source code is available for type com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator; did you forget to inherit a required module?
-//[ERROR] Line 55: No source code is available for type com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGeneratorLoader; did you forget to inherit a required module?
-//[ERROR] Line 56: No source code is available for type com.badlogic.gdx.graphics.g2d.freetype.FreetypeFontLoader; did you forget to inherit a required module?
-//[ERROR] Line 59: No source code is available for type com.badlogic.gdx.graphics.g2d.freetype.FreetypeFontLoader.FreeTypeFontLoaderParameter; did you forget to inherit a required module?
-
         // Creating the Aux Models beforehand:
         gridModel = createGridModel();
         lightsModel = createLightsModel();
@@ -242,6 +227,9 @@ public class HGEngine implements Disposable {
                 case "png":
                 case "bmp":
                     assetManager.load(fileHandle.path(), Texture.class, textureParameter);
+                    break;
+                case "fnt":
+                    assetManager.load(fileHandle.path(), BitmapFont.class, null);
                     break;
                 case "XXX": // for testing purposes
                     assetManager.load(fileHandle.path(), ParticleEffect.class, null);
