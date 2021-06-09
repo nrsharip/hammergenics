@@ -429,8 +429,15 @@ public class LibgdxUtils {
         // fh.exists() != fh.file().exists()
         // fh.isDirectory() != fh.file().isDirectory()
         FileHandle[] list = fileHandle.list();
+//        Arrays.stream(list).forEach(fh -> Gdx.app.debug(LibgdxUtils.class.getSimpleName(), "Array.list: "
+//                + fh + " | " + fh.exists() + " | " + fh.type().name() + " | " + fh.isDirectory() + " | "
+//                + fh.file() + " | " + fh.file().exists() + " | " + fh.file().isDirectory()));
         Array<FileHandle> list2 = new Array<>(FileHandle.class);
-        Arrays.stream(list).forEach(fh -> { if (fh.isDirectory() || filter.accept(fh.file())) { list2.add(fh); } });
+        if (filter != null) {
+            Arrays.stream(list).forEach(fh -> { if (fh.isDirectory() || filter.accept(fh.file())) { list2.add(fh); } });
+        } else {
+            list2.addAll(list);
+        }
 
         for (FileHandle subFileHandle : list2) {
             if (!subFileHandle.isDirectory()) { out.add(subFileHandle); }
@@ -461,20 +468,32 @@ public class LibgdxUtils {
      */
     public static ArrayMap<FileHandle, Array<FileHandle>> traversFileHandle(FileHandle fileHandle, FileFilter filter, ArrayMap<FileHandle, Array<FileHandle>> outMap) {
         if (fileHandle == null) { return outMap; }
-
+//        Gdx.app.debug(LibgdxUtils.class.getSimpleName(), "ArrayMap.fileHandle: "
+//                + fileHandle + " | " + fileHandle.exists() + " | " + fileHandle.type().name() + " | "
+//                + fileHandle.isDirectory() + " | " + fileHandle.file() + " | " + fileHandle.file().exists()
+//                + " | " + fileHandle.file().isDirectory());
         Array<FileHandle> outArray = traversFileHandle(fileHandle, filter);
         if (outArray.size > 0) { outMap.put(fileHandle, outArray); }
+//        outArray.forEach(fh -> Gdx.app.debug(LibgdxUtils.class.getSimpleName(), "outArray: "
+//                + fh + " | " + fh.exists() + " | " + fh.type().name() + " | " + fh.isDirectory() + " | "
+//                + fh.file() + " | " + fh.file().exists() + " | " + fh.file().isDirectory()));
 
-        // Arrays.stream(list).forEach(fh -> Gdx.app.debug(LibgdxUtils.class.getSimpleName(),
-        //        fh + " | " + fh.exists() + " | " + fh.type().name() + " | " + fh.isDirectory() + " | "
-        //                + fh.file() + " | " + fh.file().exists() + " | " + fh.file().isDirectory()));
         // ANDROID ISSUE:
         // fh.exists() != fh.file().exists()
         // fh.isDirectory() != fh.file().isDirectory()
         FileHandle[] list = fileHandle.list();
+//        Arrays.stream(list).forEach(fh -> Gdx.app.debug(LibgdxUtils.class.getSimpleName(), "ArrayMap.list: "
+//                + fh + " | " + fh.exists() + " | " + fh.type().name() + " | " + fh.isDirectory() + " | "
+//                + fh.file() + " | " + fh.file().exists() + " | " + fh.file().isDirectory()));
         Array<FileHandle> list2 = new Array<>(FileHandle.class);
-        Arrays.stream(list).forEach(fh -> { if (fh.isDirectory() || filter.accept(fh.file())) { list2.add(fh); }});
-
+        if (filter != null) {
+            Arrays.stream(list).forEach(fh -> { if (fh.isDirectory() || filter.accept(fh.file())) { list2.add(fh); }});
+        } else {
+            list2.addAll(list);
+        }
+//        list2.forEach(fh -> Gdx.app.debug(LibgdxUtils.class.getSimpleName(), "ArrayMap.list2: "
+//                + fh + " | " + fh.exists() + " | " + fh.type().name() + " | " + fh.isDirectory() + " | "
+//                + fh.file() + " | " + fh.file().exists() + " | " + fh.file().isDirectory()));
         for (FileHandle subFileHandle : list2) {
             if (subFileHandle.isDirectory()) { traversFileHandle(subFileHandle, filter, outMap); }
         }

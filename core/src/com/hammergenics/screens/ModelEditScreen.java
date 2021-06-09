@@ -281,7 +281,7 @@ public class ModelEditScreen extends ScreenAdapter {
             // check if there're changes made in the root directory
             // the map should be ordered: see resetFolderSelectBoxItems
             ArrayMap<FileHandle, Array<FileHandle>> f2m = new ArrayMap<>(true, 16, FileHandle.class, Array.class);
-            LibgdxUtils.traversFileHandle(Gdx.files.local("./"), filterModels, f2m); // syncup: asset manager
+            LibgdxUtils.traversFileHandle(Gdx.files.internal("root"), filterModels, f2m); // syncup: asset manager
 
             if (!eng.folder2models.equals(f2m)) {
                 eng.folder2models = f2m;

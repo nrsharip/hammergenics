@@ -52,6 +52,21 @@ public class HGGame extends Game {
         Gdx.app.debug(getClass().getSimpleName(),"Gdx.files.getLocalStoragePath()    = " + Gdx.files.getLocalStoragePath());
         Gdx.app.debug(getClass().getSimpleName(),"Gdx.files.isExternalStorageAvailable() = " + Gdx.files.isExternalStorageAvailable());
         Gdx.app.debug(getClass().getSimpleName(),"Gdx.files.isLocalStorageAvailable()    = " + Gdx.files.isLocalStorageAvailable());
+        Gdx.app.debug(getClass().getSimpleName(),"Gdx.files.classpath(\"\") = " + Gdx.files.classpath("").file().getAbsoluteFile());
+        Gdx.app.debug(getClass().getSimpleName(),"Gdx.files.internal(\"\")  = " + Gdx.files.internal("").file().getAbsoluteFile());
+        Gdx.app.debug(getClass().getSimpleName(),"Gdx.files.external(\"\")  = " + Gdx.files.external("").file().getAbsoluteFile());
+        Gdx.app.debug(getClass().getSimpleName(),"Gdx.files.absolute(\"\")  = " + Gdx.files.absolute("").file().getAbsoluteFile());
+        Gdx.app.debug(getClass().getSimpleName(),"Gdx.files.local(\"\")     = " + Gdx.files.local("").file().getAbsoluteFile());
+        Gdx.app.debug(getClass().getSimpleName(),"Gdx.files.classpath(\"./\") = " + Gdx.files.classpath("./").file().getAbsoluteFile());
+        Gdx.app.debug(getClass().getSimpleName(),"Gdx.files.internal(\"./\")  = " + Gdx.files.internal("./").file().getAbsoluteFile());
+        Gdx.app.debug(getClass().getSimpleName(),"Gdx.files.external(\"./\")  = " + Gdx.files.external("./").file().getAbsoluteFile());
+        Gdx.app.debug(getClass().getSimpleName(),"Gdx.files.absolute(\"./\")  = " + Gdx.files.absolute("./").file().getAbsoluteFile());
+        Gdx.app.debug(getClass().getSimpleName(),"Gdx.files.local(\"./\")     = " + Gdx.files.local("./").file().getAbsoluteFile());
+        Gdx.app.debug(getClass().getSimpleName(),"Gdx.files.classpath(\"/\") = " + Gdx.files.classpath("/").file().getAbsoluteFile());
+        Gdx.app.debug(getClass().getSimpleName(),"Gdx.files.internal(\"/\")  = " + Gdx.files.internal("/").file().getAbsoluteFile());
+        Gdx.app.debug(getClass().getSimpleName(),"Gdx.files.external(\"/\")  = " + Gdx.files.external("/").file().getAbsoluteFile());
+        Gdx.app.debug(getClass().getSimpleName(),"Gdx.files.absolute(\"/\")  = " + Gdx.files.absolute("/").file().getAbsoluteFile());
+        Gdx.app.debug(getClass().getSimpleName(),"Gdx.files.local(\"/\")     = " + Gdx.files.local("/").file().getAbsoluteFile());
         System.getProperties().forEach((k, v) -> Gdx.app.debug(getClass().getSimpleName(),k + " = " + v));
 
         engine = new HGEngine(this);
