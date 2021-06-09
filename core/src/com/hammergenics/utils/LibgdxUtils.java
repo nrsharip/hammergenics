@@ -26,7 +26,13 @@ import com.badlogic.gdx.graphics.g3d.Attribute;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
-import com.badlogic.gdx.graphics.g3d.attributes.*;
+import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.FloatAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.SpotLightsAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.model.NodePart;
 import com.badlogic.gdx.math.Matrix4;
@@ -374,6 +380,11 @@ public class LibgdxUtils {
         return out;
     }
 
+    public static Array<FileHandle> traversFileHandle(FileHandle fileHandle) {
+        Array<FileHandle> out = new Array<>();
+        return traversFileHandle(fileHandle, null, "\t", out);
+    }
+
     /**
      * @param fileHandle
      * @param filter
@@ -414,8 +425,14 @@ public class LibgdxUtils {
     public static Array<FileHandle> traversFileHandle(FileHandle fileHandle, FileFilter filter, String indent, Array<FileHandle> out) {
         if (fileHandle == null) { return out; }
 
-        for (FileHandle subFileHandle : fileHandle.list(filter)) {
-            //Gdx.app.debug(LibGDXUtil.class.getSimpleName(), indent + subFileHandle);
+        // ANDROID ISSUE:
+        // fh.exists() != fh.file().exists()
+        // fh.isDirectory() != fh.file().isDirectory()
+        FileHandle[] list = fileHandle.list();
+        Array<FileHandle> list2 = new Array<>(FileHandle.class);
+        Arrays.stream(list).forEach(fh -> { if (fh.isDirectory() || filter.accept(fh.file())) { list2.add(fh); } });
+
+        for (FileHandle subFileHandle : list2) {
             if (!subFileHandle.isDirectory()) { out.add(subFileHandle); }
 
             traversFileHandle(subFileHandle, filter, indent + "\t", out);
@@ -448,8 +465,18 @@ public class LibgdxUtils {
         Array<FileHandle> outArray = traversFileHandle(fileHandle, filter);
         if (outArray.size > 0) { outMap.put(fileHandle, outArray); }
 
-        for (FileHandle subFileHandle : fileHandle.list(filter)) {
-            if (subFileHandle.isDirectory()) { traversFileHandle(subFileHandle,filter, outMap); }
+        // Arrays.stream(list).forEach(fh -> Gdx.app.debug(LibgdxUtils.class.getSimpleName(),
+        //        fh + " | " + fh.exists() + " | " + fh.type().name() + " | " + fh.isDirectory() + " | "
+        //                + fh.file() + " | " + fh.file().exists() + " | " + fh.file().isDirectory()));
+        // ANDROID ISSUE:
+        // fh.exists() != fh.file().exists()
+        // fh.isDirectory() != fh.file().isDirectory()
+        FileHandle[] list = fileHandle.list();
+        Array<FileHandle> list2 = new Array<>(FileHandle.class);
+        Arrays.stream(list).forEach(fh -> { if (fh.isDirectory() || filter.accept(fh.file())) { list2.add(fh); }});
+
+        for (FileHandle subFileHandle : list2) {
+            if (subFileHandle.isDirectory()) { traversFileHandle(subFileHandle, filter, outMap); }
         }
         return outMap;
     }

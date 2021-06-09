@@ -18,7 +18,16 @@ android {
     }
     defaultConfig {
         applicationId "com.hammergenics"
-        minSdkVersion 16
+        minSdkVersion 26  // Call requires API level 24 (current min is 16): java.util.Arrays#stream
+                          // Call requires API level 24 (current min is 16): java.util.stream.Stream#map
+                          // Call requires API level 24 (current min is 16): java.util.stream.Stream#reduce
+                          // Call requires API level 24 (current min is 16): java.util.stream.Stream#filter
+                          // Call requires API level 24 (current min is 16): java.util.stream.Stream#toArray
+                          // Call requires API level 24 (current min is 16): java.lang.Iterable#forEach
+                          // Call requires API level 26 (current min is 16): java.time.format.DateTimeFormatter#ofPattern
+                          // Call requires API level 26 (current min is 16): java.time.format.DateTimeFormatter#format
+                          // Cast from LocalDateTime to TemporalAccessor requires API level 26 (current min is 16)
+                          // Call requires API level 26 (current min is 16): java.time.LocalDateTime#now
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"

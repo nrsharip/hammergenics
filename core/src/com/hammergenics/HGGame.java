@@ -48,11 +48,16 @@ public class HGGame extends Game {
         Gdx.app.debug(getClass().getSimpleName(),"Gdx.graphics.getDensity() = " + Gdx.graphics.getDensity());
         Gdx.app.debug(getClass().getSimpleName(),"Gdx.graphics.getWidth()   = " + Gdx.graphics.getWidth());
         Gdx.app.debug(getClass().getSimpleName(),"Gdx.graphics.getHeight()  = " + Gdx.graphics.getHeight());
+        Gdx.app.debug(getClass().getSimpleName(),"Gdx.files.getExternalStoragePath() = " + Gdx.files.getExternalStoragePath());
+        Gdx.app.debug(getClass().getSimpleName(),"Gdx.files.getLocalStoragePath()    = " + Gdx.files.getLocalStoragePath());
+        Gdx.app.debug(getClass().getSimpleName(),"Gdx.files.isExternalStorageAvailable() = " + Gdx.files.isExternalStorageAvailable());
+        Gdx.app.debug(getClass().getSimpleName(),"Gdx.files.isLocalStorageAvailable()    = " + Gdx.files.isLocalStorageAvailable());
+        System.getProperties().forEach((k, v) -> Gdx.app.debug(getClass().getSimpleName(),k + " = " + v));
 
         engine = new HGEngine(this);
         // the map should be ordered: see resetFolderSelectBoxItems
         engine.folder2models = new ArrayMap<>(true, 16, FileHandle.class, Array.class);
-        LibgdxUtils.traversFileHandle(Gdx.files.local("./"), filterModels, engine.folder2models); // syncup: asset manager
+        LibgdxUtils.traversFileHandle(Gdx.files.internal("root"), filterModels, engine.folder2models); // syncup: asset manager
 
         // https://github.com/libgdx/libgdx/wiki/ModelBatch#default-shader
         // The behavior of DefaultShader class is configurable by supplying
