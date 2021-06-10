@@ -53,6 +53,7 @@ import com.hammergenics.screens.utils.AttributesMap;
 import com.hammergenics.utils.LibgdxUtils;
 
 import static com.hammergenics.HGEngine.filterModels;
+import static com.hammergenics.screens.graphics.g3d.utils.Models.createTestBox;
 
 /**
  * Add description here
@@ -82,8 +83,6 @@ public class ModelEditScreen extends ScreenAdapter {
         this.eng = engine;
         this.modelBatch = mb; // https://github.com/libgdx/libgdx/wiki/ModelBatch
 
-        eng.getAssets();
-
         // Camera related
         perspectiveCamera = new PerspectiveCamera(70f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         modelEditInputController = new ModelEditInputController(this, perspectiveCamera);
@@ -93,13 +92,18 @@ public class ModelEditScreen extends ScreenAdapter {
         // 2D Stage - https://github.com/libgdx/libgdx/wiki/Scene2d.ui#stage-setup
         stage = new ModelEditStage(new ScreenViewport(), game, this);
 
-        testRenderRelated();
-
         InputMultiplexer inputMultiplexer = new InputMultiplexer();
         // order of addProcessor matter
         inputMultiplexer.addProcessor(stage);
         inputMultiplexer.addProcessor(modelEditInputController);
         Gdx.input.setInputProcessor(inputMultiplexer);
+
+        testRenderRelated();
+
+        eng.addModelInstance(createTestBox(GL20.GL_POINTS));
+        eng.addModelInstance(createTestBox(GL20.GL_LINES));
+        eng.addModelInstance(createTestBox(GL20.GL_TRIANGLES));
+        stage.afterModelInstanceAdded();
     }
 
     /**

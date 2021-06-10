@@ -153,7 +153,7 @@ public class LibgdxUtils {
      * @return
      */
     public static FileHandle fileOnPath(FileHandle startFileHandle, String fileSoughtFor) {
-        //FileHandle rootFileHandle = Gdx.files.local(startFileHandle);
+        if (startFileHandle == null) { return null; }
         FileHandle parent = startFileHandle;
         FileHandle soughtFileHandle = null;
 

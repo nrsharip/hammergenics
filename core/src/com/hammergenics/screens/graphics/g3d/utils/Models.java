@@ -26,6 +26,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.ArrowShapeBuilder;
+import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.BoxShapeBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.SphereShapeBuilder;
 
 /**
@@ -90,6 +91,23 @@ public class Models {
         mb.node().id = "point";
         mpb = mb.part("point", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal, new Material("base"));
         SphereShapeBuilder.build(mpb, 1, 1, 1, 100, 100); // unit sphere
+
+        return mb.end();
+    }
+
+    public static Model createTestBox(int primType) {
+        ModelBuilder mb = new ModelBuilder();
+        MeshPartBuilder mpb;
+
+        mb.begin();
+
+        mb.node().id = "box";
+        // MeshPart "box", see for primitive types: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glBegin.xml
+        mpb = mb.part("box", primType, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
+                new Material("box"));
+
+        // Requires GL_POINTS, GL_LINES or GL_TRIANGLES
+        BoxShapeBuilder.build(mpb, 1f, 1f, 1f); // a unit box
 
         return mb.end();
     }

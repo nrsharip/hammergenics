@@ -371,7 +371,7 @@ public class ModelEditStage extends Stage {
         //Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "onAttributeDisabled: 0x" + Long.toHexString(type) + " alias: " + alias);
     }
 
-    private void afterModelInstanceAdded() {
+    public void afterModelInstanceAdded() {
         modelES.reset();
         reset();
         nodeSelectBox.getColor().set(Color.WHITE);
@@ -426,6 +426,7 @@ public class ModelEditStage extends Stage {
     public void setup2DStageStyling() {
         // https://github.com/libgdx/libgdx/wiki/Managing-your-assets#loading-a-ttf-using-the-assethandler
         labelBitmapFont = modelES.eng.assetManager.get(Config.ASSET_FILE_NAME_FONT, BitmapFont.class);
+        labelBitmapFont.getData().setScale(0.5f);
         labelStyle = new Label.LabelStyle(labelBitmapFont, Color.BLACK);
         // SKIN for 2D Stage Widgets
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#skin

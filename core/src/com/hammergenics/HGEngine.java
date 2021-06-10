@@ -257,26 +257,37 @@ public class HGEngine implements Disposable {
     }
 
     public void addModelInstances(Array<FileHandle> modelFHs) {
+        if (modelFHs == null) { return; }
+
         modelFHs.forEach(fileHandle -> addModelInstance(fileHandle, null, -1));
 
         if (hgMIs.size > 0) { currMI = hgMIs.get(0); }
     }
 
-    /**
-     * @param assetFL
-     */
     public boolean addModelInstance(FileHandle assetFL, String nodeId, int nodeIndex) {
         HGModel hgModel = new HGModel(assetManager.get(assetFL.path(), Model.class), assetFL);
+        return addModelInstance(hgModel, nodeId, nodeIndex);
+    }
+
+    public boolean addModelInstance(Model model) {
+        return addModelInstance(model, null, -1);
+    }
+
+    public boolean addModelInstance(Model model, String nodeId, int nodeIndex) {
+        return addModelInstance(new HGModel(model), nodeId, nodeIndex);
+    }
+
+    public boolean addModelInstance(HGModel hgModel, String nodeId, int nodeIndex) {
         if (!hgModel.hasMaterials() && !hgModel.hasMeshes() && !hgModel.hasMeshParts()) {
             if (hgModel.hasAnimations()) {
                 // we got animations only model
-                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "animations only model: " + assetFL);
+                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "animations only model: " + hgModel.afh);
             }
             return false;
         }
 
         if (nodeId == null) {
-            currMI = new HGModelInstance(hgModel, assetFL);
+            currMI = new HGModelInstance(hgModel, hgModel.afh);
         } else {
             // TODO: maybe it's good to add a Tree for Node traversal
             // https://libgdx.badlogicgames.com/ci/nightlies/docs/api/com/badlogic/gdx/scenes/scene2d/ui/Tree.html
@@ -309,7 +320,7 @@ public class HGEngine implements Disposable {
                 }
             }
             Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),"nodeId: " + nodeId + " nodeIndex: " + nodeIndex);
-            currMI = new HGModelInstance(hgModel, assetFL, nodeId);
+            currMI = new HGModelInstance(hgModel, hgModel.afh, nodeId);
             // for some reasons getting this exception in case nodeId == null:
             // (should be done like (String[])null maybe...)
             // Exception in thread "LWJGL Application" java.lang.NullPointerException
@@ -324,7 +335,7 @@ public class HGEngine implements Disposable {
         // ********************
         // **** ANIMATIONS ****
         // ********************
-        copyExternalAnimations(assetFL);
+        copyExternalAnimations(hgModel.afh);
 
         currMI.animationController = null;
         if (currMI.animations.size > 0) { currMI.animationController = new AnimationController(currMI); }
@@ -336,7 +347,7 @@ public class HGEngine implements Disposable {
      * @param assetFL
      */
     private void copyExternalAnimations(FileHandle assetFL) {
-        if (assetManager == null || currMI == null) { return; }
+        if (assetManager == null || currMI == null || assetFL == null) { return; }
 
         FileHandle animationsFolder = LibgdxUtils.fileOnPath(assetFL, "animations");
         if (animationsFolder != null && animationsFolder.isDirectory()) {
