@@ -39,12 +39,15 @@ import com.badlogic.gdx.graphics.g3d.environment.PointLight;
 import com.badlogic.gdx.graphics.g3d.model.Animation;
 import com.badlogic.gdx.graphics.g3d.model.NodePart;
 import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
+import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.Logger;
+import com.badlogic.gdx.utils.Sort;
 import com.hammergenics.config.Config;
 import com.hammergenics.screens.graphics.g3d.HGModel;
 import com.hammergenics.screens.graphics.g3d.HGModelInstance;
@@ -506,5 +509,30 @@ public class HGEngine implements Disposable {
                 dlAttribute, ColorAttribute.createDiffuse(pl.color), ColorAttribute.createEmissive(pl.color)
         );
         return mi;
+    }
+
+    /**
+     * Checks if the ray collides with any of the model instances' Bounding Boxes.<br>
+     * If it does adds such model instance to the out array allocated beforehand.
+     * @param ray
+     * @param modelInstances
+     * @param out
+     * @return An array of model instances sorted by the distance from camera position (ascending order)
+     */
+    public Array<HGModelInstance> rayMICollision(Ray ray, Array<HGModelInstance> modelInstances, Array<HGModelInstance> out) {
+        // TODO: revisit this later when the Bullet Collision Physics is added
+
+        for (HGModelInstance mi:modelInstances) {
+            if (Intersector.intersectRayBoundsFast(ray, mi.getBB())) { out.add(mi); }
+        }
+        Sort.instance().sort(out, (mi1, mi2) -> {
+            Vector3 bbc1 = mi1.getBB().getCenter(new Vector3());
+            Vector3 bbc2 = mi2.getBB().getCenter(new Vector3());
+
+            if (ray.origin.cpy().sub(bbc1).len() < ray.origin.cpy().sub(bbc2).len()) { return -1; }
+            if (ray.origin.cpy().sub(bbc1).len() > ray.origin.cpy().sub(bbc2).len()) { return 1; }
+            return 0;
+        });
+        return out;
     }
 }

@@ -370,7 +370,7 @@ public class ModelEditScreen extends ScreenAdapter {
     public void checkMouseMoved(int screenX, int screenY) {
         Ray ray = perspectiveCamera.getPickRay(screenX, screenY);
 
-        Array<HGModelInstance> out = rayMICollision(ray, eng.hgMIs, new Array<>(HGModelInstance.class));
+        Array<HGModelInstance> out = eng.rayMICollision(ray, eng.hgMIs, new Array<>(HGModelInstance.class));
 
         if (out.size > 0 && !out.get(0).equals(eng.hoveredOverMI)) {
             restoreAttributes();
@@ -411,7 +411,7 @@ public class ModelEditScreen extends ScreenAdapter {
         Ray ray = perspectiveCamera.getPickRay(x, y);
         switch (button) {
             case Input.Buttons.LEFT:
-                Array<HGModelInstance> out = rayMICollision(ray, eng.hgMIs, new Array<>(HGModelInstance.class));
+                Array<HGModelInstance> out = eng.rayMICollision(ray, eng.hgMIs, new Array<>(HGModelInstance.class));
                 out.forEach(mi -> Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
                         "object intersected: " + mi.afh + " @" + mi.hashCode()));
                 break;
@@ -420,33 +420,6 @@ public class ModelEditScreen extends ScreenAdapter {
             case Input.Buttons.RIGHT:
                 break;
         }
-    }
-
-    /**
-     * Checks if the ray collides with any of the model instances' Bounding Boxes.<br>
-     * If it does adds such model instance to the out array allocated beforehand.
-     * @param ray
-     * @param modelInstances
-     * @param out
-     * @return An array of model instances sorted by the distance from camera position (ascending order)
-     */
-    public Array<HGModelInstance> rayMICollision(Ray ray, Array<HGModelInstance> modelInstances, Array<HGModelInstance> out) {
-        // TODO: revisit this later when the Bullet Collision Physics is added
-        final Vector3 camPos = perspectiveCamera.position.cpy();
-
-        for (HGModelInstance mi:modelInstances) {
-            Vector3 bbCenter = mi.getBB().getCenter(new Vector3());
-            if (Intersector.intersectRayBoundsFast(ray, mi.getBB())) { out.add(mi); }
-        }
-        Sort.instance().sort(out, (mi1, mi2) -> {
-            Vector3 bbc1 = mi1.getBB().getCenter(new Vector3());
-            Vector3 bbc2 = mi2.getBB().getCenter(new Vector3());
-
-            if (camPos.cpy().sub(bbc1).len() < camPos.cpy().sub(bbc2).len()) { return -1; }
-            if (camPos.cpy().sub(bbc1).len() > camPos.cpy().sub(bbc2).len()) { return 1; }
-            return 0;
-        });
-        return out;
     }
 
     /**
