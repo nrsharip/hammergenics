@@ -77,10 +77,10 @@ public class ModelEditScreen extends ScreenAdapter {
     /**
      * @param game
      */
-    public ModelEditScreen(HGGame game) {
+    public ModelEditScreen(HGGame game, HGEngine engine, ModelBatch mb) {
         this.game = game;
-        this.eng = game.engine;
-        this.modelBatch = game.modelBatch; // https://github.com/libgdx/libgdx/wiki/ModelBatch
+        this.eng = engine;
+        this.modelBatch = mb; // https://github.com/libgdx/libgdx/wiki/ModelBatch
 
         eng.getAssets();
 
@@ -197,6 +197,30 @@ public class ModelEditScreen extends ScreenAdapter {
         if (eng != null) { eng.dispose(); }
     }
 
+    /**
+     * @param delta
+     */
+    private void checkTimerEvents(float delta) {
+        clock1s += delta;  // add the time since the last frame
+        if (clock1s > 1) { // every second
+            // updating FPS
+            int fps = Gdx.graphics.getFramesPerSecond();
+            stage.fpsLabel.setText("FPS: " + fps);
+
+            // check if there're changes made in the root directory
+            // the map should be ordered: see resetFolderSelectBoxItems
+            ArrayMap<FileHandle, Array<FileHandle>> f2m = new ArrayMap<>(true, 16, FileHandle.class, Array.class);
+            LibgdxUtils.traversFileHandle(Gdx.files.internal("root"), filterModels, f2m); // syncup: asset manager
+
+            if (!eng.folder2models.equals(f2m)) {
+                eng.folder2models = f2m;
+                stage.resetFolderSelectBoxItems(f2m);
+            }
+
+            clock1s = 0;
+        }
+    }
+
     public void reset() {
         eng.arrangeInSpiral(stage.origScaleCheckBox.isChecked());
 
@@ -264,30 +288,6 @@ public class ModelEditScreen extends ScreenAdapter {
         modelEditInputController.overallDistance = overallSize;
         modelEditInputController.rotateAround.set(rotateAroundVector);
         modelEditInputController.update(-1f);
-    }
-
-    /**
-     * @param delta
-     */
-    private void checkTimerEvents(float delta) {
-        clock1s += delta;  // add the time since the last frame
-        if (clock1s > 1) { // every second
-            // updating FPS
-            int fps = Gdx.graphics.getFramesPerSecond();
-            stage.fpsLabel.setText("FPS: " + fps);
-
-            // check if there're changes made in the root directory
-            // the map should be ordered: see resetFolderSelectBoxItems
-            ArrayMap<FileHandle, Array<FileHandle>> f2m = new ArrayMap<>(true, 16, FileHandle.class, Array.class);
-            LibgdxUtils.traversFileHandle(Gdx.files.internal("root"), filterModels, f2m); // syncup: asset manager
-
-            if (!eng.folder2models.equals(f2m)) {
-                eng.folder2models = f2m;
-                stage.resetFolderSelectBoxItems(f2m);
-            }
-
-            clock1s = 0;
-        }
     }
 
     /**
@@ -371,37 +371,16 @@ public class ModelEditScreen extends ScreenAdapter {
         Array<HGModelInstance> out = eng.rayMICollision(ray, eng.hgMIs, new Array<>(HGModelInstance.class));
 
         if (out.size > 0 && !out.get(0).equals(eng.hoveredOverMI)) {
-            restoreAttributes();
+            eng.restoreAttributes(eng.hoveredOverMI, eng.hoveredOverMIAttributes);
             eng.hoveredOverMI = out.get(0);
-            persistAttributes();
+            eng.hoveredOverMIAttributes = new ArrayMap<>(Attributes.class, ColorAttribute.class);
+            eng.persistAttributes(eng.hoveredOverMI, eng.hoveredOverMIAttributes);
             eng.hoveredOverMI.setAttributes(ColorAttribute.createEmissive(Color.DARK_GRAY.cpy()));
         } else if (out.size == 0) {
-            restoreAttributes();
+            eng.restoreAttributes(eng.hoveredOverMI, eng.hoveredOverMIAttributes);
             eng.hoveredOverMI = null;
             if (eng.hoveredOverMIAttributes != null) { eng.hoveredOverMIAttributes.clear(); }
             eng.hoveredOverMIAttributes = null;
-        }
-    }
-
-    private void persistAttributes() {
-        if (eng.hoveredOverMI != null) {
-            eng.hoveredOverMIAttributes = new ArrayMap<>(Attributes.class, ColorAttribute.class);
-            eng.hoveredOverMI.materials.forEach(attributes -> {
-                ColorAttribute attr = attributes.get(ColorAttribute.class, ColorAttribute.Emissive);
-                if (attr != null) { attr = (ColorAttribute) attr.copy(); }
-                eng.hoveredOverMIAttributes.put(attributes, attr);
-            });
-        }
-    }
-
-    private void restoreAttributes() {
-        if (eng.hoveredOverMI != null && eng.hoveredOverMIAttributes != null) {
-            eng.hoveredOverMI.materials.forEach(attributes -> {
-                ColorAttribute attr = eng.hoveredOverMIAttributes.get(attributes);
-                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
-                        "attr: " + attr);
-                if (attr != null) { attributes.set(attr); } else { attributes.remove(ColorAttribute.Emissive); }
-            });
         }
     }
 

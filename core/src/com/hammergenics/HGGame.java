@@ -36,8 +36,8 @@ import static com.hammergenics.HGEngine.filterModels;
  * @author nrsharip
  */
 public class HGGame extends Game {
-    public ModelBatch modelBatch;
     public HGEngine engine;
+    public ModelBatch modelBatch;
 
     /**
      *
@@ -94,7 +94,7 @@ public class HGGame extends Game {
         modelBatch = new ModelBatch(new DefaultShaderProvider(config));
         //modelBatch = new ModelBatch();
 
-        this.setScreen(new ModelEditScreen(this));
+        this.setScreen(new ModelEditScreen(this, engine, modelBatch));
     }
 
     /**

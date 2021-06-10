@@ -530,4 +530,23 @@ public class HGEngine implements Disposable {
         });
         return out;
     }
+
+    public void persistAttributes(HGModelInstance mi, final ArrayMap<Attributes, ColorAttribute> storage) {
+        if (mi != null) {
+            mi.materials.forEach(attributes -> {
+                ColorAttribute attr = attributes.get(ColorAttribute.class, ColorAttribute.Emissive);
+                if (attr != null) { attr = (ColorAttribute) attr.copy(); }
+                storage.put(attributes, attr);
+            });
+        }
+    }
+
+    public void restoreAttributes(HGModelInstance mi, final ArrayMap<Attributes, ColorAttribute> storage) {
+        if (mi != null && storage != null) {
+            mi.materials.forEach(attributes -> {
+                ColorAttribute attr = storage.get(attributes);
+                if (attr != null) { attributes.set(attr); } else { attributes.remove(ColorAttribute.Emissive); }
+            });
+        }
+    }
 }
