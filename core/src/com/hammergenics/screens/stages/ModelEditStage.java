@@ -167,11 +167,11 @@ public class ModelEditStage extends Stage {
                 if (modelSelectBox.getSelectedIndex() == 0) { return; } // 'Select Model' item
                 if (modelSelectBox.getSelectedIndex() == 1) {           // 'ALL' item
                     modelES.eng.addModelInstances(game.engine.folder2models.get(folderSelectBox.getSelected()));
-                    afterModelInstanceAdded();
+                    afterCurrentModelInstanceChanged();
                     Gdx.app.debug(modelSelectBox.getClass().getSimpleName(), "model selected: ALL");
                 } else {
                     modelES.eng.addModelInstance(modelSelectBox.getSelected(), null, -1);
-                    afterModelInstanceAdded();
+                    afterCurrentModelInstanceChanged();
                     Gdx.app.debug(modelSelectBox.getClass().getSimpleName(), "model selected: " + modelSelectBox.getSelected());
                 }
             }
@@ -186,13 +186,13 @@ public class ModelEditStage extends Stage {
                 if (modelES.eng.currMI == null) { return; }
                 if (nodeSelectBox.getSelectedIndex() == 0) { // 'all' selected
                     modelES.eng.addModelInstance(modelES.eng.currMI.afh, null, -1);
-                    afterModelInstanceAdded();
+                    afterCurrentModelInstanceChanged();
                 } else {
                     if (!modelES.eng.addModelInstance(modelES.eng.currMI.afh, nodeSelectBox.getSelected(),
                             nodeSelectBox.getSelectedIndex() - 1)) { // -1 since there's 'all' item
                         nodeSelectBox.getColor().set(Color.PINK);
                     } else {
-                        afterModelInstanceAdded();
+                        afterCurrentModelInstanceChanged();
                     }
                 }
             }
@@ -371,7 +371,7 @@ public class ModelEditStage extends Stage {
         //Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "onAttributeDisabled: 0x" + Long.toHexString(type) + " alias: " + alias);
     }
 
-    public void afterModelInstanceAdded() {
+    public void afterCurrentModelInstanceChanged() {
         modelES.reset();
         reset();
         nodeSelectBox.getColor().set(Color.WHITE);

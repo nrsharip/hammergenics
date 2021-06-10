@@ -103,7 +103,7 @@ public class ModelEditScreen extends ScreenAdapter {
         eng.addModelInstance(createTestBox(GL20.GL_POINTS));
         eng.addModelInstance(createTestBox(GL20.GL_LINES));
         eng.addModelInstance(createTestBox(GL20.GL_TRIANGLES));
-        stage.afterModelInstanceAdded();
+        stage.afterCurrentModelInstanceChanged();
     }
 
     /**
@@ -393,8 +393,12 @@ public class ModelEditScreen extends ScreenAdapter {
         switch (button) {
             case Input.Buttons.LEFT:
                 Array<HGModelInstance> out = eng.rayMICollision(ray, eng.hgMIs, new Array<>(HGModelInstance.class));
-                out.forEach(mi -> Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
-                        "object intersected: " + mi.afh + " @" + mi.hashCode()));
+                if (out != null && out.size > 0) {
+                    eng.currMI = out.get(0);
+                    stage.afterCurrentModelInstanceChanged();
+                }
+                // TODO: fix the problem of miInfo label having the emissive color from hovering
+                // (it is not there anymore - just miInfo label didn't get updated properly)
                 break;
             case Input.Buttons.MIDDLE:
                 break;
