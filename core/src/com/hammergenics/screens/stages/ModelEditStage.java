@@ -29,7 +29,14 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.badlogic.gdx.scenes.scene2d.ui.Cell;
+import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.SelectBox;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
@@ -46,7 +53,9 @@ import com.hammergenics.utils.LibgdxUtils;
 
 import java.util.Arrays;
 
-import static com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable.EventType.*;
+import static com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable.EventType.ATTR_CHANGED;
+import static com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable.EventType.ATTR_DISABLED;
+import static com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable.EventType.ATTR_ENABLED;
 
 /**
  * Add description here
@@ -92,6 +101,7 @@ public class ModelEditStage extends Stage {
     public TextButton mtlTextButton = null;
     public TextButton envTextButton = null;
     public TextButton camTextButton = null;
+    public TextButton clearModelsTextButton = null;
 
     public BaseAttributeTable.EventListener eventListener;
     
@@ -316,6 +326,16 @@ public class ModelEditStage extends Stage {
         camTextButton = new TextButton("CAM", skin);
         camTextButton.getColor().set(COLOR_UNPRESSED);
 
+        clearModelsTextButton = new TextButton("clear", skin);
+        clearModelsTextButton.getColor().set(COLOR_UNPRESSED);
+        clearModelsTextButton.addListener(new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                modelES.eng.clearModelInstances();
+                return super.touchDown(event, x, y, pointer, button);
+            }
+        });
+
         // temporarily placing it here:
         eventListener = new BaseAttributeTable.EventListener() {
             @Override
@@ -486,6 +506,7 @@ public class ModelEditStage extends Stage {
         lowerPanel.add(lightsCheckBox).pad(3f);
         lowerPanel.add(origScaleCheckBox).pad(3f);
         lowerPanel.add(bbCheckBox).pad(3f);
+        lowerPanel.add(clearModelsTextButton).pad(3f);
         lowerPanel.add().expandX();
 
         rootTable.add(lowerPanel).colspan(3).expandX().left();

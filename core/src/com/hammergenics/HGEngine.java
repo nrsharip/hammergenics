@@ -550,4 +550,9 @@ public class HGEngine implements Disposable {
             });
         }
     }
+
+    public void clearModelInstances() {
+        hgMIs.forEach(HGModelInstance::dispose);
+        hgMIs.clear();
+    }
 }
