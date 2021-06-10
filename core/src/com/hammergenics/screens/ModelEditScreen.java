@@ -397,8 +397,8 @@ public class ModelEditScreen extends ScreenAdapter {
                     eng.currMI = out.get(0);
                     stage.afterCurrentModelInstanceChanged();
                 }
-                // TODO: fix the problem of miInfo label having the emissive color from hovering
-                // (it is not there anymore - just miInfo label didn't get updated properly)
+                // TODO: fix the problem of miLabel having the emissive color from hovering
+                // (it is not there anymore - just miLabel didn't get updated properly)
                 break;
             case Input.Buttons.MIDDLE:
                 break;

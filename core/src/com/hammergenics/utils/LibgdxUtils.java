@@ -192,22 +192,13 @@ public class LibgdxUtils {
         // FIXME: calculateBoundingBox is a slow operation - BoundingBox object should be cached
         Vector3 dimensions = mi.calculateBoundingBox(new BoundingBox()).getDimensions(new Vector3());
 
-        StringBuilder modelInstanceInfo = new StringBuilder("ModelInstance: ")
+        final StringBuilder modelInstanceInfo = new StringBuilder("ModelInstance: ")
                 .append(String.format("Dimensions X: %.5f Y: %.5f Z: %.5f\n", dimensions.x, dimensions.y, dimensions.z));
 
         modelInstanceInfo.append("Nodes:\n");
 
         for (int i = 0; i < mi.nodes.size; i++) {
-            Node node = mi.nodes.get(i);
-            modelInstanceInfo.append(String.format("%2d. %s\n",i, node.id));
-            // TODO: see Node - there's more fields to add here
-            // TODO: node.getChildren()
-            for (int j = 0; j < node.parts.size; j++) {
-                NodePart nodePart = node.parts.get(j);
-                modelInstanceInfo.append(String.format("    %2d. NodePart\n", j));
-                // TODO: see NodePart - there's more fields to add here
-                modelInstanceInfo.append(String.format("        MeshPart (id: %s)\n", nodePart.meshPart.id));
-            }
+            modelInstanceInfo.append(getNodeInfo(mi.nodes.get(i)));
         }
 
         // https://github.com/libgdx/libgdx/wiki/Material-and-environment#materials
@@ -218,16 +209,52 @@ public class LibgdxUtils {
         // TODO: keep for now
         // !!! Materials are copied when creating a ModelInstance, meaning that changing the material of a ModelInstance
         // will not affect the original Model or other ModelInstances.
-        modelInstanceInfo.append("Materials:\n");
-        for (int i = 0; i < mi.materials.size; i++) {
-            Material material = mi.materials.get(i);
-            modelInstanceInfo.append(String.format("%2d. %s\n",i, material.id));
-            modelInstanceInfo.append(extractAttributes(material, "", "    "));
-        }
+        // TODO: move this to a separate page
+//        modelInstanceInfo.append("Materials:\n");
+//        for (int i = 0; i < mi.materials.size; i++) {
+//            Material material = mi.materials.get(i);
+//            modelInstanceInfo.append(String.format("%2d. %s\n",i, material.id));
+//            modelInstanceInfo.append(extractAttributes(material, "", "    "));
+//        }
 
         return modelInstanceInfo.toString();
     }
 
+    public static String getNodeInfo(Node node) {
+        final StringBuilder modelInstanceInfo = new StringBuilder();
+        modelInstanceInfo.append(String.format("id: %s\n", node.id));
+        modelInstanceInfo.append(String.format("    inheritTransform: %s\n", node.inheritTransform));
+        modelInstanceInfo.append(String.format("    isAnimated: %s\n", node.isAnimated));
+        modelInstanceInfo.append(String.format("    translation: %s\n", node.translation));
+        modelInstanceInfo.append(String.format("    rotation: %s\n", node.rotation));
+        modelInstanceInfo.append(String.format("    scale: %s\n", node.scale));
+        modelInstanceInfo.append(String.format("    localTransform: \n%s\n",
+                node.localTransform.toString().replace("[", "        [").replace("|", " | ")));
+        modelInstanceInfo.append(String.format("    globalTransform: \n%s\n",
+                node.globalTransform.toString().replace("[", "        [").replace("|", " | ")));
+        modelInstanceInfo.append(String.format("    parent: %s\n", node.getParent()));
+        for (int j = 0; j < node.parts.size; j++) {
+            NodePart nodePart = node.parts.get(j);
+            modelInstanceInfo.append(String.format("    %2d. NodePart\n", j));
+            modelInstanceInfo.append(String.format("        MeshPart (id: %s)\n", nodePart.meshPart.id));
+            modelInstanceInfo.append(String.format("            prim type: %d\n", nodePart.meshPart.primitiveType));
+            modelInstanceInfo.append(String.format("            offset: %d\n", nodePart.meshPart.offset));
+            modelInstanceInfo.append(String.format("            size: %d\n", nodePart.meshPart.size));
+            modelInstanceInfo.append(String.format("            center: %s\n", nodePart.meshPart.center));
+            modelInstanceInfo.append(String.format("            halfExtents: %s\n", nodePart.meshPart.halfExtents));
+            modelInstanceInfo.append(String.format("            radius: %5.3f\n", nodePart.meshPart.radius));
+            modelInstanceInfo.append(String.format("        Material (id: %s)\n", nodePart.material.id));
+            if (nodePart.bones != null)
+                for (Matrix4 bone: nodePart.bones) {
+                    modelInstanceInfo.append(String.format("        Bone:\n%s\n", bone));
+                }
+            modelInstanceInfo.append(String.format("        Inverse:\n%s\n", nodePart.invBoneBindTransforms));
+        }
+        node.getChildren().forEach(subnode -> {
+            modelInstanceInfo.append(getNodeInfo(subnode));
+        });
+        return modelInstanceInfo.toString();
+    }
 
     /**
      * @return
