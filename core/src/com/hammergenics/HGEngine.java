@@ -46,6 +46,7 @@ import com.badlogic.gdx.utils.Sort;
 import com.hammergenics.config.Config;
 import com.hammergenics.screens.graphics.g3d.HGModel;
 import com.hammergenics.screens.graphics.g3d.HGModelInstance;
+import com.hammergenics.screens.utils.AttributesMap;
 import com.hammergenics.utils.LibgdxUtils;
 
 import java.io.FileFilter;
@@ -99,7 +100,7 @@ public class HGEngine implements Disposable {
     public HGModelInstance currMI = null;
     public Vector2 currCell = Vector2.Zero.cpy();
     public HGModelInstance hoveredOverMI = null;
-    public ArrayMap<Attributes, ColorAttribute> hoveredOverMIAttributes = null;
+    public AttributesMap hoveredOverMIAttributes = null;
 
     public HGEngine(HGGame game) {
         this.game = game;
@@ -531,21 +532,21 @@ public class HGEngine implements Disposable {
         return out;
     }
 
-    public void persistAttributes(HGModelInstance mi, final ArrayMap<Attributes, ColorAttribute> storage) {
-        if (mi != null) {
-            mi.materials.forEach(attributes -> {
-                ColorAttribute attr = attributes.get(ColorAttribute.class, ColorAttribute.Emissive);
-                if (attr != null) { attr = (ColorAttribute) attr.copy(); }
-                storage.put(attributes, attr);
+    public void saveAttributes(HGModelInstance hgmi, final AttributesMap storage) {
+        if (hgmi != null) {
+            hgmi.materials.forEach(attributes -> {
+                Array<Attribute> out = new Array<>(Attribute.class);
+                attributes.get(out, attributes.getMask());
+                storage.put(attributes, out);
             });
         }
     }
 
-    public void restoreAttributes(HGModelInstance mi, final ArrayMap<Attributes, ColorAttribute> storage) {
-        if (mi != null && storage != null) {
-            mi.materials.forEach(attributes -> {
-                ColorAttribute attr = storage.get(attributes);
-                if (attr != null) { attributes.set(attr); } else { attributes.remove(ColorAttribute.Emissive); }
+    public void restoreAttributes(HGModelInstance hgmi, final AttributesMap storage) {
+        if (hgmi != null && storage != null) {
+            hgmi.materials.forEach(attributes -> {
+                attributes.clear();
+                attributes.set(storage.get(attributes));
             });
         }
     }

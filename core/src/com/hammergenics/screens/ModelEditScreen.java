@@ -24,7 +24,6 @@ import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
-import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.Renderable;
@@ -50,6 +49,7 @@ import com.hammergenics.HGGame;
 import com.hammergenics.screens.graphics.g3d.HGModelInstance;
 import com.hammergenics.screens.graphics.g3d.utils.ModelEditInputController;
 import com.hammergenics.screens.stages.ModelEditStage;
+import com.hammergenics.screens.utils.AttributesMap;
 import com.hammergenics.utils.LibgdxUtils;
 
 import static com.hammergenics.HGEngine.filterModels;
@@ -373,8 +373,8 @@ public class ModelEditScreen extends ScreenAdapter {
         if (out.size > 0 && !out.get(0).equals(eng.hoveredOverMI)) {
             eng.restoreAttributes(eng.hoveredOverMI, eng.hoveredOverMIAttributes);
             eng.hoveredOverMI = out.get(0);
-            eng.hoveredOverMIAttributes = new ArrayMap<>(Attributes.class, ColorAttribute.class);
-            eng.persistAttributes(eng.hoveredOverMI, eng.hoveredOverMIAttributes);
+            eng.hoveredOverMIAttributes = new AttributesMap();
+            eng.saveAttributes(eng.hoveredOverMI, eng.hoveredOverMIAttributes);
             eng.hoveredOverMI.setAttributes(ColorAttribute.createEmissive(Color.DARK_GRAY.cpy()));
         } else if (out.size == 0) {
             eng.restoreAttributes(eng.hoveredOverMI, eng.hoveredOverMIAttributes);
