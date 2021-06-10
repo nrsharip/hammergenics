@@ -18,17 +18,12 @@ package com.hammergenics;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
-import com.badlogic.gdx.assets.loaders.FileHandleResolver;
 import com.badlogic.gdx.assets.loaders.TextureLoader;
-import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.ParticleEffect;
-import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
-import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGeneratorLoader;
-import com.badlogic.gdx.graphics.g2d.freetype.FreetypeFontLoader;
 import com.badlogic.gdx.graphics.g3d.*;
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
@@ -88,14 +83,14 @@ public class HGEngine implements Disposable {
     public Array<HGModel> hgModels = new Array<>();
     public Array<Texture> textures = new Array<>();
     // Auxiliary models:
-    public Model gridModel = null;
-    public ModelInstance gridXZModelInstance = null; // XZ plane: lines (yellow)
-    public ModelInstance gridYModelInstance = null;  // Y axis: vertical lines (red)
-    public ModelInstance gridOModelInstance = null;  // origin: sphere (red)
-    public Model lightsModel = null;
-    public Array<ModelInstance> dlArrayModelInstance = null; // directional lights
-    public Array<ModelInstance> plArrayModelInstance = null; // point lights
-    public Array<ModelInstance> bbArrayModelInstance = null; // bounding boxes
+    public HGModel gridHgModel = null;
+    public HGModelInstance gridXZHgModelInstance = null; // XZ plane: lines (yellow)
+    public HGModelInstance gridYHgModelInstance = null;  // Y axis: vertical lines (red)
+    public HGModelInstance gridOHgModelInstance = null;  // origin: sphere (red)
+    public HGModel lightsHgModel = null;
+    public Array<HGModelInstance> dlArrayHgModelInstance = null; // directional lights
+    public Array<HGModelInstance> plArrayHgModelInstance = null; // point lights
+    public Array<HGModelInstance> bbArrayHgModelInstance = null; // bounding boxes
 
     // ModelInstance Related:
     public Array<HGModelInstance> hgMIs = new Array<>(HGModelInstance.class);
@@ -116,15 +111,15 @@ public class HGEngine implements Disposable {
         assetManager.load(Config.ASSET_FILE_NAME_FONT, BitmapFont.class, null);
         assetManager.finishLoading();
         // Creating the Aux Models beforehand:
-        gridModel = createGridModel();
-        lightsModel = createLightsModel();
+        gridHgModel = new HGModel(createGridModel());
+        lightsHgModel = new HGModel(createLightsModel());
     }
 
     @Override
     public void dispose() {
         assetManager.dispose();
-        if (gridModel != null) { gridModel.dispose(); }
-        if (lightsModel != null) { lightsModel.dispose(); }
+        if (gridHgModel != null) { gridHgModel.dispose(); }
+        if (lightsHgModel != null) { lightsHgModel.dispose(); }
         for (HGModelInstance mi:hgMIs) { mi.dispose(); }
 
     }
@@ -418,47 +413,47 @@ public class HGEngine implements Disposable {
      * @return
      */
     public void resetGridModelInstances() {
-        if (gridModel == null) { return; }
+        if (gridHgModel == null) { return; }
 
-        gridXZModelInstance = new ModelInstance(gridModel, "XZ");
-        gridYModelInstance = new ModelInstance(gridModel, "Y");
-        gridOModelInstance = new ModelInstance(gridModel, "origin");
+        gridXZHgModelInstance = new HGModelInstance(gridHgModel, "XZ");
+        gridYHgModelInstance = new HGModelInstance(gridHgModel, "Y");
+        gridOHgModelInstance = new HGModelInstance(gridHgModel, "origin");
 
-        gridXZModelInstance.transform.setToScaling(Vector3.Zero.cpy().add(overallSize/4f));
-        gridYModelInstance.transform.setToScaling(Vector3.Zero.cpy().add(overallSize/4f));
-        gridOModelInstance.transform.setToScaling(Vector3.Zero.cpy().add(unitSize/4f));
+        gridXZHgModelInstance.transform.setToScaling(Vector3.Zero.cpy().add(overallSize/4f));
+        gridYHgModelInstance.transform.setToScaling(Vector3.Zero.cpy().add(overallSize/4f));
+        gridOHgModelInstance.transform.setToScaling(Vector3.Zero.cpy().add(unitSize/4f));
     }
 
     public void resetBBModelInstances() {
-        if (bbArrayModelInstance != null) {
-            bbArrayModelInstance.clear();
-            bbArrayModelInstance = null;
+        if (bbArrayHgModelInstance != null) {
+            bbArrayHgModelInstance.clear();
+            bbArrayHgModelInstance = null;
         }
-        bbArrayModelInstance = new Array<>(ModelInstance.class);
+        bbArrayHgModelInstance = new Array<>(ModelInstance.class);
 
         for (HGModelInstance mi:hgMIs) {
-            if (mi.equals(currMI)) { bbArrayModelInstance.add(mi.getBBModelInstance(Color.GREEN, Color.RED)); }
-            else { bbArrayModelInstance.add(mi.getBBModelInstance(Color.BLACK, Color.RED)); }
+            if (mi.equals(currMI)) { bbArrayHgModelInstance.add(mi.getBBHgModelInstance(Color.GREEN, Color.RED)); }
+            else { bbArrayHgModelInstance.add(mi.getBBHgModelInstance(Color.BLACK, Color.RED)); }
         }
     }
 
     public void resetLightsModelInstances(Vector3 center, Environment environment) {
-        if (dlArrayModelInstance != null) { dlArrayModelInstance.clear(); dlArrayModelInstance = null; }
-        if (plArrayModelInstance != null) { plArrayModelInstance.clear(); plArrayModelInstance = null; }
-        dlArrayModelInstance = new Array<>(ModelInstance.class);
-        plArrayModelInstance = new Array<>(ModelInstance.class);
+        if (dlArrayHgModelInstance != null) { dlArrayHgModelInstance.clear(); dlArrayHgModelInstance = null; }
+        if (plArrayHgModelInstance != null) { plArrayHgModelInstance.clear(); plArrayHgModelInstance = null; }
+        dlArrayHgModelInstance = new Array<>(ModelInstance.class);
+        plArrayHgModelInstance = new Array<>(ModelInstance.class);
 
         // Environment Lights
         DirectionalLightsAttribute dlAttribute = environment.get(DirectionalLightsAttribute.class, DirectionalLightsAttribute.Type);
         if (dlAttribute != null) {
             for (DirectionalLight light:dlAttribute.lights) {
-                dlArrayModelInstance.add(createDLModelInstance(light, hgMIs.get(0).getBB().getCenter(new Vector3()), overallSize));
+                dlArrayHgModelInstance.add(createDLModelInstance(light, hgMIs.get(0).getBB().getCenter(new Vector3()), overallSize));
             }
         }
         PointLightsAttribute plAttribute = environment.get(PointLightsAttribute.class, PointLightsAttribute.Type);
         if (plAttribute != null) {
             for (PointLight light:plAttribute.lights) {
-                plArrayModelInstance.add(createPLModelInstance(light, hgMIs.get(0).getBB().getCenter(new Vector3()), overallSize));
+                plArrayHgModelInstance.add(createPLModelInstance(light, hgMIs.get(0).getBB().getCenter(new Vector3()), overallSize));
             }
         }
 
@@ -467,18 +462,18 @@ public class HGEngine implements Disposable {
             for (Material material:currMI.materials) {
                 dlAttribute = material.get(DirectionalLightsAttribute.class, DirectionalLightsAttribute.Type);
                 if (dlAttribute != null) {
-                    dlAttribute.lights.forEach(light -> dlArrayModelInstance.add(createDLModelInstance(light, center, unitSize)));
+                    dlAttribute.lights.forEach(light -> dlArrayHgModelInstance.add(createDLModelInstance(light, center, unitSize)));
                 }
                 plAttribute = material.get(PointLightsAttribute.class, PointLightsAttribute.Type);
                 if (plAttribute != null) {
-                    plAttribute.lights.forEach(light -> plArrayModelInstance.add(createPLModelInstance(light, center, unitSize)));
+                    plAttribute.lights.forEach(light -> plArrayHgModelInstance.add(createPLModelInstance(light, center, unitSize)));
                 }
             }
         }
     }
 
-    private ModelInstance createDLModelInstance(DirectionalLight dl, Vector3 passThrough, float distance) {
-        ModelInstance mi = new ModelInstance(lightsModel, "directional");
+    private HGModelInstance createDLModelInstance(DirectionalLight dl, Vector3 passThrough, float distance) {
+        HGModelInstance mi = new HGModelInstance(lightsHgModel, "directional");
         // from the center moving backwards to the direction of light
         mi.transform.setToTranslationAndScaling(
                 passThrough.cpy().sub(dl.direction.cpy().nor().scl(distance)), Vector3.Zero.cpy().add(distance/10));
@@ -490,7 +485,7 @@ public class HGEngine implements Disposable {
         return mi;
     }
 
-    private ModelInstance createPLModelInstance(PointLight pl, Vector3 directTo, float distance) {
+    private HGModelInstance createPLModelInstance(PointLight pl, Vector3 directTo, float distance) {
         // This a directional light added to the sphere itself to create
         // a perception of glowing reflecting point lights' intensity
         DirectionalLightsAttribute dlAttribute = new DirectionalLightsAttribute();
@@ -503,7 +498,7 @@ public class HGEngine implements Disposable {
         dlAttribute.lights.addAll(dLights);
         // directional light part over
 
-        ModelInstance mi = new ModelInstance(lightsModel, "point");
+        HGModelInstance mi = new HGModelInstance(lightsHgModel, "point");
         mi.transform.setToTranslationAndScaling(pl.position, Vector3.Zero.cpy().add(distance/10));
         mi.getMaterial("base", true).set(
                 dlAttribute, ColorAttribute.createDiffuse(pl.color), ColorAttribute.createEmissive(pl.color)

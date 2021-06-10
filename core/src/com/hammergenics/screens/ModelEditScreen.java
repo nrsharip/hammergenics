@@ -40,12 +40,10 @@ import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import com.badlogic.gdx.graphics.g3d.utils.BaseShaderProvider;
 import com.badlogic.gdx.graphics.g3d.utils.DefaultShaderProvider;
 import com.badlogic.gdx.graphics.g3d.utils.DefaultTextureBinder;
-import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
-import com.badlogic.gdx.utils.Sort;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.hammergenics.HGEngine;
 import com.hammergenics.HGGame;
@@ -152,14 +150,14 @@ public class ModelEditScreen extends ScreenAdapter {
         //   modelBatch.render((Array<ModelInstance>) array, environment);
         // * Enable caching as soon as multiple instances are rendered: https://github.com/libgdx/libgdx/wiki/ModelCache
         if (eng.hgMIs.size > 0 && environment != null) { modelBatch.render(eng.hgMIs, environment); }
-        if (eng.gridXZModelInstance != null && stage.gridXZCheckBox.isChecked()) {
-            modelBatch.render(eng.gridXZModelInstance);
-            modelBatch.render(eng.gridOModelInstance);
+        if (eng.gridXZHgModelInstance != null && stage.gridXZCheckBox.isChecked()) {
+            modelBatch.render(eng.gridXZHgModelInstance);
+            modelBatch.render(eng.gridOHgModelInstance);
         }
-        if (eng.gridYModelInstance != null && stage.gridYCheckBox.isChecked()) { modelBatch.render(eng.gridYModelInstance); }
-        if (eng.dlArrayModelInstance != null && stage.lightsCheckBox.isChecked()) { modelBatch.render(eng.dlArrayModelInstance, environment); }
-        if (eng.plArrayModelInstance != null && stage.lightsCheckBox.isChecked()) { modelBatch.render(eng.plArrayModelInstance, environment); }
-        if (eng.bbArrayModelInstance != null && stage.bbCheckBox.isChecked()) { modelBatch.render(eng.bbArrayModelInstance, environment); }
+        if (eng.gridYHgModelInstance != null && stage.gridYCheckBox.isChecked()) { modelBatch.render(eng.gridYHgModelInstance); }
+        if (eng.dlArrayHgModelInstance != null && stage.lightsCheckBox.isChecked()) { modelBatch.render(eng.dlArrayHgModelInstance, environment); }
+        if (eng.plArrayHgModelInstance != null && stage.lightsCheckBox.isChecked()) { modelBatch.render(eng.plArrayHgModelInstance, environment); }
+        if (eng.bbArrayHgModelInstance != null && stage.bbCheckBox.isChecked()) { modelBatch.render(eng.bbArrayHgModelInstance, environment); }
 
         // https://github.com/libgdx/libgdx/wiki/ModelBatch
         // The actual rendering is performed at the call to end();.

@@ -60,7 +60,15 @@ public class HGModelInstance extends ModelInstance implements Disposable {
     public int animationIndex = 0;
 
     // TODO: keep this separate for now - move to another class?
-    public Model bbModel = null;
+    public HGModel bbHgModel = null;
+
+    public HGModelInstance (final Model model) { this(new HGModel(model), null, (String[])null); }
+
+    public HGModelInstance (final Model model, final String... rootNodeIds) { this(new HGModel(model), null, rootNodeIds); }
+
+    public HGModelInstance (final HGModel hgModel) { this(hgModel, null, (String[])null); }
+
+    public HGModelInstance (final HGModel hgModel, final String... rootNodeIds) { this(hgModel, null, rootNodeIds); }
 
     public HGModelInstance (final HGModel hgModel, final FileHandle assetFL) {
         this(hgModel, assetFL, (String[])null);
@@ -83,7 +91,7 @@ public class HGModelInstance extends ModelInstance implements Disposable {
     @Override
     public void dispose() {
         // hgModel is being disposed by the AssetManager
-        bbModel.dispose();
+        bbHgModel.dispose();
     }
 
     public String getTag(int depth) {
@@ -143,9 +151,9 @@ public class HGModelInstance extends ModelInstance implements Disposable {
 
     // TODO: keep this separate for now - move to another class?
     private void createBBModel() {
-        if (bbModel != null) {
-            bbModel.dispose();
-            bbModel = null;
+        if (bbHgModel != null) {
+            bbHgModel.dispose();
+            bbHgModel = null;
         }
 
         // see: ModelBuilder()
@@ -185,24 +193,24 @@ public class HGModelInstance extends ModelInstance implements Disposable {
         //  PatchShapeBuilder
         //  RenderableShapeBuilder
         //  SphereShapeBuilder
-        bbModel = mb.end();
+        bbHgModel = new HGModel(mb.end());
     }
     // TODO: keep this separate for now - move to another class?
-    public ModelInstance getBBModelInstance(Color boxColor, Color cornerColor) {
-        if (bbModel == null) { return null; }
+    public HGModelInstance getBBHgModelInstance(Color boxColor, Color cornerColor) {
+        if (bbHgModel == null) { return null; }
 
         final BoundingBox bb = getBB();
         final Vector3 bbMin = bb.getMin(new Vector3());
         final Vector3 bbMax = bb.getMax(new Vector3());
 
-        ModelInstance bbMI = new ModelInstance(bbModel);
+        HGModelInstance bbHgMI = new HGModelInstance(bbHgModel);
 
-        bbMI.getMaterial("box").set(ColorAttribute.createDiffuse(boxColor), new BlendingAttribute(0.1f));
-        bbMI.getNode("box").globalTransform.setToTranslationAndScaling(bb.getCenter(new Vector3()), bb.getDimensions(new Vector3()));
+        bbHgMI.getMaterial("box").set(ColorAttribute.createDiffuse(boxColor), new BlendingAttribute(0.1f));
+        bbHgMI.getNode("box").globalTransform.setToTranslationAndScaling(bb.getCenter(new Vector3()), bb.getDimensions(new Vector3()));
 
         for (int i = 0; i < 8; i++) { // BB corners
             String id = String.format("corner%3s", Integer.toBinaryString(i)).replace(' ', '0');
-            bbMI.getMaterial(id).set(ColorAttribute.createDiffuse(cornerColor), new BlendingAttribute(0.3f));
+            bbHgMI.getMaterial(id).set(ColorAttribute.createDiffuse(cornerColor), new BlendingAttribute(0.3f));
 
             Vector3 translate = Vector3.Zero.cpy();
             // 000 - translate(min.x, min.y, min.z)
@@ -216,8 +224,8 @@ public class HGModelInstance extends ModelInstance implements Disposable {
             Vector3 scale = Vector3.Zero.cpy();
             scale.add(maxD * getMaxScale()).scl(1f/30f);
 
-            bbMI.getNode(id).globalTransform.setToTranslationAndScaling(translate, scale);
+            bbHgMI.getNode(id).globalTransform.setToTranslationAndScaling(translate, scale);
         }
-        return bbMI;
+        return bbHgMI;
     }
 }

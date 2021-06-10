@@ -18,13 +18,14 @@ package com.hammergenics.screens.graphics.g3d;
 
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.utils.Disposable;
 
 /**
  * Add description here
  *
  * @author nrsharip
  */
-public class HGModel {
+public class HGModel implements Disposable {
     /**
      * model object
      */
@@ -33,6 +34,8 @@ public class HGModel {
      * asset file handle
      */
     public FileHandle afh;
+
+    public HGModel(Model model) { this(model, null); }
 
     public HGModel(Model model, FileHandle assetFileHandle) {
         this.obj = model;
@@ -44,4 +47,7 @@ public class HGModel {
     public boolean hasMeshes() { return obj.meshes.size != 0; }
     public boolean hasMeshParts() { return obj.meshParts.size != 0; }
     public boolean hasNodes() { return obj.nodes.size != 0; }
+
+    @Override
+    public void dispose() { obj.dispose(); }
 }
