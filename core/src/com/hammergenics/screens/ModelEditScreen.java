@@ -174,7 +174,7 @@ public class ModelEditScreen extends ScreenAdapter {
         modelBatch.end();
 
         immediateModeRenderer.begin(perspectiveCamera.combined, GL20.GL_LINES);
-        eng.hgMIs.forEach(hgMI -> hgMI.addNodesToRenderer(immediateModeRenderer));
+        if (stage.nodesCheckBox.isChecked()) { eng.hgMIs.forEach(hgMI -> hgMI.addNodesToRenderer(immediateModeRenderer)); }
         immediateModeRenderer.end();
 
         checkTimerEvents(delta);
