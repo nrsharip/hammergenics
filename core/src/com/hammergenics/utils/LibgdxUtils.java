@@ -22,10 +22,12 @@ import com.badlogic.gdx.Version;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Mesh;
+import com.badlogic.gdx.graphics.VertexAttribute;
+import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Attribute;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.Material;
-import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
@@ -33,17 +35,18 @@ import com.badlogic.gdx.graphics.g3d.attributes.FloatAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.SpotLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
+import com.badlogic.gdx.graphics.g3d.model.MeshPart;
 import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.model.NodePart;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.hammergenics.config.Conventions;
+import com.hammergenics.screens.graphics.g3d.HGModelInstance;
 
 import java.io.FileFilter;
 import java.lang.reflect.Field;
@@ -188,18 +191,27 @@ public class LibgdxUtils {
      * @param mi
      * @return
      */
-    public static String getModelInstanceInfo(ModelInstance mi) {
+    public static String getModelInstanceInfo(HGModelInstance mi) {
         // FIXME: calculateBoundingBox is a slow operation - BoundingBox object should be cached
-        Vector3 dimensions = mi.calculateBoundingBox(new BoundingBox()).getDimensions(new Vector3());
+        Vector3 dimensions = mi.getBB().getDimensions(new Vector3());
 
         final StringBuilder modelInstanceInfo = new StringBuilder("ModelInstance: ")
                 .append(String.format("Dimensions X: %.5f Y: %.5f Z: %.5f\n", dimensions.x, dimensions.y, dimensions.z));
 
-        modelInstanceInfo.append("Nodes:\n");
-
-        for (int i = 0; i < mi.nodes.size; i++) {
-            modelInstanceInfo.append(getNodeInfo(mi.nodes.get(i)));
-        }
+//        modelInstanceInfo.append("Nodes:\n");
+//        for (int i = 0; i < mi.nodes.size; i++) {
+//            modelInstanceInfo.append(getNodeInfo(mi, mi.nodes.get(i)));
+//        }
+//
+//        modelInstanceInfo.append("Model Meshes:\n");
+//        for (int i = 0; i < mi.hgModel.obj.meshes.size; i++) {
+//            modelInstanceInfo.append(getMeshInfo(mi, mi.hgModel.obj.meshes.get(i)));
+//        }
+//
+//        modelInstanceInfo.append("Model Mesh Parts: ");
+//        for (int i = 0; i < mi.hgModel.obj.meshParts.size; i++) {
+//            modelInstanceInfo.append(getMeshPartInfo(mi.hgModel.obj.meshParts.get(i))).append("\n");
+//        }
 
         // https://github.com/libgdx/libgdx/wiki/Material-and-environment#materials
         // Materials are model (or modelinstance) specific. You can access them
@@ -210,50 +222,152 @@ public class LibgdxUtils {
         // !!! Materials are copied when creating a ModelInstance, meaning that changing the material of a ModelInstance
         // will not affect the original Model or other ModelInstances.
         // TODO: move this to a separate page
-//        modelInstanceInfo.append("Materials:\n");
-//        for (int i = 0; i < mi.materials.size; i++) {
-//            Material material = mi.materials.get(i);
-//            modelInstanceInfo.append(String.format("%2d. %s\n",i, material.id));
-//            modelInstanceInfo.append(extractAttributes(material, "", "    "));
-//        }
+        modelInstanceInfo.append("Materials:\n");
+        for (int i = 0; i < mi.materials.size; i++) {
+            Material material = mi.materials.get(i);
+            modelInstanceInfo.append(String.format("%2d. %s\n",i, material.id));
+            modelInstanceInfo.append(extractAttributes(material, "", "    "));
+        }
 
         return modelInstanceInfo.toString();
     }
 
-    public static String getNodeInfo(Node node) {
-        final StringBuilder modelInstanceInfo = new StringBuilder();
-        modelInstanceInfo.append(String.format("id: %s\n", node.id));
-        modelInstanceInfo.append(String.format("    inheritTransform: %s\n", node.inheritTransform));
-        modelInstanceInfo.append(String.format("    isAnimated: %s\n", node.isAnimated));
-        modelInstanceInfo.append(String.format("    translation: %s\n", node.translation));
-        modelInstanceInfo.append(String.format("    rotation: %s\n", node.rotation));
-        modelInstanceInfo.append(String.format("    scale: %s\n", node.scale));
-        modelInstanceInfo.append(String.format("    localTransform: \n%s\n",
+    public static String getMeshInfo(HGModelInstance mi, Mesh mesh) {
+        final StringBuilder meshInfo = new StringBuilder();
+
+        meshInfo.append(String.format("    man sts: %s ", mesh.getManagedStatus()));
+        meshInfo.append(String.format("max ind: %d ", mesh.getMaxIndices()));
+        meshInfo.append(String.format("max ver: %d ", mesh.getMaxVertices()));
+        meshInfo.append(String.format("num ind: %d ", mesh.getNumIndices()));
+        meshInfo.append(String.format("num ver: %d ", mesh.getNumVertices()));
+        meshInfo.append(String.format("ver siz: %d ", mesh.getVertexSize()));
+        meshInfo.append(String.format("is inst: %s\n", mesh.isInstanced()));
+
+        short[] indices = new short[mesh.getMaxIndices()];
+        mesh.getIndices(indices);
+        meshInfo.append(String.format("    indices: %s\n", Arrays.toString(indices)));
+
+        float[] vertices = new float[mesh.getMaxVertices()];
+        mesh.getVertices(vertices);
+        meshInfo.append(String.format("    vertices: %s\n", Arrays.toString(vertices)));
+
+        meshInfo.append(String.format("    vertex attributes:\n"));
+        VertexAttributes vas = mesh.getVertexAttributes();
+        meshInfo.append(String.format("        mask: 0x%s ", Long.toHexString(vas.getMask())));
+        meshInfo.append(String.format("num of attributes: %d \n", vas.size()));
+
+        for (VertexAttribute va:vas) {
+            meshInfo.append("        (");
+            meshInfo.append(va.alias);         // the alias for the attribute used in a {@link ShaderProgram}
+            meshInfo.append(", ");
+            // Usage:
+            // Position = 1;
+            // ColorUnpacked = 2;
+            // ColorPacked = 4;
+            // Normal = 8;
+            // TextureCoordinates = 16;
+            // Generic = 32;
+            // BoneWeight = 64;
+            // Tangent = 128;
+            // BiNormal = 256;
+            meshInfo.append(va.usage);         // The attribute {@link VertexAttributes.Usage}, used for identification.
+            meshInfo.append(", ");
+            meshInfo.append(va.numComponents); // the number of components this attribute has
+            meshInfo.append(", ");
+            meshInfo.append(va.offset);        // the offset of this attribute in bytes, don't change this!
+            meshInfo.append(", ");
+            meshInfo.append(va.normalized);    // For fixed types, whether the values are normalized to either -1f and +1f (signed) or 0f and +1f (unsigned)
+            meshInfo.append(", ");
+            // Type:
+            // GL_BYTE = 0x1400;
+            // GL_UNSIGNED_BYTE = 0x1401;
+            // GL_SHORT = 0x1402;
+            // GL_UNSIGNED_SHORT = 0x1403;
+            // GL_INT = 0x1404;
+            // GL_UNSIGNED_INT = 0x1405;
+            // GL_FLOAT = 0x1406;
+            // GL_FIXED = 0x140C;
+            meshInfo.append("0x" + Integer.toHexString(va.type)); // the OpenGL type of each component, e.g. {@link GL20#GL_FLOAT} or {@link GL20#GL_UNSIGNED_BYTE}
+            meshInfo.append(", ");
+            meshInfo.append(va.unit);          // optional unit/index specifier, used for texture coordinates and bone weights
+            meshInfo.append(")");
+            meshInfo.append("\n");
+        }
+
+        return meshInfo.toString();
+    }
+
+    public static String getMeshPartInfo(MeshPart mp) {
+        final StringBuilder meshPartInfo = new StringBuilder();
+        meshPartInfo.append(String.format("MeshPart (id: %s@%s) ", mp.id, Integer.toHexString(mp.hashCode())));
+        // Primitive Type:
+        // GL_POINTS = 0x0000;
+        // GL_LINES = 0x0001;
+        // GL_LINE_LOOP = 0x0002;
+        // GL_LINE_STRIP = 0x0003;
+        // GL_TRIANGLES = 0x0004;
+        // GL_TRIANGLE_STRIP = 0x0005;
+        // GL_TRIANGLE_FAN = 0x0006;
+        meshPartInfo.append(String.format(" primt: %d", mp.primitiveType));
+        meshPartInfo.append(String.format(" offs: %d", mp.offset));
+        meshPartInfo.append(String.format(" size: %d", mp.size));
+        meshPartInfo.append(String.format(" cntr: %s", mp.center));
+        meshPartInfo.append(String.format(" halfE: %s", mp.halfExtents));
+        meshPartInfo.append(String.format(" rad: %5.3f\n", mp.radius));
+        return meshPartInfo.toString();
+    }
+
+    public static String getNodeInfo(HGModelInstance mi, Node node) {
+        final StringBuilder nodeInfo = new StringBuilder();
+        nodeInfo.append(String.format("id: %s\n", node.id));
+        nodeInfo.append(String.format(" inheritTransform: %s", node.inheritTransform));
+        nodeInfo.append(String.format(" isAnimated: %s", node.isAnimated));
+        nodeInfo.append(String.format(" transl: %s", node.translation));
+        nodeInfo.append(String.format(" rot: %s", node.rotation));
+        nodeInfo.append(String.format(" scl: %s", node.scale));
+        if (node.getParent() != null) {
+            nodeInfo.append(String.format(" parent: %s\n", node.getParent().id));
+        } else {
+            nodeInfo.append(String.format(" parent: null\n"));
+        }
+        nodeInfo.append(String.format("    localTransform: \n%s\n",
                 node.localTransform.toString().replace("[", "        [").replace("|", " | ")));
-        modelInstanceInfo.append(String.format("    globalTransform: \n%s\n",
+//                node.localTransform.toString().replace("\n", " ")));
+        nodeInfo.append(String.format("    globalTransform: \n%s\n",
                 node.globalTransform.toString().replace("[", "        [").replace("|", " | ")));
-        modelInstanceInfo.append(String.format("    parent: %s\n", node.getParent()));
+//                node.globalTransform.toString().replace("\n", " ")));
         for (int j = 0; j < node.parts.size; j++) {
             NodePart nodePart = node.parts.get(j);
-            modelInstanceInfo.append(String.format("    %2d. NodePart\n", j));
-            modelInstanceInfo.append(String.format("        MeshPart (id: %s)\n", nodePart.meshPart.id));
-            modelInstanceInfo.append(String.format("            prim type: %d\n", nodePart.meshPart.primitiveType));
-            modelInstanceInfo.append(String.format("            offset: %d\n", nodePart.meshPart.offset));
-            modelInstanceInfo.append(String.format("            size: %d\n", nodePart.meshPart.size));
-            modelInstanceInfo.append(String.format("            center: %s\n", nodePart.meshPart.center));
-            modelInstanceInfo.append(String.format("            halfExtents: %s\n", nodePart.meshPart.halfExtents));
-            modelInstanceInfo.append(String.format("            radius: %5.3f\n", nodePart.meshPart.radius));
-            modelInstanceInfo.append(String.format("        Material (id: %s)\n", nodePart.material.id));
+            nodeInfo.append(String.format("    %2d. NodePart\n", j));
+            nodeInfo.append("        " + getMeshPartInfo(nodePart.meshPart));
+            nodeInfo.append(String.format("        Material (id: %s)\n", nodePart.material.id));
             if (nodePart.bones != null)
                 for (Matrix4 bone: nodePart.bones) {
-                    modelInstanceInfo.append(String.format("        Bone:\n%s\n", bone));
+                    nodeInfo.append(String.format("        Bone:\n%s\n", bone.toString().replace("[", "        [").replace("|", " | ")));
                 }
-            modelInstanceInfo.append(String.format("        Inverse:\n%s\n", nodePart.invBoneBindTransforms));
+            if (nodePart.invBoneBindTransforms != null) {
+                nodeInfo.append(String.format("        Inverse:\n%s\n",
+                        nodePart.invBoneBindTransforms.toString().replace("[", "        [").replace("|", " | ")));
+            }
+
         }
         node.getChildren().forEach(subnode -> {
-            modelInstanceInfo.append(getNodeInfo(subnode));
+            nodeInfo.append(getNodeInfo(mi, subnode));
         });
-        return modelInstanceInfo.toString();
+
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+        String filename =
+                GENERATED + "node"
+                        //+ Version.VERSION
+                        //+ "_" + (mi.afh != null ? mi.afh.nameWithoutExtension() : "internal")
+                        + (node.getParent() != null ? "_#" + node.getParent().id : "")
+                        + "_" + node.id
+                        //+ "_" + fmt.format(LocalDateTime.now())
+                ;
+        FileHandle fileHandle = Gdx.files.local(filename + EXTENSION);
+        fileHandle.writeString(nodeInfo.toString(), false);
+
+        return "";
     }
 
     /**

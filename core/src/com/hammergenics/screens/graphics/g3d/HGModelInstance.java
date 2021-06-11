@@ -19,23 +19,21 @@ package com.hammergenics.screens.graphics.g3d;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Attribute;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
-import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
-import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
-import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.BoxShapeBuilder;
-import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.SphereShapeBuilder;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Disposable;
+import com.hammergenics.screens.graphics.glutils.HGImmediateModeRenderer20;
+
+import static com.hammergenics.screens.graphics.g3d.utils.Models.createBoundingBoxModel;
 
 /**
  * Add description here
@@ -151,50 +149,11 @@ public class HGModelInstance extends ModelInstance implements Disposable {
 
     // TODO: keep this separate for now - move to another class?
     private void createBBModel() {
-        if (bbHgModel != null) {
-            bbHgModel.dispose();
-            bbHgModel = null;
-        }
+        if (bbHgModel != null) { bbHgModel.dispose(); }
 
-        // see: ModelBuilder()
-        // https://libgdx.badlogicgames.com/ci/nightlies/dist/docs/api/com/badlogic/gdx/graphics/g3d/utils/ModelBuilder.html
-        ModelBuilder mb = new ModelBuilder();
-        MeshPartBuilder mpb;
-
-        mb.begin();
-
-        mb.node().id = "box";
-        // MeshPart "box", see for primitive types: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glBegin.xml
-        mpb = mb.part("box", GL20.GL_LINES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
-                new Material("box"));
-
-        // Requires GL_POINTS, GL_LINES or GL_TRIANGLES
-        BoxShapeBuilder.build(mpb, 1f, 1f, 1f); // a unit box
-
-        for (int i = 0; i < 8; i++) { // BB corners
-            String id = String.format("corner%3s", Integer.toBinaryString(i)).replace(' ', '0');
-            mb.node().id = id;
-            // MeshPart "cornerBBB", see for primitive types: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glBegin.xml
-            mpb = mb.part(id, GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
-                    new Material(id));
-
-            SphereShapeBuilder.build(mpb, 1, 1, 1, 100, 100); // a unit sphere
-        }
-
-        // see also com.badlogic.gdx.graphics.g3d.utils.shapebuilders:
-        //  ArrowShapeBuilder
-        //  BaseShapeBuilder
-        //  BoxShapeBuilder
-        //  CapsuleShapeBuilder
-        //  ConeShapeBuilder
-        //  CylinderShapeBuilder
-        //  EllipseShapeBuilder
-        //  FrustumShapeBuilder
-        //  PatchShapeBuilder
-        //  RenderableShapeBuilder
-        //  SphereShapeBuilder
-        bbHgModel = new HGModel(mb.end());
+        bbHgModel = new HGModel(createBoundingBoxModel());
     }
+
     // TODO: keep this separate for now - move to another class?
     public HGModelInstance getBBHgModelInstance(Color boxColor, Color cornerColor) {
         if (bbHgModel == null) { return null; }
@@ -227,5 +186,26 @@ public class HGModelInstance extends ModelInstance implements Disposable {
             bbHgMI.getNode(id).globalTransform.setToTranslationAndScaling(translate, scale);
         }
         return bbHgMI;
+    }
+    // TODO: keep this separate for now - move to another class?
+    public void addNodesToRenderer(HGImmediateModeRenderer20 imr) {
+        for (Node node:nodes) {
+            addNodeToRenderer(imr, node, Color.RED, Color.GREEN);
+        }
+    }
+    // TODO: keep this separate for now - move to another class?
+    public void addNodeToRenderer(HGImmediateModeRenderer20 imr, Node node, Color c1, Color c2) {
+        Iterable<Node> children = node.getChildren();
+
+        if (children == null || !children.iterator().hasNext()) {
+            // TODO: do something for no children
+        } else {
+            for (Node child:children) {
+                Vector3 p1 = node.globalTransform.cpy().mulLeft(transform).getTranslation(new Vector3());
+                Vector3 p2 = child.globalTransform.cpy().mulLeft(transform).getTranslation(new Vector3());
+                imr.line(p1, p2, c1, c2);
+                addNodeToRenderer(imr, child, Color.PURPLE, Color.GREEN);
+            }
+        }
     }
 }

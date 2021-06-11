@@ -95,6 +95,47 @@ public class Models {
         return mb.end();
     }
 
+    public static Model createBoundingBoxModel() {
+        // see: ModelBuilder()
+        // https://libgdx.badlogicgames.com/ci/nightlies/dist/docs/api/com/badlogic/gdx/graphics/g3d/utils/ModelBuilder.html
+        ModelBuilder mb = new ModelBuilder();
+        MeshPartBuilder mpb;
+
+        mb.begin();
+
+        mb.node().id = "box";
+        // MeshPart "box", see for primitive types: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glBegin.xml
+        mpb = mb.part("box", GL20.GL_LINES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
+                new Material("box"));
+
+        // Requires GL_POINTS, GL_LINES or GL_TRIANGLES
+        BoxShapeBuilder.build(mpb, 1f, 1f, 1f); // a unit box
+
+        for (int i = 0; i < 8; i++) { // BB corners
+            String id = String.format("corner%3s", Integer.toBinaryString(i)).replace(' ', '0');
+            mb.node().id = id;
+            // MeshPart "cornerBBB", see for primitive types: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glBegin.xml
+            mpb = mb.part(id, GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
+                    new Material(id));
+
+            SphereShapeBuilder.build(mpb, 1, 1, 1, 100, 100); // a unit sphere
+        }
+
+        // see also com.badlogic.gdx.graphics.g3d.utils.shapebuilders:
+        //  ArrowShapeBuilder
+        //  BaseShapeBuilder
+        //  BoxShapeBuilder
+        //  CapsuleShapeBuilder
+        //  ConeShapeBuilder
+        //  CylinderShapeBuilder
+        //  EllipseShapeBuilder
+        //  FrustumShapeBuilder
+        //  PatchShapeBuilder
+        //  RenderableShapeBuilder
+        //  SphereShapeBuilder
+        return mb.end();
+    }
+
     public static Model createTestBox(int primType) {
         ModelBuilder mb = new ModelBuilder();
         MeshPartBuilder mpb;

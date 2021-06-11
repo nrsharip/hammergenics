@@ -48,6 +48,7 @@ import com.hammergenics.HGEngine;
 import com.hammergenics.HGGame;
 import com.hammergenics.screens.graphics.g3d.HGModelInstance;
 import com.hammergenics.screens.graphics.g3d.utils.ModelEditInputController;
+import com.hammergenics.screens.graphics.glutils.HGImmediateModeRenderer20;
 import com.hammergenics.screens.stages.ModelEditStage;
 import com.hammergenics.screens.utils.AttributesMap;
 import com.hammergenics.utils.LibgdxUtils;
@@ -70,6 +71,8 @@ public class ModelEditScreen extends ScreenAdapter {
 
     public HGEngine eng;
 
+    public HGImmediateModeRenderer20 immediateModeRenderer;
+
     // 2D Stage - this is where all the widgets (buttons, checkboxes, labels etc.) are located
     public ModelEditStage stage;
 
@@ -88,6 +91,8 @@ public class ModelEditScreen extends ScreenAdapter {
         modelEditInputController = new ModelEditInputController(this, perspectiveCamera);
         // Environment related
         environment = new Environment();
+
+        immediateModeRenderer = new HGImmediateModeRenderer20(false, true, 0);
 
         // 2D Stage - https://github.com/libgdx/libgdx/wiki/Scene2d.ui#stage-setup
         stage = new ModelEditStage(new ScreenViewport(), game, this);
@@ -167,6 +172,10 @@ public class ModelEditScreen extends ScreenAdapter {
         // The actual rendering is performed at the call to end();.
         // If you want to force rendering in between, then you can use the modelBatch.flush(); method
         modelBatch.end();
+
+        immediateModeRenderer.begin(perspectiveCamera.combined, GL20.GL_LINES);
+        eng.hgMIs.forEach(hgMI -> hgMI.addNodesToRenderer(immediateModeRenderer));
+        immediateModeRenderer.end();
 
         checkTimerEvents(delta);
 
