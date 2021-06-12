@@ -27,6 +27,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
@@ -195,16 +196,23 @@ public class HGModelInstance extends ModelInstance implements Disposable {
     }
     // TODO: keep this separate for now - move to another class?
     public void addNodeToRenderer(HGImmediateModeRenderer20 imr, Node node, Color c1, Color c2) {
-        Iterable<Node> children = node.getChildren();
+        addNodeToRenderer(imr, node, Color.RED, Color.GREEN, -1);
+    }
 
-        if (children == null || !children.iterator().hasNext()) {
-            // TODO: do something for no children
-        } else {
+    // TODO: keep this separate for now - move to another class?
+    public void addNodeToRenderer(HGImmediateModeRenderer20 imr, Node node, Color c1, Color c2, int depth) {
+        Matrix4 tmp = node.globalTransform.cpy().mulLeft(transform.cpy());
+        imr.box(tmp, 1/10f, Color.CYAN);
+
+        if (depth-- == 0) { return; }
+
+        Iterable<Node> children = node.getChildren();
+        if (children != null && children.iterator().hasNext()) {
             for (Node child:children) {
                 Vector3 p1 = node.globalTransform.cpy().mulLeft(transform).getTranslation(new Vector3());
                 Vector3 p2 = child.globalTransform.cpy().mulLeft(transform).getTranslation(new Vector3());
                 imr.line(p1, p2, c1, c2);
-                addNodeToRenderer(imr, child, Color.PURPLE, Color.GREEN);
+                addNodeToRenderer(imr, child, Color.PURPLE, Color.GREEN, depth);
             }
         }
     }

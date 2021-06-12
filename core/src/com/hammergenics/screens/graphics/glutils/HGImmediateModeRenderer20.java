@@ -21,6 +21,9 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ImmediateModeRenderer20;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.ArrayMap;
+import com.badlogic.gdx.utils.ObjectMap;
 
 import static com.badlogic.gdx.graphics.GL20.GL_LINES;
 
@@ -63,6 +66,50 @@ public class HGImmediateModeRenderer20 extends ImmediateModeRenderer20 {
                 break;
             default:
                 Gdx.app.error(getClass().getSimpleName(), "line: UNSUPPORTED primitive type");
+                break;
+        }
+    }
+
+    public void box(Matrix4 transform, float scale, Color clr) {
+        Array<Vector3> corners = new Array<>(Vector3.class);
+        // min-max form a box with side of 1 * scale and a center at (0, 0, 0)
+        // if scale == 1 then this will create a unit box.
+        Vector3 min = new Vector3(-0.5f * scale, -0.5f * scale, -0.5f * scale);
+        Vector3 max = new Vector3( 0.5f * scale,  0.5f * scale,  0.5f * scale);
+        Vector3 tmp1 = Vector3.Zero.cpy();
+        Vector3 tmp2 = Vector3.Zero.cpy();
+        for (int i = 0; i < 8; i++) {
+            // 000 - (min.x, min.y, min.z)
+            // 001 - (min.x, min.y, max.z)
+            // 010 - (min.x, max.y, min.z)
+            // 011 - (min.x, max.y, max.z)
+            // 100 - (max.x, min.y, min.z)
+            // ...
+            if ((i & (1 << 2)) == 0) { tmp1.x = min.x; } else { tmp1.x = max.x; }
+            if ((i & (1 << 1)) == 0) { tmp1.y = min.y; } else { tmp1.y = max.y; }
+            if ((i & (1 << 0)) == 0) { tmp1.z = min.z; } else { tmp1.z = max.z; }
+            tmp1.mul(transform);
+            corners.add(tmp1.cpy());
+        }
+        switch (primitiveType) {
+            case GL_LINES:
+                ArrayMap<Integer, Array<Integer>> cornerMap = new ArrayMap<>(Integer.class, Array.class);
+                // need to connect 4 corners with 3 adjacent corners to form a box
+                cornerMap.put(0b000, new Array<>(new Integer[]{0b001, 0b010, 0b100}));
+                cornerMap.put(0b011, new Array<>(new Integer[]{0b001, 0b010, 0b111}));
+                cornerMap.put(0b101, new Array<>(new Integer[]{0b001, 0b100, 0b111}));
+                cornerMap.put(0b110, new Array<>(new Integer[]{0b010, 0b100, 0b111}));
+
+                for (ObjectMap.Entry<Integer, Array<Integer>> entry:cornerMap) {
+                    tmp1 = corners.get(entry.key);
+                    for (Integer adjCornerIndex:entry.value) {
+                        tmp2 = corners.get(adjCornerIndex);
+                        line(tmp1, tmp2, clr, clr);
+                    }
+                }
+                break;
+            default:
+                Gdx.app.error(getClass().getSimpleName(), "box: UNSUPPORTED primitive type");
                 break;
         }
     }
