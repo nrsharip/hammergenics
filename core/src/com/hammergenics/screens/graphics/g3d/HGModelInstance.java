@@ -200,12 +200,13 @@ public class HGModelInstance extends ModelInstance implements Disposable {
     // TODO: keep this separate for now - move to another class?
     public void addNodesToRenderer(HGImmediateModeRenderer20 imr) {
         for (Node node:nodes) {
+            //if (node.id.equals("characterMedium"))
             addNodeToRenderer(imr, node, Color.RED, Color.GREEN);
         }
     }
     // TODO: keep this separate for now - move to another class?
     public void addNodeToRenderer(HGImmediateModeRenderer20 imr, Node node, Color c1, Color c2) {
-        addNodeToRenderer(imr, node, Color.RED, Color.GREEN, -1);
+        addNodeToRenderer(imr, node, c1, c2, -1);
     }
 
     // TODO: keep this separate for now - move to another class?
@@ -214,7 +215,7 @@ public class HGModelInstance extends ModelInstance implements Disposable {
         //Gdx.app.debug(getClass().getSimpleName(), "node: " + node.id + "\n" + tmpM4);
         imr.box(tmpM4, 1/10f, Color.CYAN);
 
-        if (depth-- == 0) { return; }
+        if (--depth == 0) { return; }
 
         Iterable<Node> children = node.getChildren();
         if (children != null && children.iterator().hasNext()) {

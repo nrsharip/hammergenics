@@ -198,6 +198,11 @@ public class LibgdxUtils {
         final StringBuilder modelInstanceInfo = new StringBuilder("ModelInstance: ")
                 .append(String.format("Dimensions X: %.5f Y: %.5f Z: %.5f\n", dimensions.x, dimensions.y, dimensions.z));
 
+        modelInstanceInfo.append("Nodes:\n");
+        for (int i = 0; i < mi.nodes.size; i++) {
+            modelInstanceInfo.append(i + ". " + mi.nodes.get(i).id + "\n");
+        }
+
 //        modelInstanceInfo.append("Nodes:\n");
 //        for (int i = 0; i < mi.nodes.size; i++) {
 //            modelInstanceInfo.append(getNodeInfo(mi, mi.nodes.get(i)));

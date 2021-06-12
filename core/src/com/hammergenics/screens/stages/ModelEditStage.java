@@ -215,7 +215,8 @@ public class ModelEditStage extends Stage {
                     return;
                 }
 
-                modelES.eng.currMI.animationDesc = modelES.eng.currMI.animationController.setAnimation(modelES.eng.currMI.animations.get(modelES.eng.currMI.animationIndex).id, -1);
+                modelES.eng.currMI.animationDesc = modelES.eng.currMI.animationController.setAnimation(
+                        modelES.eng.currMI.animations.get(modelES.eng.currMI.animationIndex).id, -1);
                 Gdx.app.debug(animationSelectBox.getClass().getSimpleName(),
                         "animation selected: " + modelES.eng.currMI.animations.get(modelES.eng.currMI.animationIndex).id);
                 // Uncomment to get gen_* files with fields contents:
