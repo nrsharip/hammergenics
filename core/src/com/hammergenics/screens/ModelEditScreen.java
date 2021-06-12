@@ -55,6 +55,7 @@ import com.hammergenics.utils.LibgdxUtils;
 
 import static com.hammergenics.HGEngine.filterModels;
 import static com.hammergenics.screens.graphics.g3d.utils.Models.createTestBox;
+import static com.hammergenics.screens.graphics.g3d.utils.Models.createTestSphere;
 
 /**
  * Add description here
@@ -92,7 +93,7 @@ public class ModelEditScreen extends ScreenAdapter {
         // Environment related
         environment = new Environment();
 
-        immediateModeRenderer = new HGImmediateModeRenderer20(false, true, 0);
+        immediateModeRenderer = new HGImmediateModeRenderer20(10*Short.MAX_VALUE, false, true, 0);
 
         // 2D Stage - https://github.com/libgdx/libgdx/wiki/Scene2d.ui#stage-setup
         stage = new ModelEditStage(new ScreenViewport(), game, this);
@@ -108,6 +109,7 @@ public class ModelEditScreen extends ScreenAdapter {
         eng.addModelInstance(createTestBox(GL20.GL_POINTS));
         eng.addModelInstance(createTestBox(GL20.GL_LINES));
         eng.addModelInstance(createTestBox(GL20.GL_TRIANGLES));
+        eng.addModelInstance(createTestSphere(GL20.GL_TRIANGLES, 40));
         stage.afterCurrentModelInstanceChanged();
     }
 
@@ -175,6 +177,7 @@ public class ModelEditScreen extends ScreenAdapter {
 
         immediateModeRenderer.begin(perspectiveCamera.combined, GL20.GL_LINES);
         if (stage.nodesCheckBox.isChecked()) { eng.hgMIs.forEach(hgMI -> hgMI.addNodesToRenderer(immediateModeRenderer)); }
+        eng.hgMIs.forEach(hgMI -> hgMI.addMeshPartsToRenderer(immediateModeRenderer));
         immediateModeRenderer.end();
 
         checkTimerEvents(delta);
@@ -237,7 +240,7 @@ public class ModelEditScreen extends ScreenAdapter {
     public void reset() {
         eng.arrangeInSpiral(stage.origScaleCheckBox.isChecked());
 
-        Vector3 center = eng.currMI.getBB().getCenter(Vector3.Zero.cpy());
+        Vector3 center = eng.currMI != null ? eng.currMI.getBB().getCenter(Vector3.Zero.cpy()) : Vector3.Zero.cpy();
 
         resetCamera(eng.overallSize, center.cpy());
         resetScreenInputController(eng.unitSize, eng.overallSize, center.cpy());
@@ -368,7 +371,12 @@ public class ModelEditScreen extends ScreenAdapter {
         // adding a single directional light
         environment.add(new DirectionalLight().set(Color.WHITE, -1f, -0.5f, -1f));
         // adding a single point light
-        Vector3 plPosition = eng.hgMIs.get(0).getBB().getCenter(new Vector3());
+        Vector3 plPosition;
+        if (eng.hgMIs != null && eng.hgMIs.size > 0) {
+            plPosition = eng.hgMIs.get(0).getBB().getCenter(new Vector3());
+        } else {
+            plPosition = Vector3.Zero.cpy();
+        }
         plPosition.add(-eng.overallSize/2, eng.overallSize/2, eng.overallSize/2);
         // seems that intensity should grow exponentially(?) over the distance, the table is:
         //  unitSize: 1.7   17    191    376    522

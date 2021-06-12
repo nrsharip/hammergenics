@@ -379,6 +379,9 @@ public class ModelEditStage extends Stage {
         modelES.reset();
         reset();
         nodeSelectBox.getColor().set(Color.WHITE);
+
+        if (modelES.eng.currMI == null) { return; }
+
         // Select Box: Animations
         Array<String> itemsAnimation = new Array<>();
         itemsAnimation.add("No Animation");

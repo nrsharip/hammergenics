@@ -19,13 +19,17 @@ package com.hammergenics.screens.graphics.g3d;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.VertexAttribute;
+import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Attribute;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.graphics.g3d.model.MeshPart;
 import com.badlogic.gdx.graphics.g3d.model.Node;
+import com.badlogic.gdx.graphics.g3d.model.NodePart;
 import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
@@ -34,6 +38,11 @@ import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Disposable;
 import com.hammergenics.screens.graphics.glutils.HGImmediateModeRenderer20;
 
+import java.util.Arrays;
+
+import static com.badlogic.gdx.graphics.GL20.GL_LINES;
+import static com.badlogic.gdx.graphics.GL20.GL_TRIANGLES;
+import static com.badlogic.gdx.graphics.VertexAttributes.Usage.Position;
 import static com.hammergenics.screens.graphics.g3d.utils.Models.createBoundingBoxModel;
 
 /**
@@ -201,8 +210,9 @@ public class HGModelInstance extends ModelInstance implements Disposable {
 
     // TODO: keep this separate for now - move to another class?
     public void addNodeToRenderer(HGImmediateModeRenderer20 imr, Node node, Color c1, Color c2, int depth) {
-        Matrix4 tmp = node.globalTransform.cpy().mulLeft(transform.cpy());
-        imr.box(tmp, 1/10f, Color.CYAN);
+        Matrix4 tmpM4 = node.globalTransform.cpy().mulLeft(transform.cpy());
+        Gdx.app.debug(getClass().getSimpleName(), "node: " + node.id + "\n" + tmpM4);
+        imr.box(tmpM4, 1/10f, Color.CYAN);
 
         if (depth-- == 0) { return; }
 
@@ -215,5 +225,106 @@ public class HGModelInstance extends ModelInstance implements Disposable {
                 addNodeToRenderer(imr, child, Color.PURPLE, Color.GREEN, depth);
             }
         }
+    }
+
+    // TODO: keep this separate for now - move to another class?
+    public void addMeshPartsToRenderer(HGImmediateModeRenderer20 imr) {
+        for (Node node:nodes) {
+            for (NodePart nodePart:node.parts) {
+                addMeshPartToRenderer(imr, node, nodePart, nodePart.meshPart);
+            }
+        }
+    }
+
+    // TODO: keep this separate for now - move to another class?
+    public void addMeshPartsToRenderer(HGImmediateModeRenderer20 imr, Node node) {
+        for (NodePart nodePart:node.parts) {
+            addMeshPartToRenderer(imr, node, nodePart, nodePart.meshPart);
+        }
+
+        Iterable<Node> children = node.getChildren();
+        if (children != null && children.iterator().hasNext()) {
+            for (Node child:children) {
+                addMeshPartsToRenderer(imr, child);
+            }
+        }
+    }
+
+    // TODO: keep this separate for now - move to another class?
+    public void addMeshPartToRenderer(HGImmediateModeRenderer20 imr, Node node, NodePart nodePart, MeshPart mp) {
+        if (mp == null || mp.mesh == null) { return; }
+
+        // TODO: this should be the part of HGModel
+        VertexAttributes vertexAttributes = mp.mesh.getVertexAttributes();
+        int vs = vertexAttributes.vertexSize / 4; // IMPORTANT: vertex size is in bytes, float is 4 bytes long
+        VertexAttribute vaPosition = vertexAttributes.findByUsage(Position);
+
+        if (vaPosition == null) { return; }
+        int o = vaPosition.offset;
+        int n = vaPosition.numComponents;
+        // The components number for position in MeshBuilder is 3
+        // see MeshBuilder.createAttributes (long usage):
+        //		if ((usage & Usage.Position) == Usage.Position)
+        //			attrs.add(new VertexAttribute(Usage.Position, 3, ShaderProgram.POSITION_ATTRIBUTE));
+
+        // short MeshBuilder.vertex (Vector3 pos, Vector3 nor, Color col, Vector2 uv)
+        // the index returned is short meaning there's no more than 32767 indices available
+
+        // expecting 3 components (x, y, z) for now...
+        if (n != 3) {
+            Gdx.app.error(getClass().getSimpleName(), "add mesh part: WRONG number of components " + n);
+            return;
+        }
+
+        short[] indices = new short[mp.mesh.getNumIndices()];
+        float[] vertices = new float[vs * mp.mesh.getNumVertices()];
+        mp.mesh.getIndices(indices);
+        mp.mesh.getVertices(vertices);
+
+//        Gdx.app.debug(getClass().getSimpleName(), "vertex size: " + vs);
+//        Gdx.app.debug(getClass().getSimpleName(), "num indices: " + mp.mesh.getNumIndices());
+//        Gdx.app.debug(getClass().getSimpleName(), "num vertices: " + mp.mesh.getNumVertices());
+//        Gdx.app.debug(getClass().getSimpleName(), "max indices: " + mp.mesh.getMaxIndices());
+//        Gdx.app.debug(getClass().getSimpleName(), "max vertices: " + mp.mesh.getMaxVertices());
+//        Gdx.app.debug(getClass().getSimpleName(), "transform: \n" + transform);
+//        Gdx.app.debug(getClass().getSimpleName(), "type: 0x" + Integer.toHexString(mp.primitiveType));
+//        Gdx.app.debug(getClass().getSimpleName(), " indices: \n" + Arrays.toString(indices));
+//        Gdx.app.debug(getClass().getSimpleName(), " vertices: \n" + Arrays.toString(vertices));
+
+        Vector3 tmp1 = Vector3.Zero.cpy();
+        Vector3 tmp2 = Vector3.Zero.cpy();
+        Vector3 tmp3 = Vector3.Zero.cpy();
+
+        Matrix4 tmpM4 = node.globalTransform.cpy().mulLeft(transform.cpy());
+        Gdx.app.debug(getClass().getSimpleName(), "node: " + node.id + " mesh: " + mp.id + "\n" + tmpM4);
+//        try {
+            switch (mp.primitiveType) {
+                case GL_LINES:
+                    //...
+                    break;
+                case GL_TRIANGLES:
+                    for (int i = 0; i < indices.length; i += 3) { // 3 corners of a triangle
+                        tmp1.set(vertices[vs*indices[i+0]+o], vertices[vs*indices[i+0]+o+1], vertices[vs*indices[i+0]+o+2]);
+                        tmp2.set(vertices[vs*indices[i+1]+o], vertices[vs*indices[i+1]+o+1], vertices[vs*indices[i+1]+o+2]);
+                        tmp3.set(vertices[vs*indices[i+2]+o], vertices[vs*indices[i+2]+o+1], vertices[vs*indices[i+2]+o+2]);
+                        tmp1.mul(tmpM4); tmp2.mul(tmpM4); tmp3.mul(tmpM4);
+                        // Gdx.app.debug(getClass().getSimpleName(), "1: " + tmp1 + " 2: " + tmp2 + " 3: " + tmp3);
+                        // see https://www.khronos.org/opengl/wiki/Vertex_Specification
+                        // see https://www.khronos.org/opengl/wiki/Vertex_Rendering
+                        // see https://www.khronos.org/opengl/wiki/Primitive
+                        // GL_TRIANGLES, VertexAttributes.Usage.Position:
+                        // indices:  [0, 1, 2, 2, 3, 0, 5, 4, 7, 7, 6, 5, 0, 3, 7, 7, 4, 0, 5, 6, 2, 2, 1, 5, 5, 1, 0, 0, 4, 5, 2, 6, 7, 7, 3, 2] : 36 indices, 12 triangles
+                        // vertices: [-0.5, -0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, 0.5]
+
+                        imr.triangle(tmp1, tmp2, tmp3, Color.PINK, Color.PINK, Color.PINK);
+                    }
+                    break;
+                default:
+                    Gdx.app.error(getClass().getSimpleName(), "add mesh part: UNSUPPORTED primitive type " + mp.primitiveType);
+                    break;
+            }
+//        } catch (ArrayIndexOutOfBoundsException e) {
+//            Gdx.app.error(getClass().getSimpleName(), "add mesh part: EXCEPTION ArrayIndexOutOfBounds - " + e.getMessage());
+//        }
     }
 }

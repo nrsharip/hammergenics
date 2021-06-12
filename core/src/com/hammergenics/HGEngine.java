@@ -455,17 +455,24 @@ public class HGEngine implements Disposable {
         dlArrayHgModelInstance = new Array<>(ModelInstance.class);
         plArrayHgModelInstance = new Array<>(ModelInstance.class);
 
+        Vector3 envPosition;
+        if (hgMIs != null && hgMIs.size > 0) {
+            envPosition = hgMIs.get(0).getBB().getCenter(new Vector3());
+        } else {
+            envPosition = Vector3.Zero.cpy();
+        }
+
         // Environment Lights
         DirectionalLightsAttribute dlAttribute = environment.get(DirectionalLightsAttribute.class, DirectionalLightsAttribute.Type);
         if (dlAttribute != null) {
             for (DirectionalLight light:dlAttribute.lights) {
-                dlArrayHgModelInstance.add(createDLModelInstance(light, hgMIs.get(0).getBB().getCenter(new Vector3()), overallSize));
+                dlArrayHgModelInstance.add(createDLModelInstance(light, envPosition, overallSize));
             }
         }
         PointLightsAttribute plAttribute = environment.get(PointLightsAttribute.class, PointLightsAttribute.Type);
         if (plAttribute != null) {
             for (PointLight light:plAttribute.lights) {
-                plArrayHgModelInstance.add(createPLModelInstance(light, hgMIs.get(0).getBB().getCenter(new Vector3()), overallSize));
+                plArrayHgModelInstance.add(createPLModelInstance(light, envPosition, overallSize));
             }
         }
 

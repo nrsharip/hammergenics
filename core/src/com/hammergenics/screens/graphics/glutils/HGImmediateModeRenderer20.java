@@ -43,8 +43,8 @@ public class HGImmediateModeRenderer20 extends ImmediateModeRenderer20 {
     // GL_TRIANGLE_FAN = 0x0006;
     public int primitiveType = -1;
 
-    public HGImmediateModeRenderer20(boolean hasNormals, boolean hasColors, int numTexCoords) {
-        super(hasNormals, hasColors, numTexCoords);
+    public HGImmediateModeRenderer20(int maxVertices, boolean hasNormals, boolean hasColors, int numTexCoords) {
+        super(maxVertices, hasNormals, hasColors, numTexCoords);
     }
 
     @Override
@@ -66,6 +66,17 @@ public class HGImmediateModeRenderer20 extends ImmediateModeRenderer20 {
                 break;
             default:
                 Gdx.app.error(getClass().getSimpleName(), "line: UNSUPPORTED primitive type");
+                break;
+        }
+    }
+
+    public void triangle(Vector3 p1, Vector3 p2, Vector3 p3, Color c1, Color c2, Color c3) {
+        switch (primitiveType) {
+            case GL_LINES:
+                line(p1, p2, c1, c2); line(p2, p3, c2, c3); line(p3, p1, c3, c1);
+                break;
+            default:
+                Gdx.app.error(getClass().getSimpleName(), "triangle: UNSUPPORTED primitive type");
                 break;
         }
     }

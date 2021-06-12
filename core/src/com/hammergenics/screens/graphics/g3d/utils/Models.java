@@ -147,8 +147,32 @@ public class Models {
         mpb = mb.part("box", primType, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
                 new Material("box"));
 
+        // see https://www.khronos.org/opengl/wiki/Vertex_Specification
+        // see https://www.khronos.org/opengl/wiki/Vertex_Rendering
+        // see https://www.khronos.org/opengl/wiki/Primitive
+
         // Requires GL_POINTS, GL_LINES or GL_TRIANGLES
         BoxShapeBuilder.build(mpb, 1f, 1f, 1f); // a unit box
+
+        return mb.end();
+    }
+
+    public static Model createTestSphere(int primType, int divUV) {
+        ModelBuilder mb = new ModelBuilder();
+        MeshPartBuilder mpb;
+
+        mb.begin();
+
+        mb.node().id = "sphere";
+        // MeshPart "sphere", see for primitive types: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glBegin.xml
+        mpb = mb.part("sphere", primType, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
+                new Material("sphere"));
+
+        // see https://www.khronos.org/opengl/wiki/Vertex_Specification
+        // see https://www.khronos.org/opengl/wiki/Vertex_Rendering
+        // see https://www.khronos.org/opengl/wiki/Primitive
+
+        SphereShapeBuilder.build(mpb, 1, 1, 1, divUV, divUV); // a unit box
 
         return mb.end();
     }
