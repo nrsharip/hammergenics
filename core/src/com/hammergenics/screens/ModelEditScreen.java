@@ -106,8 +106,8 @@ public class ModelEditScreen extends ScreenAdapter {
 
         testRenderRelated();
 
-        eng.addModelInstance(createTestBox(GL20.GL_POINTS));
-        eng.addModelInstance(createTestBox(GL20.GL_LINES));
+        //eng.addModelInstance(createTestBox(GL20.GL_POINTS));
+        //eng.addModelInstance(createTestBox(GL20.GL_LINES));
         eng.addModelInstance(createTestBox(GL20.GL_TRIANGLES));
         eng.addModelInstance(createTestSphere(GL20.GL_TRIANGLES, 40));
         stage.afterCurrentModelInstanceChanged();
@@ -177,7 +177,7 @@ public class ModelEditScreen extends ScreenAdapter {
 
         immediateModeRenderer.begin(perspectiveCamera.combined, GL20.GL_LINES);
         if (stage.nodesCheckBox.isChecked()) { eng.hgMIs.forEach(hgMI -> hgMI.addNodesToRenderer(immediateModeRenderer)); }
-        eng.hgMIs.forEach(hgMI -> hgMI.addMeshPartsToRenderer(immediateModeRenderer));
+        if (stage.meshPartsCheckBox.isChecked()) { eng.hgMIs.forEach(hgMI -> hgMI.addMeshPartsToRenderer(immediateModeRenderer)); }
         immediateModeRenderer.end();
 
         checkTimerEvents(delta);

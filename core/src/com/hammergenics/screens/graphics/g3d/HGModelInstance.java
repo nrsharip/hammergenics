@@ -211,7 +211,7 @@ public class HGModelInstance extends ModelInstance implements Disposable {
     // TODO: keep this separate for now - move to another class?
     public void addNodeToRenderer(HGImmediateModeRenderer20 imr, Node node, Color c1, Color c2, int depth) {
         Matrix4 tmpM4 = node.globalTransform.cpy().mulLeft(transform.cpy());
-        Gdx.app.debug(getClass().getSimpleName(), "node: " + node.id + "\n" + tmpM4);
+        //Gdx.app.debug(getClass().getSimpleName(), "node: " + node.id + "\n" + tmpM4);
         imr.box(tmpM4, 1/10f, Color.CYAN);
 
         if (depth-- == 0) { return; }
@@ -296,7 +296,7 @@ public class HGModelInstance extends ModelInstance implements Disposable {
         Vector3 tmp3 = Vector3.Zero.cpy();
 
         Matrix4 tmpM4 = node.globalTransform.cpy().mulLeft(transform.cpy());
-        Gdx.app.debug(getClass().getSimpleName(), "node: " + node.id + " mesh: " + mp.id + "\n" + tmpM4);
+        //Gdx.app.debug(getClass().getSimpleName(), "node: " + node.id + " mesh: " + mp.id + "\n" + tmpM4);
 //        try {
             switch (mp.primitiveType) {
                 case GL_LINES:

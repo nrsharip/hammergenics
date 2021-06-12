@@ -95,6 +95,7 @@ public class ModelEditStage extends Stage {
     public CheckBox origScaleCheckBox;
     public CheckBox bbCheckBox;
     public CheckBox nodesCheckBox;
+    public CheckBox meshPartsCheckBox;
     public SelectBox<FileHandle> folderSelectBox;
     public SelectBox<FileHandle> modelSelectBox;
     public SelectBox<String> nodeSelectBox;
@@ -259,6 +260,9 @@ public class ModelEditStage extends Stage {
 
         nodesCheckBox = new CheckBox("nodes", skin);
         nodesCheckBox.setChecked(false);
+
+        meshPartsCheckBox = new CheckBox("meshes", skin);
+        meshPartsCheckBox.setChecked(false);
 
         // TEXT BUTTONS:
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textbutton
@@ -499,7 +503,7 @@ public class ModelEditStage extends Stage {
         Table infoTable = new Table();
         infoTCell = infoTable.add().expand().top().left();
         infoTable.row();
-        infoBCell = infoTable.add().expand().bottom().left();
+        infoBCell = infoTable.add().expand().bottom().left().maxHeight(Gdx.graphics.getHeight());
 
         rootTable.add(infoTable).expand().fillY().left().pad(10f);
         editCell = rootTable.add().expand().right().top().pad(10f);
@@ -515,6 +519,7 @@ public class ModelEditStage extends Stage {
         lowerPanel.add(origScaleCheckBox).pad(3f);
         lowerPanel.add(bbCheckBox).pad(3f);
         lowerPanel.add(nodesCheckBox).pad(3f);
+        lowerPanel.add(meshPartsCheckBox).pad(3f);
         lowerPanel.add(clearModelsTextButton).pad(3f);
         lowerPanel.add().expandX();
 
