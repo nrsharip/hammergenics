@@ -74,8 +74,8 @@ public class HGImmediateModeRenderer20 extends ImmediateModeRenderer20 {
         Array<Vector3> corners = new Array<>(Vector3.class);
         // min-max form a box with side of 1 * scale and a center at (0, 0, 0)
         // if scale == 1 then this will create a unit box.
-        Vector3 min = new Vector3(-0.5f * scale, -0.5f * scale, -0.5f * scale);
-        Vector3 max = new Vector3( 0.5f * scale,  0.5f * scale,  0.5f * scale);
+        Vector3 min = new Vector3(-0.5f, -0.5f, -0.5f).scl(scale);
+        Vector3 max = new Vector3( 0.5f,  0.5f,  0.5f).scl(scale);
         Vector3 tmp1 = Vector3.Zero.cpy();
         Vector3 tmp2 = Vector3.Zero.cpy();
         for (int i = 0; i < 8; i++) {
