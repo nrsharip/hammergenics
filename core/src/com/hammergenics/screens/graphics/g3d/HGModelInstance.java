@@ -35,6 +35,7 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import com.hammergenics.screens.graphics.glutils.HGImmediateModeRenderer20;
 
@@ -69,6 +70,8 @@ public class HGModelInstance extends ModelInstance implements Disposable {
 
     // TODO: keep this separate for now - move to another class?
     public HGModel bbHgModel = null;
+    public HGModelInstance bbHgMI = null;
+    public Array<HGModelInstance> bbCornerMIs = null;
     // TODO: keep this separate for now - move to another class?
     public int auxMeshCounter;
 
@@ -102,6 +105,8 @@ public class HGModelInstance extends ModelInstance implements Disposable {
     public void dispose() {
         // hgModel is being disposed by the AssetManager
         bbHgModel.dispose();
+        if (bbHgMI != null) { bbHgMI.dispose(); }
+        if (bbCornerMIs != null) { bbCornerMIs.forEach(HGModelInstance::dispose); }
     }
 
     public String getTag(int depth) {
@@ -167,21 +172,40 @@ public class HGModelInstance extends ModelInstance implements Disposable {
     }
 
     // TODO: keep this separate for now - move to another class?
-    public HGModelInstance getBBHgModelInstance(Color boxColor, Color cornerColor) {
+    public HGModelInstance getBBHgModelInstance(Color boxColor) {
         if (bbHgModel == null) { return null; }
+        if (bbHgMI != null) { bbHgMI.dispose(); bbHgMI = null; }
 
-        final BoundingBox bb = getBB();
-        final Vector3 bbMin = bb.getMin(new Vector3());
-        final Vector3 bbMax = bb.getMax(new Vector3());
+        final BoundingBox tmp = getBB();
 
-        HGModelInstance bbHgMI = new HGModelInstance(bbHgModel);
+        bbHgMI = new HGModelInstance(bbHgModel, "box");
 
         bbHgMI.getMaterial("box").set(ColorAttribute.createDiffuse(boxColor), new BlendingAttribute(0.1f));
-        bbHgMI.getNode("box").globalTransform.setToTranslationAndScaling(bb.getCenter(new Vector3()), bb.getDimensions(new Vector3()));
+        bbHgMI.getNode("box").globalTransform.setToTranslationAndScaling(tmp.getCenter(new Vector3()), tmp.getDimensions(new Vector3()));
+
+        return bbHgMI;
+    }
+
+    public Array<HGModelInstance> getCornerHgModelInstances(Color cornerColor) {
+        if (bbHgModel == null) { return null; }
+        if (bbCornerMIs != null && bbCornerMIs.size > 0) {
+            bbCornerMIs.forEach(HGModelInstance::dispose);
+            bbCornerMIs.clear();
+            bbCornerMIs = null;
+        }
+
+        bbCornerMIs = new Array<>(true, 16, HGModelInstance.class);
+
+        final BoundingBox tmp = getBB();
+        final Vector3 bbMin = tmp.getMin(new Vector3());
+        final Vector3 bbMax = tmp.getMax(new Vector3());
 
         for (int i = 0; i < 8; i++) { // BB corners
             String id = String.format("corner%3s", Integer.toBinaryString(i)).replace(' ', '0');
-            bbHgMI.getMaterial(id).set(ColorAttribute.createDiffuse(cornerColor), new BlendingAttribute(0.3f));
+
+            HGModelInstance bbCornerHgMI = new HGModelInstance(bbHgModel, id);
+
+            bbCornerHgMI.getMaterial(id).set(ColorAttribute.createDiffuse(cornerColor), new BlendingAttribute(0.3f));
 
             Vector3 translate = Vector3.Zero.cpy();
             // 000 - translate(min.x, min.y, min.z)
@@ -195,9 +219,11 @@ public class HGModelInstance extends ModelInstance implements Disposable {
             Vector3 scale = Vector3.Zero.cpy();
             scale.add(maxD * getMaxScale()).scl(1f/30f);
 
-            bbHgMI.getNode(id).globalTransform.setToTranslationAndScaling(translate, scale);
+            bbCornerHgMI.transform.setToTranslationAndScaling(translate, scale);
+
+            bbCornerMIs.add(bbCornerHgMI);
         }
-        return bbHgMI;
+        return bbCornerMIs;
     }
     // TODO: keep this separate for now - move to another class?
     public void addNodesToRenderer(HGImmediateModeRenderer20 imr) {

@@ -27,6 +27,7 @@ import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.Renderable;
+import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
@@ -156,10 +157,9 @@ public class ModelEditScreen extends ScreenAdapter {
         // * context (the environment and material).
 
         // for future reference:
-        // * there's a render(...) that could take an Iterable of ModelInstance's, e.g.
-        //   modelBatch.render((Array<ModelInstance>) array, environment);
         // * Enable caching as soon as multiple instances are rendered: https://github.com/libgdx/libgdx/wiki/ModelCache
         if (eng.hgMIs.size > 0 && environment != null) { modelBatch.render(eng.hgMIs, environment); }
+        if (eng.auxMIs.size > 0) { modelBatch.render(eng.auxMIs); }
         if (eng.gridXZHgModelInstance != null && stage.gridXZCheckBox.isChecked()) {
             modelBatch.render(eng.gridXZHgModelInstance);
             modelBatch.render(eng.gridOHgModelInstance);
@@ -389,19 +389,47 @@ public class ModelEditScreen extends ScreenAdapter {
     public void checkMouseMoved(int screenX, int screenY) {
         Ray ray = perspectiveCamera.getPickRay(screenX, screenY);
 
+        Array<HGModelInstance> outCorners = null;
+        if (eng.hoveredOverBBMI != null && eng.hoveredOverCornerMIs.size > 0) {
+            // we're hovering over some model instance having bounding box rendered as well
+            // let's check if we're hovering over a corner of that bounding box:
+            outCorners = eng.rayMICollision(ray, eng.hoveredOverCornerMIs, new Array<>(HGModelInstance.class));
+            Gdx.app.debug(getClass().getSimpleName(), "corners: \n" + outCorners.toString("\n"));
+
+            if (outCorners.size > 0 && !outCorners.get(0).equals(eng.hoveredOverCorner)) {
+                eng.restoreAttributes(eng.hoveredOverCorner, eng.hoveredOverCornerAttributes);
+                eng.hoveredOverCorner = outCorners.get(0); // SWITCHING THE HOVERED OVER CORNER
+                eng.hoveredOverCornerAttributes = new AttributesMap();
+                eng.saveAttributes(eng.hoveredOverCorner, eng.hoveredOverCornerAttributes);
+                eng.hoveredOverCorner.setAttributes(new BlendingAttribute(1f));
+                return; // nothing else should be done
+            } else if (outCorners.size == 0) {
+                eng.restoreAttributes(eng.hoveredOverCorner, eng.hoveredOverCornerAttributes);
+                eng.hoveredOverCorner = null;
+                if (eng.hoveredOverCornerAttributes != null) { eng.hoveredOverCornerAttributes.clear(); }
+                eng.hoveredOverCornerAttributes = null;
+            } else if (outCorners.get(0).equals(eng.hoveredOverCorner)) {
+                // we're hovering over the same corner, nothing else to do here
+                return;
+            }
+        }
+
         Array<HGModelInstance> out = eng.rayMICollision(ray, eng.hgMIs, new Array<>(HGModelInstance.class));
 
         if (out.size > 0 && !out.get(0).equals(eng.hoveredOverMI)) {
-            eng.restoreAttributes(eng.hoveredOverMI, eng.hoveredOverMIAttributes);
-            eng.hoveredOverMI = out.get(0);
-            eng.hoveredOverMIAttributes = new AttributesMap();
-            eng.saveAttributes(eng.hoveredOverMI, eng.hoveredOverMIAttributes);
-            eng.hoveredOverMI.setAttributes(ColorAttribute.createEmissive(Color.DARK_GRAY.cpy()));
+            // no need to dispose the box and the corners - will be done in HGModelInstance on dispose()
+            eng.auxMIs.clear();
+            eng.hoveredOverMI = out.get(0); // SWITCHING THE HOVERED OVER MODEL INSTANCE
+
+            eng.hoveredOverBBMI = eng.hoveredOverMI.getBBHgModelInstance(Color.BLACK);
+            eng.auxMIs.add(eng.hoveredOverBBMI);
+            eng.hoveredOverCornerMIs = eng.hoveredOverMI.getCornerHgModelInstances(Color.RED);
+            eng.auxMIs.addAll(eng.hoveredOverCornerMIs);
         } else if (out.size == 0) {
-            eng.restoreAttributes(eng.hoveredOverMI, eng.hoveredOverMIAttributes);
             eng.hoveredOverMI = null;
-            if (eng.hoveredOverMIAttributes != null) { eng.hoveredOverMIAttributes.clear(); }
-            eng.hoveredOverMIAttributes = null;
+            eng.hoveredOverBBMI = null;
+            // no need to dispose the box and the corners - will be done in HGModelInstance on dispose()
+            eng.auxMIs.clear();
         }
     }
 

@@ -85,13 +85,15 @@ public class HGEngine implements Disposable {
     public Array<Texture> textures = new Array<>();
     // Auxiliary models:
     public HGModel gridHgModel = null;
+    public HGModel lightsHgModel = null;
     public HGModelInstance gridXZHgModelInstance = null; // XZ plane: lines (yellow)
     public HGModelInstance gridYHgModelInstance = null;  // Y axis: vertical lines (red)
     public HGModelInstance gridOHgModelInstance = null;  // origin: sphere (red)
-    public HGModel lightsHgModel = null;
     public Array<HGModelInstance> dlArrayHgModelInstance = null; // directional lights
     public Array<HGModelInstance> plArrayHgModelInstance = null; // point lights
     public Array<HGModelInstance> bbArrayHgModelInstance = null; // bounding boxes
+    // the general container for any auxiliary model instances
+    public Array<HGModelInstance> auxMIs = new Array<>(HGModelInstance.class);
 
     // ModelInstance Related:
     public Array<HGModelInstance> hgMIs = new Array<>(HGModelInstance.class);
@@ -99,8 +101,14 @@ public class HGEngine implements Disposable {
     public float overallSize = 0f;
     public HGModelInstance currMI = null;
     public Vector2 currCell = Vector2.Zero.cpy();
+    // main Model Instances
     public HGModelInstance hoveredOverMI = null;
     public AttributesMap hoveredOverMIAttributes = null;
+    // bounding box, corners
+    public HGModelInstance hoveredOverBBMI = null;
+    public Array<HGModelInstance> hoveredOverCornerMIs = null;
+    public HGModelInstance hoveredOverCorner = null;
+    public AttributesMap hoveredOverCornerAttributes = null;
 
     public HGEngine(HGGame game) {
         this.game = game;
@@ -444,8 +452,8 @@ public class HGEngine implements Disposable {
         bbArrayHgModelInstance = new Array<>(ModelInstance.class);
 
         for (HGModelInstance mi:hgMIs) {
-            if (mi.equals(currMI)) { bbArrayHgModelInstance.add(mi.getBBHgModelInstance(Color.GREEN, Color.RED)); }
-            else { bbArrayHgModelInstance.add(mi.getBBHgModelInstance(Color.BLACK, Color.RED)); }
+            if (mi.equals(currMI)) { bbArrayHgModelInstance.add(mi.getBBHgModelInstance(Color.GREEN)); }
+            else { bbArrayHgModelInstance.add(mi.getBBHgModelInstance(Color.BLACK)); }
         }
     }
 
@@ -572,5 +580,8 @@ public class HGEngine implements Disposable {
     public void clearModelInstances() {
         hgMIs.forEach(HGModelInstance::dispose);
         hgMIs.clear();
+        // no need to dispose - will be done in HGModelInstance on dispose()
+        //auxMIs.forEach(HGModelInstance::dispose);
+        auxMIs.clear();
     }
 }
