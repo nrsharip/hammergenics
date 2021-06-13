@@ -64,16 +64,21 @@ public class LibgdxUtils {
     private static final String GENERATED = "generated/gen_";
     private static final String EXTENSION = ".txt";
     public static final ArrayMap<String, Integer> gl20_s2i;
-    public static final ArrayMap<Integer, String> gl20_i2s; // ATTENTION: duplicates are present (GL_NONE, GL_ZERO..) - take special care
+    public static final ArrayMap<Integer, String> gl20_i2s; // ATTENTION: duplicates are present
+                                                            // (GL_NONE, GL_ZERO, GL_FALSE, GL_POINTS == 0..)
+                                                            // - take special care
     public static final ArrayMap<String, Color> color_s2c;
+    public static final Array<Color> aux_colors;
 
     static {
         gl20_s2i = new ArrayMap<>(String.class, Integer.class);
         gl20_i2s = new ArrayMap<>(Integer.class, String.class);
         color_s2c = new ArrayMap<>(String.class, Color.class);
+        aux_colors = new Array<>(true, 16, Color.class);
 
         scanGL20();
         scanColor();
+        addAuxColors();
 
         if (gl20_s2i.size == 0 || gl20_i2s.size == 0) {
             Gdx.app.error(LibgdxUtils.class.getSimpleName(),"ERROR: no GL20 constants retrieved");
@@ -134,6 +139,22 @@ public class LibgdxUtils {
                                         .reduce("", String::concat));
             }
         }
+    }
+
+    public static void addAuxColors() {
+        if (aux_colors == null) { return; }
+        aux_colors.addAll(
+            //  Blueish        Greenish          Yellowish        Reddish
+                Color.BLUE,    Color.GREEN,      Color.YELLOW,    Color.BROWN,
+                Color.ROYAL,   Color.CHARTREUSE, Color.GOLD,      Color.TAN,
+                Color.SLATE,   Color.LIME,       Color.GOLDENROD, Color.FIREBRICK,
+                Color.CYAN,    Color.FOREST,     Color.ORANGE,    Color.RED,
+                Color.TEAL,    Color.OLIVE,                       Color.SCARLET,
+                Color.MAGENTA,                                    Color.CORAL,
+                Color.PURPLE,                                     Color.SALMON,
+                Color.VIOLET,                                     Color.PINK,
+                                                                  Color.MAROON
+        );
     }
 
     public static Field[] scanPublicStaticFinalFields(Class<?> scanned, Class<?> scanFor) {

@@ -42,6 +42,7 @@ import static com.badlogic.gdx.graphics.GL20.GL_LINES;
 import static com.badlogic.gdx.graphics.GL20.GL_TRIANGLES;
 import static com.badlogic.gdx.graphics.VertexAttributes.Usage.Position;
 import static com.hammergenics.screens.graphics.g3d.utils.Models.createBoundingBoxModel;
+import static com.hammergenics.utils.LibgdxUtils.aux_colors;
 
 /**
  * Add description here
@@ -67,6 +68,8 @@ public class HGModelInstance extends ModelInstance implements Disposable {
 
     // TODO: keep this separate for now - move to another class?
     public HGModel bbHgModel = null;
+    // TODO: keep this separate for now - move to another class?
+    public int auxMeshCounter;
 
     public HGModelInstance (final Model model) { this(new HGModel(model), null, (String[])null); }
 
@@ -278,11 +281,8 @@ public class HGModelInstance extends ModelInstance implements Disposable {
 
     // TODO: keep this separate for now - move to another class?
     public void addMeshPartsToRenderer(HGImmediateModeRenderer20 imr) {
-        for (Node node:nodes) {
-            for (NodePart nodePart:node.parts) {
-                addMeshPartToRenderer(imr, node, nodePart, nodePart.meshPart);
-            }
-        }
+        auxMeshCounter = 0;
+        for (Node node:nodes) { addMeshPartsToRenderer(imr, node); }
     }
 
     // TODO: keep this separate for now - move to another class?
@@ -305,9 +305,11 @@ public class HGModelInstance extends ModelInstance implements Disposable {
 
         // TODO: this should be the part of HGModel
         VertexAttributes vertexAttributes = mp.mesh.getVertexAttributes();
-        int vs = vertexAttributes.vertexSize / 4; // IMPORTANT: vertex size is in bytes, float is 4 bytes long
-        VertexAttribute vaPosition = vertexAttributes.findByUsage(Position);
+        // IMPORTANT: vertex size is in bytes, float is 4 bytes long
+        // TODO: there's also a notion of 'OpenGL type': GL_FLOAT or GL_UNSIGNED_BYTE stored in VertexAttribute.type
+        int vs = vertexAttributes.vertexSize / 4;
 
+        VertexAttribute vaPosition = vertexAttributes.findByUsage(Position);
         if (vaPosition == null) { return; }
         int o = vaPosition.offset;
         int n = vaPosition.numComponents;
@@ -346,34 +348,34 @@ public class HGModelInstance extends ModelInstance implements Disposable {
 
         Matrix4 tmpM4 = node.globalTransform.cpy().mulLeft(transform.cpy());
         //Gdx.app.debug(getClass().getSimpleName(), "node: " + node.id + " mesh: " + mp.id + "\n" + tmpM4);
-//        try {
-            switch (mp.primitiveType) {
-                case GL_LINES:
-                    //...
-                    break;
-                case GL_TRIANGLES:
-                    for (int i = 0; i < indices.length; i += 3) { // 3 corners of a triangle
-                        tmp1.set(vertices[vs*indices[i+0]+o], vertices[vs*indices[i+0]+o+1], vertices[vs*indices[i+0]+o+2]);
-                        tmp2.set(vertices[vs*indices[i+1]+o], vertices[vs*indices[i+1]+o+1], vertices[vs*indices[i+1]+o+2]);
-                        tmp3.set(vertices[vs*indices[i+2]+o], vertices[vs*indices[i+2]+o+1], vertices[vs*indices[i+2]+o+2]);
-                        tmp1.mul(tmpM4); tmp2.mul(tmpM4); tmp3.mul(tmpM4);
-                        // Gdx.app.debug(getClass().getSimpleName(), "1: " + tmp1 + " 2: " + tmp2 + " 3: " + tmp3);
-                        // see https://www.khronos.org/opengl/wiki/Vertex_Specification
-                        // see https://www.khronos.org/opengl/wiki/Vertex_Rendering
-                        // see https://www.khronos.org/opengl/wiki/Primitive
-                        // GL_TRIANGLES, VertexAttributes.Usage.Position:
-                        // indices:  [0, 1, 2, 2, 3, 0, 5, 4, 7, 7, 6, 5, 0, 3, 7, 7, 4, 0, 5, 6, 2, 2, 1, 5, 5, 1, 0, 0, 4, 5, 2, 6, 7, 7, 3, 2] : 36 indices, 12 triangles
-                        // vertices: [-0.5, -0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, 0.5]
 
-                        imr.triangle(tmp1, tmp2, tmp3, Color.PINK, Color.PINK, Color.PINK);
-                    }
-                    break;
-                default:
-                    Gdx.app.error(getClass().getSimpleName(), "add mesh part: UNSUPPORTED primitive type " + mp.primitiveType);
-                    break;
-            }
-//        } catch (ArrayIndexOutOfBoundsException e) {
-//            Gdx.app.error(getClass().getSimpleName(), "add mesh part: EXCEPTION ArrayIndexOutOfBounds - " + e.getMessage());
-//        }
+        Color color = aux_colors.get(auxMeshCounter++ % aux_colors.size);
+        switch (mp.primitiveType) {
+            case GL_LINES:
+                //...
+                break;
+            case GL_TRIANGLES:
+                //Gdx.app.debug(getClass().getSimpleName(),
+                //        "mesh part: " + mp.id + " offset: " + mp.offset + " size: " + mp.size);
+                for (int i = mp.offset; i < mp.offset + mp.size; i += 3) { // 3 corners of a triangle
+                    tmp1.set(vertices[vs*indices[i+0]+o], vertices[vs*indices[i+0]+o+1], vertices[vs*indices[i+0]+o+2]);
+                    tmp2.set(vertices[vs*indices[i+1]+o], vertices[vs*indices[i+1]+o+1], vertices[vs*indices[i+1]+o+2]);
+                    tmp3.set(vertices[vs*indices[i+2]+o], vertices[vs*indices[i+2]+o+1], vertices[vs*indices[i+2]+o+2]);
+                    tmp1.mul(tmpM4); tmp2.mul(tmpM4); tmp3.mul(tmpM4);
+                    // Gdx.app.debug(getClass().getSimpleName(), "1: " + tmp1 + " 2: " + tmp2 + " 3: " + tmp3);
+                    // see https://www.khronos.org/opengl/wiki/Vertex_Specification
+                    // see https://www.khronos.org/opengl/wiki/Vertex_Rendering
+                    // see https://www.khronos.org/opengl/wiki/Primitive
+                    // GL_TRIANGLES, VertexAttributes.Usage.Position:
+                    // indices:  [0, 1, 2, 2, 3, 0, 5, 4, 7, 7, 6, 5, 0, 3, 7, 7, 4, 0, 5, 6, 2, 2, 1, 5, 5, 1, 0, 0, 4, 5, 2, 6, 7, 7, 3, 2] : 36 indices, 12 triangles
+                    // vertices: [-0.5, -0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, 0.5]
+
+                    imr.triangle(tmp1, tmp2, tmp3, color, color, color);
+                }
+                break;
+            default:
+                Gdx.app.error(getClass().getSimpleName(), "add mesh part: UNSUPPORTED primitive type " + mp.primitiveType);
+                break;
+        }
     }
 }
