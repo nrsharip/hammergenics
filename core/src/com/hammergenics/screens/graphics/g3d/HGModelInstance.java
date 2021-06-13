@@ -38,8 +38,6 @@ import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Disposable;
 import com.hammergenics.screens.graphics.glutils.HGImmediateModeRenderer20;
 
-import java.util.Arrays;
-
 import static com.badlogic.gdx.graphics.GL20.GL_LINES;
 import static com.badlogic.gdx.graphics.GL20.GL_TRIANGLES;
 import static com.badlogic.gdx.graphics.VertexAttributes.Usage.Position;
@@ -224,6 +222,56 @@ public class HGModelInstance extends ModelInstance implements Disposable {
                 Vector3 p2 = child.globalTransform.cpy().mulLeft(transform).getTranslation(new Vector3());
                 imr.line(p1, p2, c1, c2);
                 addNodeToRenderer(imr, child, Color.PURPLE, Color.GREEN, depth);
+            }
+        }
+    }
+
+    // TODO: keep this separate for now - move to another class?
+    public void addBonesToRenderer(HGImmediateModeRenderer20 imr) {
+        for (Node node:nodes) {
+            //if (node.id.equals("characterMedium"))
+            addBonesToRenderer(imr, node, Color.GREEN, Color.YELLOW, Color.RED, Color.BLUE);
+        }
+    }
+
+    // TODO: keep this separate for now - move to another class?
+    public void addBonesToRenderer(HGImmediateModeRenderer20 imr, Node node,
+                                   Color c1, Color c2, Color c3, Color c4) {
+        for (NodePart nodePart:node.parts) {
+            if (nodePart.bones == null) { continue; }
+            if (nodePart.invBoneBindTransforms != null && nodePart.bones.length != nodePart.invBoneBindTransforms.size) { continue; }
+            for (int i = 0; i < nodePart.bones.length; i++) {
+                // IMPORTANT:
+                // see Node.calculateBoneTransforms (boolean recursive)
+                //     part.bones[i].set(part.invBoneBindTransforms.keys[i].globalTransform).mul(part.invBoneBindTransforms.values[i]);
+                //
+                // see Model.loadNodes:
+                //     e.key.invBoneBindTransforms.put(getNode(b.key), new Matrix4(b.value).inv());
+                //
+                // ? basically this means that a bone is the Node's globalTransform multiplied by the inverse of the actual bone
+                Matrix4 tmpM4 = nodePart.bones[i].cpy();
+                tmpM4.mul(nodePart.invBoneBindTransforms.values[i].cpy().inv()); // undoing the inverse
+                // now the "bone" actually become a Node's "globalTransform"
+                tmpM4.mulLeft(transform); // applying the ModelInstance's transform
+
+                imr.box(tmpM4, 1/10f, c1);
+
+                Vector3 tmpV1 = tmpM4.getTranslation(new Vector3());
+                Vector3 tmpV2 = node.globalTransform.cpy().mulLeft(transform).getTranslation(new Vector3());
+                imr.line(tmpV1, tmpV2, c1, c2);
+
+                if (nodePart.meshPart != null) {
+                    // is multiplication by node.globalTransform here really needed?
+                    tmpV2 = nodePart.meshPart.center.cpy().mul(node.globalTransform).mul(transform);
+                    imr.line(tmpV1, tmpV2, c3, c4);
+                }
+            }
+        }
+
+        Iterable<Node> children = node.getChildren();
+        if (children != null && children.iterator().hasNext()) {
+            for (Node child:children) {
+                addBonesToRenderer(imr, child, c1, c2, c3, c4);
             }
         }
     }

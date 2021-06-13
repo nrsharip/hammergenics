@@ -54,7 +54,6 @@ import com.hammergenics.screens.utils.AttributesMap;
 import com.hammergenics.utils.LibgdxUtils;
 
 import static com.hammergenics.HGEngine.filterModels;
-import static com.hammergenics.screens.graphics.g3d.utils.Models.createTestBox;
 import static com.hammergenics.screens.graphics.g3d.utils.Models.createTestSphere;
 
 /**
@@ -108,7 +107,7 @@ public class ModelEditScreen extends ScreenAdapter {
 
         //eng.addModelInstance(createTestBox(GL20.GL_POINTS));
         //eng.addModelInstance(createTestBox(GL20.GL_LINES));
-        eng.addModelInstance(createTestBox(GL20.GL_TRIANGLES));
+        //eng.addModelInstance(createTestBox(GL20.GL_TRIANGLES));
         eng.addModelInstance(createTestSphere(GL20.GL_TRIANGLES, 40));
         stage.afterCurrentModelInstanceChanged();
     }
@@ -177,7 +176,8 @@ public class ModelEditScreen extends ScreenAdapter {
 
         immediateModeRenderer.begin(perspectiveCamera.combined, GL20.GL_LINES);
         if (stage.nodesCheckBox.isChecked()) { eng.hgMIs.forEach(hgMI -> hgMI.addNodesToRenderer(immediateModeRenderer)); }
-        if (stage.meshPartsCheckBox.isChecked()) { eng.hgMIs.forEach(hgMI -> hgMI.addMeshPartsToRenderer(immediateModeRenderer)); }
+        if (stage.meshesCheckBox.isChecked()) { eng.hgMIs.forEach(hgMI -> hgMI.addMeshPartsToRenderer(immediateModeRenderer)); }
+        if (stage.bonesCheckBox.isChecked()) { eng.hgMIs.forEach(hgMI -> hgMI.addBonesToRenderer(immediateModeRenderer)); }
         immediateModeRenderer.end();
 
         checkTimerEvents(delta);
