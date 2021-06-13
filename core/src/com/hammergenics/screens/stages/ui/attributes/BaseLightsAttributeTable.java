@@ -154,8 +154,8 @@ public abstract class BaseLightsAttributeTable<T extends Attribute, L extends Ba
         line1.add(enabledCheckBox);
         line1.add(new Label("lights:", skin)).right();
         line1.add(mnsTextButton).width(20f).maxWidth(20f);
-        line1.add(indexedTBTable);
         line1.add(plsTextButton).width(20f).maxWidth(20f);
+        line1.add(indexedTBTable);
         line1.add().expandX();
 
         line2.add(new Label("r:", skin)).right();
