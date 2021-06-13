@@ -82,7 +82,7 @@ public class HGImmediateModeRenderer20 extends ImmediateModeRenderer20 {
     }
 
     public void box(Matrix4 transform, float scale, Color clr) {
-        Array<Vector3> corners = new Array<>(Vector3.class);
+        Array<Vector3> corners = new Array<>(true, 16, Vector3.class);
         // min-max form a box with side of 1 * scale and a center at (0, 0, 0)
         // if scale == 1 then this will create a unit box.
         Vector3 min = new Vector3(-0.5f, -0.5f, -0.5f).scl(scale);

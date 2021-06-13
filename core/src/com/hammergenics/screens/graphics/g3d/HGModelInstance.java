@@ -40,6 +40,7 @@ import com.hammergenics.screens.graphics.glutils.HGImmediateModeRenderer20;
 
 import static com.badlogic.gdx.graphics.GL20.GL_LINES;
 import static com.badlogic.gdx.graphics.GL20.GL_TRIANGLES;
+import static com.badlogic.gdx.graphics.VertexAttributes.Usage.BoneWeight;
 import static com.badlogic.gdx.graphics.VertexAttributes.Usage.Position;
 import static com.hammergenics.screens.graphics.g3d.utils.Models.createBoundingBoxModel;
 import static com.hammergenics.utils.LibgdxUtils.aux_colors;
@@ -309,45 +310,56 @@ public class HGModelInstance extends ModelInstance implements Disposable {
         // TODO: there's also a notion of 'OpenGL type': GL_FLOAT or GL_UNSIGNED_BYTE stored in VertexAttribute.type
         int vs = vertexAttributes.vertexSize / 4;
 
-        VertexAttribute vaPosition = vertexAttributes.findByUsage(Position);
-        if (vaPosition == null) { return; }
-        int o = vaPosition.offset;
-        int n = vaPosition.numComponents;
-        // The components number for position in MeshBuilder is 3
-        // see MeshBuilder.createAttributes (long usage):
-        //		if ((usage & Usage.Position) == Usage.Position)
-        //			attrs.add(new VertexAttribute(Usage.Position, 3, ShaderProgram.POSITION_ATTRIBUTE));
-
-        // short MeshBuilder.vertex (Vector3 pos, Vector3 nor, Color col, Vector2 uv)
-        // the index returned is short meaning there's no more than 32767 indices available
-
-        // expecting 3 components (x, y, z) for now...
-        if (n != 3) {
-            Gdx.app.error(getClass().getSimpleName(), "add mesh part: WRONG number of components " + n);
-            return;
-        }
-
         short[] indices = new short[mp.mesh.getNumIndices()];
         float[] vertices = new float[vs * mp.mesh.getNumVertices()];
         mp.mesh.getIndices(indices);
         mp.mesh.getVertices(vertices);
 
-//        Gdx.app.debug(getClass().getSimpleName(), "vertex size: " + vs);
-//        Gdx.app.debug(getClass().getSimpleName(), "num indices: " + mp.mesh.getNumIndices());
-//        Gdx.app.debug(getClass().getSimpleName(), "num vertices: " + mp.mesh.getNumVertices());
-//        Gdx.app.debug(getClass().getSimpleName(), "max indices: " + mp.mesh.getMaxIndices());
-//        Gdx.app.debug(getClass().getSimpleName(), "max vertices: " + mp.mesh.getMaxVertices());
-//        Gdx.app.debug(getClass().getSimpleName(), "transform: \n" + transform);
-//        Gdx.app.debug(getClass().getSimpleName(), "type: 0x" + Integer.toHexString(mp.primitiveType));
-//        Gdx.app.debug(getClass().getSimpleName(), " indices: \n" + Arrays.toString(indices));
-//        Gdx.app.debug(getClass().getSimpleName(), " vertices: \n" + Arrays.toString(vertices));
+        // 0000 0000 0001 Position = 1;
+        // 0000 0000 0010 ColorUnpacked = 2;
+        // 0000 0000 0100 ColorPacked = 4;
+        // 0000 0000 1000 Normal = 8;
+        // 0000 0001 0000 TextureCoordinates = 16;
+        // 0000 0010 0000 Generic = 32;
+        // 0000 0100 0000 BoneWeight = 64;
+        // 0000 1000 0000 Tangent = 128;
+        // 0001 0000 0000 BiNormal = 256;
+
+//        Gdx.app.debug(getClass().getSimpleName(), "vertex attributes mask: 0b"
+//                + Long.toBinaryString(vertexAttributes.getMask()));
+        // 0000 0101 1011 - (Position, ColorUnpacked, Normal, TextureCoordinates, BoneWeight)
+        // Attribute: Position
+        VertexAttribute vaPosition = vertexAttributes.findByUsage(Position);
+        if (vaPosition == null) { return; }
+        int po = vaPosition.offset / 4; // NOTE: the offset is in bytes as well, see VertexAttribute.offset
+        int pn = vaPosition.numComponents;
+        // The components number for position in MeshBuilder is 3
+        // see MeshBuilder.createAttributes (long usage):
+        //		if ((usage & Usage.Position) == Usage.Position)
+        //			attrs.add(new VertexAttribute(Usage.Position, 3, ShaderProgram.POSITION_ATTRIBUTE));
+        // short MeshBuilder.vertex (Vector3 pos, Vector3 nor, Color col, Vector2 uv)
+        // the index returned is short meaning there's no more than 32767 indices available
+
+        // expecting 3 components (x, y, z) for now...
+        if (pn != 3) {
+            Gdx.app.error(getClass().getSimpleName(), "add mesh part: WRONG number of components " + pn);
+            return;
+        }
+
+        // Attribute: BoneWeight
+        // IMPORTANT:
+        // see NodePart.setRenderable (final Renderable out)
+        // see Renderable.bones description (source code one, not the javadoc)
+        VertexAttribute vaBoneWeight = vertexAttributes.findByUsage(BoneWeight);
+        int bwo = -1; int bwn = -1;
+        if (vaBoneWeight != null) { bwo = vaBoneWeight.offset / 4; bwn = vaBoneWeight.numComponents; }
+
+//        Gdx.app.debug(getClass().getSimpleName(),
+//                " po: " + po + " pn: " + pn + " bwo: " + bwo + " bwn: " + bwn);
 
         Vector3 tmp1 = Vector3.Zero.cpy();
         Vector3 tmp2 = Vector3.Zero.cpy();
         Vector3 tmp3 = Vector3.Zero.cpy();
-
-        Matrix4 tmpM4 = node.globalTransform.cpy().mulLeft(transform.cpy());
-        //Gdx.app.debug(getClass().getSimpleName(), "node: " + node.id + " mesh: " + mp.id + "\n" + tmpM4);
 
         Color color = aux_colors.get(auxMeshCounter++ % aux_colors.size);
         switch (mp.primitiveType) {
@@ -358,10 +370,29 @@ public class HGModelInstance extends ModelInstance implements Disposable {
                 //Gdx.app.debug(getClass().getSimpleName(),
                 //        "mesh part: " + mp.id + " offset: " + mp.offset + " size: " + mp.size);
                 for (int i = mp.offset; i < mp.offset + mp.size; i += 3) { // 3 corners of a triangle
-                    tmp1.set(vertices[vs*indices[i+0]+o], vertices[vs*indices[i+0]+o+1], vertices[vs*indices[i+0]+o+2]);
-                    tmp2.set(vertices[vs*indices[i+1]+o], vertices[vs*indices[i+1]+o+1], vertices[vs*indices[i+1]+o+2]);
-                    tmp3.set(vertices[vs*indices[i+2]+o], vertices[vs*indices[i+2]+o+1], vertices[vs*indices[i+2]+o+2]);
-                    tmp1.mul(tmpM4); tmp2.mul(tmpM4); tmp3.mul(tmpM4);
+                    tmp1.set(vertices[vs*indices[i+0]+po], vertices[vs*indices[i+0]+po+1], vertices[vs*indices[i+0]+po+2]);
+                    tmp2.set(vertices[vs*indices[i+1]+po], vertices[vs*indices[i+1]+po+1], vertices[vs*indices[i+1]+po+2]);
+                    tmp3.set(vertices[vs*indices[i+2]+po], vertices[vs*indices[i+2]+po+1], vertices[vs*indices[i+2]+po+2]);
+                    if (bwo > 0) {
+                        // ignoring bwn for now...
+                        tmp1.mul(transform.cpy().mul(nodePart.bones[(short)vertices[vs*indices[i+0]+bwo]]));
+                        tmp2.mul(transform.cpy().mul(nodePart.bones[(short)vertices[vs*indices[i+1]+bwo]]));
+                        tmp3.mul(transform.cpy().mul(nodePart.bones[(short)vertices[vs*indices[i+2]+bwo]]));
+                        // TODO: using tmpM variables gives the matrix full of NaN's for some unknown reasons...
+                        // e.g.
+                        // Matrix4 tmpM1 = transform.cpy();
+                        // tmpM4.mul(nodePart.bones...) would be equal to:
+                        //[NaN|NaN|NaN|NaN]
+                        //[NaN|NaN|NaN|NaN]
+                        //[NaN|NaN|NaN|NaN]
+                        //[0.0|0.0|0.0|1.0]
+                    } else {
+                        tmp1.mul(transform.cpy());
+                        tmp2.mul(transform.cpy());
+                        tmp3.mul(transform.cpy());
+                    }
+                    //tmp1.mul(tmpM1); tmp2.mul(tmpM2); tmp3.mul(tmpM3);
+
                     // Gdx.app.debug(getClass().getSimpleName(), "1: " + tmp1 + " 2: " + tmp2 + " 3: " + tmp3);
                     // see https://www.khronos.org/opengl/wiki/Vertex_Specification
                     // see https://www.khronos.org/opengl/wiki/Vertex_Rendering
