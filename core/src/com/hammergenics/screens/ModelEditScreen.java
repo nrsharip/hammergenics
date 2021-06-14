@@ -21,6 +21,7 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
@@ -450,6 +451,59 @@ public class ModelEditScreen extends ScreenAdapter {
             case Input.Buttons.RIGHT:
                 break;
         }
+    }
+
+    public boolean checkPan(float x, float y, float deltaX, float deltaY, int touchDownButton, float distance) {
+        switch (touchDownButton) {
+            case Input.Buttons.LEFT:
+                if (eng.hoveredOverMI != null && eng.hoveredOverCorner != null) {
+                    Camera cam = perspectiveCamera;
+
+                    Vector3 center = eng.hoveredOverMI.getBB().getCenter(new Vector3());
+                    Vector3 corner = eng.hoveredOverCorner.getBB().getCenter(new Vector3());
+                    Vector3 hlfDiag = corner.cpy().sub(center);
+                    Vector3 dir = hlfDiag.cpy().nor();
+
+                    float coordUnit = cam.project(new Vector3(distance, 0, 0), 0, 0, cam.viewportWidth, cam.viewportHeight).x;
+                    //Vector3 coordCenter = new Vector3(cam.viewportWidth / 2, cam.viewportHeight / 2, 0);
+                    Vector3 coordCenter = cam.project(center.cpy(), 0, 0, cam.viewportWidth, cam.viewportHeight);
+                    Vector3 coordDir = cam.project(dir.cpy(), 0, 0, cam.viewportWidth, cam.viewportHeight);
+                    coordDir.sub(coordCenter);
+
+                    int signX = Vector3.X.dot(coordDir) > 0 ? 1 : -1;
+                    int signY = Vector3.Y.dot(coordDir) > 0 ? 1 : -1;
+
+                    float scale = (signX*deltaX - signY*deltaY) / (float)Math.sqrt(coordUnit);
+
+//                    Gdx.app.debug(getClass().getSimpleName(), ""
+//                            //+ " hlfDiag: " + hlfDiag
+//                            //+ " coordDir: " + coordDir
+//                            //+ " x: " + x + " y: " + y
+//                            //+ " deltaX: " + deltaX + " deltaY: " + deltaY
+//                            //+ " dist: " + distance
+//                            //+ " fracX: " + fracX + " fracY: " + fracY
+//                            //+ " coordDir.x: " + coordDir.x + " coordDir.y: " + coordDir.y
+//                            //+ " scale: " + scale
+//                            //+ " cam.viewportWidth: " + cam.viewportWidth + " cam.viewportHeight: " + cam.viewportHeight
+//                            //+ "\nprojtest100: " + cam.project(new Vector3(1,0,0), 0, 0, cam.viewportWidth, cam.viewportHeight)
+//                            //+ "\nprojtest010: " + cam.project(new Vector3(0,1,0), 0, 0, cam.viewportWidth, cam.viewportHeight)
+//                            //+ "\nprojtest001: " + cam.project(new Vector3(0,0,1), 0, 0, cam.viewportWidth, cam.viewportHeight)
+//                            //+ "\nprojtest200: " + cam.project(new Vector3(2,0,0), 0, 0, cam.viewportWidth, cam.viewportHeight)
+//                            //+ "\nprojtest020: " + cam.project(new Vector3(0,2,0), 0, 0, cam.viewportWidth, cam.viewportHeight)
+//                            //+ "\nprojtest002: " + cam.project(new Vector3(0,0,2), 0, 0, cam.viewportWidth, cam.viewportHeight)
+//                    );
+
+                    eng.hoveredOverMI.transform.scl(1 + scale);
+                    eng.hoveredOverMI.bbHgModelInstanceReset();
+                    eng.hoveredOverMI.bbCornersReset();
+                    return false;
+                }
+            // fall-through
+            case Input.Buttons.MIDDLE: // fall-through
+            case Input.Buttons.RIGHT:  // fall-through
+                return true;
+        }
+        return true;
     }
 
     /**

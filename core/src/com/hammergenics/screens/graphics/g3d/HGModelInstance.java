@@ -176,14 +176,22 @@ public class HGModelInstance extends ModelInstance implements Disposable {
         if (bbHgModel == null) { return null; }
         if (bbHgMI != null) { bbHgMI.dispose(); bbHgMI = null; }
 
-        final BoundingBox tmp = getBB();
-
         bbHgMI = new HGModelInstance(bbHgModel, "box");
 
-        bbHgMI.getMaterial("box").set(ColorAttribute.createDiffuse(boxColor), new BlendingAttribute(0.1f));
-        bbHgMI.getNode("box").globalTransform.setToTranslationAndScaling(tmp.getCenter(new Vector3()), tmp.getDimensions(new Vector3()));
+        bbHgModelInstanceReset(boxColor);
 
         return bbHgMI;
+    }
+
+    public void bbHgModelInstanceReset() {
+        bbHgModelInstanceReset(Color.BLACK);
+    }
+
+    public void bbHgModelInstanceReset(Color boxColor) {
+        if (bbHgMI == null) { return; }
+        final BoundingBox tmp = getBB();
+        bbHgMI.getMaterial("box").set(ColorAttribute.createDiffuse(boxColor), new BlendingAttribute(0.1f));
+        bbHgMI.getNode("box").globalTransform.setToTranslationAndScaling(tmp.getCenter(new Vector3()), tmp.getDimensions(new Vector3()));
     }
 
     public Array<HGModelInstance> getCornerHgModelInstances(Color cornerColor) {
@@ -195,15 +203,31 @@ public class HGModelInstance extends ModelInstance implements Disposable {
         }
 
         bbCornerMIs = new Array<>(true, 16, HGModelInstance.class);
-
-        final BoundingBox tmp = getBB();
-        final Vector3 bbMin = tmp.getMin(new Vector3());
-        final Vector3 bbMax = tmp.getMax(new Vector3());
-
         for (int i = 0; i < 8; i++) { // BB corners
             String id = String.format("corner%3s", Integer.toBinaryString(i)).replace(' ', '0');
 
             HGModelInstance bbCornerHgMI = new HGModelInstance(bbHgModel, id);
+
+            bbCornerMIs.add(bbCornerHgMI);
+        }
+
+        bbCornersReset(cornerColor);
+
+        return bbCornerMIs;
+    }
+
+    public void bbCornersReset() { bbCornersReset(Color.RED); }
+
+    public void bbCornersReset(Color cornerColor) {
+        if (bbCornerMIs == null || bbCornerMIs.size != 8) { return; }
+
+        BoundingBox boundingBox = getBB();
+        final Vector3 bbMin = boundingBox.getMin(new Vector3());
+        final Vector3 bbMax = boundingBox.getMax(new Vector3());
+        for (int i = 0; i < 8; i++) { // BB corners
+            String id = String.format("corner%3s", Integer.toBinaryString(i)).replace(' ', '0');
+
+            HGModelInstance bbCornerHgMI = bbCornerMIs.get(i);
 
             bbCornerHgMI.getMaterial(id).set(ColorAttribute.createDiffuse(cornerColor), new BlendingAttribute(0.3f));
 
@@ -220,11 +244,9 @@ public class HGModelInstance extends ModelInstance implements Disposable {
             scale.add(maxD * getMaxScale()).scl(1f/30f);
 
             bbCornerHgMI.transform.setToTranslationAndScaling(translate, scale);
-
-            bbCornerMIs.add(bbCornerHgMI);
         }
-        return bbCornerMIs;
     }
+
     // TODO: keep this separate for now - move to another class?
     public void addNodesToRenderer(HGImmediateModeRenderer20 imr) {
         for (Node node:nodes) {
