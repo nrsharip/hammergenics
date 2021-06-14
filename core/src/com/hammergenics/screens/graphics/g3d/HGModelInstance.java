@@ -425,9 +425,10 @@ public class HGModelInstance extends ModelInstance implements Disposable {
         //        + " offset: " + mp.offset + " size: " + mp.size
         //        + "\ntransform: \n" + transform + "node.globalTransform: \n" + node.globalTransform);
 
-        Vector3 tmp1 = Vector3.Zero.cpy();
-        Vector3 tmp2 = Vector3.Zero.cpy();
-        Vector3 tmp3 = Vector3.Zero.cpy();
+        Vector3 tmpV1 = Vector3.Zero.cpy();
+        Vector3 tmpV2 = Vector3.Zero.cpy();
+        Vector3 tmpV3 = Vector3.Zero.cpy();
+        Matrix4 tmpM1, tmpM2, tmpM3;
 
         Color color = aux_colors.get(auxMeshCounter++ % aux_colors.size);
         switch (mp.primitiveType) {
@@ -435,31 +436,58 @@ public class HGModelInstance extends ModelInstance implements Disposable {
                 //...
                 break;
             case GL_TRIANGLES:
+
+                // Placing these here for some reason gives Matrices full of NaN's further after bones applied.
+                //tmpM1 = transform.cpy();
+                //tmpM2 = transform.cpy();
+                //tmpM3 = transform.cpy();
+                //1:                 2:                 3:
+                //[NaN|NaN|NaN|NaN]  [NaN|NaN|NaN|NaN]  [NaN|NaN|NaN|NaN]
+                //[NaN|NaN|NaN|NaN]  [NaN|NaN|NaN|NaN]  [NaN|NaN|NaN|NaN]
+                //[NaN|NaN|NaN|NaN]  [NaN|NaN|NaN|NaN]  [NaN|NaN|NaN|NaN]
+                //[0.0|0.0|0.0|1.0]  [0.0|0.0|0.0|1.0]  [0.0|0.0|0.0|1.0]
+                // So tmpM's are initialized in the for loop below instead
                 for (int i = mp.offset; i < mp.offset + mp.size; i += 3) { // 3 corners of a triangle
-                    tmp1.set(vertices[vs*indices[i+0]+po], vertices[vs*indices[i+0]+po+1], vertices[vs*indices[i+0]+po+2]);
-                    tmp2.set(vertices[vs*indices[i+1]+po], vertices[vs*indices[i+1]+po+1], vertices[vs*indices[i+1]+po+2]);
-                    tmp3.set(vertices[vs*indices[i+2]+po], vertices[vs*indices[i+2]+po+1], vertices[vs*indices[i+2]+po+2]);
-                    //Gdx.app.debug(getClass().getSimpleName(), "1: " + tmp1 + " 2: " + tmp2 + " 3: " + tmp3);
+                    tmpV1.set(vertices[vs*indices[i+0]+po], vertices[vs*indices[i+0]+po+1], vertices[vs*indices[i+0]+po+2]);
+                    tmpV2.set(vertices[vs*indices[i+1]+po], vertices[vs*indices[i+1]+po+1], vertices[vs*indices[i+1]+po+2]);
+                    tmpV3.set(vertices[vs*indices[i+2]+po], vertices[vs*indices[i+2]+po+1], vertices[vs*indices[i+2]+po+2]);
+                    //Gdx.app.debug(getClass().getSimpleName(), "1: " + tmpV1 + " 2: " + tmpV2 + " 3: " + tmpV3);
+
+                    // Initializing the tmpM's here:
+                    tmpM1 = transform.cpy();
+                    tmpM2 = transform.cpy();
+                    tmpM3 = transform.cpy();
+                    // That would produce the right matrices in the end:
+                    //1:
+                    //[    99.999985|2.2733212E-4|1.6021729E-4|-0.024597168]
+                    //[-3.7956238E-4|-2.527237E-5|   100.00008| -0.06890869]
+                    //[ 1.5306473E-4|  -100.00069| 9.202957E-5|    0.983402]
+                    //[          0.0|         0.0|         0.0|         1.0]
+                    //2:
+                    //[    99.999985|2.2733212E-4|1.6021729E-4|-0.024597168]
+                    //[-3.7956238E-4|-2.527237E-5|   100.00008| -0.06890869]
+                    //[ 1.5306473E-4|  -100.00069| 9.202957E-5|    0.983402]
+                    //[          0.0|         0.0|         0.0|         1.0]
+                    //3:
+                    //[    99.999985|2.2733212E-4|1.6021729E-4|-0.024597168]
+                    //[-3.7956238E-4|-2.527237E-5|   100.00008| -0.06890869]
+                    //[ 1.5306473E-4|  -100.00069| 9.202957E-5|    0.983402]
+                    //[          0.0|         0.0|         0.0|         1.0]
+
                     if (bwo > 0) {
                         // ignoring bwn for now...
-                        tmp1.mul(transform.cpy().mul(nodePart.bones[(short)vertices[vs*indices[i+0]+bwo]]));
-                        tmp2.mul(transform.cpy().mul(nodePart.bones[(short)vertices[vs*indices[i+1]+bwo]]));
-                        tmp3.mul(transform.cpy().mul(nodePart.bones[(short)vertices[vs*indices[i+2]+bwo]]));
-                        // TODO: using tmpM variables gives the matrix full of NaN's for some unknown reasons...
-                        // e.g.
-                        // Matrix4 tmpM1 = transform.cpy();
-                        // tmpM4.mul(nodePart.bones...) would be equal to:
-                        //[NaN|NaN|NaN|NaN]
-                        //[NaN|NaN|NaN|NaN]
-                        //[NaN|NaN|NaN|NaN]
-                        //[0.0|0.0|0.0|1.0]
+                        tmpM1.mul(nodePart.bones[(short)vertices[vs*indices[i+0]+bwo]]);
+                        tmpM2.mul(nodePart.bones[(short)vertices[vs*indices[i+1]+bwo]]);
+                        tmpM3.mul(nodePart.bones[(short)vertices[vs*indices[i+2]+bwo]]);
                     } else {
-                        tmp1.mul(node.globalTransform).mul(transform);
-                        tmp2.mul(node.globalTransform).mul(transform);
-                        tmp3.mul(node.globalTransform).mul(transform);
+                        tmpM1.mul(node.globalTransform);
+                        tmpM2.mul(node.globalTransform);
+                        tmpM3.mul(node.globalTransform);
                     }
-                    //tmp1.mul(tmpM1); tmp2.mul(tmpM2); tmp3.mul(tmpM3);
-                    //Gdx.app.debug(getClass().getSimpleName(), "1: " + tmp1 + " 2: " + tmp2 + " 3: " + tmp3);
+                    //Gdx.app.debug(getClass().getSimpleName(), "\n1:\n" + tmpM1 + "2:\n" + tmpM2 + "3:\n" + tmpM3);
+                    tmpV1.mul(tmpM1); tmpV2.mul(tmpM2); tmpV3.mul(tmpM3);
+                    //Gdx.app.debug(getClass().getSimpleName(), "1: " + tmpV1 + " 2: " + tmpV2 + " 3: " + tmpV3);
+
                     // see https://www.khronos.org/opengl/wiki/Vertex_Specification
                     // see https://www.khronos.org/opengl/wiki/Vertex_Rendering
                     // see https://www.khronos.org/opengl/wiki/Primitive
@@ -467,7 +495,7 @@ public class HGModelInstance extends ModelInstance implements Disposable {
                     // indices:  [0, 1, 2, 2, 3, 0, 5, 4, 7, 7, 6, 5, 0, 3, 7, 7, 4, 0, 5, 6, 2, 2, 1, 5, 5, 1, 0, 0, 4, 5, 2, 6, 7, 7, 3, 2] : 36 indices, 12 triangles
                     // vertices: [-0.5, -0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, 0.5]
 
-                    imr.triangle(tmp1, tmp2, tmp3, color, color, color);
+                    imr.triangle(tmpV1, tmpV2, tmpV3, color, color, color);
                 }
                 break;
             default:
