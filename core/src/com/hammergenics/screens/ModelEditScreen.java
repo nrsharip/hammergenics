@@ -395,9 +395,10 @@ public class ModelEditScreen extends ScreenAdapter {
             // we're hovering over some model instance having bounding box rendered as well
             // let's check if we're hovering over a corner of that bounding box:
             outCorners = eng.rayMICollision(ray, eng.hoveredOverCornerMIs, new Array<>(HGModelInstance.class));
-            Gdx.app.debug(getClass().getSimpleName(), "corners: \n" + outCorners.toString("\n"));
+            //Gdx.app.debug(getClass().getSimpleName(), "corners: \n" + outCorners.toString("\n"));
 
             if (outCorners.size > 0 && !outCorners.get(0).equals(eng.hoveredOverCorner)) {
+                // we're hovering over the new corner, need to restore the attributes of the previous corner (if any)
                 eng.restoreAttributes(eng.hoveredOverCorner, eng.hoveredOverCornerAttributes);
                 eng.hoveredOverCorner = outCorners.get(0); // SWITCHING THE HOVERED OVER CORNER
                 eng.hoveredOverCornerAttributes = new AttributesMap();
@@ -405,6 +406,7 @@ public class ModelEditScreen extends ScreenAdapter {
                 eng.hoveredOverCorner.setAttributes(new BlendingAttribute(1f));
                 return; // nothing else should be done
             } else if (outCorners.size == 0) {
+                // we're not hovering over any corners
                 eng.restoreAttributes(eng.hoveredOverCorner, eng.hoveredOverCornerAttributes);
                 eng.hoveredOverCorner = null;
                 if (eng.hoveredOverCornerAttributes != null) { eng.hoveredOverCornerAttributes.clear(); }
