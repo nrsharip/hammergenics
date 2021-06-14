@@ -436,43 +436,15 @@ public class HGModelInstance extends ModelInstance implements Disposable {
                 //...
                 break;
             case GL_TRIANGLES:
-
-                // Placing these here for some reason gives Matrices full of NaN's further after bones applied.
-                //tmpM1 = transform.cpy();
-                //tmpM2 = transform.cpy();
-                //tmpM3 = transform.cpy();
-                //1:                 2:                 3:
-                //[NaN|NaN|NaN|NaN]  [NaN|NaN|NaN|NaN]  [NaN|NaN|NaN|NaN]
-                //[NaN|NaN|NaN|NaN]  [NaN|NaN|NaN|NaN]  [NaN|NaN|NaN|NaN]
-                //[NaN|NaN|NaN|NaN]  [NaN|NaN|NaN|NaN]  [NaN|NaN|NaN|NaN]
-                //[0.0|0.0|0.0|1.0]  [0.0|0.0|0.0|1.0]  [0.0|0.0|0.0|1.0]
-                // So tmpM's are initialized in the for loop below instead
                 for (int i = mp.offset; i < mp.offset + mp.size; i += 3) { // 3 corners of a triangle
                     tmpV1.set(vertices[vs*indices[i+0]+po], vertices[vs*indices[i+0]+po+1], vertices[vs*indices[i+0]+po+2]);
                     tmpV2.set(vertices[vs*indices[i+1]+po], vertices[vs*indices[i+1]+po+1], vertices[vs*indices[i+1]+po+2]);
                     tmpV3.set(vertices[vs*indices[i+2]+po], vertices[vs*indices[i+2]+po+1], vertices[vs*indices[i+2]+po+2]);
                     //Gdx.app.debug(getClass().getSimpleName(), "1: " + tmpV1 + " 2: " + tmpV2 + " 3: " + tmpV3);
 
-                    // Initializing the tmpM's here:
                     tmpM1 = transform.cpy();
                     tmpM2 = transform.cpy();
                     tmpM3 = transform.cpy();
-                    // That would produce the right matrices in the end:
-                    //1:
-                    //[    99.999985|2.2733212E-4|1.6021729E-4|-0.024597168]
-                    //[-3.7956238E-4|-2.527237E-5|   100.00008| -0.06890869]
-                    //[ 1.5306473E-4|  -100.00069| 9.202957E-5|    0.983402]
-                    //[          0.0|         0.0|         0.0|         1.0]
-                    //2:
-                    //[    99.999985|2.2733212E-4|1.6021729E-4|-0.024597168]
-                    //[-3.7956238E-4|-2.527237E-5|   100.00008| -0.06890869]
-                    //[ 1.5306473E-4|  -100.00069| 9.202957E-5|    0.983402]
-                    //[          0.0|         0.0|         0.0|         1.0]
-                    //3:
-                    //[    99.999985|2.2733212E-4|1.6021729E-4|-0.024597168]
-                    //[-3.7956238E-4|-2.527237E-5|   100.00008| -0.06890869]
-                    //[ 1.5306473E-4|  -100.00069| 9.202957E-5|    0.983402]
-                    //[          0.0|         0.0|         0.0|         1.0]
 
                     if (bwo > 0) {
                         // ignoring bwn for now...
