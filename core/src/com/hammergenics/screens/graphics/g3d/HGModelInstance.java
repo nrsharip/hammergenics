@@ -42,7 +42,9 @@ import com.hammergenics.screens.graphics.glutils.HGImmediateModeRenderer20;
 import static com.badlogic.gdx.graphics.GL20.GL_LINES;
 import static com.badlogic.gdx.graphics.GL20.GL_TRIANGLES;
 import static com.badlogic.gdx.graphics.VertexAttributes.Usage.BoneWeight;
+import static com.badlogic.gdx.graphics.VertexAttributes.Usage.Normal;
 import static com.badlogic.gdx.graphics.VertexAttributes.Usage.Position;
+import static com.badlogic.gdx.graphics.VertexAttributes.Usage.TextureCoordinates;
 import static com.hammergenics.screens.graphics.g3d.utils.Models.createBoundingBoxModel;
 import static com.hammergenics.utils.LibgdxUtils.aux_colors;
 
@@ -350,7 +352,7 @@ public class HGModelInstance extends ModelInstance implements Disposable {
 
     // TODO: keep this separate for now - move to another class?
     public void addMeshPartToRenderer(HGImmediateModeRenderer20 imr, Node node, NodePart nodePart, MeshPart mp) {
-        if (mp == null || mp.mesh == null) { return; }
+        if (node == null || nodePart == null || !nodePart.enabled || mp == null || mp.mesh == null) { return; }
 
         // TODO: this should be the part of HGModel
         VertexAttributes vertexAttributes = mp.mesh.getVertexAttributes();
@@ -363,6 +365,9 @@ public class HGModelInstance extends ModelInstance implements Disposable {
         mp.mesh.getIndices(indices);
         mp.mesh.getVertices(vertices);
 
+        //Gdx.app.debug(getClass().getSimpleName(), "indices: \n" + Arrays.toString(indices));
+        //Gdx.app.debug(getClass().getSimpleName(), "vertices: \n" + Arrays.toString(vertices));
+
         // 0000 0000 0001 Position = 1;
         // 0000 0000 0010 ColorUnpacked = 2;
         // 0000 0000 0100 ColorPacked = 4;
@@ -373,9 +378,9 @@ public class HGModelInstance extends ModelInstance implements Disposable {
         // 0000 1000 0000 Tangent = 128;
         // 0001 0000 0000 BiNormal = 256;
 
-//        Gdx.app.debug(getClass().getSimpleName(), "vertex attributes mask: 0b"
-//                + Long.toBinaryString(vertexAttributes.getMask()));
-        // 0000 0101 1011 - (Position, ColorUnpacked, Normal, TextureCoordinates, BoneWeight)
+        //Gdx.app.debug(getClass().getSimpleName(), "vertex attributes mask: 0b"
+        //        + Long.toBinaryString(vertexAttributes.getMask()));
+
         // Attribute: Position
         VertexAttribute vaPosition = vertexAttributes.findByUsage(Position);
         if (vaPosition == null) { return; }
@@ -394,6 +399,16 @@ public class HGModelInstance extends ModelInstance implements Disposable {
             return;
         }
 
+        // Attribute: Normal
+        VertexAttribute vaNormal = vertexAttributes.findByUsage(Normal);
+        int no = -1; int nn = -1;
+        if (vaNormal != null) { no = vaNormal.offset / 4; nn = vaNormal.numComponents; }
+
+        // Attribute: TextureCoordinates
+        VertexAttribute vaTextureCoordinates = vertexAttributes.findByUsage(TextureCoordinates);
+        int tco = -1; int tcn = -1;
+        if (vaTextureCoordinates != null) { tco = vaTextureCoordinates.offset / 4; tcn = vaTextureCoordinates.numComponents; }
+
         // Attribute: BoneWeight
         // IMPORTANT:
         // see NodePart.setRenderable (final Renderable out)
@@ -402,8 +417,13 @@ public class HGModelInstance extends ModelInstance implements Disposable {
         int bwo = -1; int bwn = -1;
         if (vaBoneWeight != null) { bwo = vaBoneWeight.offset / 4; bwn = vaBoneWeight.numComponents; }
 
-//        Gdx.app.debug(getClass().getSimpleName(),
-//                " po: " + po + " pn: " + pn + " bwo: " + bwo + " bwn: " + bwn);
+        //Gdx.app.debug(getClass().getSimpleName(), ""
+        //        + " po: " + po + " pn: " + pn + " no: " + no + " nn: " + nn
+        //        + " tco: " + tco + " tcn: " + tcn + " bwo: " + bwo + " bwn: " + bwn);
+        //Gdx.app.debug(getClass().getSimpleName(), ""
+        //        + " mesh part: " + mp.id + " prim type: " + mp.primitiveType
+        //        + " offset: " + mp.offset + " size: " + mp.size
+        //        + "\ntransform: \n" + transform + "node.globalTransform: \n" + node.globalTransform);
 
         Vector3 tmp1 = Vector3.Zero.cpy();
         Vector3 tmp2 = Vector3.Zero.cpy();
@@ -415,12 +435,11 @@ public class HGModelInstance extends ModelInstance implements Disposable {
                 //...
                 break;
             case GL_TRIANGLES:
-                //Gdx.app.debug(getClass().getSimpleName(),
-                //        "mesh part: " + mp.id + " offset: " + mp.offset + " size: " + mp.size);
                 for (int i = mp.offset; i < mp.offset + mp.size; i += 3) { // 3 corners of a triangle
                     tmp1.set(vertices[vs*indices[i+0]+po], vertices[vs*indices[i+0]+po+1], vertices[vs*indices[i+0]+po+2]);
                     tmp2.set(vertices[vs*indices[i+1]+po], vertices[vs*indices[i+1]+po+1], vertices[vs*indices[i+1]+po+2]);
                     tmp3.set(vertices[vs*indices[i+2]+po], vertices[vs*indices[i+2]+po+1], vertices[vs*indices[i+2]+po+2]);
+                    //Gdx.app.debug(getClass().getSimpleName(), "1: " + tmp1 + " 2: " + tmp2 + " 3: " + tmp3);
                     if (bwo > 0) {
                         // ignoring bwn for now...
                         tmp1.mul(transform.cpy().mul(nodePart.bones[(short)vertices[vs*indices[i+0]+bwo]]));
@@ -435,13 +454,12 @@ public class HGModelInstance extends ModelInstance implements Disposable {
                         //[NaN|NaN|NaN|NaN]
                         //[0.0|0.0|0.0|1.0]
                     } else {
-                        tmp1.mul(transform.cpy());
-                        tmp2.mul(transform.cpy());
-                        tmp3.mul(transform.cpy());
+                        tmp1.mul(node.globalTransform).mul(transform);
+                        tmp2.mul(node.globalTransform).mul(transform);
+                        tmp3.mul(node.globalTransform).mul(transform);
                     }
                     //tmp1.mul(tmpM1); tmp2.mul(tmpM2); tmp3.mul(tmpM3);
-
-                    // Gdx.app.debug(getClass().getSimpleName(), "1: " + tmp1 + " 2: " + tmp2 + " 3: " + tmp3);
+                    //Gdx.app.debug(getClass().getSimpleName(), "1: " + tmp1 + " 2: " + tmp2 + " 3: " + tmp3);
                     // see https://www.khronos.org/opengl/wiki/Vertex_Specification
                     // see https://www.khronos.org/opengl/wiki/Vertex_Rendering
                     // see https://www.khronos.org/opengl/wiki/Primitive
