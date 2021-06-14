@@ -428,7 +428,9 @@ public class HGModelInstance extends ModelInstance implements Disposable {
         Vector3 tmpV1 = Vector3.Zero.cpy();
         Vector3 tmpV2 = Vector3.Zero.cpy();
         Vector3 tmpV3 = Vector3.Zero.cpy();
-        Matrix4 tmpM1, tmpM2, tmpM3;
+        Matrix4 tmpM1 = new Matrix4();
+        Matrix4 tmpM2 = new Matrix4();
+        Matrix4 tmpM3 = new Matrix4();
 
         Color color = aux_colors.get(auxMeshCounter++ % aux_colors.size);
         switch (mp.primitiveType) {
@@ -442,10 +444,7 @@ public class HGModelInstance extends ModelInstance implements Disposable {
                     tmpV3.set(vertices[vs*indices[i+2]+po], vertices[vs*indices[i+2]+po+1], vertices[vs*indices[i+2]+po+2]);
                     //Gdx.app.debug(getClass().getSimpleName(), "1: " + tmpV1 + " 2: " + tmpV2 + " 3: " + tmpV3);
 
-                    tmpM1 = transform.cpy();
-                    tmpM2 = transform.cpy();
-                    tmpM3 = transform.cpy();
-
+                    tmpM1.set(transform); tmpM2.set(transform); tmpM3.set(transform);
                     if (bwo > 0) {
                         // ignoring bwn for now...
                         tmpM1.mul(nodePart.bones[(short)vertices[vs*indices[i+0]+bwo]]);
