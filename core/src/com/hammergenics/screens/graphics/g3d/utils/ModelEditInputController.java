@@ -41,6 +41,16 @@ public class ModelEditInputController extends SpectatorInputController {
         public ModelEditInputController meic;
 
         @Override
+        public boolean touchDown(float x, float y, int pointer, int button) {
+            if (meic.modelES.checkTouchDown(x, y, pointer, button)) {
+                return super.touchDown(x, y, pointer, button);
+            } else {
+                return false;
+            }
+            //return super.touchDown(x, y, pointer, button);
+        }
+
+        @Override
         public boolean tap(float x, float y, int count, int button) {
             if (meic.modelES != null) { meic.modelES.checkTap(x, y, count, button); }
             return super.tap(x, y, count, button);

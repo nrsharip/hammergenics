@@ -35,6 +35,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.SpotLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.environment.PointLight;
 import com.badlogic.gdx.math.Intersector;
+import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
@@ -49,6 +50,8 @@ import com.hammergenics.screens.graphics.glutils.HGImmediateModeRenderer20;
 import com.hammergenics.screens.stages.ModelEditStage;
 import com.hammergenics.screens.utils.AttributesMap;
 import com.hammergenics.utils.LibgdxUtils;
+
+import java.util.Arrays;
 
 import static com.hammergenics.HGEngine.filterModels;
 import static com.hammergenics.screens.graphics.g3d.utils.Models.createTestSphere;
@@ -429,6 +432,20 @@ public class ModelEditScreen extends ScreenAdapter {
         }
     }
 
+    public boolean checkTouchDown(float x, float y, int pointer, int button) {
+        if (eng.hoveredOverMI != null) {
+            Vector3 currTranslation = eng.hoveredOverMI.transform.getTranslation(new Vector3());
+            Vector3 currScale = eng.hoveredOverMI.transform.getScale(new Vector3());
+            Quaternion currRotation = eng.hoveredOverMI.transform.getRotation(new Quaternion());
+
+            Gdx.app.debug(getClass().getSimpleName(), "b translation: " + currTranslation);
+            Gdx.app.debug(getClass().getSimpleName(), "b scale: " + currScale);
+            Gdx.app.debug(getClass().getSimpleName(), "b rotation: " + currRotation);
+            Gdx.app.debug(getClass().getSimpleName(), "b:\n" + eng.hoveredOverMI.transform);
+        }
+        return true;
+    }
+
     public void checkTap(float x, float y, int count, int button) {
         Ray ray = perspectiveCamera.getPickRay(x, y);
         switch (button) {
@@ -438,8 +455,6 @@ public class ModelEditScreen extends ScreenAdapter {
                     eng.currMI = out.get(0);
                     stage.afterCurrentModelInstanceChanged(false);
                 }
-                // TODO: fix the problem of miLabel having the emissive color from hovering
-                // (it is not there anymore - just miLabel didn't get updated properly)
                 break;
             case Input.Buttons.MIDDLE:
                 break;
@@ -495,9 +510,22 @@ public class ModelEditScreen extends ScreenAdapter {
                     eng.draggedMI = eng.hoveredOverMI;
 
                     Camera cam = perspectiveCamera;
+
+                    Vector3 currTranslation = eng.draggedMI.transform.getTranslation(new Vector3());
+                    Vector3 currScale = eng.draggedMI.transform.getScale(new Vector3());
+                    Quaternion currRotation = eng.draggedMI.transform.getRotation(new Quaternion());
+
+                    float[] values = eng.draggedMI.transform.getValues();
+                    values = Arrays.copyOf(values, values.length);
+
+                    // see https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation
+                    // see https://j3d.org/matrix_faq/matrfaq_latest.html
+                    // see http://web.archive.org/web/20041029003853/http://web.archive.org/web/20041029003853/http://www.j3d.org/matrix_faq/matrfaq_latest.html#Q50
+
+                    eng.draggedMI.transform.setToTranslation(currTranslation);
+
                     float currMaxD = eng.draggedMI.getMaxDimension();
                     float currMaxS = eng.draggedMI.getMaxScale();
-
 
                     Vector3 tmpV = Vector3.Zero.cpy();
                     tmpV.set(cam.direction).crs(cam.up).nor().scl(4 * fracX * overallDistance / currMaxS);
@@ -505,6 +533,9 @@ public class ModelEditScreen extends ScreenAdapter {
                     tmpV.set(cam.up).y = 0;
                     tmpV.nor().scl(4 * -fracY * overallDistance / currMaxS);
                     eng.draggedMI.transform.translate(tmpV);
+
+                    eng.draggedMI.transform.rotate(currRotation);
+                    eng.draggedMI.transform.scl(currScale);
 
                     eng.draggedMI.bbHgModelInstanceReset();
                     eng.draggedMI.bbCornersReset();
@@ -520,8 +551,7 @@ public class ModelEditScreen extends ScreenAdapter {
                     Vector3 intrs = Vector3.Zero.cpy();
                     Intersector.intersectRayBounds(ray, miBB, intrs);
 
-//                    Gdx.app.debug(getClass().getSimpleName(), ""
-//                            + " centr: " + centr + " intrs: " + intrs);
+                    //Gdx.app.debug(getClass().getSimpleName(), " centr: " + centr + " intrs: " + intrs);
 
                     eng.hoveredOverMI.transform.rotate(Vector3.Y.cpy(), fracX * 360f);
                     eng.hoveredOverMI.transform.rotate(Vector3.X.cpy(), fracY * 360f);
@@ -539,6 +569,17 @@ public class ModelEditScreen extends ScreenAdapter {
     }
 
     public boolean checkPanStop(float x, float y, int pointer, int button) {
+        if (eng.hoveredOverMI != null) {
+            Vector3 currTranslation = eng.hoveredOverMI.transform.getTranslation(new Vector3());
+            Vector3 currScale = eng.hoveredOverMI.transform.getScale(new Vector3());
+            Quaternion currRotation = eng.hoveredOverMI.transform.getRotation(new Quaternion());
+
+            Gdx.app.debug(getClass().getSimpleName(), "a translation: " + currTranslation);
+            Gdx.app.debug(getClass().getSimpleName(), "a scale: " + currScale);
+            Gdx.app.debug(getClass().getSimpleName(), "a rotation: " + currRotation);
+            Gdx.app.debug(getClass().getSimpleName(), "a:\n" + eng.hoveredOverMI.transform);
+        }
+
         eng.draggedMI = null;
         return true;
     }
