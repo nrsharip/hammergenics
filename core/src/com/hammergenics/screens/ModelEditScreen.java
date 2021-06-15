@@ -27,7 +27,6 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
-import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
@@ -35,13 +34,9 @@ import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.SpotLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.environment.PointLight;
-import com.badlogic.gdx.graphics.g3d.model.Node;
-import com.badlogic.gdx.graphics.g3d.shaders.BaseShader;
-import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
-import com.badlogic.gdx.graphics.g3d.utils.BaseShaderProvider;
-import com.badlogic.gdx.graphics.g3d.utils.DefaultShaderProvider;
-import com.badlogic.gdx.graphics.g3d.utils.DefaultTextureBinder;
+import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
@@ -494,9 +489,29 @@ public class ModelEditScreen extends ScreenAdapter {
 //                    );
                     return false;
                 }
-            // fall-through
-            case Input.Buttons.MIDDLE: // fall-through
-            case Input.Buttons.RIGHT:  // fall-through
+                return true;
+            case Input.Buttons.MIDDLE:
+                if (eng.hoveredOverMI != null) {
+                    float fracX = deltaX / Gdx.graphics.getWidth(), fracY = deltaY / Gdx.graphics.getHeight();
+                    Ray ray = perspectiveCamera.getPickRay(x, y);
+                    BoundingBox miBB = eng.hoveredOverMI.getBB();
+                    Vector3 centr = miBB.getCenter(new Vector3());
+                    Vector3 intrs = Vector3.Zero.cpy();
+                    Intersector.intersectRayBounds(ray, miBB, intrs);
+
+//                    Gdx.app.debug(getClass().getSimpleName(), ""
+//                            + " centr: " + centr + " intrs: " + intrs);
+
+                    eng.hoveredOverMI.transform.rotate(Vector3.Y.cpy(), fracX * 360f);
+                    eng.hoveredOverMI.transform.rotate(Vector3.X.cpy(), fracY * 360f);
+
+                    eng.hoveredOverMI.bbHgModelInstanceReset();
+                    eng.hoveredOverMI.bbCornersReset();
+
+                    return false;
+                }
+                return true;
+            case Input.Buttons.RIGHT:
                 return true;
         }
         return true;

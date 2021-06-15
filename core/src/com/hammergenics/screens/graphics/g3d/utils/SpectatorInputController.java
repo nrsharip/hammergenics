@@ -48,27 +48,27 @@ public class SpectatorInputController extends HGInputController {
         public boolean pan(float x, float y, float deltaX, float deltaY) {
             if (sic == null) return super.pan(x, y, deltaX, deltaY);
 
-            Vector3 v1 = Vector3.Zero.cpy(), v2 = Vector3.Zero.cpy();
+            Vector3 tmpV1 = Vector3.Zero.cpy(), tmpV2 = Vector3.Zero.cpy();
             float fracX = deltaX / Gdx.graphics.getWidth(), fracY = deltaY / Gdx.graphics.getHeight();
             switch (touchDownButton) {
                 case Buttons.LEFT:
                     float distance = Math.max(sic.unitDistance, sic.overallDistance);
                     // X delta: Moving the camera position along the cross product of camera's direction and up vectors
-                    sic.camera.translate(v1.set(sic.camera.direction).crs(sic.camera.up).nor().scl(4 * -fracX * distance));
+                    sic.camera.translate(tmpV1.set(sic.camera.direction).crs(sic.camera.up).nor().scl(4 * -fracX * distance));
                     // camera's up vector XZ projection
-                    v2.set(sic.camera.up).y = 0;
+                    tmpV2.set(sic.camera.up).y = 0;
                     // Y delta: Moving the camera position along the camera's up vector's XZ projection
-                    sic.camera.translate(v2.nor().scl(4 * fracY * distance));
+                    sic.camera.translate(tmpV2.nor().scl(4 * fracY * distance));
                     // in summary, the camera moves within the [Direction x Up][Up's XZ projection] plane.
-                    sic.rotateAround.add(v1).add(v2); // shifting the rotation point along with the camera position
+                    sic.rotateAround.add(tmpV1).add(tmpV2); // shifting the rotation point along with the camera position
                     break;
                 case Buttons.MIDDLE:
                     break;
                 case Buttons.RIGHT:
                     // camera Direction and camera Up vectors cross product's XZ projection
-                    v1.set(sic.camera.direction).crs(sic.camera.up).y = 0f;
+                    tmpV1.set(sic.camera.direction).crs(sic.camera.up).y = 0f;
                     // Y delta: point = rotateAround, axis = unit [Direction x Up], angle = fraction Y * -360 degrees
-                    sic.camera.rotateAround(sic.rotateAround, v1.nor(), fracY * -360f);
+                    sic.camera.rotateAround(sic.rotateAround, tmpV1.nor(), fracY * -360f);
                     // X delta: point = rotateAround, axis = unit Y (0, 1, 0), angle = fraction X * -360 degrees
                     sic.camera.rotateAround(sic.rotateAround, Vector3.Y, fracX * -360f);
                     sic.camera.update();

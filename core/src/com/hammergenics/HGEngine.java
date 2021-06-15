@@ -551,9 +551,10 @@ public class HGEngine implements Disposable {
             Vector3 bbc1 = mi1.getBB().getCenter(new Vector3());
             Vector3 bbc2 = mi2.getBB().getCenter(new Vector3());
 
-            if (ray.origin.cpy().sub(bbc1).len() < ray.origin.cpy().sub(bbc2).len()) { return -1; }
-            if (ray.origin.cpy().sub(bbc1).len() > ray.origin.cpy().sub(bbc2).len()) { return 1; }
-            return 0;
+            float len1 = ray.origin.cpy().sub(bbc1).len();
+            float len2 = ray.origin.cpy().sub(bbc2).len();
+
+            return Float.compare(len1, len2);
         });
         return out;
     }
