@@ -267,17 +267,23 @@ public class HGModelInstance extends ModelInstance implements Disposable {
 
     // TODO: keep this separate for now - move to another class?
     public void addNodeToRenderer(HGImmediateModeRenderer20 imr, Node node, Color c1, Color c2, int depth) {
-        Matrix4 tmpM4 = node.globalTransform.cpy().mulLeft(transform.cpy());
-        //Gdx.app.debug(getClass().getSimpleName(), "node: " + node.id + "\n" + tmpM4);
-        imr.box(tmpM4, 1/10f, Color.CYAN);
+        Matrix4 tmpM4 = transform.cpy().mul(node.globalTransform);
+        Vector3 trn = tmpM4.getTranslation(new Vector3());
+        Quaternion rot = tmpM4.getRotation(new Quaternion(), true);
+        // removing the scale component out of the transform:
+        tmpM4.setToTranslation(trn);
+        tmpM4.rotate(rot);
+        // passing the scaleless transform to render with the actual
+        // scale of the box set to 1/40th of the current max dimension
+        imr.box(tmpM4, getMaxDimension()/40f, Color.CYAN);
 
         if (--depth == 0) { return; }
 
         Iterable<Node> children = node.getChildren();
         if (children != null && children.iterator().hasNext()) {
             for (Node child:children) {
-                Vector3 p1 = node.globalTransform.cpy().mulLeft(transform).getTranslation(new Vector3());
-                Vector3 p2 = child.globalTransform.cpy().mulLeft(transform).getTranslation(new Vector3());
+                Vector3 p1 = transform.cpy().mul(node.globalTransform).getTranslation(new Vector3());
+                Vector3 p2 = transform.cpy().mul(child.globalTransform).getTranslation(new Vector3());
                 imr.line(p1, p2, c1, c2);
                 addNodeToRenderer(imr, child, Color.PURPLE, Color.GREEN, depth);
             }

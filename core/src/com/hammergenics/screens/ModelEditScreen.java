@@ -105,7 +105,7 @@ public class ModelEditScreen extends ScreenAdapter {
         //eng.addModelInstance(createTestBox(GL20.GL_LINES));
         //eng.addModelInstance(createTestBox(GL20.GL_TRIANGLES));
         eng.addModelInstance(createTestSphere(GL20.GL_TRIANGLES, 40));
-        stage.afterCurrentModelInstanceChanged(true);
+        stage.afterCurrentModelInstanceChanged();
     }
 
     /**
@@ -232,8 +232,8 @@ public class ModelEditScreen extends ScreenAdapter {
         }
     }
 
-    public void reset(boolean rearrange) {
-        if (rearrange) { eng.arrangeInSpiral(stage.origScaleCheckBox.isChecked()); }
+    public void reset() {
+        eng.arrangeInSpiral(stage.origScaleCheckBox.isChecked());
 
         Vector3 center = eng.currMI != null ? eng.currMI.getBB().getCenter(Vector3.Zero.cpy()) : Vector3.Zero.cpy();
 
@@ -451,7 +451,7 @@ public class ModelEditScreen extends ScreenAdapter {
                 Array<HGModelInstance> out = eng.rayMICollision(ray, eng.hgMIs, new Array<>(HGModelInstance.class));
                 if (out != null && out.size > 0) {
                     eng.currMI = out.get(0);
-                    stage.afterCurrentModelInstanceChanged(false);
+                    stage.reset();
                 }
                 break;
             case Input.Buttons.MIDDLE:
