@@ -464,6 +464,24 @@ public class ModelEditScreen extends ScreenAdapter {
     public boolean checkPan(float x, float y, float deltaX, float deltaY, int touchDownButton, float overallDistance) {
         float fracX = deltaX / Gdx.graphics.getWidth(), fracY = deltaY / Gdx.graphics.getHeight();
         Camera cam = perspectiveCamera;
+
+        Vector3 center = null;
+        Vector3 currTranslation = null;
+        Vector3 currScale = null;
+        Quaternion currRotation = null;
+
+        if (eng.hoveredOverMI != null) {
+            center = eng.hoveredOverMI.getBB().getCenter(new Vector3());
+            currTranslation = eng.hoveredOverMI.transform.getTranslation(new Vector3());
+            currScale = eng.hoveredOverMI.transform.getScale(new Vector3());
+            // see getRotation() description:
+            // normalizeAxes True to normalize the axes, necessary when the matrix might also include scaling.
+            currRotation = eng.hoveredOverMI.transform.getRotation(new Quaternion(), true);
+            // see https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation
+            // see https://j3d.org/matrix_faq/matrfaq_latest.html
+            // see http://web.archive.org/web/20041029003853/http://web.archive.org/web/20041029003853/http://www.j3d.org/matrix_faq/matrfaq_latest.html#Q50
+        }
+
         switch (touchDownButton) {
             case Input.Buttons.LEFT:
                 if (eng.hoveredOverMI != null && eng.hoveredOverCorner != null) {
@@ -471,7 +489,6 @@ public class ModelEditScreen extends ScreenAdapter {
                     eng.currMI = eng.hoveredOverMI;
                     stage.reset();
 
-                    Vector3 center = eng.hoveredOverMI.getBB().getCenter(new Vector3());
                     Vector3 corner = eng.hoveredOverCorner.getBB().getCenter(new Vector3());
 
                     Vector3 coordCenter = cam.project(center.cpy(), 0, 0, cam.viewportWidth, cam.viewportHeight);
@@ -480,13 +497,16 @@ public class ModelEditScreen extends ScreenAdapter {
                     Vector3 coordHlfDiag = coordCorner.cpy().sub(coordCenter);
                     Vector3 coordDir = coordHlfDiag.cpy().nor();
 
+                    // need to make sure the gesture matches the corner correctly.
+                    // e.g. the gesture is top-right:
+                    // * for the top-right corner the scale should be increased
+                    // * for the bottom-left corner the scale should be decreased
                     int sign = coordDelta.dot(coordDir) > 0 ? 1 : -1;
                     float scale = 1 + sign * 0.04f ;
 
                     eng.hoveredOverMI.transform.scale(scale, scale, scale);
                     eng.hoveredOverMI.bbHgModelInstanceReset();
                     eng.hoveredOverMI.bbCornersReset();
-
 //                    Gdx.app.debug(getClass().getSimpleName(), ""
 //                            + " coordCenter: " + coordCenter + " coordCorner: " + coordCorner
 //                            + " coordHlfDiag: " + coordHlfDiag + " coordDir: " + coordDir
@@ -509,29 +529,19 @@ public class ModelEditScreen extends ScreenAdapter {
                     // we hold the left button pressed on the model instance itself - applying translation
                     eng.currMI = eng.hoveredOverMI;
                     stage.reset();
-
                     eng.draggedMI = eng.hoveredOverMI;
 
-                    Vector3 currTranslation = eng.draggedMI.transform.getTranslation(new Vector3());
-                    Vector3 currScale = eng.draggedMI.transform.getScale(new Vector3());
-                    // see getRotation() description:
-                    // normalizeAxes True to normalize the axes, necessary when the matrix might also include scaling.
-                    Quaternion currRotation = eng.draggedMI.transform.getRotation(new Quaternion(), true);
-
-                    // see https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation
-                    // see https://j3d.org/matrix_faq/matrfaq_latest.html
-                    // see http://web.archive.org/web/20041029003853/http://web.archive.org/web/20041029003853/http://www.j3d.org/matrix_faq/matrfaq_latest.html#Q50
-
+                    // removing the rotation and scale components from the transform
                     eng.draggedMI.transform.setToTranslation(currTranslation);
-
+                    // translating as per the gesture
                     Vector3 tmpV = cam.direction.cpy().crs(cam.up).nor().scl(4 * fracX * overallDistance);
-
                     eng.draggedMI.transform.translate(tmpV);
                     tmpV.set(cam.up).y = 0;
                     tmpV.nor().scl(4 * -fracY * overallDistance);
                     eng.draggedMI.transform.translate(tmpV);
-
+                    // restoring the original rotation
                     eng.draggedMI.transform.rotate(currRotation);
+                    // restoring the original scale
                     eng.draggedMI.transform.scale(currScale.x, currScale.y, currScale.z);
 
                     eng.draggedMI.bbHgModelInstanceReset();
@@ -546,17 +556,15 @@ public class ModelEditScreen extends ScreenAdapter {
                     eng.currMI = eng.hoveredOverMI;
                     stage.reset();
 
-                    Ray ray = perspectiveCamera.getPickRay(x, y);
-                    BoundingBox miBB = eng.hoveredOverMI.getBB();
-                    Vector3 centr = miBB.getCenter(new Vector3());
-                    Vector3 intrs = Vector3.Zero.cpy();
-                    Intersector.intersectRayBounds(ray, miBB, intrs);
-
-                    //Gdx.app.debug(getClass().getSimpleName(), " centr: " + centr + " intrs: " + intrs);
-
-                    Vector3 tmpV = cam.direction.cpy().crs(cam.up).nor();
+                    // removing the rotation and scale components from the transform
+                    eng.hoveredOverMI.transform.setToTranslation(currTranslation);
+                    // rotating as per the gesture
                     eng.hoveredOverMI.transform.rotate(cam.up.cpy().nor(), fracX * 360f);
-                    eng.hoveredOverMI.transform.rotate(tmpV, fracY * 360f);
+                    eng.hoveredOverMI.transform.rotate(cam.direction.cpy().crs(cam.up).nor(), fracY * 360f);
+                    // restoring the original rotation
+                    eng.hoveredOverMI.transform.rotate(currRotation);
+                    // restoring the original scale
+                    eng.hoveredOverMI.transform.scale(currScale.x, currScale.y, currScale.z);
 
                     eng.hoveredOverMI.bbHgModelInstanceReset();
                     eng.hoveredOverMI.bbCornersReset();
