@@ -104,7 +104,7 @@ public class ModelEditScreen extends ScreenAdapter {
         //eng.addModelInstance(createTestBox(GL20.GL_LINES));
         //eng.addModelInstance(createTestBox(GL20.GL_TRIANGLES));
         eng.addModelInstance(createTestSphere(GL20.GL_TRIANGLES, 40));
-        stage.afterCurrentModelInstanceChanged();
+        stage.afterCurrentModelInstanceChanged(true);
     }
 
     /**
@@ -231,8 +231,8 @@ public class ModelEditScreen extends ScreenAdapter {
         }
     }
 
-    public void reset() {
-        eng.arrangeInSpiral(stage.origScaleCheckBox.isChecked());
+    public void reset(boolean rearrange) {
+        if (rearrange) { eng.arrangeInSpiral(stage.origScaleCheckBox.isChecked()); }
 
         Vector3 center = eng.currMI != null ? eng.currMI.getBB().getCenter(Vector3.Zero.cpy()) : Vector3.Zero.cpy();
 
@@ -436,7 +436,7 @@ public class ModelEditScreen extends ScreenAdapter {
                 Array<HGModelInstance> out = eng.rayMICollision(ray, eng.hgMIs, new Array<>(HGModelInstance.class));
                 if (out != null && out.size > 0) {
                     eng.currMI = out.get(0);
-                    stage.afterCurrentModelInstanceChanged();
+                    stage.afterCurrentModelInstanceChanged(false);
                 }
                 // TODO: fix the problem of miLabel having the emissive color from hovering
                 // (it is not there anymore - just miLabel didn't get updated properly)
@@ -448,10 +448,12 @@ public class ModelEditScreen extends ScreenAdapter {
         }
     }
 
-    public boolean checkPan(float x, float y, float deltaX, float deltaY, int touchDownButton) {
+    public boolean checkPan(float x, float y, float deltaX, float deltaY, int touchDownButton, float overallDistance) {
+        float fracX = deltaX / Gdx.graphics.getWidth(), fracY = deltaY / Gdx.graphics.getHeight();
         switch (touchDownButton) {
             case Input.Buttons.LEFT:
                 if (eng.hoveredOverMI != null && eng.hoveredOverCorner != null) {
+                    // we clicked on the model instance's corner - engaging into scaling
                     Camera cam = perspectiveCamera;
 
                     Vector3 center = eng.hoveredOverMI.getBB().getCenter(new Vector3());
@@ -464,7 +466,7 @@ public class ModelEditScreen extends ScreenAdapter {
                     Vector3 coordDir = coordHlfDiag.cpy().nor();
 
                     int sign = coordDelta.dot(coordDir) > 0 ? 1 : -1;
-                    float scale = sign * 0.02f ;
+                    float scale = sign * 0.04f ;
 
                     eng.hoveredOverMI.transform.scl(1 + scale);
                     eng.hoveredOverMI.bbHgModelInstanceReset();
@@ -488,11 +490,30 @@ public class ModelEditScreen extends ScreenAdapter {
 //                            + "cam.combined: \n" + cam.combined
 //                    );
                     return false;
+                } else if (eng.hoveredOverMI != null) {
+                    // we clicked on the model instance itself, not it's corner
+                    eng.draggedMI = eng.hoveredOverMI;
+
+                    Camera cam = perspectiveCamera;
+                    float currMaxD = eng.draggedMI.getMaxDimension();
+                    float currMaxS = eng.draggedMI.getMaxScale();
+
+
+                    Vector3 tmpV = Vector3.Zero.cpy();
+                    tmpV.set(cam.direction).crs(cam.up).nor().scl(4 * fracX * overallDistance / currMaxS);
+                    eng.draggedMI.transform.translate(tmpV);
+                    tmpV.set(cam.up).y = 0;
+                    tmpV.nor().scl(4 * -fracY * overallDistance / currMaxS);
+                    eng.draggedMI.transform.translate(tmpV);
+
+                    eng.draggedMI.bbHgModelInstanceReset();
+                    eng.draggedMI.bbCornersReset();
+
+                    return false;
                 }
                 return true;
             case Input.Buttons.MIDDLE:
                 if (eng.hoveredOverMI != null) {
-                    float fracX = deltaX / Gdx.graphics.getWidth(), fracY = deltaY / Gdx.graphics.getHeight();
                     Ray ray = perspectiveCamera.getPickRay(x, y);
                     BoundingBox miBB = eng.hoveredOverMI.getBB();
                     Vector3 centr = miBB.getCenter(new Vector3());
@@ -514,6 +535,11 @@ public class ModelEditScreen extends ScreenAdapter {
             case Input.Buttons.RIGHT:
                 return true;
         }
+        return true;
+    }
+
+    public boolean checkPanStop(float x, float y, int pointer, int button) {
+        eng.draggedMI = null;
         return true;
     }
 }

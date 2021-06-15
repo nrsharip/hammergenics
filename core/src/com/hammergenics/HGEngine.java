@@ -104,6 +104,7 @@ public class HGEngine implements Disposable {
     // main Model Instances
     public HGModelInstance hoveredOverMI = null;
     public AttributesMap hoveredOverMIAttributes = null;
+    public HGModelInstance draggedMI = null;
     // bounding box, corners
     public HGModelInstance hoveredOverBBMI = null;
     public Array<HGModelInstance> hoveredOverCornerMIs = null;
