@@ -387,19 +387,6 @@ public class ModelEditStage extends Stage {
     public void afterCurrentModelInstanceChanged(boolean rearrange) {
         modelES.reset(rearrange);
         reset();
-        nodeSelectBox.getColor().set(Color.WHITE);
-
-        if (modelES.eng.currMI == null) { return; }
-
-        // Select Box: Animations
-        Array<String> itemsAnimation = new Array<>();
-        itemsAnimation.add("No Animation");
-        modelES.eng.currMI.animations.forEach(a -> itemsAnimation.add(a.id));
-        animationSelectBox.getSelection().setProgrammaticChangeEvents(false);
-        animationSelectBox.clearItems();
-        animationSelectBox.setItems(itemsAnimation);
-        animationSelectBox.getSelection().setProgrammaticChangeEvents(true);
-        miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelES.eng.currMI));
     }
 
     public void resetFolderSelectBoxItems(ArrayMap<FileHandle, Array<FileHandle>> f2m) {
@@ -576,5 +563,19 @@ public class ModelEditStage extends Stage {
             nodeSelectBox.setItems(array2);
             nodeSelectBox.getSelection().setProgrammaticChangeEvents(true);
         }
+
+        nodeSelectBox.getColor().set(Color.WHITE);
+
+        if (modelES.eng.currMI == null) { return; }
+
+        // Select Box: Animations
+        Array<String> itemsAnimation = new Array<>();
+        itemsAnimation.add("No Animation");
+        modelES.eng.currMI.animations.forEach(a -> itemsAnimation.add(a.id));
+        animationSelectBox.getSelection().setProgrammaticChangeEvents(false);
+        animationSelectBox.clearItems();
+        animationSelectBox.setItems(itemsAnimation);
+        animationSelectBox.getSelection().setProgrammaticChangeEvents(true);
+        miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelES.eng.currMI));
     }
 }

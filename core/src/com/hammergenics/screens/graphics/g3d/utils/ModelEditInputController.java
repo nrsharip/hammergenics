@@ -59,7 +59,7 @@ public class ModelEditInputController extends SpectatorInputController {
         @Override
         public boolean pan(float x, float y, float deltaX, float deltaY) {
             if (meic.modelES != null) {
-                if (meic.modelES.checkPan(x, y, deltaX, deltaY, touchDownButton, meic.overallDistance)) {
+                if (meic.modelES.checkPan(x, y, deltaX, deltaY, touchDownButton, meic.getOverallDistance())) {
                     return super.pan(x, y, deltaX, deltaY);
                 } else {
                     return false;

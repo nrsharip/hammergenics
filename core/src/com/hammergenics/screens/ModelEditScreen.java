@@ -51,8 +51,6 @@ import com.hammergenics.screens.stages.ModelEditStage;
 import com.hammergenics.screens.utils.AttributesMap;
 import com.hammergenics.utils.LibgdxUtils;
 
-import java.util.Arrays;
-
 import static com.hammergenics.HGEngine.filterModels;
 import static com.hammergenics.screens.graphics.g3d.utils.Models.createTestSphere;
 
@@ -468,7 +466,10 @@ public class ModelEditScreen extends ScreenAdapter {
         switch (touchDownButton) {
             case Input.Buttons.LEFT:
                 if (eng.hoveredOverMI != null && eng.hoveredOverCorner != null) {
-                    // we clicked on the model instance's corner - engaging into scaling
+                    // we hold the left button pressed on the model instance's corner - applying scaling
+                    eng.currMI = eng.hoveredOverMI;
+                    stage.reset();
+
                     Camera cam = perspectiveCamera;
 
                     Vector3 center = eng.hoveredOverMI.getBB().getCenter(new Vector3());
@@ -506,17 +507,19 @@ public class ModelEditScreen extends ScreenAdapter {
 //                    );
                     return false;
                 } else if (eng.hoveredOverMI != null) {
-                    // we clicked on the model instance itself, not it's corner
+                    // we hold the left button pressed on the model instance itself - applying translation
+                    eng.currMI = eng.hoveredOverMI;
+                    stage.reset();
+
                     eng.draggedMI = eng.hoveredOverMI;
 
                     Camera cam = perspectiveCamera;
 
                     Vector3 currTranslation = eng.draggedMI.transform.getTranslation(new Vector3());
                     Vector3 currScale = eng.draggedMI.transform.getScale(new Vector3());
-                    Quaternion currRotation = eng.draggedMI.transform.getRotation(new Quaternion());
-
-                    float[] values = eng.draggedMI.transform.getValues();
-                    values = Arrays.copyOf(values, values.length);
+                    // see getRotation() description:
+                    // normalizeAxes True to normalize the axes, necessary when the matrix might also include scaling.
+                    Quaternion currRotation = eng.draggedMI.transform.getRotation(new Quaternion(), true);
 
                     // see https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation
                     // see https://j3d.org/matrix_faq/matrfaq_latest.html
@@ -524,18 +527,15 @@ public class ModelEditScreen extends ScreenAdapter {
 
                     eng.draggedMI.transform.setToTranslation(currTranslation);
 
-                    float currMaxD = eng.draggedMI.getMaxDimension();
-                    float currMaxS = eng.draggedMI.getMaxScale();
-
                     Vector3 tmpV = Vector3.Zero.cpy();
-                    tmpV.set(cam.direction).crs(cam.up).nor().scl(4 * fracX * overallDistance / currMaxS);
+                    tmpV.set(cam.direction).crs(cam.up).nor().scl(4 * fracX * overallDistance);
                     eng.draggedMI.transform.translate(tmpV);
                     tmpV.set(cam.up).y = 0;
-                    tmpV.nor().scl(4 * -fracY * overallDistance / currMaxS);
+                    tmpV.nor().scl(4 * -fracY * overallDistance);
                     eng.draggedMI.transform.translate(tmpV);
 
                     eng.draggedMI.transform.rotate(currRotation);
-                    eng.draggedMI.transform.scl(currScale);
+                    eng.draggedMI.transform.scale(currScale.x, currScale.y, currScale.z);
 
                     eng.draggedMI.bbHgModelInstanceReset();
                     eng.draggedMI.bbCornersReset();
@@ -545,6 +545,10 @@ public class ModelEditScreen extends ScreenAdapter {
                 return true;
             case Input.Buttons.MIDDLE:
                 if (eng.hoveredOverMI != null) {
+                    // we hold the middle button pressed on the model instance itself - applying rotation
+                    eng.currMI = eng.hoveredOverMI;
+                    stage.reset();
+
                     Ray ray = perspectiveCamera.getPickRay(x, y);
                     BoundingBox miBB = eng.hoveredOverMI.getBB();
                     Vector3 centr = miBB.getCenter(new Vector3());

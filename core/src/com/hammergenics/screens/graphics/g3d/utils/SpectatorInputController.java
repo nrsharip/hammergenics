@@ -52,7 +52,7 @@ public class SpectatorInputController extends HGInputController {
             float fracX = deltaX / Gdx.graphics.getWidth(), fracY = deltaY / Gdx.graphics.getHeight();
             switch (touchDownButton) {
                 case Buttons.LEFT:
-                    float distance = Math.max(sic.unitDistance, sic.overallDistance);
+                    float distance = sic.getOverallDistance();
                     // X delta: Moving the camera position along the cross product of camera's direction and up vectors
                     sic.camera.translate(tmpV1.set(sic.camera.direction).crs(sic.camera.up).nor().scl(4 * -fracX * distance));
                     // camera's up vector XZ projection
@@ -94,6 +94,8 @@ public class SpectatorInputController extends HGInputController {
     private String getTag() {
         return getClass().getSimpleName() + "." + Thread.currentThread().getStackTrace()[2].getMethodName();
     }
+
+    public float getOverallDistance() { return Math.max(unitDistance, overallDistance); }
 
     public void update(float delta) { camera.update(); }
 }
