@@ -463,14 +463,13 @@ public class ModelEditScreen extends ScreenAdapter {
 
     public boolean checkPan(float x, float y, float deltaX, float deltaY, int touchDownButton, float overallDistance) {
         float fracX = deltaX / Gdx.graphics.getWidth(), fracY = deltaY / Gdx.graphics.getHeight();
+        Camera cam = perspectiveCamera;
         switch (touchDownButton) {
             case Input.Buttons.LEFT:
                 if (eng.hoveredOverMI != null && eng.hoveredOverCorner != null) {
                     // we hold the left button pressed on the model instance's corner - applying scaling
                     eng.currMI = eng.hoveredOverMI;
                     stage.reset();
-
-                    Camera cam = perspectiveCamera;
 
                     Vector3 center = eng.hoveredOverMI.getBB().getCenter(new Vector3());
                     Vector3 corner = eng.hoveredOverCorner.getBB().getCenter(new Vector3());
@@ -513,8 +512,6 @@ public class ModelEditScreen extends ScreenAdapter {
 
                     eng.draggedMI = eng.hoveredOverMI;
 
-                    Camera cam = perspectiveCamera;
-
                     Vector3 currTranslation = eng.draggedMI.transform.getTranslation(new Vector3());
                     Vector3 currScale = eng.draggedMI.transform.getScale(new Vector3());
                     // see getRotation() description:
@@ -527,8 +524,8 @@ public class ModelEditScreen extends ScreenAdapter {
 
                     eng.draggedMI.transform.setToTranslation(currTranslation);
 
-                    Vector3 tmpV = Vector3.Zero.cpy();
-                    tmpV.set(cam.direction).crs(cam.up).nor().scl(4 * fracX * overallDistance);
+                    Vector3 tmpV = cam.direction.cpy().crs(cam.up).nor().scl(4 * fracX * overallDistance);
+
                     eng.draggedMI.transform.translate(tmpV);
                     tmpV.set(cam.up).y = 0;
                     tmpV.nor().scl(4 * -fracY * overallDistance);
@@ -557,8 +554,9 @@ public class ModelEditScreen extends ScreenAdapter {
 
                     //Gdx.app.debug(getClass().getSimpleName(), " centr: " + centr + " intrs: " + intrs);
 
-                    eng.hoveredOverMI.transform.rotate(Vector3.Y.cpy(), fracX * 360f);
-                    eng.hoveredOverMI.transform.rotate(Vector3.X.cpy(), fracY * 360f);
+                    Vector3 tmpV = cam.direction.cpy().crs(cam.up).nor();
+                    eng.hoveredOverMI.transform.rotate(cam.up.cpy().nor(), fracX * 360f);
+                    eng.hoveredOverMI.transform.rotate(tmpV, fracY * 360f);
 
                     eng.hoveredOverMI.bbHgModelInstanceReset();
                     eng.hoveredOverMI.bbCornersReset();
