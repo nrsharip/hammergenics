@@ -27,12 +27,15 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.model.MeshPart;
 import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.model.NodePart;
+import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Disposable;
+import com.badlogic.gdx.utils.ObjectMap;
 import com.hammergenics.screens.graphics.glutils.HGImmediateModeRenderer20;
 
 import static com.badlogic.gdx.graphics.GL20.GL_LINES;
@@ -50,6 +53,11 @@ import static com.hammergenics.utils.LibgdxUtils.aux_colors;
  * @author nrsharip
  */
 public class DebugModelInstance extends HGModelInstance implements Disposable {
+    public final ArrayMap<Node, Array<NodePart>> n2np = new ArrayMap<>(Node.class, Array.class);
+    public final ArrayMap<Node, HGModel> node2model = new ArrayMap<>(Node.class, HGModel.class);
+    public final ArrayMap<String, HGModel> nodeid2model = new ArrayMap<>(String.class, HGModel.class);
+    public final ArrayMap<HGModel, Node> model2node = new ArrayMap<>(HGModel.class, Node.class);
+
     public HGModel bbHgModel = null;
     public HGModelInstance bbHgMI = null;
     public Array<HGModelInstance> bbCornerMIs = null;
@@ -64,6 +72,9 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
     public DebugModelInstance(HGModel hgModel, FileHandle assetFL, String... rootNodeIds) {
         super(hgModel, assetFL, rootNodeIds);
         createBBModel();
+
+        checkNodeParts();
+        createNodePartModels();
     }
 
     @Override
@@ -73,16 +84,55 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
         bbHgModel.dispose();
         if (bbHgMI != null) { bbHgMI.dispose(); }
         if (bbCornerMIs != null) { bbCornerMIs.forEach(HGModelInstance::dispose); }
+        // TODO: clear things up with model disposal
+        //node2model.values().forEach(HGModel::dispose);
     }
 
-    // TODO: keep this separate for now - move to another class?
+    public void checkNodeParts() { for (Node node:nodes) { checkNodeParts(node); } }
+
+    public void checkNodeParts(Node node) {
+        //Gdx.app.debug(getClass().getSimpleName(), ""
+        //        + "node.id: " + node.id + " globalTransform:\n" + node.globalTransform);
+        for (NodePart nodePart:node.parts) {
+            if (n2np.containsKey(node)) { n2np.get(node).add(nodePart); }
+            else { n2np.put(node, new Array<>(new NodePart[]{nodePart})); }
+
+            Gdx.app.debug(getClass().getSimpleName(), ""
+                    + (afh != null ? afh.name() : "empty") + ": node.id: " + node.id
+                    + " mesh.id: " + nodePart.meshPart.id + " material: " + nodePart.material.id);
+        }
+
+        Iterable<Node> children = node.getChildren();
+        if (children != null && children.iterator().hasNext()) {
+            for (Node child:children) { checkNodeParts(child); }
+        }
+    }
+
+    public void createNodePartModels() {
+        ModelBuilder mb = new ModelBuilder();
+        if (n2np.size > 1) {
+            for (ObjectMap.Entry<Node, Array<NodePart>> entry:n2np) {
+                Gdx.app.debug(getClass().getSimpleName(), ""
+                        + (afh != null ? afh.name() : "empty")
+                        + ": creating model for node.id: " + entry.key.id
+                );
+                mb.begin();
+                for (NodePart nodePart:entry.value) { mb.part(nodePart.meshPart, nodePart.material); }
+                HGModel tmpModel = new HGModel(mb.end());
+
+                node2model.put(entry.key, tmpModel);
+                nodeid2model.put(entry.key.id, tmpModel);
+                model2node.put(tmpModel, entry.key);
+            }
+        }
+    }
+
     private void createBBModel() {
         if (bbHgModel != null) { bbHgModel.dispose(); }
 
         bbHgModel = new HGModel(createBoundingBoxModel());
     }
 
-    // TODO: keep this separate for now - move to another class?
     public HGModelInstance getBBHgModelInstance(Color boxColor) {
         if (bbHgModel == null) { return null; }
         if (bbHgMI != null) { bbHgMI.dispose(); bbHgMI = null; }
@@ -158,19 +208,17 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
         }
     }
 
-    // TODO: keep this separate for now - move to another class?
     public void addNodesToRenderer(HGImmediateModeRenderer20 imr) {
         for (Node node:nodes) {
             //if (node.id.equals("characterMedium"))
             addNodeToRenderer(imr, node, Color.RED, Color.GREEN);
         }
     }
-    // TODO: keep this separate for now - move to another class?
+
     public void addNodeToRenderer(HGImmediateModeRenderer20 imr, Node node, Color c1, Color c2) {
         addNodeToRenderer(imr, node, c1, c2, -1);
     }
 
-    // TODO: keep this separate for now - move to another class?
     public void addNodeToRenderer(HGImmediateModeRenderer20 imr, Node node, Color c1, Color c2, int depth) {
         Matrix4 tmpM4 = transform.cpy().mul(node.globalTransform);
         Vector3 trn = tmpM4.getTranslation(new Vector3());
@@ -195,7 +243,6 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
         }
     }
 
-    // TODO: keep this separate for now - move to another class?
     public void addBonesToRenderer(HGImmediateModeRenderer20 imr) {
         for (Node node:nodes) {
             //if (node.id.equals("characterMedium"))
@@ -203,7 +250,6 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
         }
     }
 
-    // TODO: keep this separate for now - move to another class?
     public void addBonesToRenderer(HGImmediateModeRenderer20 imr, Node node,
                                    Color c1, Color c2, Color c3, Color c4) {
         for (NodePart nodePart:node.parts) {
@@ -245,13 +291,11 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
         }
     }
 
-    // TODO: keep this separate for now - move to another class?
     public void addMeshPartsToRenderer(HGImmediateModeRenderer20 imr) {
         auxMeshCounter = 0;
         for (Node node:nodes) { addMeshPartsToRenderer(imr, node); }
     }
 
-    // TODO: keep this separate for now - move to another class?
     public void addMeshPartsToRenderer(HGImmediateModeRenderer20 imr, Node node) {
         for (NodePart nodePart:node.parts) {
             addMeshPartToRenderer(imr, node, nodePart, nodePart.meshPart);
@@ -265,7 +309,6 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
         }
     }
 
-    // TODO: keep this separate for now - move to another class?
     public void addMeshPartToRenderer(HGImmediateModeRenderer20 imr, Node node, NodePart nodePart, MeshPart mp) {
         if (node == null || nodePart == null || !nodePart.enabled || mp == null || mp.mesh == null) { return; }
 

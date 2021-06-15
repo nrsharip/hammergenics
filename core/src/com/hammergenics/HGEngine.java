@@ -97,7 +97,7 @@ public class HGEngine implements Disposable {
     public Array<HGModelInstance> auxMIs = new Array<>(HGModelInstance.class);
 
     // ModelInstance Related:
-    public Array<DebugModelInstance> hgMIs = new Array<>(DebugModelInstance.class);
+    public Array<DebugModelInstance> dbgMIs = new Array<>(DebugModelInstance.class);
     public float unitSize = 0f;
     public float overallSize = 0f;
     public DebugModelInstance currMI = null;
@@ -131,8 +131,7 @@ public class HGEngine implements Disposable {
         assetManager.dispose();
         if (gridHgModel != null) { gridHgModel.dispose(); }
         if (lightsHgModel != null) { lightsHgModel.dispose(); }
-        for (HGModelInstance mi:hgMIs) { mi.dispose(); }
-
+        for (DebugModelInstance mi: dbgMIs) { mi.dispose(); }
     }
 
     public void queueAssets(FileHandle rootFileHandle) {
@@ -269,10 +268,12 @@ public class HGEngine implements Disposable {
     public void addModelInstances(Array<FileHandle> modelFHs) {
         if (modelFHs == null) { return; }
 
-        modelFHs.forEach(fileHandle -> addModelInstance(fileHandle, null, -1));
+        modelFHs.forEach(fileHandle -> addModelInstance(fileHandle));
 
-        if (hgMIs.size > 0) { currMI = hgMIs.get(0); }
+        if (dbgMIs.size > 0) { currMI = dbgMIs.get(0); }
     }
+
+    public boolean addModelInstance(FileHandle assetFL) { return addModelInstance(assetFL, null, -1); }
 
     public boolean addModelInstance(FileHandle assetFL, String nodeId, int nodeIndex) {
         HGModel hgModel = new HGModel(assetManager.get(assetFL.path(), Model.class), assetFL);
@@ -286,6 +287,8 @@ public class HGEngine implements Disposable {
     public boolean addModelInstance(Model model, String nodeId, int nodeIndex) {
         return addModelInstance(new HGModel(model), nodeId, nodeIndex);
     }
+
+    public boolean addModelInstance(HGModel hgModel) { return addModelInstance(hgModel, null, -1); }
 
     public boolean addModelInstance(HGModel hgModel, String nodeId, int nodeIndex) {
         if (!hgModel.hasMaterials() && !hgModel.hasMeshes() && !hgModel.hasMeshParts()) {
@@ -340,7 +343,7 @@ public class HGEngine implements Disposable {
         }
 
         currMI.setAttributes(new BlendingAttribute());
-        hgMIs.add(currMI);
+        dbgMIs.add(currMI);
 
         // ********************
         // **** ANIMATIONS ****
@@ -402,8 +405,8 @@ public class HGEngine implements Disposable {
     public Vector2 arrangeInSpiral(boolean keepOriginalScale) {
         Vector2 cell = Vector2.Zero.cpy();
         unitSize = 0f;
-        for(HGModelInstance hgMI: hgMIs) { if (hgMI.maxD > unitSize) { unitSize = hgMI.maxD; } }
-        for(HGModelInstance hgMI: hgMIs) {
+        for(HGModelInstance hgMI: dbgMIs) { if (hgMI.maxD > unitSize) { unitSize = hgMI.maxD; } }
+        for(HGModelInstance hgMI: dbgMIs) {
             hgMI.transform.idt(); // first cancel any previous transform
             float factor = 1f;
             // Scale: if the dimension of the current instance is less than maximum dimension of all instances scale it
@@ -453,7 +456,7 @@ public class HGEngine implements Disposable {
         }
         bbArrayHgModelInstance = new Array<>(ModelInstance.class);
 
-        for (DebugModelInstance mi:hgMIs) {
+        for (DebugModelInstance mi: dbgMIs) {
             if (mi.equals(currMI)) { bbArrayHgModelInstance.add(mi.getBBHgModelInstance(Color.GREEN)); }
             else { bbArrayHgModelInstance.add(mi.getBBHgModelInstance(Color.BLACK)); }
         }
@@ -466,8 +469,8 @@ public class HGEngine implements Disposable {
         plArrayHgModelInstance = new Array<>(ModelInstance.class);
 
         Vector3 envPosition;
-        if (hgMIs != null && hgMIs.size > 0) {
-            envPosition = hgMIs.get(0).getBB().getCenter(new Vector3());
+        if (dbgMIs != null && dbgMIs.size > 0) {
+            envPosition = dbgMIs.get(0).getBB().getCenter(new Vector3());
         } else {
             envPosition = Vector3.Zero.cpy();
         }
@@ -581,8 +584,8 @@ public class HGEngine implements Disposable {
     }
 
     public void clearModelInstances() {
-        hgMIs.forEach(HGModelInstance::dispose);
-        hgMIs.clear();
+        dbgMIs.forEach(HGModelInstance::dispose);
+        dbgMIs.clear();
         // no need to dispose - will be done in HGModelInstance on dispose()
         //auxMIs.forEach(HGModelInstance::dispose);
         auxMIs.clear();

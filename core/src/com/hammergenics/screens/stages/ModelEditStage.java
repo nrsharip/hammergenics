@@ -173,7 +173,7 @@ public class ModelEditStage extends Stage {
                     afterCurrentModelInstanceChanged();
                     Gdx.app.debug(modelSelectBox.getClass().getSimpleName(), "model selected: ALL");
                 } else {
-                    modelES.eng.addModelInstance(modelSelectBox.getSelected(), null, -1);
+                    modelES.eng.addModelInstance(modelSelectBox.getSelected());
                     afterCurrentModelInstanceChanged();
                     Gdx.app.debug(modelSelectBox.getClass().getSimpleName(), "model selected: " + modelSelectBox.getSelected());
                 }
@@ -188,11 +188,10 @@ public class ModelEditStage extends Stage {
             public void changed(ChangeEvent event, Actor actor) {
                 if (modelES.eng.currMI == null) { return; }
                 if (nodeSelectBox.getSelectedIndex() == 0) { // 'all' selected
-                    modelES.eng.addModelInstance(modelES.eng.currMI.afh, null, -1);
+                    modelES.eng.addModelInstance(modelSelectBox.getSelected());
                     afterCurrentModelInstanceChanged();
                 } else {
-                    if (!modelES.eng.addModelInstance(modelES.eng.currMI.afh, nodeSelectBox.getSelected(),
-                            nodeSelectBox.getSelectedIndex() - 1)) { // -1 since there's 'all' item
+                    if (!modelES.eng.addModelInstance(modelES.eng.currMI.nodeid2model.get(nodeSelectBox.getSelected()))) { // -1 since there's 'all' item
                         nodeSelectBox.getColor().set(Color.PINK);
                     } else {
                         afterCurrentModelInstanceChanged();
@@ -555,7 +554,7 @@ public class ModelEditStage extends Stage {
             nodeSelectBox.getSelection().setProgrammaticChangeEvents(false);
             nodeSelectBox.clearItems();
 
-            String array1[] = Arrays.stream(modelES.eng.currMI.hgModel.obj.nodes.toArray(Node.class)).map(n->n.id).toArray(String[]::new);
+            String array1[] = modelES.eng.currMI.nodeid2model.keys().toArray().toArray();
             String array2[] = new String[array1.length + 1];
             System.arraycopy(array1, 0, array2, 1, array1.length);
             array2[0] = "All";

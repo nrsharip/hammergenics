@@ -66,8 +66,6 @@ public class HGModelInstance extends ModelInstance implements Disposable {
         calculateBoundingBox(bb);
         Vector3 dims = bb.getDimensions(new Vector3());
         maxD = Math.max(Math.max(dims.x, dims.y), dims.z);
-
-
     }
 
     @Override

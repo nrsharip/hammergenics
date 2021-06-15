@@ -119,7 +119,7 @@ public class ModelEditScreen extends ScreenAdapter {
 
         modelEditInputController.update(delta);
 
-        eng.hgMIs.forEach(hgMI -> {
+        eng.dbgMIs.forEach(hgMI -> {
             if(hgMI.animationController != null) {
                 hgMI.animationController.update(delta);
 //                if (animationDesc.loopCount == 0) {
@@ -152,7 +152,7 @@ public class ModelEditScreen extends ScreenAdapter {
 
         // for future reference:
         // * Enable caching as soon as multiple instances are rendered: https://github.com/libgdx/libgdx/wiki/ModelCache
-        if (eng.hgMIs.size > 0 && environment != null) { modelBatch.render(eng.hgMIs, environment); }
+        if (eng.dbgMIs.size > 0 && environment != null) { modelBatch.render(eng.dbgMIs, environment); }
         if (eng.auxMIs.size > 0) { modelBatch.render(eng.auxMIs); }
         if (eng.gridXZHgModelInstance != null && stage.gridXZCheckBox.isChecked()) {
             modelBatch.render(eng.gridXZHgModelInstance);
@@ -169,9 +169,9 @@ public class ModelEditScreen extends ScreenAdapter {
         modelBatch.end();
 
         immediateModeRenderer.begin(perspectiveCamera.combined, GL20.GL_LINES);
-        if (stage.nodesCheckBox.isChecked()) { eng.hgMIs.forEach(hgMI -> hgMI.addNodesToRenderer(immediateModeRenderer)); }
-        if (stage.meshPartsCheckBox.isChecked()) { eng.hgMIs.forEach(hgMI -> hgMI.addMeshPartsToRenderer(immediateModeRenderer)); }
-        if (stage.bonesCheckBox.isChecked()) { eng.hgMIs.forEach(hgMI -> hgMI.addBonesToRenderer(immediateModeRenderer)); }
+        if (stage.nodesCheckBox.isChecked()) { eng.dbgMIs.forEach(hgMI -> hgMI.addNodesToRenderer(immediateModeRenderer)); }
+        if (stage.meshPartsCheckBox.isChecked()) { eng.dbgMIs.forEach(hgMI -> hgMI.addMeshPartsToRenderer(immediateModeRenderer)); }
+        if (stage.bonesCheckBox.isChecked()) { eng.dbgMIs.forEach(hgMI -> hgMI.addBonesToRenderer(immediateModeRenderer)); }
         immediateModeRenderer.end();
 
         checkTimerEvents(delta);
@@ -366,8 +366,8 @@ public class ModelEditScreen extends ScreenAdapter {
         environment.add(new DirectionalLight().set(Color.WHITE, -1f, -0.5f, -1f));
         // adding a single point light
         Vector3 plPosition;
-        if (eng.hgMIs != null && eng.hgMIs.size > 0) {
-            plPosition = eng.hgMIs.get(0).getBB().getCenter(new Vector3());
+        if (eng.dbgMIs != null && eng.dbgMIs.size > 0) {
+            plPosition = eng.dbgMIs.get(0).getBB().getCenter(new Vector3());
         } else {
             plPosition = Vector3.Zero.cpy();
         }
@@ -410,7 +410,7 @@ public class ModelEditScreen extends ScreenAdapter {
             }
         }
 
-        Array<DebugModelInstance> out = eng.rayMICollision(ray, eng.hgMIs, new Array<>(DebugModelInstance.class));
+        Array<DebugModelInstance> out = eng.rayMICollision(ray, eng.dbgMIs, new Array<>(DebugModelInstance.class));
 
         if (out.size > 0 && !out.get(0).equals(eng.hoveredOverMI)) {
             // no need to dispose the box and the corners - will be done in HGModelInstance on dispose()
@@ -447,7 +447,7 @@ public class ModelEditScreen extends ScreenAdapter {
         Ray ray = perspectiveCamera.getPickRay(x, y);
         switch (button) {
             case Input.Buttons.LEFT:
-                Array<DebugModelInstance> out = eng.rayMICollision(ray, eng.hgMIs, new Array<>(DebugModelInstance.class));
+                Array<DebugModelInstance> out = eng.rayMICollision(ray, eng.dbgMIs, new Array<>(DebugModelInstance.class));
                 if (out != null && out.size > 0) {
                     eng.currMI = out.get(0);
                     stage.reset();
