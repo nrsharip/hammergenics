@@ -44,6 +44,7 @@ import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.Logger;
 import com.badlogic.gdx.utils.Sort;
 import com.hammergenics.config.Config;
+import com.hammergenics.screens.graphics.g3d.DebugModelInstance;
 import com.hammergenics.screens.graphics.g3d.HGModel;
 import com.hammergenics.screens.graphics.g3d.HGModelInstance;
 import com.hammergenics.screens.utils.AttributesMap;
@@ -96,15 +97,15 @@ public class HGEngine implements Disposable {
     public Array<HGModelInstance> auxMIs = new Array<>(HGModelInstance.class);
 
     // ModelInstance Related:
-    public Array<HGModelInstance> hgMIs = new Array<>(HGModelInstance.class);
+    public Array<DebugModelInstance> hgMIs = new Array<>(DebugModelInstance.class);
     public float unitSize = 0f;
     public float overallSize = 0f;
-    public HGModelInstance currMI = null;
+    public DebugModelInstance currMI = null;
     public Vector2 currCell = Vector2.Zero.cpy();
     // main Model Instances
-    public HGModelInstance hoveredOverMI = null;
+    public DebugModelInstance hoveredOverMI = null;
     public AttributesMap hoveredOverMIAttributes = null;
-    public HGModelInstance draggedMI = null;
+    public DebugModelInstance draggedMI = null;
     // bounding box, corners
     public HGModelInstance hoveredOverBBMI = null;
     public Array<HGModelInstance> hoveredOverCornerMIs = null;
@@ -296,7 +297,7 @@ public class HGEngine implements Disposable {
         }
 
         if (nodeId == null) {
-            currMI = new HGModelInstance(hgModel, hgModel.afh);
+            currMI = new DebugModelInstance(hgModel, hgModel.afh);
         } else {
             // TODO: maybe it's good to add a Tree for Node traversal
             // https://libgdx.badlogicgames.com/ci/nightlies/docs/api/com/badlogic/gdx/scenes/scene2d/ui/Tree.html
@@ -329,7 +330,7 @@ public class HGEngine implements Disposable {
                 }
             }
             Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),"nodeId: " + nodeId + " nodeIndex: " + nodeIndex);
-            currMI = new HGModelInstance(hgModel, hgModel.afh, nodeId);
+            currMI = new DebugModelInstance(hgModel, hgModel.afh, nodeId);
             // for some reasons getting this exception in case nodeId == null:
             // (should be done like (String[])null maybe...)
             // Exception in thread "LWJGL Application" java.lang.NullPointerException
@@ -452,7 +453,7 @@ public class HGEngine implements Disposable {
         }
         bbArrayHgModelInstance = new Array<>(ModelInstance.class);
 
-        for (HGModelInstance mi:hgMIs) {
+        for (DebugModelInstance mi:hgMIs) {
             if (mi.equals(currMI)) { bbArrayHgModelInstance.add(mi.getBBHgModelInstance(Color.GREEN)); }
             else { bbArrayHgModelInstance.add(mi.getBBHgModelInstance(Color.BLACK)); }
         }
@@ -542,10 +543,10 @@ public class HGEngine implements Disposable {
      * @param out
      * @return An array of model instances sorted by the distance from camera position (ascending order)
      */
-    public Array<HGModelInstance> rayMICollision(Ray ray, Array<HGModelInstance> modelInstances, Array<HGModelInstance> out) {
+    public <T extends HGModelInstance> Array<T> rayMICollision(Ray ray, Array<T> modelInstances, Array<T> out) {
         // TODO: revisit this later when the Bullet Collision Physics is added
 
-        for (HGModelInstance mi:modelInstances) {
+        for (T mi:modelInstances) {
             if (Intersector.intersectRayBoundsFast(ray, mi.getBB())) { out.add(mi); }
         }
         Sort.instance().sort(out, (mi1, mi2) -> {

@@ -34,16 +34,15 @@ import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.SpotLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.environment.PointLight;
-import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.hammergenics.HGEngine;
 import com.hammergenics.HGGame;
+import com.hammergenics.screens.graphics.g3d.DebugModelInstance;
 import com.hammergenics.screens.graphics.g3d.HGModelInstance;
 import com.hammergenics.screens.graphics.g3d.utils.ModelEditInputController;
 import com.hammergenics.screens.graphics.glutils.HGImmediateModeRenderer20;
@@ -411,7 +410,7 @@ public class ModelEditScreen extends ScreenAdapter {
             }
         }
 
-        Array<HGModelInstance> out = eng.rayMICollision(ray, eng.hgMIs, new Array<>(HGModelInstance.class));
+        Array<DebugModelInstance> out = eng.rayMICollision(ray, eng.hgMIs, new Array<>(DebugModelInstance.class));
 
         if (out.size > 0 && !out.get(0).equals(eng.hoveredOverMI)) {
             // no need to dispose the box and the corners - will be done in HGModelInstance on dispose()
@@ -448,7 +447,7 @@ public class ModelEditScreen extends ScreenAdapter {
         Ray ray = perspectiveCamera.getPickRay(x, y);
         switch (button) {
             case Input.Buttons.LEFT:
-                Array<HGModelInstance> out = eng.rayMICollision(ray, eng.hgMIs, new Array<>(HGModelInstance.class));
+                Array<DebugModelInstance> out = eng.rayMICollision(ray, eng.hgMIs, new Array<>(DebugModelInstance.class));
                 if (out != null && out.size > 0) {
                     eng.currMI = out.get(0);
                     stage.reset();
