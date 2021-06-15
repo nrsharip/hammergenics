@@ -481,9 +481,9 @@ public class ModelEditScreen extends ScreenAdapter {
                     Vector3 coordDir = coordHlfDiag.cpy().nor();
 
                     int sign = coordDelta.dot(coordDir) > 0 ? 1 : -1;
-                    float scale = sign * 0.04f ;
+                    float scale = 1 + sign * 0.04f ;
 
-                    eng.hoveredOverMI.transform.scl(1 + scale);
+                    eng.hoveredOverMI.transform.scale(scale, scale, scale);
                     eng.hoveredOverMI.bbHgModelInstanceReset();
                     eng.hoveredOverMI.bbCornersReset();
 
