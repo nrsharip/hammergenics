@@ -48,7 +48,6 @@ public class HGModelInstance extends ModelInstance implements Disposable {
     public final float maxD;
     public AnimationController animationController = null;
     public AnimationController.AnimationDesc animationDesc = null;
-    public int animationIndex = 0;
 
     public HGModelInstance (final Model model) { this(new HGModel(model), null, (String[])null); }
     public HGModelInstance (final Model model, final String... rootNodeIds) { this(new HGModel(model), null, rootNodeIds); }

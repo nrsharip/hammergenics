@@ -24,6 +24,7 @@ import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
+import com.badlogic.gdx.graphics.g3d.model.Animation;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -35,6 +36,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.SelectBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Slider;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
@@ -105,6 +107,10 @@ public class ModelEditStage extends Stage {
     public TextButton attrTextButton = null;
     public TextButton animTextButton = null;
     public TextButton clearModelsTextButton = null;
+
+    // TODO: ANIMATIONS RELATED: to be moved to a separate class
+    public CheckBox animLoopCheckBox;
+    public Slider keyFrameSlider = null;
 
     public BaseAttributeTable.EventListener eventListener;
     
@@ -208,20 +214,22 @@ public class ModelEditStage extends Stage {
         animationSelectBox.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                modelES.eng.currMI.animationIndex = animationSelectBox.getSelectedIndex() - 1; // -1 since we have "No Animation" item
+                int index = animationSelectBox.getSelectedIndex() - 1; // -1 since we have "No Animation" item
                 if (modelES.eng.currMI.animationController == null) { return; }
 
-                if (modelES.eng.currMI.animationIndex < 0) {
+                if (index < 0) {
+                    modelES.eng.currMI.animationDesc = null;
                     modelES.eng.currMI.animationController.setAnimation(null);
                     return;
                 }
 
-                modelES.eng.currMI.animationDesc = modelES.eng.currMI.animationController.setAnimation(
-                        modelES.eng.currMI.animations.get(modelES.eng.currMI.animationIndex).id, -1);
-                Gdx.app.debug(animationSelectBox.getClass().getSimpleName(),
-                        "animation selected: " + modelES.eng.currMI.animations.get(modelES.eng.currMI.animationIndex).id);
-                // Uncomment to get gen_* files with fields contents:
-                //LibGDXUtil.getFieldsContents(animationDesc, 3,  "", true);
+                Animation anim = modelES.eng.currMI.getAnimation(animationSelectBox.getSelected());
+                if (animLoopCheckBox.isChecked()) {
+                    modelES.eng.currMI.animationDesc = modelES.eng.currMI.animationController.setAnimation(anim.id, -1);
+                }
+                Gdx.app.debug(animationSelectBox.getClass().getSimpleName(), "animation selected: " + anim.id);
+                keyFrameSlider.setRange(0, anim.duration);
+                keyFrameSlider.setStepSize(anim.duration/1000f);
             }
         });
 
@@ -321,6 +329,38 @@ public class ModelEditStage extends Stage {
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 modelES.eng.clearModelInstances();
                 return super.touchDown(event, x, y, pointer, button);
+            }
+        });
+
+        // TODO: ANIMATIONS RELATED: to be moved to a separate class
+        animLoopCheckBox = new CheckBox("loop", skin);
+        animLoopCheckBox.setChecked(true);
+        animLoopCheckBox.addListener(new ChangeListener() {
+            @Override
+            public void changed (ChangeEvent event, Actor actor) {
+                int index = animationSelectBox.getSelectedIndex() - 1; // -1 since we have "No Animation" item
+                if (modelES.eng.currMI.animationController == null || index < 0) { return; }
+
+                if (animLoopCheckBox.isChecked()) {
+                    Animation anim = modelES.eng.currMI.getAnimation(animationSelectBox.getSelected());
+                    modelES.eng.currMI.animationDesc = modelES.eng.currMI.animationController.setAnimation(anim.id, -1);
+                } else {
+                    modelES.eng.currMI.animationDesc = null;
+                    modelES.eng.currMI.animationController.setAnimation(null);
+                }
+            }
+        });
+
+        // SLIDERS:
+        keyFrameSlider = new Slider(0f, 10f, 0.1f, false, skin);
+        keyFrameSlider.addListener(new ChangeListener() {
+            @Override
+            public void changed (ChangeEvent event, Actor actor) {
+                if (animationSelectBox.getSelectedIndex() != 0) {
+                    Animation anim = modelES.eng.currMI.getAnimation(animationSelectBox.getSelected());
+                    Gdx.app.debug("ChangeListener", ""
+                            + " anim id: " + anim.id + " value: " + keyFrameSlider.getValue());
+                }
             }
         });
 
@@ -469,7 +509,10 @@ public class ModelEditStage extends Stage {
         upperPanel.add(new Label("Node: ", skin)).padLeft(5f).right();
         upperPanel.add(nodeSelectBox).padLeft(5f).left();
         upperPanel.add(new Label("Animation: ", skin)).padLeft(5f).right();
+        // TODO: ANIMATIONS RELATED: to be moved to a separate class
         upperPanel.add(animationSelectBox).padLeft(5f).left();
+        upperPanel.add(animLoopCheckBox).padLeft(5f).left();
+        upperPanel.add(keyFrameSlider).padLeft(5f).left();
         upperPanel.add().expandX();
 
         rootTable.add();

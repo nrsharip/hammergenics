@@ -25,8 +25,10 @@ import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.graphics.g3d.model.Animation;
 import com.badlogic.gdx.graphics.g3d.model.MeshPart;
 import com.badlogic.gdx.graphics.g3d.model.Node;
+import com.badlogic.gdx.graphics.g3d.model.NodeAnimation;
 import com.badlogic.gdx.graphics.g3d.model.NodePart;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Matrix4;
@@ -95,6 +97,22 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
         if (bbCornerMIs != null) { bbCornerMIs.forEach(HGModelInstance::dispose); }
         // TODO: clear things up with model disposal
         //node2model.values().forEach(HGModel::dispose);
+    }
+
+    public void checkAnimations() {
+        for (Animation anim:animations) {
+            Gdx.app.debug(getClass().getSimpleName(), ""
+                    + " anim.id " + anim.id + " anim.id " + anim.duration
+            );
+            for (NodeAnimation nodeAnim:anim.nodeAnimations) {
+                Gdx.app.debug(getClass().getSimpleName(), "    "
+                        + " nodeAnim.node.id " + (nodeAnim.node != null ? nodeAnim.node.id : "null")
+                        + " rotation.size " + (nodeAnim.rotation != null ? nodeAnim.rotation.size : "null")
+                        + " scaling.size " + (nodeAnim.scaling != null ? nodeAnim.scaling.size : "null")
+                        + " translation.size " + (nodeAnim.translation != null ? nodeAnim.translation.size : "null")
+                );
+            }
+        }
     }
 
     public void checkNodeParts() { for (Node node:nodes) { checkNodeParts(node); } }
