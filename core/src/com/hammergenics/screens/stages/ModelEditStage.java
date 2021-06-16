@@ -282,9 +282,21 @@ public class ModelEditStage extends Stage {
                     camTextButton.getColor().set(COLOR_UNPRESSED);
 
                     attrTextButton.getColor().set(COLOR_PRESSED);
-                    editCell.setActor(mi2atable.get(modelES.eng.currMI));
+
+                    AggregatedAttributesManagerTable table = mi2atable.get(modelES.eng.currMI);
+                    if (!table.isAnyButtonPressed()) { table.pressEnv(); }
+                    else if (table.isPressed(table.envTextButton)) {
+                        infoTCell.setActor(envLabel);
+                    } else if (table.isPressed(table.mtlTextButton)) {
+                        infoTCell.setActor(miLabel);
+                        infoBCell.setActor(textureImage);
+                    }
+
+                    editCell.setActor(table);
                 } else if (attrTextButton.getColor().equals(COLOR_PRESSED)) {
                     attrTextButton.getColor().set(COLOR_UNPRESSED);
+                    infoTCell.clearActor();
+                    infoBCell.clearActor();
                     editCell.clearActor();
                 }
 
@@ -502,13 +514,15 @@ public class ModelEditStage extends Stage {
     public void reset() {
         if (modelES == null) { return; }
 
-        //textureImage.setDrawable(null);
+        textureImage.setDrawable(null);
 
         if (modelES.eng.currMI != null) {
             if (attrTextButton.getColor().equals(COLOR_PRESSED)) {
                 editCell.clearActor();
-                mi2atable.get(modelES.eng.currMI).reset();
-                editCell.setActor(mi2atable.get(modelES.eng.currMI));
+
+                AggregatedAttributesManagerTable table = mi2atable.get(modelES.eng.currMI);
+                editCell.setActor(table);
+                if (!table.isAnyButtonPressed()) { table.pressEnv(); }
             }
 
             // making sure no events fired during the nodeSelectBox reset

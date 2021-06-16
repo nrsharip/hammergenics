@@ -55,8 +55,7 @@ public class AggregatedAttributesManagerTable extends HGTable {
         topPanel.add(envTextButton).fillX();
         topPanel.add(mtlTextButton).fillX();
         topPanel.add().expandX();
-
-        add(topPanel);
+        add(topPanel).fillX();
         row();
         attrTableCell = add();
     }
@@ -69,21 +68,7 @@ public class AggregatedAttributesManagerTable extends HGTable {
         mtlTextButton.addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                if (mtlTextButton.getColor().equals(stage.COLOR_UNPRESSED)) {
-                    // clearing all buttons first
-                    mtlTextButton.getColor().set(stage.COLOR_UNPRESSED);
-                    envTextButton.getColor().set(stage.COLOR_UNPRESSED);
-
-                    // setting MTL specific actors
-                    mtlTextButton.getColor().set(stage.COLOR_PRESSED);
-                    stage.infoTCell.setActor(stage.miLabel);
-                    stage.infoBCell.setActor(stage.textureImage);
-                } else if (mtlTextButton.getColor().equals(stage.COLOR_PRESSED)) {
-                    mtlTextButton.getColor().set(stage.COLOR_UNPRESSED);
-                    stage.infoTCell.clearActor();
-                    stage.infoBCell.clearActor();
-                }
-                reset();
+                pressMtl();
                 return super.touchDown(event, x, y, pointer, button); // false
                 // If true is returned, this listener will have touch focus, so it will receive all
                 // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
@@ -96,20 +81,7 @@ public class AggregatedAttributesManagerTable extends HGTable {
         envTextButton.addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                if (envTextButton.getColor().equals(stage.COLOR_UNPRESSED)) {
-                    // clearing all buttons first
-                    mtlTextButton.getColor().set(stage.COLOR_UNPRESSED);
-                    envTextButton.getColor().set(stage.COLOR_UNPRESSED);
-
-                    // setting ENV specific actors
-                    envTextButton.getColor().set(stage.COLOR_PRESSED);
-                    stage.infoTCell.setActor(stage.envLabel);
-                } else if (envTextButton.getColor().equals(stage.COLOR_PRESSED)) {
-                    envTextButton.getColor().set(stage.COLOR_UNPRESSED);
-                    stage.infoTCell.clearActor();
-                    stage.infoBCell.clearActor();
-                }
-                reset();
+                pressEnv();
                 return super.touchDown(event, x, y, pointer, button); // false
                 // If true is returned, this listener will have touch focus, so it will receive all
                 // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
@@ -118,22 +90,68 @@ public class AggregatedAttributesManagerTable extends HGTable {
         });
     }
 
-    public void reset() {
-        stage.infoTCell.clearActor();
-        stage.infoBCell.clearActor();
-        attrTableCell.clearActor();
+    public void unpressAllButtons() {
+        // clearing all buttons
+        mtlTextButton.getColor().set(stage.COLOR_UNPRESSED);
+        envTextButton.getColor().set(stage.COLOR_UNPRESSED);
+    }
+
+    public void unpressButton(TextButton btn) { btn.getColor().set(stage.COLOR_UNPRESSED); }
+    public void pressButton(TextButton btn) { btn.getColor().set(stage.COLOR_PRESSED); }
+
+    public boolean isPressed(TextButton btn) { return btn.getColor().equals(stage.COLOR_PRESSED); }
+    public boolean isAnyButtonPressed() { return isPressed(mtlTextButton) || isPressed(envTextButton); }
+
+    public void pressEnv() {
+        if (!isPressed(envTextButton)) {
+            unpressAllButtons();
+            pressButton(envTextButton);
+
+            stage.infoTCell.setActor(stage.envLabel);
+        } else {
+            unpressButton(envTextButton);
+
+            stage.infoTCell.clearActor();
+            stage.infoBCell.clearActor();
+            attrTableCell.clearActor();
+        }
+        resetActors();
+    }
+
+    public void pressMtl() {
+        if (!isPressed(mtlTextButton)) {
+            unpressAllButtons();
+            pressButton(mtlTextButton);
+
+            stage.infoTCell.setActor(stage.miLabel);
+            stage.infoBCell.setActor(stage.textureImage);
+        } else {
+            unpressButton(mtlTextButton);
+
+            stage.infoTCell.clearActor();
+            stage.infoBCell.clearActor();
+            attrTableCell.clearActor();
+        }
+        resetActors();
+    }
+
+    public void resetActors() {
+        //stage.infoTCell.clearActor();
+        //stage.infoBCell.clearActor();
+        //attrTableCell.clearActor();
+
         // **************************
         // **** ATTRIBUTES 2D UI ****
         // **************************
         if (modelES.environment != null) {
             stage.envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(modelES.environment,"", ""));
-            if (envTextButton.getColor().equals(stage.COLOR_PRESSED)) {
+            if (isPressed(envTextButton)) {
                 attrTableCell.setActor(stage.envAttrTable);
             }
         }
 
         if (dbgModelInstance != null) {
-            if (mtlTextButton.getColor().equals(stage.COLOR_PRESSED)) {
+            if (isPressed(mtlTextButton)) {
                 attrTableCell.setActor(dbgModelInstance.mtl2atable.firstValue());
             }
         }
