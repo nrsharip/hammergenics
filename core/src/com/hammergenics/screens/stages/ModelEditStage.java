@@ -46,7 +46,6 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import com.hammergenics.HGGame;
 import com.hammergenics.config.Config;
 import com.hammergenics.screens.ModelEditScreen;
-import com.hammergenics.screens.graphics.g3d.DebugModelInstance;
 import com.hammergenics.screens.graphics.g3d.HGModel;
 import com.hammergenics.screens.stages.ui.AggregatedAttributesManagerTable;
 import com.hammergenics.screens.stages.ui.AttributesManagerTable;
@@ -82,8 +81,7 @@ public class ModelEditStage extends Stage {
     public Cell<?> editCell = null;
 
     public AttributesManagerTable envAttrTable;
-    public final ArrayMap<DebugModelInstance, AggregatedAttributesManagerTable> mi2atable =
-            new ArrayMap<>(DebugModelInstance.class, AggregatedAttributesManagerTable.class);
+    public AggregatedAttributesManagerTable aggrAttrTable;
 
     // 2D Stage Widgets:
     public Label miLabel;  // Model Instance Info
@@ -117,6 +115,8 @@ public class ModelEditStage extends Stage {
         setup2DStageStyling();
         setup2DStageWidgets();
         setup2DStageLayout();
+
+        aggrAttrTable = new AggregatedAttributesManagerTable(modelES, this);
     }
 
     /**
@@ -276,24 +276,19 @@ public class ModelEditStage extends Stage {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 editCell.clearActor();
-                if (attrTextButton.getColor().equals(COLOR_UNPRESSED)) {
-                    // clearing all buttons first
-                    attrTextButton.getColor().set(COLOR_UNPRESSED);
-                    camTextButton.getColor().set(COLOR_UNPRESSED);
+                if (!isPressed(attrTextButton)) {
+                    unpressAllButtons();
 
-                    attrTextButton.getColor().set(COLOR_PRESSED);
-
-                    AggregatedAttributesManagerTable table = mi2atable.get(modelES.eng.currMI);
-                    if (!table.isAnyButtonPressed()) { table.pressEnv(); }
-                    else if (table.isPressed(table.envTextButton)) {
+                    pressButton(attrTextButton);
+                    if (!aggrAttrTable.isAnyButtonPressed()) { aggrAttrTable.pressEnv(); }
+                    else if (isPressed(aggrAttrTable.envTextButton)) {
                         infoTCell.setActor(envLabel);
-                    } else if (table.isPressed(table.mtlTextButton)) {
+                    } else if (isPressed(aggrAttrTable.mtlTextButton)) {
                         infoTCell.setActor(miLabel);
                         infoBCell.setActor(textureImage);
                     }
-
-                    editCell.setActor(table);
-                } else if (attrTextButton.getColor().equals(COLOR_PRESSED)) {
+                    editCell.setActor(aggrAttrTable);
+                } else {
                     attrTextButton.getColor().set(COLOR_UNPRESSED);
                     infoTCell.clearActor();
                     infoBCell.clearActor();
@@ -316,7 +311,6 @@ public class ModelEditStage extends Stage {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 modelES.eng.clearModelInstances();
-                mi2atable.clear();
                 return super.touchDown(event, x, y, pointer, button);
             }
         });
@@ -348,19 +342,19 @@ public class ModelEditStage extends Stage {
 
     public boolean addModelInstance(FileHandle assetFL) {
         boolean created = modelES.eng.addModelInstance(assetFL);
-        if (created) { mi2atable.put(modelES.eng.currMI, new AggregatedAttributesManagerTable(skin, modelES, modelES.eng.currMI)); }
+        if (created) { aggrAttrTable.setDbgModelInstance(modelES.eng.currMI); }
         return created;
     }
 
     public boolean addModelInstance(Model model) {
         boolean created = modelES.eng.addModelInstance(model);
-        if (created) { mi2atable.put(modelES.eng.currMI, new AggregatedAttributesManagerTable(skin, modelES, modelES.eng.currMI)); }
+        if (created) { aggrAttrTable.setDbgModelInstance(modelES.eng.currMI); }
         return created;
     }
 
     public boolean addModelInstance(HGModel hgModel) {
         boolean created = modelES.eng.addModelInstance(hgModel);
-        if (created) { mi2atable.put(modelES.eng.currMI, new AggregatedAttributesManagerTable(skin, modelES, modelES.eng.currMI)); }
+        if (created) { aggrAttrTable.setDbgModelInstance(modelES.eng.currMI); }
         return created;
     }
 
@@ -511,18 +505,21 @@ public class ModelEditStage extends Stage {
         addActor(rootTable);
     }
 
+    public void unpressAllButtons() { unpressButton(attrTextButton); unpressButton(camTextButton); }
+    public void unpressButton(TextButton btn) { btn.getColor().set(COLOR_UNPRESSED); }
+    public void pressButton(TextButton btn) { btn.getColor().set(COLOR_PRESSED); }
+    public boolean isPressed(TextButton btn) { return btn.getColor().equals(COLOR_PRESSED); }
+
     public void reset() {
         if (modelES == null) { return; }
 
         textureImage.setDrawable(null);
 
         if (modelES.eng.currMI != null) {
-            if (attrTextButton.getColor().equals(COLOR_PRESSED)) {
+            aggrAttrTable.setDbgModelInstance(modelES.eng.currMI);
+            if (isPressed(attrTextButton)) {
                 editCell.clearActor();
-
-                AggregatedAttributesManagerTable table = mi2atable.get(modelES.eng.currMI);
-                editCell.setActor(table);
-                if (!table.isAnyButtonPressed()) { table.pressEnv(); }
+                editCell.setActor(aggrAttrTable);
             }
 
             // making sure no events fired during the nodeSelectBox reset

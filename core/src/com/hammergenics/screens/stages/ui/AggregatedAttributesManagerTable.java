@@ -17,12 +17,14 @@
 package com.hammergenics.screens.stages.ui;
 
 
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Cell;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.SelectBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.hammergenics.screens.ModelEditScreen;
 import com.hammergenics.screens.graphics.g3d.DebugModelInstance;
 import com.hammergenics.screens.stages.ModelEditStage;
@@ -40,20 +42,21 @@ public class AggregatedAttributesManagerTable extends HGTable {
 
     public Cell<?> attrTableCell;
     
-    public TextButton mtlTextButton = null;
-    public TextButton envTextButton = null;
+    public TextButton mtlTextButton;
+    public TextButton envTextButton;
+    public SelectBox<String> mtlSelectBox;
 
-    public AggregatedAttributesManagerTable(Skin skin, ModelEditScreen modelES, DebugModelInstance dbgModelInstance) {
-        super(skin);
+    public AggregatedAttributesManagerTable(ModelEditScreen modelES, ModelEditStage stage) {
+        super(stage.skin);
         this.modelES = modelES;
-        this.stage = modelES.stage;
-        this.dbgModelInstance = dbgModelInstance;
+        this.stage = stage;
 
         init();
 
         Table topPanel = new Table();
-        topPanel.add(envTextButton).fillX();
-        topPanel.add(mtlTextButton).fillX();
+        topPanel.add(envTextButton).padRight(5f);
+        topPanel.add(mtlTextButton).padRight(5f);
+        topPanel.add(mtlSelectBox);
         topPanel.add().expandX();
         add(topPanel).fillX();
         row();
@@ -61,76 +64,79 @@ public class AggregatedAttributesManagerTable extends HGTable {
     }
 
     private void init() {
-        dbgModelInstance.createMtlAttributeTables(stage.skin, stage.eventListener, modelES);
-
         mtlTextButton = new TextButton("MTL", stage.skin);
-        mtlTextButton.getColor().set(stage.COLOR_UNPRESSED);
+        stage.unpressButton(mtlTextButton);
         mtlTextButton.addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 pressMtl();
                 return super.touchDown(event, x, y, pointer, button); // false
-                // If true is returned, this listener will have touch focus, so it will receive all
-                // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
-                // Also when true is returned, the event is handled
             }
         });
 
         envTextButton = new TextButton("ENV", stage.skin);
-        envTextButton.getColor().set(stage.COLOR_UNPRESSED);
+        stage.unpressButton(envTextButton);
         envTextButton.addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 pressEnv();
                 return super.touchDown(event, x, y, pointer, button); // false
-                // If true is returned, this listener will have touch focus, so it will receive all
-                // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
-                // Also when true is returned, the event is handled
+            }
+        });
+
+        mtlSelectBox = new SelectBox<>(stage.skin);
+        mtlSelectBox.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                resetActors();
             }
         });
     }
 
-    public void unpressAllButtons() {
-        // clearing all buttons
-        mtlTextButton.getColor().set(stage.COLOR_UNPRESSED);
-        envTextButton.getColor().set(stage.COLOR_UNPRESSED);
+    public void setDbgModelInstance(DebugModelInstance dbgModelInstance) {
+        this.dbgModelInstance = dbgModelInstance;
+        dbgModelInstance.createMtlAttributeTables(stage.skin, stage.eventListener, modelES);
+
+        mtlSelectBox.getSelection().setProgrammaticChangeEvents(false);
+        mtlSelectBox.clearItems();
+        mtlSelectBox.setItems(dbgModelInstance.mtlid2atable.keys().toArray());
+        mtlSelectBox.getSelection().setProgrammaticChangeEvents(true);
+
+        resetActors();
     }
 
-    public void unpressButton(TextButton btn) { btn.getColor().set(stage.COLOR_UNPRESSED); }
-    public void pressButton(TextButton btn) { btn.getColor().set(stage.COLOR_PRESSED); }
-
-    public boolean isPressed(TextButton btn) { return btn.getColor().equals(stage.COLOR_PRESSED); }
-    public boolean isAnyButtonPressed() { return isPressed(mtlTextButton) || isPressed(envTextButton); }
+    public void unpressAllButtons() { stage.unpressButton(mtlTextButton); stage.unpressButton(envTextButton); }
+    public boolean isAnyButtonPressed() { return stage.isPressed(mtlTextButton) || stage.isPressed(envTextButton); }
 
     public void pressEnv() {
-        if (!isPressed(envTextButton)) {
+        if (!stage.isPressed(envTextButton)) {
             unpressAllButtons();
-            pressButton(envTextButton);
+            stage.pressButton(envTextButton);
 
             stage.infoTCell.setActor(stage.envLabel);
         } else {
-            unpressButton(envTextButton);
-
-            stage.infoTCell.clearActor();
-            stage.infoBCell.clearActor();
-            attrTableCell.clearActor();
+//            stage.unpressButton(envTextButton);
+//
+//            stage.infoTCell.clearActor();
+//            stage.infoBCell.clearActor();
+//            attrTableCell.clearActor();
         }
         resetActors();
     }
 
     public void pressMtl() {
-        if (!isPressed(mtlTextButton)) {
+        if (!stage.isPressed(mtlTextButton)) {
             unpressAllButtons();
-            pressButton(mtlTextButton);
+            stage.pressButton(mtlTextButton);
 
             stage.infoTCell.setActor(stage.miLabel);
             stage.infoBCell.setActor(stage.textureImage);
         } else {
-            unpressButton(mtlTextButton);
-
-            stage.infoTCell.clearActor();
-            stage.infoBCell.clearActor();
-            attrTableCell.clearActor();
+//            stage.unpressButton(mtlTextButton);
+//
+//            stage.infoTCell.clearActor();
+//            stage.infoBCell.clearActor();
+//            attrTableCell.clearActor();
         }
         resetActors();
     }
@@ -145,14 +151,14 @@ public class AggregatedAttributesManagerTable extends HGTable {
         // **************************
         if (modelES.environment != null) {
             stage.envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(modelES.environment,"", ""));
-            if (isPressed(envTextButton)) {
+            if (stage.isPressed(envTextButton)) {
                 attrTableCell.setActor(stage.envAttrTable);
             }
         }
 
         if (dbgModelInstance != null) {
-            if (isPressed(mtlTextButton)) {
-                attrTableCell.setActor(dbgModelInstance.mtl2atable.firstValue());
+            if (stage.isPressed(mtlTextButton)) {
+                attrTableCell.setActor(dbgModelInstance.mtl2atable.getValueAt(mtlSelectBox.getSelectedIndex()));
             }
         }
     }
