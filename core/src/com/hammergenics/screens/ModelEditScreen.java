@@ -63,8 +63,8 @@ public class ModelEditScreen extends ScreenAdapter {
     public final HGGame game;
     private final ModelBatch modelBatch;
 
-    private PerspectiveCamera perspectiveCamera;
-    private ModelEditInputController modelEditInputController;
+    private final PerspectiveCamera perspectiveCamera;
+    private final ModelEditInputController modelEditInputController;
     public Environment environment;
 
     public HGEngine eng;
@@ -95,9 +95,6 @@ public class ModelEditScreen extends ScreenAdapter {
         // 2D Stage - https://github.com/libgdx/libgdx/wiki/Scene2d.ui#stage-setup
         stage = new ModelEditStage(new ScreenViewport(), game, this);
 
-        stage.envAttrTable = new AttributesManagerTable(stage.skin, environment, this);
-        stage.envAttrTable.setListener(stage.eventListener);
-
         InputMultiplexer inputMultiplexer = new InputMultiplexer();
         // order of addProcessor matter
         inputMultiplexer.addProcessor(stage);
@@ -107,7 +104,7 @@ public class ModelEditScreen extends ScreenAdapter {
         //eng.addModelInstance(createTestBox(GL20.GL_POINTS));
         //eng.addModelInstance(createTestBox(GL20.GL_LINES));
         //eng.addModelInstance(createTestBox(GL20.GL_TRIANGLES));
-        eng.addModelInstance(createTestSphere(GL20.GL_TRIANGLES, 40));
+        stage.addModelInstance(createTestSphere(GL20.GL_TRIANGLES, 40));
         stage.afterCurrentModelInstanceChanged();
     }
 
@@ -247,6 +244,9 @@ public class ModelEditScreen extends ScreenAdapter {
 
         eng.resetGridModelInstances();
         eng.resetLightsModelInstances(center.cpy(), environment);
+
+        stage.envAttrTable = new AttributesManagerTable(stage.skin, environment, this);
+        stage.envAttrTable.setListener(stage.eventListener);
     }
 
     /**

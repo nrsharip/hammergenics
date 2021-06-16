@@ -275,8 +275,6 @@ public class ModelEditStage extends Stage {
         attrTextButton.addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                infoTCell.clearActor();
-                infoBCell.clearActor();
                 editCell.clearActor();
                 if (attrTextButton.getColor().equals(COLOR_UNPRESSED)) {
                     // clearing all buttons first
@@ -284,13 +282,9 @@ public class ModelEditStage extends Stage {
                     camTextButton.getColor().set(COLOR_UNPRESSED);
 
                     attrTextButton.getColor().set(COLOR_PRESSED);
-                    infoTCell.setActor(miLabel);
-                    infoBCell.setActor(textureImage);
                     editCell.setActor(mi2atable.get(modelES.eng.currMI));
                 } else if (attrTextButton.getColor().equals(COLOR_PRESSED)) {
                     attrTextButton.getColor().set(COLOR_UNPRESSED);
-                    infoTCell.clearActor();
-                    infoBCell.clearActor();
                     editCell.clearActor();
                 }
 
@@ -513,6 +507,7 @@ public class ModelEditStage extends Stage {
         if (modelES.eng.currMI != null) {
             if (attrTextButton.getColor().equals(COLOR_PRESSED)) {
                 editCell.clearActor();
+                mi2atable.get(modelES.eng.currMI).reset();
                 editCell.setActor(mi2atable.get(modelES.eng.currMI));
             }
 
