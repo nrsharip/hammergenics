@@ -265,14 +265,6 @@ public class HGEngine implements Disposable {
         Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "textures loaded: " + textures.size);
     }
 
-    public void addModelInstances(Array<FileHandle> modelFHs) {
-        if (modelFHs == null) { return; }
-
-        modelFHs.forEach(fileHandle -> addModelInstance(fileHandle));
-
-        if (dbgMIs.size > 0) { currMI = dbgMIs.get(0); }
-    }
-
     public boolean addModelInstance(FileHandle assetFL) { return addModelInstance(assetFL, null, -1); }
 
     public boolean addModelInstance(FileHandle assetFL, String nodeId, int nodeIndex) {

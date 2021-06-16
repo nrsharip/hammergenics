@@ -21,6 +21,7 @@ import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g3d.Attributes;
+import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
 import com.badlogic.gdx.math.Vector3;
@@ -45,6 +46,9 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import com.hammergenics.HGGame;
 import com.hammergenics.config.Config;
 import com.hammergenics.screens.ModelEditScreen;
+import com.hammergenics.screens.graphics.g3d.DebugModelInstance;
+import com.hammergenics.screens.graphics.g3d.HGModel;
+import com.hammergenics.screens.stages.ui.AggregatedAttributesManagerTable;
 import com.hammergenics.screens.stages.ui.AttributesManagerTable;
 import com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable;
 import com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable.EventType;
@@ -78,6 +82,8 @@ public class ModelEditStage extends Stage {
     public Cell<?> editCell = null;
 
     public AttributesManagerTable envAttrTable;
+    public final ArrayMap<DebugModelInstance, AggregatedAttributesManagerTable> mi2atable =
+            new ArrayMap<>(DebugModelInstance.class, AggregatedAttributesManagerTable.class);
 
     // 2D Stage Widgets:
     public Label miLabel;  // Model Instance Info
@@ -97,8 +103,7 @@ public class ModelEditStage extends Stage {
     public SelectBox<FileHandle> modelSelectBox;
     public SelectBox<String> nodeSelectBox;
     public SelectBox<String> animationSelectBox = null;
-    public TextButton mtlTextButton = null;
-    public TextButton envTextButton = null;
+    public TextButton attrTextButton = null;
     public TextButton camTextButton = null;
     public TextButton clearModelsTextButton = null;
 
@@ -165,11 +170,11 @@ public class ModelEditStage extends Stage {
             public void changed(ChangeEvent event, Actor actor) {  // syncup: model select
                 if (modelSelectBox.getSelectedIndex() == 0) { return; } // 'Select Model' item
                 if (modelSelectBox.getSelectedIndex() == 1) {           // 'ALL' item
-                    modelES.eng.addModelInstances(game.engine.folder2models.get(folderSelectBox.getSelected()));
+                    addModelInstances(game.engine.folder2models.get(folderSelectBox.getSelected()));
                     afterCurrentModelInstanceChanged();
                     Gdx.app.debug(modelSelectBox.getClass().getSimpleName(), "model selected: ALL");
                 } else {
-                    modelES.eng.addModelInstance(modelSelectBox.getSelected());
+                    addModelInstance(modelSelectBox.getSelected());
                     afterCurrentModelInstanceChanged();
                     Gdx.app.debug(modelSelectBox.getClass().getSimpleName(), "model selected: " + modelSelectBox.getSelected());
                 }
@@ -184,10 +189,10 @@ public class ModelEditStage extends Stage {
             public void changed(ChangeEvent event, Actor actor) {
                 if (modelES.eng.currMI == null) { return; }
                 if (nodeSelectBox.getSelectedIndex() == 0) { // 'all' selected
-                    modelES.eng.addModelInstance(modelSelectBox.getSelected());
+                    addModelInstance(modelSelectBox.getSelected());
                     afterCurrentModelInstanceChanged();
                 } else {
-                    if (!modelES.eng.addModelInstance(modelES.eng.currMI.nodeid2model.get(nodeSelectBox.getSelected()))) { // -1 since there's 'all' item
+                    if (!addModelInstance(modelES.eng.currMI.nodeid2model.get(nodeSelectBox.getSelected()))) { // -1 since there's 'all' item
                         nodeSelectBox.getColor().set(Color.PINK);
                     } else {
                         afterCurrentModelInstanceChanged();
@@ -195,7 +200,6 @@ public class ModelEditStage extends Stage {
                 }
             }
         });
-
 
         // Select Box: Animations
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#selectbox
@@ -266,59 +270,25 @@ public class ModelEditStage extends Stage {
 
         // TEXT BUTTONS:
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textbutton
-        mtlTextButton = new TextButton("MTL", skin);
-        mtlTextButton.getColor().set(COLOR_UNPRESSED);
-        mtlTextButton.addListener(new InputListener() {
+        attrTextButton = new TextButton("ATTR", skin);
+        attrTextButton.getColor().set(COLOR_UNPRESSED);
+        attrTextButton.addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 infoTCell.clearActor();
                 infoBCell.clearActor();
                 editCell.clearActor();
-                if (mtlTextButton.getColor().equals(COLOR_UNPRESSED)) {
+                if (attrTextButton.getColor().equals(COLOR_UNPRESSED)) {
                     // clearing all buttons first
-                    mtlTextButton.getColor().set(COLOR_UNPRESSED);
-                    envTextButton.getColor().set(COLOR_UNPRESSED);
+                    attrTextButton.getColor().set(COLOR_UNPRESSED);
                     camTextButton.getColor().set(COLOR_UNPRESSED);
 
-                    // setting MTL specific actors
-                    mtlTextButton.getColor().set(COLOR_PRESSED);
+                    attrTextButton.getColor().set(COLOR_PRESSED);
                     infoTCell.setActor(miLabel);
                     infoBCell.setActor(textureImage);
-                    editCell.setActor(modelES.eng.currMI.mtl2atable.firstValue());
-                } else if (mtlTextButton.getColor().equals(COLOR_PRESSED)) {
-                    mtlTextButton.getColor().set(COLOR_UNPRESSED);
-                    infoTCell.clearActor();
-                    infoBCell.clearActor();
-                    editCell.clearActor();
-                }
-
-                return super.touchDown(event, x, y, pointer, button); // false
-                // If true is returned, this listener will have touch focus, so it will receive all
-                // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
-                // Also when true is returned, the event is handled
-            }
-        });
-
-        envTextButton = new TextButton("ENV", skin);
-        envTextButton.getColor().set(COLOR_UNPRESSED);
-        envTextButton.addListener(new InputListener() {
-            @Override
-            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                infoTCell.clearActor();
-                infoBCell.clearActor();
-                editCell.clearActor();
-                if (envTextButton.getColor().equals(COLOR_UNPRESSED)) {
-                    // clearing all buttons first
-                    mtlTextButton.getColor().set(COLOR_UNPRESSED);
-                    envTextButton.getColor().set(COLOR_UNPRESSED);
-                    camTextButton.getColor().set(COLOR_UNPRESSED);
-
-                    // setting ENV specific actors
-                    envTextButton.getColor().set(COLOR_PRESSED);
-                    infoTCell.setActor(envLabel);
-                    editCell.setActor(envAttrTable);
-                } else if (envTextButton.getColor().equals(COLOR_PRESSED)) {
-                    envTextButton.getColor().set(COLOR_UNPRESSED);
+                    editCell.setActor(mi2atable.get(modelES.eng.currMI));
+                } else if (attrTextButton.getColor().equals(COLOR_PRESSED)) {
+                    attrTextButton.getColor().set(COLOR_UNPRESSED);
                     infoTCell.clearActor();
                     infoBCell.clearActor();
                     editCell.clearActor();
@@ -340,6 +310,7 @@ public class ModelEditStage extends Stage {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 modelES.eng.clearModelInstances();
+                mi2atable.clear();
                 return super.touchDown(event, x, y, pointer, button);
             }
         });
@@ -361,6 +332,30 @@ public class ModelEditStage extends Stage {
                 handleAttributeUpdate(ATTR_CHANGED, container, type, alias);
             }
         };
+    }
+
+    public void addModelInstances(Array<FileHandle> modelFHs) {
+        if (modelFHs == null) { return; }
+        modelFHs.forEach(fileHandle -> addModelInstance(fileHandle));
+        if (modelES.eng.dbgMIs.size > 0) { modelES.eng.currMI = modelES.eng.dbgMIs.get(0); }
+    }
+
+    public boolean addModelInstance(FileHandle assetFL) {
+        boolean created = modelES.eng.addModelInstance(assetFL);
+        if (created) { mi2atable.put(modelES.eng.currMI, new AggregatedAttributesManagerTable(skin, modelES, modelES.eng.currMI)); }
+        return created;
+    }
+
+    public boolean addModelInstance(Model model) {
+        boolean created = modelES.eng.addModelInstance(model);
+        if (created) { mi2atable.put(modelES.eng.currMI, new AggregatedAttributesManagerTable(skin, modelES, modelES.eng.currMI)); }
+        return created;
+    }
+
+    public boolean addModelInstance(HGModel hgModel) {
+        boolean created = modelES.eng.addModelInstance(hgModel);
+        if (created) { mi2atable.put(modelES.eng.currMI, new AggregatedAttributesManagerTable(skin, modelES, modelES.eng.currMI)); }
+        return created;
     }
 
     /**
@@ -474,9 +469,7 @@ public class ModelEditStage extends Stage {
         rootTable.row();
 
         Table leftPanel = new Table();
-        leftPanel.add(mtlTextButton).fillX();
-        leftPanel.row();
-        leftPanel.add(envTextButton).fillX();
+        leftPanel.add(attrTextButton).fillX();
         leftPanel.row();
         leftPanel.add(camTextButton).fillX();
         leftPanel.row();
@@ -515,30 +508,14 @@ public class ModelEditStage extends Stage {
     public void reset() {
         if (modelES == null) { return; }
 
-        // **************************
-        // **** ATTRIBUTES 2D UI ****
-        // **************************
-        if (modelES.environment != null) {
-            envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(modelES.environment,"", ""));
-            if (envTextButton.getColor().equals(COLOR_PRESSED)) {
-                editCell.clearActor();
-                editCell.setActor(envAttrTable);
-            }
-        }
+        //textureImage.setDrawable(null);
 
         if (modelES.eng.currMI != null) {
-            modelES.eng.currMI.createMtlAttributeTables(skin, eventListener, modelES);
-            // Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "" );
-
-            if (mtlTextButton.getColor().equals(COLOR_PRESSED)) {
+            if (attrTextButton.getColor().equals(COLOR_PRESSED)) {
                 editCell.clearActor();
-                editCell.setActor(modelES.eng.currMI.mtl2atable.firstValue());
+                editCell.setActor(mi2atable.get(modelES.eng.currMI));
             }
-        }
 
-        textureImage.setDrawable(null);
-
-        if (modelES.eng.currMI != null) {
             // making sure no events fired during the nodeSelectBox reset
             nodeSelectBox.getSelection().setProgrammaticChangeEvents(false);
             nodeSelectBox.clearItems();
