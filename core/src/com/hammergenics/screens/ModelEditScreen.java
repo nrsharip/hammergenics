@@ -47,6 +47,7 @@ import com.hammergenics.screens.graphics.g3d.HGModelInstance;
 import com.hammergenics.screens.graphics.g3d.utils.ModelEditInputController;
 import com.hammergenics.screens.graphics.glutils.HGImmediateModeRenderer20;
 import com.hammergenics.screens.stages.ModelEditStage;
+import com.hammergenics.screens.stages.ui.AttributesManagerTable;
 import com.hammergenics.screens.utils.AttributesMap;
 import com.hammergenics.utils.LibgdxUtils;
 
@@ -83,16 +84,19 @@ public class ModelEditScreen extends ScreenAdapter {
         this.eng = engine;
         this.modelBatch = mb; // https://github.com/libgdx/libgdx/wiki/ModelBatch
 
+        immediateModeRenderer = new HGImmediateModeRenderer20(10*Short.MAX_VALUE, false, true, 0);
+
         // Camera related
         perspectiveCamera = new PerspectiveCamera(70f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         modelEditInputController = new ModelEditInputController(this, perspectiveCamera);
         // Environment related
         environment = new Environment();
 
-        immediateModeRenderer = new HGImmediateModeRenderer20(10*Short.MAX_VALUE, false, true, 0);
-
         // 2D Stage - https://github.com/libgdx/libgdx/wiki/Scene2d.ui#stage-setup
         stage = new ModelEditStage(new ScreenViewport(), game, this);
+
+        stage.envAttrTable = new AttributesManagerTable(stage.skin, environment, this);
+        stage.envAttrTable.setListener(stage.eventListener);
 
         InputMultiplexer inputMultiplexer = new InputMultiplexer();
         // order of addProcessor matter

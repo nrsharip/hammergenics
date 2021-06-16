@@ -23,7 +23,6 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
-import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -50,8 +49,6 @@ import com.hammergenics.screens.stages.ui.AttributesManagerTable;
 import com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable;
 import com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable.EventType;
 import com.hammergenics.utils.LibgdxUtils;
-
-import java.util.Arrays;
 
 import static com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable.EventType.ATTR_CHANGED;
 import static com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable.EventType.ATTR_DISABLED;
@@ -80,7 +77,6 @@ public class ModelEditStage extends Stage {
     public Cell<?> infoBCell = null;
     public Cell<?> editCell = null;
 
-    public AttributesManagerTable mtlAttrTable;
     public AttributesManagerTable envAttrTable;
 
     // 2D Stage Widgets:
@@ -288,7 +284,7 @@ public class ModelEditStage extends Stage {
                     mtlTextButton.getColor().set(COLOR_PRESSED);
                     infoTCell.setActor(miLabel);
                     infoBCell.setActor(textureImage);
-                    editCell.setActor(mtlAttrTable);
+                    editCell.setActor(modelES.eng.currMI.mtl2atable.firstValue());
                 } else if (mtlTextButton.getColor().equals(COLOR_PRESSED)) {
                     mtlTextButton.getColor().set(COLOR_UNPRESSED);
                     infoTCell.clearActor();
@@ -452,10 +448,6 @@ public class ModelEditStage extends Stage {
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#layout-widgets
         // Table, Container, Stack, ScrollPane, SplitPane, Tree, VerticalGroup, HorizontalGroup
 
-        // Attributes related:
-        //mtlAttrTable = new Table();
-        //envAttrTable = new Table();
-
         // ROOT TABLE:
         // https://github.com/libgdx/libgdx/wiki/Table#quickstart
         rootTable = new Table();
@@ -527,8 +519,6 @@ public class ModelEditStage extends Stage {
         // **** ATTRIBUTES 2D UI ****
         // **************************
         if (modelES.environment != null) {
-            envAttrTable = new AttributesManagerTable(skin, modelES.environment, modelES);
-            envAttrTable.setListener(eventListener);
             envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(modelES.environment,"", ""));
             if (envTextButton.getColor().equals(COLOR_PRESSED)) {
                 editCell.clearActor();
@@ -536,20 +526,19 @@ public class ModelEditStage extends Stage {
             }
         }
 
-        if (modelES.eng.currMI != null && modelES.eng.currMI.materials != null && modelES.eng.currMI.materials.size > 0) {
-            mtlAttrTable = new AttributesManagerTable(skin, modelES.eng.currMI.materials.get(0), modelES);
-            mtlAttrTable.setListener(eventListener);
+        if (modelES.eng.currMI != null) {
+            modelES.eng.currMI.createMtlAttributeTables(skin, eventListener, modelES);
             // Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "" );
 
             if (mtlTextButton.getColor().equals(COLOR_PRESSED)) {
                 editCell.clearActor();
-                editCell.setActor(mtlAttrTable);
+                editCell.setActor(modelES.eng.currMI.mtl2atable.firstValue());
             }
         }
 
         textureImage.setDrawable(null);
 
-        if (modelES.eng.currMI != null && modelES.eng.currMI.hgModel.hasNodes()) {
+        if (modelES.eng.currMI != null) {
             // making sure no events fired during the nodeSelectBox reset
             nodeSelectBox.getSelection().setProgrammaticChangeEvents(false);
             nodeSelectBox.clearItems();

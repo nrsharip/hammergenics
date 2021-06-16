@@ -21,6 +21,7 @@ import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.VertexAttribute;
 import com.badlogic.gdx.graphics.VertexAttributes;
+import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
@@ -32,11 +33,15 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.ObjectMap;
+import com.hammergenics.screens.ModelEditScreen;
 import com.hammergenics.screens.graphics.glutils.HGImmediateModeRenderer20;
+import com.hammergenics.screens.stages.ui.AttributesManagerTable;
+import com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable;
 
 import static com.badlogic.gdx.graphics.GL20.GL_LINES;
 import static com.badlogic.gdx.graphics.GL20.GL_TRIANGLES;
@@ -53,10 +58,14 @@ import static com.hammergenics.utils.LibgdxUtils.aux_colors;
  * @author nrsharip
  */
 public class DebugModelInstance extends HGModelInstance implements Disposable {
+    // Nodes related
     public final ArrayMap<Node, Array<NodePart>> n2np = new ArrayMap<>(Node.class, Array.class);
     public final ArrayMap<Node, HGModel> node2model = new ArrayMap<>(Node.class, HGModel.class);
     public final ArrayMap<String, HGModel> nodeid2model = new ArrayMap<>(String.class, HGModel.class);
     public final ArrayMap<HGModel, Node> model2node = new ArrayMap<>(HGModel.class, Node.class);
+    // Materials related
+    public final ArrayMap<Material, AttributesManagerTable> mtl2atable = new ArrayMap<>(Material.class, AttributesManagerTable.class);
+    public final ArrayMap<String, AttributesManagerTable> mtlid2atable = new ArrayMap<>(String.class, AttributesManagerTable.class);
 
     public HGModel bbHgModel = null;
     public HGModelInstance bbHgMI = null;
@@ -105,6 +114,17 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
         Iterable<Node> children = node.getChildren();
         if (children != null && children.iterator().hasNext()) {
             for (Node child:children) { checkNodeParts(child); }
+        }
+    }
+
+    public void createMtlAttributeTables(Skin skin, BaseAttributeTable.EventListener eventListener, ModelEditScreen modelES) {
+        if (mtl2atable.size > 0) { return; } // tables already created
+        for (Material mtl:materials) {
+            AttributesManagerTable mtlAttrTable = new AttributesManagerTable(skin, mtl, modelES);
+            mtlAttrTable.setListener(eventListener);
+
+            mtl2atable.put(mtl, mtlAttrTable);
+            mtlid2atable.put(mtl.id, mtlAttrTable);
         }
     }
 
