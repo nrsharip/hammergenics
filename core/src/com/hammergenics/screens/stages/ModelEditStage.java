@@ -96,13 +96,14 @@ public class ModelEditStage extends Stage {
     public CheckBox bbCheckBox;
     public CheckBox nodesCheckBox;
     public CheckBox bonesCheckBox;
+    public CheckBox invertCheckBox;
     public CheckBox meshPartsCheckBox;
     public SelectBox<FileHandle> folderSelectBox;
     public SelectBox<FileHandle> modelSelectBox;
     public SelectBox<String> nodeSelectBox;
     public SelectBox<String> animationSelectBox = null;
     public TextButton attrTextButton = null;
-    public TextButton camTextButton = null;
+    public TextButton animTextButton = null;
     public TextButton clearModelsTextButton = null;
 
     public BaseAttributeTable.EventListener eventListener;
@@ -258,12 +259,20 @@ public class ModelEditStage extends Stage {
 
         bbCheckBox = new CheckBox("BB", skin);
         bbCheckBox.setChecked(false);
+        // TODO: fix BB checkbox
+        //bbCheckBox.addListener(new ChangeListener() {
+        //    @Override
+        //    public void changed (ChangeEvent event, Actor actor) { modelES.eng.resetBBModelInstances(); }
+        //});
 
         nodesCheckBox = new CheckBox("nodes", skin);
         nodesCheckBox.setChecked(false);
 
-        bonesCheckBox = new CheckBox("bones", skin);
+        bonesCheckBox = new CheckBox("bones (", skin);
         bonesCheckBox.setChecked(false);
+
+        invertCheckBox = new CheckBox("invert)", skin);
+        invertCheckBox.setChecked(false);
 
         meshPartsCheckBox = new CheckBox("mesh parts", skin);
         meshPartsCheckBox.setChecked(false);
@@ -271,7 +280,7 @@ public class ModelEditStage extends Stage {
         // TEXT BUTTONS:
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textbutton
         attrTextButton = new TextButton("ATTR", skin);
-        attrTextButton.getColor().set(COLOR_UNPRESSED);
+        unpressButton(attrTextButton);
         attrTextButton.addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -289,7 +298,7 @@ public class ModelEditStage extends Stage {
                     }
                     editCell.setActor(aggrAttrTable);
                 } else {
-                    attrTextButton.getColor().set(COLOR_UNPRESSED);
+                    unpressButton(attrTextButton);
                     infoTCell.clearActor();
                     infoBCell.clearActor();
                     editCell.clearActor();
@@ -302,11 +311,11 @@ public class ModelEditStage extends Stage {
             }
         });
 
-        camTextButton = new TextButton("CAM", skin);
-        camTextButton.getColor().set(COLOR_UNPRESSED);
+        animTextButton = new TextButton("ANIM", skin);
+        unpressButton(animTextButton);
 
         clearModelsTextButton = new TextButton("clear", skin);
-        clearModelsTextButton.getColor().set(COLOR_UNPRESSED);
+        unpressButton(clearModelsTextButton);
         clearModelsTextButton.addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -471,7 +480,7 @@ public class ModelEditStage extends Stage {
         Table leftPanel = new Table();
         leftPanel.add(attrTextButton).fillX();
         leftPanel.row();
-        leftPanel.add(camTextButton).fillX();
+        leftPanel.add(animTextButton).fillX();
         leftPanel.row();
 
         rootTable.add(leftPanel).padTop(10f).top().left();
@@ -495,7 +504,8 @@ public class ModelEditStage extends Stage {
         lowerPanel.add(origScaleCheckBox).pad(3f);
         lowerPanel.add(bbCheckBox).pad(3f);
         lowerPanel.add(nodesCheckBox).pad(3f);
-        lowerPanel.add(bonesCheckBox).pad(3f);
+        lowerPanel.add(bonesCheckBox);
+        lowerPanel.add(invertCheckBox).pad(3f);
         lowerPanel.add(meshPartsCheckBox).pad(3f);
         lowerPanel.add(clearModelsTextButton).pad(3f);
         lowerPanel.add().expandX();
@@ -505,7 +515,7 @@ public class ModelEditStage extends Stage {
         addActor(rootTable);
     }
 
-    public void unpressAllButtons() { unpressButton(attrTextButton); unpressButton(camTextButton); }
+    public void unpressAllButtons() { unpressButton(attrTextButton); unpressButton(animTextButton); }
     public void unpressButton(TextButton btn) { btn.getColor().set(COLOR_UNPRESSED); }
     public void pressButton(TextButton btn) { btn.getColor().set(COLOR_PRESSED); }
     public boolean isPressed(TextButton btn) { return btn.getColor().equals(COLOR_PRESSED); }

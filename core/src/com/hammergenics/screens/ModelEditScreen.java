@@ -172,7 +172,8 @@ public class ModelEditScreen extends ScreenAdapter {
         immediateModeRenderer.begin(perspectiveCamera.combined, GL20.GL_LINES);
         if (stage.nodesCheckBox.isChecked()) { eng.dbgMIs.forEach(hgMI -> hgMI.addNodesToRenderer(immediateModeRenderer)); }
         if (stage.meshPartsCheckBox.isChecked()) { eng.dbgMIs.forEach(hgMI -> hgMI.addMeshPartsToRenderer(immediateModeRenderer)); }
-        if (stage.bonesCheckBox.isChecked()) { eng.dbgMIs.forEach(hgMI -> hgMI.addBonesToRenderer(immediateModeRenderer)); }
+        if (stage.bonesCheckBox.isChecked()) { eng.dbgMIs.forEach(hgMI ->
+                hgMI.addBonesToRenderer(immediateModeRenderer, stage.invertCheckBox.isChecked())); }
         immediateModeRenderer.end();
 
         checkTimerEvents(delta);
@@ -592,7 +593,8 @@ public class ModelEditScreen extends ScreenAdapter {
             Gdx.app.debug(getClass().getSimpleName(), "a rotation: " + currRotation);
             Gdx.app.debug(getClass().getSimpleName(), "a:\n" + eng.hoveredOverMI.transform);
         }
-
+        // TODO: fix BB checkbox
+        //eng.resetBBModelInstances();
         eng.draggedMI = null;
         return true;
     }
