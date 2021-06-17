@@ -21,6 +21,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ImmediateModeRenderer20;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.ObjectMap;
@@ -81,12 +82,11 @@ public class HGImmediateModeRenderer20 extends ImmediateModeRenderer20 {
         }
     }
 
-    public void box(Matrix4 transform, float scale, Color clr) {
+    public BoundingBox box(Matrix4 transform, Color clr) {
         Array<Vector3> corners = new Array<>(true, 16, Vector3.class);
-        // min-max form a box with side of 1 * scale and a center at (0, 0, 0)
-        // if scale == 1 then this will create a unit box.
-        Vector3 min = new Vector3(-0.5f, -0.5f, -0.5f).scl(scale);
-        Vector3 max = new Vector3( 0.5f,  0.5f,  0.5f).scl(scale);
+        // min-max form a unit box with side of 1 and a center at (0, 0, 0)
+        Vector3 min = new Vector3(-0.5f, -0.5f, -0.5f);
+        Vector3 max = new Vector3( 0.5f,  0.5f,  0.5f);
         Vector3 tmp1 = Vector3.Zero.cpy();
         Vector3 tmp2 = Vector3.Zero.cpy();
         for (int i = 0; i < 8; i++) {
@@ -123,5 +123,7 @@ public class HGImmediateModeRenderer20 extends ImmediateModeRenderer20 {
                 Gdx.app.error(getClass().getSimpleName(), "box: UNSUPPORTED primitive type");
                 break;
         }
+        // TODO: verify this returns the suitable bounding box
+        return new BoundingBox(min, max).mul(transform);
     }
 }

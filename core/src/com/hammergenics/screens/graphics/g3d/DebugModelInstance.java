@@ -62,6 +62,8 @@ import static com.hammergenics.utils.LibgdxUtils.aux_colors;
 public class DebugModelInstance extends HGModelInstance implements Disposable {
     // Nodes related
     public final ArrayMap<Node, Array<NodePart>> n2np = new ArrayMap<>(Node.class, Array.class);
+    public final ArrayMap<Node, BoundingBox> n2bb = new ArrayMap<>(Node.class, BoundingBox.class);
+    public final ArrayMap<BoundingBox, Node> bb2n = new ArrayMap<>(BoundingBox.class, Node.class);
     // This is for sub-models created out of this model if it has more than one node part
     public final ArrayMap<Node, HGModel> node2model = new ArrayMap<>(Node.class, HGModel.class);
     public final ArrayMap<String, HGModel> nodeid2model = new ArrayMap<>(String.class, HGModel.class);
@@ -262,12 +264,12 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
         Matrix4 tmpM4 = transform.cpy().mul(node.globalTransform);
         Vector3 trn = tmpM4.getTranslation(new Vector3());
         Quaternion rot = tmpM4.getRotation(new Quaternion(), true);
-        // removing the scale component out of the transform:
-        tmpM4.setToTranslation(trn);
-        tmpM4.rotate(rot);
-        // passing the scaleless transform to render with the actual
-        // scale of the box set to 1/40th of the current max dimension
-        imr.box(tmpM4, getMaxDimension()/40f, Color.CYAN);
+        Vector3 scl = tmpM4.getScale(new Vector3()).nor().scl(getMaxDimension()/40f);
+        tmpM4.set(trn, rot, scl);
+
+        BoundingBox bb = imr.box(tmpM4, Color.CYAN);
+        n2bb.put(node, bb);
+        bb2n.put(bb, node);
 
         if (--depth == 0) { return; }
 
@@ -302,12 +304,17 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
                 //     e.key.invBoneBindTransforms.put(getNode(b.key), new Matrix4(b.value).inv());
                 //
                 // ? basically this means that a bone is the Node's globalTransform multiplied by the inverse of the actual bone
-                Matrix4 tmpM4 = nodePart.bones[i].cpy();
-                if (invert) { tmpM4.mul(nodePart.invBoneBindTransforms.values[i].cpy().inv()); } // undoing the inverse
-                // now the "bone" actually become a Node's "globalTransform"
-                tmpM4.mulLeft(transform); // applying the ModelInstance's transform
+                Matrix4 tmpM4 = transform.cpy().mul(nodePart.bones[i]);
+                if (invert) {
+                    tmpM4.mul(nodePart.invBoneBindTransforms.values[i].cpy().inv()); // undoing the inverse
+                    // now the "bone" actually become a Node's "globalTransform"
+                }
+                Vector3 trn = tmpM4.getTranslation(new Vector3());
+                Quaternion rot = tmpM4.getRotation(new Quaternion(), true);
+                Vector3 scl = tmpM4.getScale(new Vector3()).nor().scl(getMaxDimension()/40f);
+                tmpM4.set(trn, rot, scl);
 
-                imr.box(tmpM4, 1/10f, c1);
+                imr.box(tmpM4, c1);
 
                 Vector3 tmpV1 = tmpM4.getTranslation(new Vector3());
                 Vector3 tmpV2 = node.globalTransform.cpy().mulLeft(transform).getTranslation(new Vector3());

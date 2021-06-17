@@ -571,24 +571,6 @@ public class HGEngine implements Disposable {
         return out;
     }
 
-//    public <T extends HGModelInstance> Array<T> rayMICollision(Ray ray, Array<T> modelInstances, Array<T> out) {
-//        // TODO: revisit this later when the Bullet Collision Physics is added
-//
-//        for (T mi:modelInstances) {
-//            if (Intersector.intersectRayBoundsFast(ray, mi.getBB())) { out.add(mi); }
-//        }
-//        Sort.instance().sort(out, (mi1, mi2) -> {
-//            Vector3 bbc1 = mi1.getBB().getCenter(new Vector3());
-//            Vector3 bbc2 = mi2.getBB().getCenter(new Vector3());
-//
-//            float len1 = ray.origin.cpy().sub(bbc1).len();
-//            float len2 = ray.origin.cpy().sub(bbc2).len();
-//
-//            return Float.compare(len1, len2);
-//        });
-//        return out;
-//    }
-
     public void saveAttributes(HGModelInstance hgmi, final AttributesMap storage) {
         if (hgmi != null) {
             hgmi.materials.forEach(attributes -> {

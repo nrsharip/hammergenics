@@ -80,12 +80,12 @@ public class SpectatorInputController extends HGInputController {
 
     @Override
     public boolean scrolled(float amountX, float amountY) {
-        float step = amountY * unitDistance;
+        float step = amountY * unitDistance / 4;
         // making sure we don't step beyond the rotation point.
         // assuming that camera's [direction vector] and [rotateAround vector sub camera position vector] are collinear.
         // if they are not use the dot product between the two.
         if (step + new Vector3(rotateAround).sub(camera.position).len() > 0) {
-            camera.translate(new Vector3(camera.direction).scl(-step));
+            camera.translate(new Vector3(camera.direction).nor().scl(-step));
             overallDistance += step;
         }
         return super.scrolled(amountX, amountY);
