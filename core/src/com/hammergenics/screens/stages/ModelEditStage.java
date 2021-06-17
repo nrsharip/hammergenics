@@ -381,7 +381,7 @@ public class ModelEditStage extends Stage {
                         nodeAnim.node.calculateLocalTransform();
                         // Getting the default base values for the node (prior any animations applied)
                         Vector3 tmpTrans = nodeAnim.node.localTransform.getTranslation(new Vector3());
-                        Quaternion tmpRot = nodeAnim.node.localTransform.getRotation(new Quaternion());
+                        Quaternion tmpRot = nodeAnim.node.localTransform.getRotation(new Quaternion(), true);
                         Vector3 tmpScale = nodeAnim.node.localTransform.getScale(new Vector3());
 
                         // the translation keyframes if any (might be null), sorted by time ascending

@@ -34,6 +34,9 @@ import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.SpotLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.environment.PointLight;
+import com.badlogic.gdx.graphics.g3d.model.Node;
+import com.badlogic.gdx.math.Intersector;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
@@ -426,6 +429,7 @@ public class ModelEditScreen extends ScreenAdapter {
                 return; // nothing else should be done
             } else {
                 eng.hoveredOverMI.hoveredOverNode = null;
+                eng.hoveredOverNode = null;
             }
         }
 
@@ -482,18 +486,20 @@ public class ModelEditScreen extends ScreenAdapter {
         float fracX = deltaX / Gdx.graphics.getWidth(), fracY = deltaY / Gdx.graphics.getHeight();
         Camera cam = perspectiveCamera;
 
-        Vector3 center = null;
-        Vector3 currTranslation = null;
-        Vector3 currScale = null;
-        Quaternion currRotation = null;
+        Vector3 miCenter = null;
+        Vector3 miTranslation = null;
+        Vector3 miScale = null;
+        Quaternion miRot = null;
+        Matrix4 miTransform = null;
 
         if (eng.hoveredOverMI != null) {
-            center = eng.hoveredOverMI.getBB().getCenter(new Vector3());
-            currTranslation = eng.hoveredOverMI.transform.getTranslation(new Vector3());
-            currScale = eng.hoveredOverMI.transform.getScale(new Vector3());
+            miCenter = eng.hoveredOverMI.getBB().getCenter(new Vector3());
+            miTransform = eng.hoveredOverMI.transform.cpy();
+            miTranslation = miTransform.getTranslation(new Vector3());
+            miScale = miTransform.getScale(new Vector3());
             // see getRotation() description:
             // normalizeAxes True to normalize the axes, necessary when the matrix might also include scaling.
-            currRotation = eng.hoveredOverMI.transform.getRotation(new Quaternion(), true);
+            miRot = miTransform.getRotation(new Quaternion(), true);
             // see https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation
             // see https://j3d.org/matrix_faq/matrfaq_latest.html
             // see http://web.archive.org/web/20041029003853/http://web.archive.org/web/20041029003853/http://www.j3d.org/matrix_faq/matrfaq_latest.html#Q50
@@ -508,7 +514,7 @@ public class ModelEditScreen extends ScreenAdapter {
 
                     Vector3 corner = eng.hoveredOverCorner.getBB().getCenter(new Vector3());
 
-                    Vector3 coordCenter = cam.project(center.cpy(), 0, 0, cam.viewportWidth, cam.viewportHeight);
+                    Vector3 coordCenter = cam.project(miCenter.cpy(), 0, 0, cam.viewportWidth, cam.viewportHeight);
                     Vector3 coordCorner = cam.project(corner.cpy(), 0, 0, cam.viewportWidth, cam.viewportHeight);
                     Vector3 coordDelta = new Vector3(deltaX, -deltaY, 0);
                     Vector3 coordHlfDiag = coordCorner.cpy().sub(coordCenter);
@@ -542,6 +548,59 @@ public class ModelEditScreen extends ScreenAdapter {
 //                            + "cam.combined: \n" + cam.combined
 //                    );
                     return false;
+                } else if (eng.hoveredOverMI != null && eng.hoveredOverNode != null && eng.hoveredOverNode.getParent() != null) {
+                    // we hold the left button pressed on the model instance's node
+                    Ray ray = cam.getPickRay(x, y);
+
+                    Node node = eng.hoveredOverNode;
+                    Node parent = eng.hoveredOverNode.getParent();
+
+                    Vector3 nodeLocTrans = node.localTransform.getTranslation(new Vector3());
+                    Quaternion nodeLocRot = node.localTransform.getRotation(new Quaternion(), true);
+                    Vector3 nodeLocScale = node.localTransform.getScale(new Vector3());
+
+                    Vector3 nodeTrans = node.globalTransform.getTranslation(new Vector3());
+                    Quaternion nodeRot = node.globalTransform.getRotation(new Quaternion(), true);
+                    Vector3 nodeScale = node.globalTransform.getScale(new Vector3());
+
+                    Vector3 parentTrans = parent.globalTransform.getTranslation(new Vector3());
+                    Quaternion parentRot = parent.globalTransform.getRotation(new Quaternion(), true);
+                    Vector3 parentScale = parent.globalTransform.getScale(new Vector3());
+
+                    // Example of parent global transform multiplied by child's local transform to get the resulting child's global transform:
+                    //            parent.global                        child.local                             child.global
+                    //  [100.0|     -0.0|      0.0|0.0] [-3.576E-7|-2.980E-8|   -0.999|0.204]   [-3.576E-5|-2.980E-6| -99.999| 20.420]
+                    //  [  0.0|-1.192E-5|   99.999|0.0] [      1.0|      0.0|-3.874E-7|0.148] = [-1.788E-5|  -99.999|5.960E-6| 19.320]
+                    //  [ -0.0|  -99.999|-1.192E-5|0.0] [-5.960E-8|   -0.999| 5.960E-8|0.193]   [-1.788E-5|  -99.999|5.960E-6| 19.320]
+                    //  [  0.0|      0.0|      0.0|1.0] [      0.0|      0.0|      0.0|  1.0]   [      0.0|      0.0|     0.0|    1.0]
+                    //
+                    // Basically this means that:
+                    //                    node.GT  =                     parent.GT  MUL node.LT
+                    // parent.GT.inv MUL (node.GT) =  parent.GT.inv MUL (parent.GT  MUL node.LT) : associativity
+                    // parent.GT.inv MUL  node.GT  = (parent.GT.inv MUL  parent.GT) MUL node.LT  : definition of inverse
+                    // parent.GT.inv MUL  node.GT  =                                    node.LT
+                    // TODO: check inheritTransform value (see Node.calculateWorldTransform)
+
+                    float radius = nodeTrans.cpy().sub(parentTrans).len();
+
+                    Gdx.app.debug(getClass().getSimpleName(), ""
+                            + " node.id: " + node.id + " node.parent: " + parent.id
+                            + " n.center: " + nodeTrans + " p.center: " + parentTrans + " radius: " + radius
+                            + "\nray: " + ray
+                    );
+
+                    Vector3 intersection = new Vector3();
+                    if (Intersector.intersectRaySphere(ray, parentTrans, radius, intersection)) {
+                        node.globalTransform.set(intersection, nodeRot, nodeScale);
+                        // node.LT = parent.GT.inv MUL node.GT (see above)
+                        node.localTransform.set(parent.globalTransform.cpy().inv().mul(node.globalTransform));
+                        Gdx.app.debug(getClass().getSimpleName(), "intersection: " + intersection);
+                    }
+                    node.isAnimated = true;
+                    eng.hoveredOverMI.calculateTransforms();
+                    node.isAnimated = false;
+
+                    return false;
                 } else if (eng.hoveredOverMI != null) {
                     // we hold the left button pressed on the model instance itself - applying translation
                     eng.currMI = eng.hoveredOverMI;
@@ -549,7 +608,7 @@ public class ModelEditScreen extends ScreenAdapter {
                     eng.draggedMI = eng.hoveredOverMI;
 
                     // removing the rotation and scale components from the transform
-                    eng.draggedMI.transform.setToTranslation(currTranslation);
+                    eng.draggedMI.transform.setToTranslation(miTranslation);
                     // translating as per the gesture
                     Vector3 tmpV = cam.direction.cpy().crs(cam.up).nor().scl(4 * fracX * overallDistance);
                     eng.draggedMI.transform.translate(tmpV);
@@ -557,9 +616,9 @@ public class ModelEditScreen extends ScreenAdapter {
                     tmpV.nor().scl(4 * -fracY * overallDistance);
                     eng.draggedMI.transform.translate(tmpV);
                     // restoring the original rotation
-                    eng.draggedMI.transform.rotate(currRotation);
+                    eng.draggedMI.transform.rotate(miRot);
                     // restoring the original scale
-                    eng.draggedMI.transform.scale(currScale.x, currScale.y, currScale.z);
+                    eng.draggedMI.transform.scale(miScale.x, miScale.y, miScale.z);
 
                     eng.draggedMI.bbHgModelInstanceReset();
                     eng.draggedMI.bbCornersReset();
@@ -574,14 +633,14 @@ public class ModelEditScreen extends ScreenAdapter {
                     stage.reset();
 
                     // removing the rotation and scale components from the transform
-                    eng.hoveredOverMI.transform.setToTranslation(currTranslation);
+                    eng.hoveredOverMI.transform.setToTranslation(miTranslation);
                     // rotating as per the gesture
                     eng.hoveredOverMI.transform.rotate(cam.up.cpy().nor(), fracX * 360f);
                     eng.hoveredOverMI.transform.rotate(cam.direction.cpy().crs(cam.up).nor(), fracY * 360f);
                     // restoring the original rotation
-                    eng.hoveredOverMI.transform.rotate(currRotation);
+                    eng.hoveredOverMI.transform.rotate(miRot);
                     // restoring the original scale
-                    eng.hoveredOverMI.transform.scale(currScale.x, currScale.y, currScale.z);
+                    eng.hoveredOverMI.transform.scale(miScale.x, miScale.y, miScale.z);
 
                     eng.hoveredOverMI.bbHgModelInstanceReset();
                     eng.hoveredOverMI.bbCornersReset();
@@ -599,7 +658,7 @@ public class ModelEditScreen extends ScreenAdapter {
         if (eng.hoveredOverMI != null) {
             Vector3 currTranslation = eng.hoveredOverMI.transform.getTranslation(new Vector3());
             Vector3 currScale = eng.hoveredOverMI.transform.getScale(new Vector3());
-            Quaternion currRotation = eng.hoveredOverMI.transform.getRotation(new Quaternion());
+            Quaternion currRotation = eng.hoveredOverMI.transform.getRotation(new Quaternion(), true);
 
             Gdx.app.debug(getClass().getSimpleName(), "a translation: " + currTranslation);
             Gdx.app.debug(getClass().getSimpleName(), "a scale: " + currScale);
