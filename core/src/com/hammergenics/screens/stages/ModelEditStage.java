@@ -25,6 +25,9 @@ import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.model.Animation;
+import com.badlogic.gdx.graphics.g3d.model.NodeAnimation;
+import com.badlogic.gdx.graphics.g3d.model.NodeKeyframe;
+import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -228,7 +231,8 @@ public class ModelEditStage extends Stage {
                     modelES.eng.currMI.animationDesc = modelES.eng.currMI.animationController.setAnimation(anim.id, -1);
                 }
                 Gdx.app.debug(animationSelectBox.getClass().getSimpleName(), "animation selected: " + anim.id);
-                keyFrameSlider.setRange(0, anim.duration);
+                keyFrameSlider.setValue(0f);
+                keyFrameSlider.setRange(0f, anim.duration);
                 keyFrameSlider.setStepSize(anim.duration/1000f);
             }
         });
@@ -338,8 +342,13 @@ public class ModelEditStage extends Stage {
         animLoopCheckBox.addListener(new ChangeListener() {
             @Override
             public void changed (ChangeEvent event, Actor actor) {
-                int index = animationSelectBox.getSelectedIndex() - 1; // -1 since we have "No Animation" item
-                if (modelES.eng.currMI.animationController == null || index < 0) { return; }
+                if (modelES.eng.currMI.animationController == null) { return; }
+                if (animationSelectBox.getSelectedIndex() - 1 < 0) { // -1 since we have "No Animation" item
+                    // "No Animation" item selected
+                    modelES.eng.currMI.animationDesc = null;
+                    modelES.eng.currMI.animationController.setAnimation(null);
+                    return;
+                }
 
                 if (animLoopCheckBox.isChecked()) {
                     Animation anim = modelES.eng.currMI.getAnimation(animationSelectBox.getSelected());
@@ -357,9 +366,56 @@ public class ModelEditStage extends Stage {
             @Override
             public void changed (ChangeEvent event, Actor actor) {
                 if (animationSelectBox.getSelectedIndex() != 0) {
+                    float keytime = keyFrameSlider.getValue();
+
+                    // turning off the animation loop (assuming the change event is fired on the checkbox)
+                    animLoopCheckBox.setChecked(false);
+
                     Animation anim = modelES.eng.currMI.getAnimation(animationSelectBox.getSelected());
                     Gdx.app.debug("ChangeListener", ""
-                            + " anim id: " + anim.id + " value: " + keyFrameSlider.getValue());
+                            + " anim id: " + anim.id + " value: " + keytime);
+
+                    for (NodeAnimation nodeAnim:anim.nodeAnimations) {
+                        // setting to false so calculateLocalTransform() would return the base values
+                        nodeAnim.node.isAnimated = false;
+                        nodeAnim.node.calculateLocalTransform();
+                        // Getting the default base values for the node (prior any animations applied)
+                        Vector3 tmpTrans = nodeAnim.node.localTransform.getTranslation(new Vector3());
+                        Quaternion tmpRot = nodeAnim.node.localTransform.getRotation(new Quaternion());
+                        Vector3 tmpScale = nodeAnim.node.localTransform.getScale(new Vector3());
+
+                        // the translation keyframes if any (might be null), sorted by time ascending
+                        if (nodeAnim.translation != null) {
+                            for (NodeKeyframe<Vector3> nTrans:nodeAnim.translation) {
+                                if (nTrans.keytime <= keytime) { tmpTrans.set(nTrans.value); }
+                                else { break; }}}
+                        // the rotation keyframes if any (might be null), sorted by time ascending
+                        if (nodeAnim.rotation != null) {
+                            for (NodeKeyframe<Quaternion> nRot:nodeAnim.rotation) {
+                                if (nRot.keytime <= keytime) { tmpRot.set(nRot.value); }
+                                else { break; }}}
+                        // the scaling keyframes if any (might be null), sorted by time ascending
+                        if (nodeAnim.scaling != null) {
+                            for (NodeKeyframe<Vector3> nScale:nodeAnim.scaling) {
+                                if (nScale.keytime <= keytime) { tmpScale.set(nScale.value); }
+                                else { break; }}}
+                        Gdx.app.debug("", ""
+                                + " node.id: " + nodeAnim.node.id + " node.parts.size: " + nodeAnim.node.parts.size
+                                + " trans: " + tmpTrans + " rot: " + tmpRot + " scale: " + tmpScale
+                        );
+                        // setting isAnimated to true so the localTransform isn't reset to the base values.
+                        // the real check happens in node.calculateLocalTransform()
+                        nodeAnim.node.isAnimated = true;
+
+                        // setting the local transform to the values from key frames (if not, the default used)
+                        nodeAnim.node.localTransform.set(tmpTrans, tmpRot, tmpScale);
+                    }
+
+                    // see ModelInstance.calculateTransforms:
+                    // calculate both local and global transforms for each node and subnodes recursively.
+                    // IMPORTANT to have isAnimated set to true so local transform is not reset
+                    // seemingly bones transforms is based on the updated global transforms
+                    modelES.eng.currMI.calculateTransforms();
                 }
             }
         });
@@ -545,7 +601,8 @@ public class ModelEditStage extends Stage {
         lowerPanel.add(gridYCheckBox).pad(3f);
         lowerPanel.add(lightsCheckBox).pad(3f);
         lowerPanel.add(origScaleCheckBox).pad(3f);
-        lowerPanel.add(bbCheckBox).pad(3f);
+        // TODO: fix BB checkbox
+        //lowerPanel.add(bbCheckBox).pad(3f);
         lowerPanel.add(nodesCheckBox).pad(3f);
         lowerPanel.add(bonesCheckBox);
         lowerPanel.add(invertCheckBox).pad(3f);

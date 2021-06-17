@@ -62,6 +62,7 @@ import static com.hammergenics.utils.LibgdxUtils.aux_colors;
 public class DebugModelInstance extends HGModelInstance implements Disposable {
     // Nodes related
     public final ArrayMap<Node, Array<NodePart>> n2np = new ArrayMap<>(Node.class, Array.class);
+    // This is for sub-models created out of this model if it has more than one node part
     public final ArrayMap<Node, HGModel> node2model = new ArrayMap<>(Node.class, HGModel.class);
     public final ArrayMap<String, HGModel> nodeid2model = new ArrayMap<>(String.class, HGModel.class);
     public final ArrayMap<HGModel, Node> model2node = new ArrayMap<>(HGModel.class, Node.class);
