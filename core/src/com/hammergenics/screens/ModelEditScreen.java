@@ -36,6 +36,7 @@ import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.environment.PointLight;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
@@ -381,20 +382,18 @@ public class ModelEditScreen extends ScreenAdapter {
         //  unitSize: 1.7   17    191    376    522
         // intensity:   1  100  28708  56470  78397
         float intensity = (eng.overallSize < 50f ? 10.10947f : 151.0947f) * eng.overallSize - 90f; // TODO: temporal solution, revisit
-        intensity = intensity <= 0 ? 1f : intensity;                                       // TODO: temporal solution, revisit
+        intensity = intensity <= 0 ? 1f : intensity;                                               // TODO: temporal solution, revisit
         environment.add(new PointLight().set(Color.WHITE, plPosition, intensity < 0 ? 0.5f : intensity)); // syncup: pl
     }
 
     public void checkMouseMoved(int screenX, int screenY) {
         Ray ray = perspectiveCamera.getPickRay(screenX, screenY);
 
-        Array<HGModelInstance> outCorners = null;
         if (eng.hoveredOverBBMI != null && eng.hoveredOverCornerMIs.size > 0) {
             // we're hovering over some model instance having bounding box rendered as well
             // let's check if we're hovering over a corner of that bounding box:
+            Array<HGModelInstance> outCorners;
             outCorners = eng.rayMICollision(ray, eng.hoveredOverCornerMIs, new Array<>(HGModelInstance.class));
-            //Gdx.app.debug(getClass().getSimpleName(), "corners: \n" + outCorners.toString("\n"));
-
             if (outCorners.size > 0 && !outCorners.get(0).equals(eng.hoveredOverCorner)) {
                 // we're hovering over the new corner, need to restore the attributes of the previous corner (if any)
                 eng.restoreAttributes(eng.hoveredOverCorner, eng.hoveredOverCornerAttributes);
@@ -415,8 +414,22 @@ public class ModelEditScreen extends ScreenAdapter {
             }
         }
 
-        Array<DebugModelInstance> out = eng.rayMICollision(ray, eng.dbgMIs, new Array<>(DebugModelInstance.class));
+        if (stage.nodesCheckBox.isChecked() && eng.hoveredOverMI != null) {
+            Array<BoundingBox> outNodeBBs;
+            outNodeBBs = eng.rayBBCollision(ray, eng.hoveredOverMI.bb2n.keys().toArray(), new Array<>(true, 16, BoundingBox.class));
+            for (BoundingBox bb:outNodeBBs) {
+                Gdx.app.debug(getClass().getSimpleName(), "node: " + eng.hoveredOverMI.bb2n.get(bb).id);
+            }
+            if (outNodeBBs.size > 0) {
+                eng.hoveredOverNode = eng.hoveredOverMI.bb2n.get(outNodeBBs.get(0));
+                eng.hoveredOverMI.hoveredOverNode = eng.hoveredOverNode;
+                return; // nothing else should be done
+            } else {
+                eng.hoveredOverMI.hoveredOverNode = null;
+            }
+        }
 
+        Array<DebugModelInstance> out = eng.rayMICollision(ray, eng.dbgMIs, new Array<>(DebugModelInstance.class));
         if (out.size > 0 && !out.get(0).equals(eng.hoveredOverMI)) {
             // no need to dispose the box and the corners - will be done in HGModelInstance on dispose()
             eng.auxMIs.clear();

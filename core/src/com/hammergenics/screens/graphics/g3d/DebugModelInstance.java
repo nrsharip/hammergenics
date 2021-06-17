@@ -76,6 +76,7 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
     public HGModelInstance bbHgMI = null;
     public Array<HGModelInstance> bbCornerMIs = null;
     public int auxMeshCounter;
+    public Node hoveredOverNode = null;
 
     public DebugModelInstance(Model model) { this(new HGModel(model), null, (String[])null); }
     public DebugModelInstance(Model model, String... rootNodeIds) { this(new HGModel(model), null, rootNodeIds); }
@@ -250,8 +251,9 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
     }
 
     public void addNodesToRenderer(HGImmediateModeRenderer20 imr) {
+        n2bb.clear();
+        bb2n.clear();
         for (Node node:nodes) {
-            //if (node.id.equals("characterMedium"))
             addNodeToRenderer(imr, node, Color.RED, Color.GREEN);
         }
     }
@@ -267,7 +269,8 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
         Vector3 scl = tmpM4.getScale(new Vector3()).nor().scl(getMaxDimension()/40f);
         tmpM4.set(trn, rot, scl);
 
-        BoundingBox bb = imr.box(tmpM4, Color.CYAN);
+        Color clr = !node.equals(hoveredOverNode) ? Color.CYAN : Color.PURPLE;
+        BoundingBox bb = imr.box(tmpM4, clr);
         n2bb.put(node, bb);
         bb2n.put(bb, node);
 

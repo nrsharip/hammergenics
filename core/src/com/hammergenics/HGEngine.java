@@ -32,6 +32,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.environment.PointLight;
 import com.badlogic.gdx.graphics.g3d.model.Animation;
+import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.model.NodePart;
 import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
 import com.badlogic.gdx.math.Intersector;
@@ -112,6 +113,8 @@ public class HGEngine implements Disposable {
     public Array<HGModelInstance> hoveredOverCornerMIs = null;
     public HGModelInstance hoveredOverCorner = null;
     public AttributesMap hoveredOverCornerAttributes = null;
+    // node
+    public Node hoveredOverNode = null;
 
     public HGEngine(HGGame game) {
         this.game = game;
