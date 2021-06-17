@@ -37,6 +37,7 @@ import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
@@ -540,23 +541,53 @@ public class HGEngine implements Disposable {
      * @param out
      * @return An array of model instances sorted by the distance from camera position (ascending order)
      */
-    public <T extends HGModelInstance> Array<T> rayMICollision(Ray ray, Array<T> modelInstances, Array<T> out) {
+    public <T extends HGModelInstance> Array<T> rayMICollision(Ray ray, Array<T> modelInstances, final Array<T> out) {
+        ArrayMap<BoundingBox, T> bb2mi = new ArrayMap<>();
+        Array<BoundingBox> bbs = Arrays.stream(modelInstances.toArray())
+                .map(HGModelInstance::getBB)
+                .collect(() -> new Array<>(BoundingBox.class), Array::add, Array::addAll);
+
+        for (int i = 0; i < modelInstances.size; i++) { bb2mi.put(bbs.get(i), modelInstances.get(i)); }
+
+        Array<BoundingBox> outBB = rayBBCollision(ray, bbs, new Array<>(true, 16, BoundingBox.class));
+
+        Arrays.stream(outBB.toArray()).map(bb2mi::get).collect(() -> out, Array::add, Array::addAll);
+
+        return out;
+    }
+
+    public Array<BoundingBox> rayBBCollision(Ray ray, Array<BoundingBox> bbs, Array<BoundingBox> out) {
         // TODO: revisit this later when the Bullet Collision Physics is added
 
-        for (T mi:modelInstances) {
-            if (Intersector.intersectRayBoundsFast(ray, mi.getBB())) { out.add(mi); }
+        for (BoundingBox bb:bbs) {
+            if (Intersector.intersectRayBoundsFast(ray, bb)) { out.add(bb); }
         }
-        Sort.instance().sort(out, (mi1, mi2) -> {
-            Vector3 bbc1 = mi1.getBB().getCenter(new Vector3());
-            Vector3 bbc2 = mi2.getBB().getCenter(new Vector3());
-
-            float len1 = ray.origin.cpy().sub(bbc1).len();
-            float len2 = ray.origin.cpy().sub(bbc2).len();
+        Sort.instance().sort(out, (bb1, bb2) -> {
+            float len1 = ray.origin.cpy().sub(bb1.getCenter(new Vector3())).len();
+            float len2 = ray.origin.cpy().sub(bb2.getCenter(new Vector3())).len();
 
             return Float.compare(len1, len2);
         });
         return out;
     }
+
+//    public <T extends HGModelInstance> Array<T> rayMICollision(Ray ray, Array<T> modelInstances, Array<T> out) {
+//        // TODO: revisit this later when the Bullet Collision Physics is added
+//
+//        for (T mi:modelInstances) {
+//            if (Intersector.intersectRayBoundsFast(ray, mi.getBB())) { out.add(mi); }
+//        }
+//        Sort.instance().sort(out, (mi1, mi2) -> {
+//            Vector3 bbc1 = mi1.getBB().getCenter(new Vector3());
+//            Vector3 bbc2 = mi2.getBB().getCenter(new Vector3());
+//
+//            float len1 = ray.origin.cpy().sub(bbc1).len();
+//            float len2 = ray.origin.cpy().sub(bbc2).len();
+//
+//            return Float.compare(len1, len2);
+//        });
+//        return out;
+//    }
 
     public void saveAttributes(HGModelInstance hgmi, final AttributesMap storage) {
         if (hgmi != null) {
