@@ -550,12 +550,9 @@ public class ModelEditScreen extends ScreenAdapter {
                     return false;
                 } else if (eng.hoveredOverMI != null && eng.hoveredOverNode != null && eng.hoveredOverNode.getParent() != null) {
                     // we hold the left button pressed on the model instance's node
+                    Ray ray = cam.getPickRay(x + deltaX, y - deltaY);
                     Node node = eng.hoveredOverNode;
                     Node parent = eng.hoveredOverNode.getParent();
-
-                    Vector3 nodeLocTrans = node.localTransform.getTranslation(new Vector3());
-                    Quaternion nodeLocRot = node.localTransform.getRotation(new Quaternion(), true);
-                    Vector3 nodeLocScale = node.localTransform.getScale(new Vector3());
 
                     Vector3 nodeTrans = node.globalTransform.getTranslation(new Vector3());
                     Quaternion nodeRot = node.globalTransform.getRotation(new Quaternion(), true);
@@ -579,25 +576,33 @@ public class ModelEditScreen extends ScreenAdapter {
                     // parent.GT.inv MUL  node.GT  =                                    node.LT
                     // TODO: check inheritTransform value (see Node.calculateWorldTransform)
 
-                    Matrix4 tmpGlobal = new Matrix4();
-                    Matrix4 tmpLocal = new Matrix4();
+                    float radius = nodeTrans.cpy().sub(parentTrans).len();
+                    Vector3 intersection = new Vector3();
+                    if (Intersector.intersectRaySphere(ray, parentTrans, radius, intersection)) {
+                        Vector3 dirOld = nodeTrans.cpy().sub(parentTrans).nor();
+                        Vector3 dirNew = intersection.cpy().sub(parentTrans).nor();
+                        Quaternion rot = new Quaternion().setFromCross(dirOld, dirNew).nor();
 
-                    tmpGlobal.setToTranslationAndScaling(parentTrans, parentScale);
-                    tmpGlobal.rotate(cam.up.cpy().nor(), fracX * 360f);
-                    tmpGlobal.rotate(cam.direction.cpy().crs(cam.up).nor(), fracY * 360f);
-                    tmpGlobal.rotate(parentRot);
+                        Matrix4 tmpGlobal = new Matrix4();
+                        Matrix4 tmpLocal = new Matrix4();
 
-                    Node parent2 = parent.getParent();
-                    if (parent2 != null) {
-                        // parent.LT = parent2.GT.inv MUL parent.GT (see above)
-                        tmpLocal.set(parent2.globalTransform.cpy().inv().mul(tmpGlobal));
+                        tmpGlobal.setToTranslationAndScaling(parentTrans, parentScale);
+                        tmpGlobal.rotate(rot.mul(parentRot.nor()).nor());
+
+                        Node parent2 = parent.getParent();
+                        if (parent2 != null) {
+                            // parent.LT = parent2.GT.inv MUL parent.GT (see above)
+                            tmpLocal.set(parent2.globalTransform.cpy().inv().mul(tmpGlobal));
+                        }
+                        parent.translation.set(tmpLocal.getTranslation(new Vector3()));
+                        parent.rotation.set(tmpLocal.getRotation(new Quaternion()).nor());
+                        eng.hoveredOverMI.calculateTransforms();
+                        // this update will also affect:
+                        // parent.localTransform
+                        // parent.globalTransform
+                        // node.localTransform
+                        // node.globalTransform
                     }
-                    parent.translation.set(tmpLocal.getTranslation(new Vector3()));
-                    parent.rotation.set(tmpLocal.getRotation(new Quaternion()));
-
-                    eng.hoveredOverMI.calculateTransforms();
-                    eng.hoveredOverMI.bbHgModelInstanceReset();
-                    eng.hoveredOverMI.bbCornersReset();
 
                     return false;
                 } else if (eng.hoveredOverMI != null) {
