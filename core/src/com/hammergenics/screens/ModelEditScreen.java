@@ -550,8 +550,6 @@ public class ModelEditScreen extends ScreenAdapter {
                     return false;
                 } else if (eng.hoveredOverMI != null && eng.hoveredOverNode != null && eng.hoveredOverNode.getParent() != null) {
                     // we hold the left button pressed on the model instance's node
-                    Ray ray = cam.getPickRay(x, y);
-
                     Node node = eng.hoveredOverNode;
                     Node parent = eng.hoveredOverNode.getParent();
 
@@ -581,24 +579,25 @@ public class ModelEditScreen extends ScreenAdapter {
                     // parent.GT.inv MUL  node.GT  =                                    node.LT
                     // TODO: check inheritTransform value (see Node.calculateWorldTransform)
 
-                    float radius = nodeTrans.cpy().sub(parentTrans).len();
+                    Matrix4 tmpGlobal = new Matrix4();
+                    Matrix4 tmpLocal = new Matrix4();
 
-                    Gdx.app.debug(getClass().getSimpleName(), ""
-                            + " node.id: " + node.id + " node.parent: " + parent.id
-                            + " n.center: " + nodeTrans + " p.center: " + parentTrans + " radius: " + radius
-                            + "\nray: " + ray
-                    );
+                    tmpGlobal.setToTranslationAndScaling(parentTrans, parentScale);
+                    tmpGlobal.rotate(cam.up.cpy().nor(), fracX * 360f);
+                    tmpGlobal.rotate(cam.direction.cpy().crs(cam.up).nor(), fracY * 360f);
+                    tmpGlobal.rotate(parentRot);
 
-                    Vector3 intersection = new Vector3();
-                    if (Intersector.intersectRaySphere(ray, parentTrans, radius, intersection)) {
-                        node.globalTransform.set(intersection, nodeRot, nodeScale);
-                        // node.LT = parent.GT.inv MUL node.GT (see above)
-                        node.localTransform.set(parent.globalTransform.cpy().inv().mul(node.globalTransform));
-                        Gdx.app.debug(getClass().getSimpleName(), "intersection: " + intersection);
+                    Node parent2 = parent.getParent();
+                    if (parent2 != null) {
+                        // parent.LT = parent2.GT.inv MUL parent.GT (see above)
+                        tmpLocal.set(parent2.globalTransform.cpy().inv().mul(tmpGlobal));
                     }
-                    node.isAnimated = true;
+                    parent.translation.set(tmpLocal.getTranslation(new Vector3()));
+                    parent.rotation.set(tmpLocal.getRotation(new Quaternion()));
+
                     eng.hoveredOverMI.calculateTransforms();
-                    node.isAnimated = false;
+                    eng.hoveredOverMI.bbHgModelInstanceReset();
+                    eng.hoveredOverMI.bbCornersReset();
 
                     return false;
                 } else if (eng.hoveredOverMI != null) {
