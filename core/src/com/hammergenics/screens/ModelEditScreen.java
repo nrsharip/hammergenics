@@ -574,25 +574,26 @@ public class ModelEditScreen extends ScreenAdapter {
                     // parent.GT.inv MUL (node.GT) =  parent.GT.inv MUL (parent.GT  MUL node.LT) : associativity
                     // parent.GT.inv MUL  node.GT  = (parent.GT.inv MUL  parent.GT) MUL node.LT  : definition of inverse
                     // parent.GT.inv MUL  node.GT  =                                    node.LT
-                    // TODO: check inheritTransform value (see Node.calculateWorldTransform)
 
-                    float radius = nodeTrans.cpy().sub(parentTrans).len();
+                    float radius = nodeTrans.cpy().mul(miTransform).sub(parentTrans.cpy().mul(miTransform)).len();
                     Vector3 intersection = new Vector3();
-                    if (Intersector.intersectRaySphere(ray, parentTrans, radius, intersection)) {
+                    if (Intersector.intersectRaySphere(ray, parentTrans.cpy().mul(miTransform), radius, intersection)) {
                         Vector3 dirOld = nodeTrans.cpy().sub(parentTrans).nor();
-                        Vector3 dirNew = intersection.cpy().sub(parentTrans).nor();
+                        Vector3 dirNew = intersection.cpy().sub(parentTrans.cpy().mul(miTransform)).nor();
                         Quaternion rot = new Quaternion().setFromCross(dirOld, dirNew).nor();
 
                         Matrix4 tmpGlobal = new Matrix4();
                         Matrix4 tmpLocal = new Matrix4();
 
                         tmpGlobal.setToTranslationAndScaling(parentTrans, parentScale);
-                        tmpGlobal.rotate(rot.mul(parentRot.nor()).nor());
+                        tmpGlobal.rotate(rot.mul(parentRot.cpy().nor()).nor());
 
                         Node parent2 = parent.getParent();
-                        if (parent2 != null) {
+                        if (parent.inheritTransform && parent2 != null) {
                             // parent.LT = parent2.GT.inv MUL parent.GT (see above)
                             tmpLocal.set(parent2.globalTransform.cpy().inv().mul(tmpGlobal));
+                        } else {
+                            tmpLocal.set(tmpGlobal);
                         }
                         parent.translation.set(tmpLocal.getTranslation(new Vector3()));
                         parent.rotation.set(tmpLocal.getRotation(new Quaternion()).nor());
