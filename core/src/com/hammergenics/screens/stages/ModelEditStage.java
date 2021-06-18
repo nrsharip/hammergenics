@@ -110,6 +110,7 @@ public class ModelEditStage extends Stage {
     public TextButton attrTextButton = null;
     public TextButton animTextButton = null;
     public TextButton clearModelsTextButton = null;
+    public TextButton deleteCurrModelTextButton = null;
 
     // TODO: ANIMATIONS RELATED: to be moved to a separate class
     public CheckBox animLoopCheckBox;
@@ -326,12 +327,26 @@ public class ModelEditStage extends Stage {
         animTextButton = new TextButton("ANIM", skin);
         unpressButton(animTextButton);
 
-        clearModelsTextButton = new TextButton("clear", skin);
+        clearModelsTextButton = new TextButton("clear all", skin);
         unpressButton(clearModelsTextButton);
         clearModelsTextButton.addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 modelES.eng.clearModelInstances();
+                reset();
+                return super.touchDown(event, x, y, pointer, button);
+            }
+        });
+
+        deleteCurrModelTextButton = new TextButton("delete", skin);
+        unpressButton(deleteCurrModelTextButton);
+        deleteCurrModelTextButton.addListener(new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                modelES.eng.removeDbgModelInstance(modelES.eng.currMI);
+                if (modelES.eng.dbgMIs.size > 0) { modelES.eng.currMI = modelES.eng.dbgMIs.get(0); }
+                else { modelES.eng.currMI = null; }
+                reset();
                 return super.touchDown(event, x, y, pointer, button);
             }
         });
@@ -470,11 +485,18 @@ public class ModelEditStage extends Stage {
      * @param alias
      */
     private void handleAttributeUpdate(EventType eType, Attributes container, long type, String alias) {
-        miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelES.eng.currMI));
+        if (modelES.eng.currMI != null) {
+            miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelES.eng.currMI));
+        } else {
+            miLabel.setText("");
+        }
+
         envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(modelES.environment,"", ""));
 
         if ((type & (DirectionalLightsAttribute.Type | PointLightsAttribute.Type)) != 0) {
-            modelES.eng.resetLightsModelInstances(modelES.eng.currMI.getBB().getCenter(Vector3.Zero.cpy()), modelES.environment);
+            Vector3 center = Vector3.Zero.cpy();
+            if (modelES.eng.currMI != null) { modelES.eng.currMI.getBB().getCenter(center); }
+            modelES.eng.resetLightsModelInstances(center, modelES.environment);
         }
         //Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "onAttributeDisabled: 0x" + Long.toHexString(type) + " alias: " + alias);
     }
@@ -607,6 +629,7 @@ public class ModelEditStage extends Stage {
         lowerPanel.add(bonesCheckBox);
         lowerPanel.add(invertCheckBox).pad(3f);
         lowerPanel.add(meshPartsCheckBox).pad(3f);
+        lowerPanel.add(deleteCurrModelTextButton).pad(3f);
         lowerPanel.add(clearModelsTextButton).pad(3f);
         lowerPanel.add().expandX();
 
@@ -625,38 +648,35 @@ public class ModelEditStage extends Stage {
 
         textureImage.setDrawable(null);
 
+        aggrAttrTable.setDbgModelInstance(modelES.eng.currMI);
+        if (isPressed(attrTextButton)) {
+            editCell.clearActor();
+            editCell.setActor(aggrAttrTable);
+        }
+
+        // Select Box: Nodes
+        // making sure no events fired during the nodeSelectBox reset
+        nodeSelectBox.getSelection().setProgrammaticChangeEvents(false);
+        nodeSelectBox.clearItems();
         if (modelES.eng.currMI != null) {
-            aggrAttrTable.setDbgModelInstance(modelES.eng.currMI);
-            if (isPressed(attrTextButton)) {
-                editCell.clearActor();
-                editCell.setActor(aggrAttrTable);
-            }
-
-            // making sure no events fired during the nodeSelectBox reset
-            nodeSelectBox.getSelection().setProgrammaticChangeEvents(false);
-            nodeSelectBox.clearItems();
-
             String array1[] = modelES.eng.currMI.nodeid2model.keys().toArray().toArray();
             String array2[] = new String[array1.length + 1];
             System.arraycopy(array1, 0, array2, 1, array1.length);
             array2[0] = "All";
-
             nodeSelectBox.setItems(array2);
-            nodeSelectBox.getSelection().setProgrammaticChangeEvents(true);
         }
-
+        nodeSelectBox.getSelection().setProgrammaticChangeEvents(true);
         nodeSelectBox.getColor().set(Color.WHITE);
 
-        if (modelES.eng.currMI == null) { return; }
-
         // Select Box: Animations
-        Array<String> itemsAnimation = new Array<>();
-        itemsAnimation.add("No Animation");
-        modelES.eng.currMI.animations.forEach(a -> itemsAnimation.add(a.id));
         animationSelectBox.getSelection().setProgrammaticChangeEvents(false);
         animationSelectBox.clearItems();
-        animationSelectBox.setItems(itemsAnimation);
+        if (modelES.eng.currMI != null) {
+            Array<String> itemsAnimation = new Array<>();
+            itemsAnimation.add("No Animation");
+            modelES.eng.currMI.animations.forEach(a -> itemsAnimation.add(a.id));
+            animationSelectBox.setItems(itemsAnimation);
+        }
         animationSelectBox.getSelection().setProgrammaticChangeEvents(true);
-        miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelES.eng.currMI));
     }
 }

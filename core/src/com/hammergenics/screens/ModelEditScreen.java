@@ -95,6 +95,7 @@ public class ModelEditScreen extends ScreenAdapter {
         modelEditInputController = new ModelEditInputController(this, perspectiveCamera);
         // Environment related
         environment = new Environment();
+        resetEnvironment();
 
         // 2D Stage - https://github.com/libgdx/libgdx/wiki/Scene2d.ui#stage-setup
         stage = new ModelEditStage(new ScreenViewport(), game, this);
@@ -240,12 +241,18 @@ public class ModelEditScreen extends ScreenAdapter {
     public void reset() {
         eng.arrangeInSpiral(stage.origScaleCheckBox.isChecked());
 
+        if (eng.unitSize == 0f) { eng.unitSize = 1f; eng.overallSize = 5f; }
+
         Vector3 center = eng.currMI != null ? eng.currMI.getBB().getCenter(Vector3.Zero.cpy()) : Vector3.Zero.cpy();
 
         resetCamera(eng.overallSize, center.cpy());
         resetScreenInputController(eng.unitSize, eng.overallSize, center.cpy());
-        resetEnvironment();    // clears all lights
-        addInitialEnvLights(); // adds 1 directional and 1 point light to the environment
+
+        if (!environment.has(DirectionalLightsAttribute.Type)
+                && !environment.has(PointLightsAttribute.Type)
+                && !environment.has(SpotLightsAttribute.Type)) {
+            addInitialEnvLights(); // if no lights defined adds 1 directional light to the environment
+        }
 
         eng.resetGridModelInstances();
         eng.resetLightsModelInstances(center.cpy(), environment);
@@ -373,20 +380,22 @@ public class ModelEditScreen extends ScreenAdapter {
 
         // adding a single directional light
         environment.add(new DirectionalLight().set(Color.WHITE, -1f, -0.5f, -1f));
+        // TODO: revisit the commented code below (Point Light addition).
+        //       Issue: when more objects are added the grid gets rescaled and point lights are no longer visible.
         // adding a single point light
-        Vector3 plPosition;
-        if (eng.dbgMIs != null && eng.dbgMIs.size > 0) {
-            plPosition = eng.dbgMIs.get(0).getBB().getCenter(new Vector3());
-        } else {
-            plPosition = Vector3.Zero.cpy();
-        }
-        plPosition.add(-eng.overallSize/2, eng.overallSize/2, eng.overallSize/2);
+        //Vector3 plPosition;
+        //if (eng.dbgMIs != null && eng.dbgMIs.size > 0) {
+        //    plPosition = eng.dbgMIs.get(0).getBB().getCenter(new Vector3());
+        //} else {
+        //    plPosition = Vector3.Zero.cpy();
+        //}
+        //plPosition.add(-eng.overallSize/2, eng.overallSize/2, eng.overallSize/2);
         // seems that intensity should grow exponentially(?) over the distance, the table is:
         //  unitSize: 1.7   17    191    376    522
         // intensity:   1  100  28708  56470  78397
-        float intensity = (eng.overallSize < 50f ? 10.10947f : 151.0947f) * eng.overallSize - 90f; // TODO: temporal solution, revisit
-        intensity = intensity <= 0 ? 1f : intensity;                                               // TODO: temporal solution, revisit
-        environment.add(new PointLight().set(Color.WHITE, plPosition, intensity < 0 ? 0.5f : intensity)); // syncup: pl
+        //float intensity = (eng.overallSize < 50f ? 10.10947f : 151.0947f) * eng.overallSize - 90f; // TODO: temporal solution, revisit
+        //intensity = intensity <= 0 ? 1f : intensity;                                               // TODO: temporal solution, revisit
+        //environment.add(new PointLight().set(Color.WHITE, plPosition, intensity < 0 ? 0.5f : intensity)); // syncup: pl
     }
 
     public void checkMouseMoved(int screenX, int screenY) {

@@ -92,9 +92,9 @@ public class HGEngine implements Disposable {
     public HGModelInstance gridXZHgModelInstance = null; // XZ plane: lines (yellow)
     public HGModelInstance gridYHgModelInstance = null;  // Y axis: vertical lines (red)
     public HGModelInstance gridOHgModelInstance = null;  // origin: sphere (red)
-    public Array<HGModelInstance> dlArrayHgModelInstance = null; // directional lights
-    public Array<HGModelInstance> plArrayHgModelInstance = null; // point lights
-    public Array<HGModelInstance> bbArrayHgModelInstance = null; // bounding boxes
+    public Array<HGModelInstance> dlArrayHgModelInstance = new Array<>(ModelInstance.class); // directional lights
+    public Array<HGModelInstance> plArrayHgModelInstance = new Array<>(ModelInstance.class); // point lights
+    public Array<HGModelInstance> bbArrayHgModelInstance = new Array<>(ModelInstance.class); // bounding boxes
     // the general container for any auxiliary model instances
     public Array<HGModelInstance> auxMIs = new Array<>(HGModelInstance.class);
 
@@ -128,6 +128,10 @@ public class HGEngine implements Disposable {
         // Creating the Aux Models beforehand:
         gridHgModel = new HGModel(createGridModel());
         lightsHgModel = new HGModel(createLightsModel());
+
+        gridXZHgModelInstance = new HGModelInstance(gridHgModel, "XZ");
+        gridYHgModelInstance = new HGModelInstance(gridHgModel, "Y");
+        gridOHgModelInstance = new HGModelInstance(gridHgModel, "origin");
     }
 
     @Override
@@ -436,11 +440,8 @@ public class HGEngine implements Disposable {
      * @return
      */
     public void resetGridModelInstances() {
-        if (gridHgModel == null) { return; }
-
-        gridXZHgModelInstance = new HGModelInstance(gridHgModel, "XZ");
-        gridYHgModelInstance = new HGModelInstance(gridHgModel, "Y");
-        gridOHgModelInstance = new HGModelInstance(gridHgModel, "origin");
+        if (gridHgModel == null || gridXZHgModelInstance == null || gridYHgModelInstance == null
+                || gridOHgModelInstance == null) { return; }
 
         gridXZHgModelInstance.transform.setToScaling(Vector3.Zero.cpy().add(overallSize/4f));
         gridYHgModelInstance.transform.setToScaling(Vector3.Zero.cpy().add(overallSize/4f));
@@ -448,11 +449,7 @@ public class HGEngine implements Disposable {
     }
 
     public void resetBBModelInstances() {
-        if (bbArrayHgModelInstance != null) {
-            bbArrayHgModelInstance.clear();
-            bbArrayHgModelInstance = null;
-        }
-        bbArrayHgModelInstance = new Array<>(ModelInstance.class);
+        if (bbArrayHgModelInstance != null) { bbArrayHgModelInstance.clear(); } else { return; }
 
         for (DebugModelInstance mi: dbgMIs) {
             if (mi.equals(currMI)) { bbArrayHgModelInstance.add(mi.getBBHgModelInstance(Color.GREEN)); }
@@ -461,10 +458,8 @@ public class HGEngine implements Disposable {
     }
 
     public void resetLightsModelInstances(Vector3 center, Environment environment) {
-        if (dlArrayHgModelInstance != null) { dlArrayHgModelInstance.clear(); dlArrayHgModelInstance = null; }
-        if (plArrayHgModelInstance != null) { plArrayHgModelInstance.clear(); plArrayHgModelInstance = null; }
-        dlArrayHgModelInstance = new Array<>(ModelInstance.class);
-        plArrayHgModelInstance = new Array<>(ModelInstance.class);
+        if (dlArrayHgModelInstance != null) { dlArrayHgModelInstance.clear(); } else { return; }
+        if (plArrayHgModelInstance != null) { plArrayHgModelInstance.clear(); } else { return; }
 
         Vector3 envPosition;
         if (dbgMIs != null && dbgMIs.size > 0) {
@@ -593,11 +588,18 @@ public class HGEngine implements Disposable {
         }
     }
 
+    public void removeDbgModelInstance(DebugModelInstance mi) {
+        if (mi == null) { return; }
+        dbgMIs.removeValue(mi, true);
+        mi.dispose();
+    }
+
     public void clearModelInstances() {
         dbgMIs.forEach(HGModelInstance::dispose);
         dbgMIs.clear();
         // no need to dispose - will be done in HGModelInstance on dispose()
         //auxMIs.forEach(HGModelInstance::dispose);
         auxMIs.clear();
+        currMI = null;
     }
 }

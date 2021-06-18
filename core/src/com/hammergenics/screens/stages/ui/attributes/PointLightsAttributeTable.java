@@ -168,16 +168,16 @@ public class PointLightsAttributeTable extends BaseLightsAttributeTable<PointLig
 
     @Override
     protected PointLight createLight() {
-        Vector3 position;
+        Vector3 position = Vector3.Zero.cpy();
         float intensity;
 
         if (lights != null && lights.size != 0) {
             PointLight pl = lights.get(lights.size - 1);
 
             if (container instanceof Environment) {
-                position = pl.position.cpy().rotate(Vector3.Y.cpy(), -45f);
+                position.set(pl.position.cpy().rotate(Vector3.Y.cpy(), -45f));
             } else if (container instanceof Material) {
-                position = pl.position.cpy().sub(modelES.eng.currMI.getBB().getCenter(new Vector3()));
+                position.set(pl.position.cpy().sub(modelES.eng.currMI.getBB().getCenter(new Vector3())));
                 position.rotate(Vector3.Y.cpy(), -45f);
                 position.add(modelES.eng.currMI.getBB().getCenter(new Vector3()));
             } else { return null; } // so the IDE is not complaining
@@ -187,10 +187,14 @@ public class PointLightsAttributeTable extends BaseLightsAttributeTable<PointLig
             float size;
             if (container instanceof Environment) {
                 size = modelES.eng.overallSize;
-                position = modelES.eng.dbgMIs.get(0).getBB().getCenter(new Vector3()).cpy();
+                if (modelES.eng.dbgMIs.size > 0) {
+                    position.set(modelES.eng.dbgMIs.get(0).getBB().getCenter(new Vector3()).cpy());
+                }
             } else if (container instanceof Material) {
                 size = modelES.eng.unitSize;
-                position = modelES.eng.currMI.getBB().getCenter(new Vector3()).cpy();
+                if (modelES.eng.currMI != null) {
+                    position = modelES.eng.currMI.getBB().getCenter(new Vector3()).cpy();
+                }
             } else { return null; } // so the IDE is not complaining
 
             position.add(-size/2, size/2, size/2);

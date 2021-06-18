@@ -95,11 +95,12 @@ public class AggregatedAttributesManagerTable extends HGTable {
 
     public void setDbgModelInstance(DebugModelInstance dbgModelInstance) {
         this.dbgModelInstance = dbgModelInstance;
-        dbgModelInstance.createMtlAttributeTables(stage.skin, stage.eventListener, modelES);
-
         mtlSelectBox.getSelection().setProgrammaticChangeEvents(false);
         mtlSelectBox.clearItems();
-        mtlSelectBox.setItems(dbgModelInstance.mtlid2atable.keys().toArray());
+        if (dbgModelInstance != null) {
+            dbgModelInstance.createMtlAttributeTables(stage.skin, stage.eventListener, modelES);
+            mtlSelectBox.setItems(dbgModelInstance.mtlid2atable.keys().toArray());
+        }
         mtlSelectBox.getSelection().setProgrammaticChangeEvents(true);
 
         resetActors();
@@ -149,17 +150,17 @@ public class AggregatedAttributesManagerTable extends HGTable {
         // **************************
         // **** ATTRIBUTES 2D UI ****
         // **************************
-        if (modelES.environment != null) {
+        if (modelES.environment != null && stage.isPressed(envTextButton)) {
             stage.envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(modelES.environment,"", ""));
-            if (stage.isPressed(envTextButton)) {
-                attrTableCell.setActor(stage.envAttrTable);
-            }
+            attrTableCell.setActor(stage.envAttrTable);
         }
 
-        if (dbgModelInstance != null) {
-            if (stage.isPressed(mtlTextButton)) {
-                attrTableCell.setActor(dbgModelInstance.mtl2atable.getValueAt(mtlSelectBox.getSelectedIndex()));
-            }
+        if (dbgModelInstance != null && stage.isPressed(mtlTextButton)) {
+            stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelES.eng.currMI));
+            attrTableCell.setActor(dbgModelInstance.mtl2atable.getValueAt(mtlSelectBox.getSelectedIndex()));
+        } else if (stage.isPressed(mtlTextButton)) {
+            stage.miLabel.setText("");
+            pressEnv();
         }
     }
 }
