@@ -249,7 +249,8 @@ public class G3dModelSaver {
                     if (np.bones != null && np.bones.length > 0) {
                         g3dj.array("bones"); // array-bones:start
                         for (int i = 0; i < np.bones.length; i++) {
-                            Matrix4 bone = np.bones[i];
+                            // see Model.loadNodes:
+                            Matrix4 bone = np.invBoneBindTransforms.getValueAt(i).cpy().inv();
                             Vector3 boneTrans = bone.getTranslation(new Vector3());
                             Quaternion boneRot = bone.getRotation(new Quaternion());
                             Vector3 boneScale = bone.getScale(new Vector3());

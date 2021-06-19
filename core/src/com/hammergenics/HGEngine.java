@@ -29,7 +29,6 @@ import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
-import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
@@ -58,6 +57,8 @@ import com.hammergenics.screens.utils.AttributesMap;
 import com.hammergenics.utils.HGUtils;
 
 import java.io.FileFilter;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 
 import static com.hammergenics.screens.graphics.g3d.utils.Models.createGridModel;
@@ -596,7 +597,15 @@ public class HGEngine implements Disposable {
     public void saveHgModelInstance(HGModelInstance mi) {
         if (mi == null) { return; }
 
-        g3dSaver.saveG3dj(Gdx.files.local("root/test/test.json"), mi);
+        String filename = "test";
+        if (mi.afh != null) {
+            filename = mi.afh.name().replace("." + mi.afh.extension(), "");
+        }
+
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+        LocalDateTime now = LocalDateTime.now();
+
+        g3dSaver.saveG3dj(Gdx.files.local("root/test/" + filename + "." + fmt.format(now) + ".g3dj"), mi);
     }
 
     public void removeDbgModelInstance(DebugModelInstance mi) {
