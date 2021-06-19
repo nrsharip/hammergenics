@@ -111,6 +111,7 @@ public class ModelEditStage extends Stage {
     public TextButton animTextButton = null;
     public TextButton clearModelsTextButton = null;
     public TextButton deleteCurrModelTextButton = null;
+    public TextButton saveCurrModelTextButton = null;
 
     // TODO: ANIMATIONS RELATED: to be moved to a separate class
     public CheckBox animLoopCheckBox;
@@ -347,6 +348,16 @@ public class ModelEditStage extends Stage {
                 if (modelES.eng.dbgMIs.size > 0) { modelES.eng.currMI = modelES.eng.dbgMIs.get(0); }
                 else { modelES.eng.currMI = null; }
                 reset();
+                return super.touchDown(event, x, y, pointer, button);
+            }
+        });
+
+        saveCurrModelTextButton = new TextButton("save", skin);
+        unpressButton(saveCurrModelTextButton);
+        saveCurrModelTextButton.addListener(new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                modelES.eng.saveHgModelInstance(modelES.eng.currMI);
                 return super.touchDown(event, x, y, pointer, button);
             }
         });
@@ -629,6 +640,7 @@ public class ModelEditStage extends Stage {
         lowerPanel.add(bonesCheckBox);
         lowerPanel.add(invertCheckBox).pad(3f);
         lowerPanel.add(meshPartsCheckBox).pad(3f);
+        lowerPanel.add(saveCurrModelTextButton).pad(3f);
         lowerPanel.add(deleteCurrModelTextButton).pad(3f);
         lowerPanel.add(clearModelsTextButton).pad(3f);
         lowerPanel.add().expandX();

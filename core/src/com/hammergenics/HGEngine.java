@@ -24,7 +24,11 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.ParticleEffect;
-import com.badlogic.gdx.graphics.g3d.*;
+import com.badlogic.gdx.graphics.g3d.Attribute;
+import com.badlogic.gdx.graphics.g3d.Environment;
+import com.badlogic.gdx.graphics.g3d.Material;
+import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
@@ -49,6 +53,7 @@ import com.hammergenics.config.Config;
 import com.hammergenics.screens.graphics.g3d.DebugModelInstance;
 import com.hammergenics.screens.graphics.g3d.HGModel;
 import com.hammergenics.screens.graphics.g3d.HGModelInstance;
+import com.hammergenics.screens.graphics.g3d.saver.G3dModelSaver;
 import com.hammergenics.screens.utils.AttributesMap;
 import com.hammergenics.utils.HGUtils;
 
@@ -83,6 +88,7 @@ public class HGEngine implements Disposable {
     public final HGGame game;
     public final AssetManager assetManager = new AssetManager();
     public boolean assetsLoaded = true;
+    public G3dModelSaver g3dSaver = new G3dModelSaver();
 
     public Array<HGModel> hgModels = new Array<>();
     public Array<Texture> textures = new Array<>();
@@ -586,6 +592,12 @@ public class HGEngine implements Disposable {
                 attributes.set(storage.get(attributes));
             });
         }
+    }
+
+    public void saveHgModelInstance(HGModelInstance mi) {
+        if (mi == null) { return; }
+
+        g3dSaver.saveG3dj(Gdx.files.local("root/test/test.json"), mi);
     }
 
     public void removeDbgModelInstance(DebugModelInstance mi) {
