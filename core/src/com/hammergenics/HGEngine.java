@@ -348,7 +348,6 @@ public class HGEngine implements Disposable {
             //        at com.badlogic.gdx.graphics.g3d.ModelInstance.<init>(ModelInstance.java:145)
         }
 
-        currMI.setAttributes(new BlendingAttribute());
         dbgMIs.add(currMI);
 
         // ********************
