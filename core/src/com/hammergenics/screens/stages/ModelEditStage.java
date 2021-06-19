@@ -56,7 +56,7 @@ import com.hammergenics.screens.stages.ui.AggregatedAttributesManagerTable;
 import com.hammergenics.screens.stages.ui.AttributesManagerTable;
 import com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable;
 import com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable.EventType;
-import com.hammergenics.utils.LibgdxUtils;
+import com.hammergenics.utils.HGUtils;
 
 import static com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable.EventType.ATTR_CHANGED;
 import static com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable.EventType.ATTR_DISABLED;
@@ -486,12 +486,12 @@ public class ModelEditStage extends Stage {
      */
     private void handleAttributeUpdate(EventType eType, Attributes container, long type, String alias) {
         if (modelES.eng.currMI != null) {
-            miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelES.eng.currMI));
+            miLabel.setText(HGUtils.getModelInstanceInfo(modelES.eng.currMI));
         } else {
             miLabel.setText("");
         }
 
-        envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(modelES.environment,"", ""));
+        envLabel.setText("Environment:\n" + HGUtils.extractAttributes(modelES.environment,"", ""));
 
         if ((type & (DirectionalLightsAttribute.Type | PointLightsAttribute.Type)) != 0) {
             Vector3 center = Vector3.Zero.cpy();

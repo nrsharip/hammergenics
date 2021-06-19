@@ -30,7 +30,7 @@ import com.badlogic.gdx.utils.Array;
 import com.hammergenics.screens.ModelEditScreen;
 
 import static com.hammergenics.screens.stages.ui.attributes.ColorAttributeTable.*;
-import static com.hammergenics.utils.LibgdxUtils.color_s2c;
+import static com.hammergenics.utils.HGUtils.color_s2c;
 
 /**
  * Add description here

@@ -30,7 +30,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
 import com.hammergenics.screens.ModelEditScreen;
-import com.hammergenics.utils.LibgdxUtils;
+import com.hammergenics.utils.HGUtils;
 
 import java.util.Arrays;
 
@@ -189,20 +189,20 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
 
     private Array<FileHandle> texturesLookUp (FileHandle assetFileHandle) {
         if (assetFileHandle == null) { return null; }
-        Array<FileHandle> textureFileHandleArray = LibgdxUtils.traversFileHandle(assetFileHandle.parent(), filterTextures);
+        Array<FileHandle> textureFileHandleArray = HGUtils.traversFileHandle(assetFileHandle.parent(), filterTextures);
 
         // TODO: Add unified convention like "textures | skins" to specify all folders at once
         // All texture files in the "textures" directory and subdirectories (if any) on asset's path
-        textureFileHandleArray = LibgdxUtils.traversFileHandle(
+        textureFileHandleArray = HGUtils.traversFileHandle(
                 // starting at parent() since we already traversed current folder/subfolders above
-                LibgdxUtils.fileOnPath(assetFileHandle.parent(), "textures"),
+                HGUtils.fileOnPath(assetFileHandle.parent(), "textures"),
                 filterTextures,
                 textureFileHandleArray
         );
         // All texture files in the "skins" directory and subdirectories (if any) on asset's path
-        textureFileHandleArray = LibgdxUtils.traversFileHandle(
+        textureFileHandleArray = HGUtils.traversFileHandle(
                 // starting at parent() since we already traversed current folder/subfolders above
-                LibgdxUtils.fileOnPath(assetFileHandle.parent(), "skins"),
+                HGUtils.fileOnPath(assetFileHandle.parent(), "skins"),
                 filterTextures,
                 textureFileHandleArray
         );

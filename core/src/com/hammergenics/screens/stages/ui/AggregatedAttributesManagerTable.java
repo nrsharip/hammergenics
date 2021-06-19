@@ -28,7 +28,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.hammergenics.screens.ModelEditScreen;
 import com.hammergenics.screens.graphics.g3d.DebugModelInstance;
 import com.hammergenics.screens.stages.ModelEditStage;
-import com.hammergenics.utils.LibgdxUtils;
+import com.hammergenics.utils.HGUtils;
 
 /**
  * Add description here
@@ -151,12 +151,12 @@ public class AggregatedAttributesManagerTable extends HGTable {
         // **** ATTRIBUTES 2D UI ****
         // **************************
         if (modelES.environment != null && stage.isPressed(envTextButton)) {
-            stage.envLabel.setText("Environment:\n" + LibgdxUtils.extractAttributes(modelES.environment,"", ""));
+            stage.envLabel.setText("Environment:\n" + HGUtils.extractAttributes(modelES.environment,"", ""));
             attrTableCell.setActor(stage.envAttrTable);
         }
 
         if (dbgModelInstance != null && stage.isPressed(mtlTextButton)) {
-            stage.miLabel.setText(LibgdxUtils.getModelInstanceInfo(modelES.eng.currMI));
+            stage.miLabel.setText(HGUtils.getModelInstanceInfo(modelES.eng.currMI));
             attrTableCell.setActor(dbgModelInstance.mtl2atable.getValueAt(mtlSelectBox.getSelectedIndex()));
         } else if (stage.isPressed(mtlTextButton)) {
             stage.miLabel.setText("");

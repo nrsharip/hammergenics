@@ -33,7 +33,6 @@ import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.SpotLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
-import com.badlogic.gdx.graphics.g3d.environment.PointLight;
 import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Matrix4;
@@ -53,7 +52,7 @@ import com.hammergenics.screens.graphics.glutils.HGImmediateModeRenderer20;
 import com.hammergenics.screens.stages.ModelEditStage;
 import com.hammergenics.screens.stages.ui.AttributesManagerTable;
 import com.hammergenics.screens.utils.AttributesMap;
-import com.hammergenics.utils.LibgdxUtils;
+import com.hammergenics.utils.HGUtils;
 
 import static com.hammergenics.HGEngine.filterModels;
 import static com.hammergenics.screens.graphics.g3d.utils.Models.createTestSphere;
@@ -227,7 +226,7 @@ public class ModelEditScreen extends ScreenAdapter {
             // check if there're changes made in the root directory
             // the map should be ordered: see resetFolderSelectBoxItems
             ArrayMap<FileHandle, Array<FileHandle>> f2m = new ArrayMap<>(true, 16, FileHandle.class, Array.class);
-            LibgdxUtils.traversFileHandle(Gdx.files.internal("root"), filterModels, f2m); // syncup: asset manager
+            HGUtils.traversFileHandle(Gdx.files.internal("root"), filterModels, f2m); // syncup: asset manager
 
             if (!eng.folder2models.equals(f2m)) {
                 eng.folder2models = f2m;

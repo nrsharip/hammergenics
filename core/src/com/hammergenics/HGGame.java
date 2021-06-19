@@ -26,7 +26,7 @@ import com.badlogic.gdx.graphics.g3d.utils.DefaultShaderProvider;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.hammergenics.screens.ModelEditScreen;
-import com.hammergenics.utils.LibgdxUtils;
+import com.hammergenics.utils.HGUtils;
 
 import static com.hammergenics.HGEngine.filterModels;
 
@@ -72,7 +72,7 @@ public class HGGame extends Game {
         engine = new HGEngine(this);
         // the map should be ordered: see resetFolderSelectBoxItems
         engine.folder2models = new ArrayMap<>(true, 16, FileHandle.class, Array.class);
-        LibgdxUtils.traversFileHandle(Gdx.files.internal("root"), filterModels, engine.folder2models); // syncup: asset manager
+        HGUtils.traversFileHandle(Gdx.files.internal("root"), filterModels, engine.folder2models); // syncup: asset manager
 
         // https://github.com/libgdx/libgdx/wiki/ModelBatch#default-shader
         // The behavior of DefaultShader class is configurable by supplying

@@ -52,7 +52,7 @@ import static com.badlogic.gdx.graphics.VertexAttributes.Usage.Normal;
 import static com.badlogic.gdx.graphics.VertexAttributes.Usage.Position;
 import static com.badlogic.gdx.graphics.VertexAttributes.Usage.TextureCoordinates;
 import static com.hammergenics.screens.graphics.g3d.utils.Models.createBoundingBoxModel;
-import static com.hammergenics.utils.LibgdxUtils.aux_colors;
+import static com.hammergenics.utils.HGUtils.aux_colors;
 
 /**
  * Add description here

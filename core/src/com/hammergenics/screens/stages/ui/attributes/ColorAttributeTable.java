@@ -28,7 +28,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.hammergenics.screens.ModelEditScreen;
 
 import static com.badlogic.gdx.scenes.scene2d.ui.TextField.TextFieldListener;
-import static com.hammergenics.utils.LibgdxUtils.color_s2c;
+import static com.hammergenics.utils.HGUtils.color_s2c;
 
 /**
  * Add description here

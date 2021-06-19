@@ -60,7 +60,7 @@ import java.util.Arrays;
  *
  * @author nrsharip
  */
-public class LibgdxUtils {
+public class HGUtils {
     private static final String GENERATED = "generated/gen_";
     private static final String EXTENSION = ".txt";
     public static final ArrayMap<String, Integer> gl20_s2i;
@@ -81,10 +81,10 @@ public class LibgdxUtils {
         addAuxColors();
 
         if (gl20_s2i.size == 0 || gl20_i2s.size == 0) {
-            Gdx.app.error(LibgdxUtils.class.getSimpleName(),"ERROR: no GL20 constants retrieved");
+            Gdx.app.error(HGUtils.class.getSimpleName(),"ERROR: no GL20 constants retrieved");
         }
         if (color_s2c.size == 0) {
-            Gdx.app.error(LibgdxUtils.class.getSimpleName(),"ERROR: no Color constants retrieved");
+            Gdx.app.error(HGUtils.class.getSimpleName(),"ERROR: no Color constants retrieved");
         }
     }
 

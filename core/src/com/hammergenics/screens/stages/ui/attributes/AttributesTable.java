@@ -22,7 +22,7 @@ import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.hammergenics.screens.ModelEditScreen;
-import com.hammergenics.utils.LibgdxUtils;
+import com.hammergenics.utils.HGUtils;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -67,7 +67,7 @@ public abstract class AttributesTable<T extends Attribute, Q extends AttributeTa
      *
      */
     private void traverse() {
-        Field[] attrTypesFields = LibgdxUtils.scanPublicStaticFinalFields(attributeClass, Long.TYPE);
+        Field[] attrTypesFields = HGUtils.scanPublicStaticFinalFields(attributeClass, Long.TYPE);
 
         if (attrTypesFields.length == 0) {
             Gdx.app.error(getClass().getSimpleName(), "ERROR: no type fields found in: " + attributeClass.getName());

@@ -50,7 +50,7 @@ import com.hammergenics.screens.graphics.g3d.DebugModelInstance;
 import com.hammergenics.screens.graphics.g3d.HGModel;
 import com.hammergenics.screens.graphics.g3d.HGModelInstance;
 import com.hammergenics.screens.utils.AttributesMap;
-import com.hammergenics.utils.LibgdxUtils;
+import com.hammergenics.utils.HGUtils;
 
 import java.io.FileFilter;
 import java.util.Arrays;
@@ -213,7 +213,7 @@ public class HGEngine implements Disposable {
         //        texture.setWrap(parameter.wrapU, parameter.wrapV);
         //    }
 
-        Array<FileHandle> fileHandleList = LibgdxUtils.traversFileHandle(rootFileHandle, filterAll); // syncup: asset manager
+        Array<FileHandle> fileHandleList = HGUtils.traversFileHandle(rootFileHandle, filterAll); // syncup: asset manager
 
         // See TextureLoader loadAsync() and loadSync() methods for use of this parameter
         // ATTENTION: 'gdx-1.10.0.jar' and 'gdx-backend-gwt-1.10.0.jar' both have
@@ -364,7 +364,7 @@ public class HGEngine implements Disposable {
     private void copyExternalAnimations(FileHandle assetFL) {
         if (assetManager == null || currMI == null || assetFL == null) { return; }
 
-        FileHandle animationsFolder = LibgdxUtils.fileOnPath(assetFL, "animations");
+        FileHandle animationsFolder = HGUtils.fileOnPath(assetFL, "animations");
         if (animationsFolder != null && animationsFolder.isDirectory()) {
             // final since it goes to lambda closure
             final Array<String> animationsPresent = new Array<>();
@@ -424,7 +424,7 @@ public class HGEngine implements Disposable {
                     .add(0, factor * hgMI.getBB().getHeight()/2, 0);
             hgMI.moveAndScaleTo(position, Vector3.Zero.cpy().add(factor));
             // spiral loop around (0, 0, 0)
-            LibgdxUtils.spiralGetNext(cell);
+            HGUtils.spiralGetNext(cell);
         }
 
         overallSize = Math.max(Math.abs(cell.x), Math.abs(cell.y)) * unitSize;
