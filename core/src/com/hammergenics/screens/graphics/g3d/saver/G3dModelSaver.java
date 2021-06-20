@@ -37,11 +37,14 @@ import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.JsonWriter;
+import com.badlogic.gdx.utils.ObjectMap;
+import com.badlogic.gdx.utils.Sort;
 import com.badlogic.gdx.utils.UBJsonWriter;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 
 import static com.badlogic.gdx.graphics.VertexAttributes.Usage;
 import static com.badlogic.gdx.graphics.g3d.loader.G3dModelLoader.VERSION_HI;
@@ -88,10 +91,9 @@ public class G3dModelSaver {
             g3dj.array("meshes"); // array-meshes:start
             for (Mesh mesh:mi.model.meshes) {
                 g3dj.object(); // object-mesh:start
-                long attrMask = mesh.getVertexAttributes().getMask();
 
                 g3dj.array("attributes"); // array-attributes:start
-                for (String attrString:getAttributesByMask(attrMask, new Array<>(true, 16, String.class))) {
+                for (String attrString: getAttributesNames(mesh.getVertexAttributes(), new Array<>(true, 16, String.class))) {
                     g3dj.value(attrString);
                 }
                 g3dj.pop(); // array-attributes:end
@@ -172,26 +174,45 @@ public class G3dModelSaver {
     }
 
     // see: G3dModelLoader.parseAttributes
-    public Array<String> getAttributesByMask(long mask, Array<String> out) {
+    public Array<String> getAttributesNames(VertexAttributes attrs, Array<String> out) {
+        Array<ObjectMap.Entry<Integer, String>> tmp = new Array<>(true, 16, ObjectMap.Entry.class);
+
+        long mask = attrs.getMask();
         for (int i = 0; i < VertexAttributes.Usage.class.getFields().length; i++) {
             int usage = 1 << i;
             if ((mask & usage) != 0) {
+                int offset = attrs.getOffset(usage, -1);
+                if (offset < 0) {
+                    Gdx.app.error(getClass().getSimpleName(), "ERROR: offset should be > 0: " + offset);
+                    continue;
+                }
+
+                String name = "UNSUPPORTED";
                 switch (usage) {
-                    case Usage.Position: out.add("POSITION"); break;
-                    case Usage.ColorUnpacked: out.add("COLOR"); break;
-                    case Usage.ColorPacked: out.add("COLORPACKED"); break;
-                    case Usage.Normal: out.add("NORMAL"); break;
-                    case Usage.TextureCoordinates: out.add("TEXCOORD"); break; // TODO: revisit the index for TEXCOORD
-                    case Usage.BoneWeight: out.add("BLENDWEIGHT"); break;      // TODO: revisit the index for BLENDWEIGHT
-                    case Usage.Tangent: out.add("TANGENT"); break;
-                    case Usage.BiNormal: out.add("BINORMAL"); break;
+                    case Usage.Position: name = "POSITION"; break;
+                    case Usage.ColorUnpacked: name = "COLOR"; break;
+                    case Usage.ColorPacked: name = "COLORPACKED"; break;
+                    case Usage.Normal: name = "NORMAL"; break;
+                    case Usage.TextureCoordinates: name = "TEXCOORD"; break; // TODO: revisit the index for TEXCOORD
+                    case Usage.BoneWeight: name = "BLENDWEIGHT"; break;      // TODO: revisit the index for BLENDWEIGHT
+                    case Usage.Tangent: name = "TANGENT"; break;
+                    case Usage.BiNormal: name = "BINORMAL"; break;
                     case Usage.Generic:
                     default:
                         Gdx.app.error(getClass().getSimpleName(), "ERROR: unsupported usage: " + usage);
                         break;
                 }
+                ObjectMap.Entry<Integer, String> entry = new ObjectMap.Entry<>();
+                entry.key = offset;
+                entry.value = name;
+                tmp.add(entry);
             }
         }
+        if (tmp.size > 0) {
+            Sort.instance().sort(tmp, (e1, e2) -> Integer.compare(e1.key, e2.key));
+            Arrays.stream(tmp.toArray()).map(e -> e.value).collect(()->out, Array::add, Array::addAll);
+        }
+
         return out;
     }
 
