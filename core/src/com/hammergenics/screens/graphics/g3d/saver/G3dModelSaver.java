@@ -23,6 +23,7 @@ import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;
+import com.badlogic.gdx.graphics.VertexAttribute;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
@@ -174,27 +175,21 @@ public class G3dModelSaver {
     }
 
     // see: G3dModelLoader.parseAttributes
-    public Array<String> getAttributesNames(VertexAttributes attrs, Array<String> out) {
+    public Array<String> getAttributesNames(VertexAttributes vas, Array<String> out) {
         Array<ObjectMap.Entry<Integer, String>> tmp = new Array<>(true, 16, ObjectMap.Entry.class);
 
-        long mask = attrs.getMask();
-        for (int i = 0; i < VertexAttributes.Usage.class.getFields().length; i++) {
-            int usage = 1 << i;
+        long mask = vas.getMask();
+        for (VertexAttribute va: vas) {
+            int usage = va.usage;
             if ((mask & usage) != 0) {
-                int offset = attrs.getOffset(usage, -1);
-                if (offset < 0) {
-                    Gdx.app.error(getClass().getSimpleName(), "ERROR: offset should be > 0: " + offset);
-                    continue;
-                }
-
                 String name = "UNSUPPORTED";
                 switch (usage) {
                     case Usage.Position: name = "POSITION"; break;
                     case Usage.ColorUnpacked: name = "COLOR"; break;
                     case Usage.ColorPacked: name = "COLORPACKED"; break;
                     case Usage.Normal: name = "NORMAL"; break;
-                    case Usage.TextureCoordinates: name = "TEXCOORD"; break; // TODO: revisit the index for TEXCOORD
-                    case Usage.BoneWeight: name = "BLENDWEIGHT"; break;      // TODO: revisit the index for BLENDWEIGHT
+                    case Usage.TextureCoordinates: name = String.format("TEXCOORD%d", va.unit); break; // VertexAttribute.TexCoords(int unit)
+                    case Usage.BoneWeight: name = String.format("BLENDWEIGHT%d", va.unit); break;      // VertexAttribute.BoneWeight(int unit)
                     case Usage.Tangent: name = "TANGENT"; break;
                     case Usage.BiNormal: name = "BINORMAL"; break;
                     case Usage.Generic:
@@ -203,7 +198,7 @@ public class G3dModelSaver {
                         break;
                 }
                 ObjectMap.Entry<Integer, String> entry = new ObjectMap.Entry<>();
-                entry.key = offset;
+                entry.key = va.offset;
                 entry.value = name;
                 tmp.add(entry);
             }
