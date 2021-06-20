@@ -107,6 +107,7 @@ public class G3dModelSaver {
                 g3dj.pop(); // array-attributes:end
 
                 float[] vertices = getMeshVertices(mesh);
+                short[] indices = getMeshIndices(mesh);
 
                 g3dj.array("vertices"); // array-vertices:start
                 for (int i = 0; i < vertices.length; i++) { g3dj.value(String.valueOf(vertices[i])); }
@@ -117,7 +118,6 @@ public class G3dModelSaver {
                     if (mesh != meshPart.mesh) { continue; }
 
                     g3dj.object(); // object-part:start
-                    short[] indices = getMeshIndices(mesh);
 
                     g3dj.name("id").value(meshPart.id);
                     g3dj.name("type").value(getStringByMeshPartType(meshPart.primitiveType));

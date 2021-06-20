@@ -46,8 +46,11 @@ import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Disposable;
+import com.badlogic.gdx.utils.JsonReader;
+import com.badlogic.gdx.utils.JsonValue;
 import com.badlogic.gdx.utils.Logger;
 import com.badlogic.gdx.utils.Sort;
+import com.badlogic.gdx.utils.UBJsonWriter;
 import com.hammergenics.config.Config;
 import com.hammergenics.screens.graphics.g3d.DebugModelInstance;
 import com.hammergenics.screens.graphics.g3d.HGModel;
@@ -57,6 +60,7 @@ import com.hammergenics.screens.utils.AttributesMap;
 import com.hammergenics.utils.HGUtils;
 
 import java.io.FileFilter;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -599,14 +603,20 @@ public class HGEngine implements Disposable {
         if (mi == null) { return; }
 
         String filename = "test";
-        if (mi.afh != null) {
-            filename = mi.afh.name().replace("." + mi.afh.extension(), "");
-        }
+        if (mi.afh != null) { filename = mi.afh.name().replace("." + mi.afh.extension(), ""); }
 
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
         LocalDateTime now = LocalDateTime.now();
+        FileHandle g3dj = Gdx.files.local("root/test/" + filename + "." + fmt.format(now) + ".g3dj");
+        FileHandle g3db = Gdx.files.local("root/test/" + filename + "." + fmt.format(now) + ".g3db");
 
-        g3dSaver.saveG3dj(Gdx.files.local("root/test/" + filename + "." + fmt.format(now) + ".g3dj"), mi);
+        g3dSaver.saveG3dj(g3dj, mi);
+        JsonValue jv = new JsonReader().parse(g3dj);
+        try {
+            new UBJsonWriter(g3db.write(false, 8192)).value(jv).close();
+        } catch (IOException e) {
+            Gdx.app.error(getClass().getSimpleName(), "ERROR writing to file: " + e.getMessage());
+        }
     }
 
     public void removeDbgModelInstance(DebugModelInstance mi) {
