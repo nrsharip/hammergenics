@@ -30,6 +30,7 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.FloatAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.model.Animation;
 import com.badlogic.gdx.graphics.g3d.model.MeshPart;
 import com.badlogic.gdx.graphics.g3d.model.Node;
@@ -47,6 +48,8 @@ import com.badlogic.gdx.utils.Sort;
 import com.badlogic.gdx.utils.UBJsonWriter;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -143,6 +146,8 @@ public class G3dModelSaver {
                 ColorAttribute cae = mat.get(ColorAttribute.class, ColorAttribute.Emissive);
                 ColorAttribute cas = mat.get(ColorAttribute.class, ColorAttribute.Specular);
                 ColorAttribute car = mat.get(ColorAttribute.class, ColorAttribute.Reflection);
+                ColorAttribute caal = mat.get(ColorAttribute.class, ColorAttribute.AmbientLight);
+                ColorAttribute caf = mat.get(ColorAttribute.class, ColorAttribute.Fog);
                 if (cad != null) { Color c = cad.color; g3dj.array("diffuse").value(c.r).value(c.g).value(c.b).pop(); }
                 if (caa != null) { Color c = caa.color; g3dj.array("ambient").value(c.r).value(c.g).value(c.b).pop(); }
                 if (cae != null) { Color c = cae.color; g3dj.array("emissive").value(c.r).value(c.g).value(c.b).pop(); }
@@ -155,6 +160,29 @@ public class G3dModelSaver {
 
                 BlendingAttribute ba = mat.get(BlendingAttribute.class, BlendingAttribute.Type);
                 if (ba != null) { g3dj.name("opacity").value(ba.opacity); }
+
+                TextureAttribute td = mat.get(TextureAttribute.class, TextureAttribute.Diffuse);
+                TextureAttribute ts = mat.get(TextureAttribute.class, TextureAttribute.Specular);
+                TextureAttribute tb = mat.get(TextureAttribute.class, TextureAttribute.Bump);
+                TextureAttribute tn = mat.get(TextureAttribute.class, TextureAttribute.Normal);
+                TextureAttribute ta = mat.get(TextureAttribute.class, TextureAttribute.Ambient);
+                TextureAttribute te = mat.get(TextureAttribute.class, TextureAttribute.Emissive);
+                TextureAttribute tr = mat.get(TextureAttribute.class, TextureAttribute.Reflection);
+
+                if (td != null || ts != null || tb != null || tn != null || ta != null || te != null || tr != null) {
+                    g3dj.array("textures");
+
+                    // see G3dModelLoader.parseTextureUsage
+                    if (td != null) { g3djAddTextureAttribute(fh, td, "DIFFUSE"); }
+                    if (ts != null) { g3djAddTextureAttribute(fh, ts, "SPECULAR"); }
+                    if (tb != null) { g3djAddTextureAttribute(fh, tb, "BUMP"); }
+                    if (tn != null) { g3djAddTextureAttribute(fh, tn, "NORMAL"); }
+                    if (ta != null) { g3djAddTextureAttribute(fh, ta, "AMBIENT"); }
+                    if (te != null) { g3djAddTextureAttribute(fh, te, "EMISSIVE"); }
+                    if (tr != null) { g3djAddTextureAttribute(fh, tr, "REFLECTION"); }
+
+                    g3dj.pop();
+                }
 
                 g3dj.pop(); // object-material:end
             }
@@ -344,6 +372,24 @@ public class G3dModelSaver {
             }
 
             g3dj.pop(); // object-node:end
+        } catch (IOException e) {
+            Gdx.app.error(getClass().getSimpleName(), "ERROR writing to file: " + e.getMessage());
+        }
+    }
+
+    public void g3djAddTextureAttribute(FileHandle rootFH, TextureAttribute ta, String type) {
+        FileHandle txtFH = Gdx.files.internal(ta.textureDescription.texture.toString());
+        Path rootP = Paths.get(rootFH.parent().file().toURI()); // taking parent() otherwise will get an extra "../"
+        Path txtP = Paths.get(txtFH.file().toURI());
+
+        try {
+            g3dj.object();
+            g3dj.name("id").value(txtFH.nameWithoutExtension() + "_" + type);
+            g3dj.name("filename").value(Gdx.files.internal(rootP.relativize(txtP).toString()).path());
+            g3dj.array("uvTranslation").value(ta.offsetU).value(ta.offsetV).pop();
+            g3dj.array("uvScaling").value(ta.scaleU).value(ta.scaleV).pop();
+            g3dj.name("type").value(type);
+            g3dj.pop();
         } catch (IOException e) {
             Gdx.app.error(getClass().getSimpleName(), "ERROR writing to file: " + e.getMessage());
         }
