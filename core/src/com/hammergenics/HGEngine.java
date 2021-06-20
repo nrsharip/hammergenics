@@ -398,9 +398,10 @@ public class HGEngine implements Disposable {
                     hgm.obj.animations.forEach(animation -> {
                         //Gdx.app.debug(Thread.currentThread().getStackTrace()[3].getMethodName(), "animation: " + animation.id);
                         // this is to make sure that we don't add the same animation multiple times from different animation models
-                        if (animationsPresent.contains(animation.id, false)) {
-                            animation.id = hgm.afh.name() + ":" + animation.id;
-                        }
+                        //if (animationsPresent.contains(animation.id, false)) {
+                        //    animation.id = hgm.afh.name() + ":" + animation.id;
+                        //}
+                        animation.id = hgm.afh.name() + ":" + animation.id;
                         Gdx.app.debug(Thread.currentThread().getStackTrace()[3].getMethodName(), "adding animation: " + animation.id);
                         currMI.copyAnimation(animation);
                         animationsPresent.add(animation.id);

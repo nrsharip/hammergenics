@@ -30,13 +30,17 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.FloatAttribute;
+import com.badlogic.gdx.graphics.g3d.model.Animation;
 import com.badlogic.gdx.graphics.g3d.model.MeshPart;
 import com.badlogic.gdx.graphics.g3d.model.Node;
+import com.badlogic.gdx.graphics.g3d.model.NodeAnimation;
+import com.badlogic.gdx.graphics.g3d.model.NodeKeyframe;
 import com.badlogic.gdx.graphics.g3d.model.NodePart;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.FloatArray;
 import com.badlogic.gdx.utils.JsonWriter;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.utils.Sort;
@@ -161,7 +165,54 @@ public class G3dModelSaver {
             g3dj.pop(); // array-nodes:end
 
             g3dj.array("animations"); // array-animations:start
-            // TODO: not implemented
+            for (Animation anim: mi.animations) {
+                g3dj.object(); // object-animation:start
+
+                g3dj.name("id").value(anim.id);
+
+                g3dj.array("bones"); // array-bones:start
+                for (NodeAnimation bone: anim.nodeAnimations) {
+                    g3dj.object(); // object-bone:start
+                    g3dj.name("boneId").value(bone.node.id);
+                    g3dj.array("keyframes"); // array-keyframes:start
+
+                    FloatArray fa = new FloatArray(true, 16);
+                    if (bone.translation != null) for (NodeKeyframe<Vector3> kf: bone.translation) { fa.add(kf.keytime); }
+                    if (bone.rotation != null) for (NodeKeyframe<Quaternion> kf: bone.rotation) { fa.add(kf.keytime); }
+                    if (bone.scaling != null) for (NodeKeyframe<Vector3> kf: bone.scaling) { fa.add(kf.keytime); }
+                    fa.sort(); // IMPORTANT
+                    double duplicate = -1f;
+                    for (double kt: fa.toArray()) {
+                        if (kt == duplicate) { continue; }
+
+                        Vector3 trans = null;
+                        Quaternion rot = null;
+                        Vector3 scale = null;
+
+                        if (bone.translation != null)
+                            for (NodeKeyframe<Vector3> kf: bone.translation) { if (kt == kf.keytime) { trans = kf.value; break; } }
+                        if (bone.rotation != null)
+                            for (NodeKeyframe<Quaternion> kf: bone.rotation) { if (kt == kf.keytime) { rot = kf.value; break; } }
+                        if (bone.scaling != null)
+                            for (NodeKeyframe<Vector3> kf: bone.scaling) { if (kt == kf.keytime) { scale = kf.value; break; } }
+
+                        duplicate = kt;
+
+                        g3dj.object(); // object-keyframe:start
+                        g3dj.name("keytime").value(kt*1000f); // milliseconds
+                        if (trans != null) { g3dj.array("translation").value(trans.x).value(trans.y).value(trans.z).pop(); }
+                        if (rot != null) { g3dj.array("rotation").value(rot.x).value(rot.y).value(rot.z).value(rot.w).pop(); }
+                        if (scale != null) { g3dj.array("scale").value(scale.x).value(scale.y).value(scale.z).pop(); }
+                        g3dj.pop(); // object-keyframe:end
+                    }
+                    g3dj.pop(); // array-keyframes:end
+
+                    g3dj.pop(); // object-bone:end
+                }
+                g3dj.pop(); // array-bones:end
+
+                g3dj.pop(); // object-animation:end
+            }
             g3dj.pop(); // array-animations:end
 
             g3dj.close();
