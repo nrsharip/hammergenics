@@ -25,6 +25,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Plane;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
@@ -295,33 +296,38 @@ public class ModelEditInputController extends SpectatorInputController {
 
                     float radius = nodeTrans.cpy().mul(miTransform).sub(parentTrans.cpy().mul(miTransform)).len();
                     Vector3 intersection = new Vector3();
-                    if (Intersector.intersectRaySphere(ray, parentTrans.cpy().mul(miTransform), radius, intersection)) {
-                        Vector3 dirOld = nodeTrans.cpy().sub(parentTrans).nor();
-                        Vector3 dirNew = intersection.cpy().sub(parentTrans.cpy().mul(miTransform)).nor();
-                        Quaternion rot = new Quaternion().setFromCross(dirOld, dirNew).nor();
-
-                        Matrix4 tmpGlobal = new Matrix4();
-                        Matrix4 tmpLocal = new Matrix4();
-
-                        tmpGlobal.setToTranslationAndScaling(parentTrans, parentScale);
-                        tmpGlobal.rotate(rot.mul(parentRot.cpy().nor()).nor());
-
-                        Node parent2 = parent.getParent();
-                        if (parent.inheritTransform && parent2 != null) {
-                            // parent.LT = parent2.GT.inv MUL parent.GT (see above)
-                            tmpLocal.set(parent2.globalTransform.cpy().inv().mul(tmpGlobal));
-                        } else {
-                            tmpLocal.set(tmpGlobal);
+                    if (!Intersector.intersectRaySphere(ray, parentTrans.cpy().mul(miTransform), radius, intersection)) {
+                        if (!Intersector.intersectRayPlane(ray, new Plane(cam.direction, parentTrans.cpy().mul(miTransform)), intersection)) {
+                            Gdx.app.error(getClass().getSimpleName(), "ERROR shouldn't be here");
+                            return false;
                         }
-                        parent.translation.set(tmpLocal.getTranslation(new Vector3()));
-                        parent.rotation.set(tmpLocal.getRotation(new Quaternion()).nor());
-                        eng.hoveredOverMI.calculateTransforms();
-                        // this update will also affect:
-                        // parent.localTransform
-                        // parent.globalTransform
-                        // node.localTransform
-                        // node.globalTransform
                     }
+
+                    Vector3 dirOld = nodeTrans.cpy().sub(parentTrans).nor();
+                    Vector3 dirNew = intersection.cpy().sub(parentTrans.cpy().mul(miTransform)).nor();
+                    Quaternion rot = new Quaternion().setFromCross(dirOld, dirNew).nor();
+
+                    Matrix4 tmpGlobal = new Matrix4();
+                    Matrix4 tmpLocal = new Matrix4();
+
+                    tmpGlobal.setToTranslationAndScaling(parentTrans, parentScale);
+                    tmpGlobal.rotate(rot.mul(parentRot.cpy().nor()).nor());
+
+                    Node parent2 = parent.getParent();
+                    if (parent.inheritTransform && parent2 != null) {
+                        // parent.LT = parent2.GT.inv MUL parent.GT (see above)
+                        tmpLocal.set(parent2.globalTransform.cpy().inv().mul(tmpGlobal));
+                    } else {
+                        tmpLocal.set(tmpGlobal);
+                    }
+                    parent.translation.set(tmpLocal.getTranslation(new Vector3()));
+                    parent.rotation.set(tmpLocal.getRotation(new Quaternion()).nor());
+                    eng.hoveredOverMI.calculateTransforms();
+                    // this update will also affect:
+                    // parent.localTransform
+                    // parent.globalTransform
+                    // node.localTransform
+                    // node.globalTransform
 
                     return false;
                 } else if ((keysPressed.contains(Keys.SHIFT_LEFT) || keysPressed.contains(Keys.SHIFT_RIGHT))
