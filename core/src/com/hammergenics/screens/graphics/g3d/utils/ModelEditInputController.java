@@ -31,6 +31,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.ArrayMap;
 import com.hammergenics.HGEngine;
 import com.hammergenics.screens.ModelEditScreen;
 import com.hammergenics.screens.graphics.g3d.DebugModelInstance;
@@ -136,33 +137,69 @@ public class ModelEditInputController extends SpectatorInputController {
             }
         }
 
-        if (modelES.stage.nodesCheckBox.isChecked() && eng.hoveredOverMI != null) {
+        if (modelES.stage.nodesCheckBox.isChecked()) {
+            // we have nodes rendered, let's check if we're hovering over any of the nodes
+            // of all the models currently present
             Array<BoundingBox> outNodeBBs;
-            outNodeBBs = eng.rayBBCollision(ray, eng.hoveredOverMI.bb2n.keys().toArray(), new Array<>(true, 16, BoundingBox.class));
-            for (BoundingBox bb:outNodeBBs) {
-                Gdx.app.debug(getClass().getSimpleName(), "node: " + eng.hoveredOverMI.bb2n.get(bb).id);
+            Array<BoundingBox> inNodeBBs = new Array<>(true, 16, BoundingBox.class);
+            ArrayMap<BoundingBox, DebugModelInstance> bb2mi = new ArrayMap<>(BoundingBox.class, DebugModelInstance.class);
+            for (DebugModelInstance dbgMi: eng.dbgMIs) {
+                Array<BoundingBox> bbs = dbgMi.bb2n.keys().toArray();
+                for (BoundingBox bb: bbs) { bb2mi.put(bb, dbgMi); }
+                inNodeBBs.addAll(bbs);
             }
+            // inNodeBBs now have all nodes of all models present
+            outNodeBBs = eng.rayBBCollision(ray, inNodeBBs, new Array<>(true, 16, BoundingBox.class));
+            for (BoundingBox bb:outNodeBBs) {
+                Gdx.app.debug(getClass().getSimpleName(), "node: " + bb2mi.get(bb).bb2n.get(bb).id);
+            }
+            // outNodeBBs have all the nodes (if any) intersected by the ray from the mouse pointer
+            // sorted by the distance from the ray's origin ascending
             if (outNodeBBs.size > 0) {
+                // we got some nodes intersected by the ray, switching the hovered over model
+                // to the model owning the closest node intersected
+                switchHoveredOverMI(new Array<>(new DebugModelInstance[]{bb2mi.get(outNodeBBs.get(0))}));
+                // saving the info on the hovered over node in both engine and the model instance itself
                 eng.hoveredOverNode = eng.hoveredOverMI.bb2n.get(outNodeBBs.get(0));
                 eng.hoveredOverMI.hoveredOverNode = eng.hoveredOverNode;
                 return; // nothing else should be done
             } else {
-                eng.hoveredOverMI.hoveredOverNode = null;
+                // no nodes intersected, nullify all references
+                if (eng.hoveredOverMI != null) { eng.hoveredOverMI.hoveredOverNode = null; }
                 eng.hoveredOverNode = null;
             }
         }
 
-        Array<DebugModelInstance> out = eng.rayMICollision(ray, eng.dbgMIs, new Array<>(DebugModelInstance.class));
-        if (out.size > 0 && !out.get(0).equals(eng.hoveredOverMI)) {
+        Array<DebugModelInstance> out = null;
+        if (eng.hoveredOverMI != null) {
+            // this is in case we hovered over the node of the model instance obscured by the
+            // bounding box of another model instance - we still want to keep the current hovered
+            // model to the one with the node previously intersected in case the ray intersects
+            // this model instance
+            out = eng.rayMICollision(ray, new Array<>(new DebugModelInstance[]{eng.hoveredOverMI}),
+                    new Array<>(DebugModelInstance.class));
+        }
+
+        if (out == null || out.size == 0) {
+            // in case we're not intersecting any previously hovered model instances
+            // check if we intersect any models at all. If we do then switch the current hovered
+            // model instance.
+            out = eng.rayMICollision(ray, eng.dbgMIs, new Array<>(DebugModelInstance.class));
+            switchHoveredOverMI(out);
+        }
+    }
+
+    private void switchHoveredOverMI(Array<DebugModelInstance> mis) {
+        if (mis.size > 0 && !mis.get(0).equals(eng.hoveredOverMI)) {
             // no need to dispose the box and the corners - will be done in HGModelInstance on dispose()
             eng.auxMIs.clear();
-            eng.hoveredOverMI = out.get(0); // SWITCHING THE HOVERED OVER MODEL INSTANCE
+            eng.hoveredOverMI = mis.get(0); // SWITCHING THE HOVERED OVER MODEL INSTANCE
 
             eng.hoveredOverBBMI = eng.hoveredOverMI.getBBHgModelInstance(Color.BLACK);
             eng.auxMIs.add(eng.hoveredOverBBMI);
             eng.hoveredOverCornerMIs = eng.hoveredOverMI.getCornerHgModelInstances(Color.RED);
             eng.auxMIs.addAll(eng.hoveredOverCornerMIs);
-        } else if (out.size == 0) {
+        } else if (mis.size == 0) {
             eng.hoveredOverMI = null;
             eng.hoveredOverBBMI = null;
             // no need to dispose the box and the corners - will be done in HGModelInstance on dispose()
@@ -185,14 +222,10 @@ public class ModelEditInputController extends SpectatorInputController {
     }
 
     public void checkTap(float x, float y, int count, int button) {
-        Ray ray = modelES.perspectiveCamera.getPickRay(x, y);
         switch (button) {
             case Buttons.LEFT:
-                Array<DebugModelInstance> out = eng.rayMICollision(ray, eng.dbgMIs, new Array<>(DebugModelInstance.class));
-                if (out != null && out.size > 0) {
-                    eng.currMI = out.get(0);
-                    modelES.stage.reset();
-                }
+                eng.currMI = eng.hoveredOverMI;
+                modelES.stage.reset();
                 break;
             case Buttons.MIDDLE:
                 break;
