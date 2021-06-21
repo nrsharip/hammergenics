@@ -28,6 +28,8 @@ import com.badlogic.gdx.utils.ArrayMap;
 import com.hammergenics.screens.ModelEditScreen;
 import com.hammergenics.utils.HGUtils;
 
+import java.nio.charset.Charset;
+
 import static com.hammergenics.HGEngine.filterModels;
 
 /**
@@ -68,6 +70,8 @@ public class HGGame extends Game {
         Gdx.app.debug(getClass().getSimpleName(),"Gdx.files.absolute(\"/\")  = " + Gdx.files.absolute("/").file().getAbsoluteFile());
         Gdx.app.debug(getClass().getSimpleName(),"Gdx.files.local(\"/\")     = " + Gdx.files.local("/").file().getAbsoluteFile());
         System.getProperties().forEach((k, v) -> Gdx.app.debug(getClass().getSimpleName(),k + " = " + v));
+        Gdx.app.debug(getClass().getSimpleName(), "Charset.defaultCharset().displayName() = " + Charset.defaultCharset().displayName());
+        Gdx.app.debug(getClass().getSimpleName(), "Charset.defaultCharset().name()        = " + Charset.defaultCharset().name());
 
         engine = new HGEngine(this);
         // the map should be ordered: see resetFolderSelectBoxItems

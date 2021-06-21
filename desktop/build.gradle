@@ -6,6 +6,8 @@ project.ext.mainClassName = "com.hammergenics.desktop.DesktopLauncher"
 project.ext.assetsDir = new File("../android/assets")
 
 task run(dependsOn: classes, type: JavaExec) {
+    jvmArgs = ["-Dfile.encoding=\"UTF-8\"", "-Dsun.jnu.encoding=\"UTF-8\""]
+    defaultCharacterEncoding = 'UTF-8'
     main = project.mainClassName
     classpath = sourceSets.main.runtimeClasspath
     standardInput = System.in
@@ -14,6 +16,8 @@ task run(dependsOn: classes, type: JavaExec) {
 }
 
 task debug(dependsOn: classes, type: JavaExec) {
+    jvmArgs = ["-Dfile.encoding=\"UTF-8\"", "-Dsun.jnu.encoding=\"UTF-8\""]
+    defaultCharacterEncoding = 'UTF-8'
     main = project.mainClassName
     classpath = sourceSets.main.runtimeClasspath
     standardInput = System.in
