@@ -344,8 +344,29 @@ public class ModelEditInputController extends SpectatorInputController {
                     eng.hoveredOverMI.bbCornersReset();
 
                     return false;
+                } else if ((keysPressed.contains(Keys.CONTROL_LEFT) || keysPressed.contains(Keys.CONTROL_RIGHT))
+                        && eng.hoveredOverMI != null) {
+                    // we hold the CTRL key and left button pressed on the model instance itself - applying vert translation
+                    eng.currMI = eng.hoveredOverMI;
+                    modelES.stage.reset();
+                    eng.draggedMI = eng.hoveredOverMI;
+
+                    // removing the rotation and scale components from the transform
+                    eng.draggedMI.transform.setToTranslation(miTranslation);
+                    // translating as per the gesture
+                    Vector3 tmpV = Vector3.Y.cpy().scl(4 * -fracY * overallDistance);
+                    eng.draggedMI.transform.translate(tmpV);
+                    // restoring the original rotation
+                    eng.draggedMI.transform.rotate(miRot);
+                    // restoring the original scale
+                    eng.draggedMI.transform.scale(miScale.x, miScale.y, miScale.z);
+
+                    eng.draggedMI.bbHgModelInstanceReset();
+                    eng.draggedMI.bbCornersReset();
+
+                    return false;
                 } else if (eng.hoveredOverMI != null) {
-                    // we hold the left button pressed on the model instance itself - applying translation
+                    // we hold the left button pressed on the model instance itself - applying hor translation
                     eng.currMI = eng.hoveredOverMI;
                     modelES.stage.reset();
                     eng.draggedMI = eng.hoveredOverMI;
