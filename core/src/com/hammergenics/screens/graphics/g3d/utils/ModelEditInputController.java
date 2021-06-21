@@ -17,7 +17,8 @@
 package com.hammergenics.screens.graphics.g3d.utils;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
+import com.badlogic.gdx.Input.Buttons;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
@@ -185,16 +186,16 @@ public class ModelEditInputController extends SpectatorInputController {
     public void checkTap(float x, float y, int count, int button) {
         Ray ray = modelES.perspectiveCamera.getPickRay(x, y);
         switch (button) {
-            case Input.Buttons.LEFT:
+            case Buttons.LEFT:
                 Array<DebugModelInstance> out = eng.rayMICollision(ray, eng.dbgMIs, new Array<>(DebugModelInstance.class));
                 if (out != null && out.size > 0) {
                     eng.currMI = out.get(0);
                     modelES.stage.reset();
                 }
                 break;
-            case Input.Buttons.MIDDLE:
+            case Buttons.MIDDLE:
                 break;
-            case Input.Buttons.RIGHT:
+            case Buttons.RIGHT:
                 break;
         }
     }
@@ -223,7 +224,7 @@ public class ModelEditInputController extends SpectatorInputController {
         }
 
         switch (touchDownButton) {
-            case Input.Buttons.LEFT:
+            case Buttons.LEFT:
                 if (eng.hoveredOverMI != null && eng.hoveredOverCorner != null) {
                     // we hold the left button pressed on the model instance's corner - applying scaling
                     eng.currMI = eng.hoveredOverMI;
@@ -323,6 +324,26 @@ public class ModelEditInputController extends SpectatorInputController {
                     }
 
                     return false;
+                } else if ((keysPressed.contains(Keys.SHIFT_LEFT) || keysPressed.contains(Keys.SHIFT_RIGHT))
+                        && eng.hoveredOverMI != null) {
+                    // we hold the SHIFT key and left button pressed on the model instance itself - applying rotation
+                    eng.currMI = eng.hoveredOverMI;
+                    modelES.stage.reset();
+
+                    // removing the rotation and scale components from the transform
+                    eng.hoveredOverMI.transform.setToTranslation(miTranslation);
+                    // rotating as per the gesture
+                    eng.hoveredOverMI.transform.rotate(cam.up.cpy().nor(), fracX * 360f);
+                    eng.hoveredOverMI.transform.rotate(cam.direction.cpy().crs(cam.up).nor(), fracY * 360f);
+                    // restoring the original rotation
+                    eng.hoveredOverMI.transform.rotate(miRot);
+                    // restoring the original scale
+                    eng.hoveredOverMI.transform.scale(miScale.x, miScale.y, miScale.z);
+
+                    eng.hoveredOverMI.bbHgModelInstanceReset();
+                    eng.hoveredOverMI.bbCornersReset();
+
+                    return false;
                 } else if (eng.hoveredOverMI != null) {
                     // we hold the left button pressed on the model instance itself - applying translation
                     eng.currMI = eng.hoveredOverMI;
@@ -348,29 +369,10 @@ public class ModelEditInputController extends SpectatorInputController {
                     return false;
                 }
                 return true;
-            case Input.Buttons.MIDDLE:
-                if (eng.hoveredOverMI != null) {
-                    // we hold the middle button pressed on the model instance itself - applying rotation
-                    eng.currMI = eng.hoveredOverMI;
-                    modelES.stage.reset();
-
-                    // removing the rotation and scale components from the transform
-                    eng.hoveredOverMI.transform.setToTranslation(miTranslation);
-                    // rotating as per the gesture
-                    eng.hoveredOverMI.transform.rotate(cam.up.cpy().nor(), fracX * 360f);
-                    eng.hoveredOverMI.transform.rotate(cam.direction.cpy().crs(cam.up).nor(), fracY * 360f);
-                    // restoring the original rotation
-                    eng.hoveredOverMI.transform.rotate(miRot);
-                    // restoring the original scale
-                    eng.hoveredOverMI.transform.scale(miScale.x, miScale.y, miScale.z);
-
-                    eng.hoveredOverMI.bbHgModelInstanceReset();
-                    eng.hoveredOverMI.bbCornersReset();
-
-                    return false;
-                }
+            case Buttons.MIDDLE:
                 return true;
-            case Input.Buttons.RIGHT:
+            case Buttons.RIGHT:
+                // keeping the right free so the camera rotation stays available
                 return true;
         }
         return true;
