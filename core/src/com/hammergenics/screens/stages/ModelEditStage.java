@@ -159,18 +159,7 @@ public class ModelEditStage extends Stage {
         folderSelectBox.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                if (modelSelectBox == null || folderSelectBox.getSelectedIndex() == 0) { return; } // syncup: folder select
-
-                FileHandle array1[] = game.engine.folder2models.get(folderSelectBox.getSelected()).toArray(FileHandle.class);
-                FileHandle array2[] = new FileHandle[array1.length + 2];
-                System.arraycopy(array1, 0, array2, 2, array1.length);
-                array2[0] = Gdx.files.local("Select Model"); // syncup: model select
-                array2[1] = Gdx.files.local("ALL");
-
-                modelSelectBox.getSelection().setProgrammaticChangeEvents(false); // even though the listeners are defined later
-                modelSelectBox.clearItems();
-                modelSelectBox.setItems(array2);
-                modelSelectBox.getSelection().setProgrammaticChangeEvents(true);
+                if (folderSelectBox.getSelectedIndex() == 0) { return; } // syncup: folder select
 
                 modelES.eng.queueAssets(folderSelectBox.getSelected());
             }
@@ -463,6 +452,26 @@ public class ModelEditStage extends Stage {
                 handleAttributeUpdate(ATTR_CHANGED, container, type, alias);
             }
         };
+    }
+
+    public void updateModelSelectBox() {
+        if (modelSelectBox == null || folderSelectBox.getSelectedIndex() == 0) { return; }
+
+        // by this time the models should be loaded
+        Array<FileHandle> fhs = game.engine.folder2models.get(folderSelectBox.getSelected());
+        Array<FileHandle> out = new Array<>(FileHandle.class);
+        for (FileHandle fh: fhs) { if (modelES.eng.hgModels.get(fh).hasMeshes()) { out.add(fh); } }
+
+        FileHandle array1[] = out.toArray(FileHandle.class);
+        FileHandle array2[] = new FileHandle[array1.length + 2];
+        System.arraycopy(array1, 0, array2, 2, array1.length);
+        array2[0] = Gdx.files.local("Select Model"); // syncup: model select
+        array2[1] = Gdx.files.local("ALL");
+
+        modelSelectBox.getSelection().setProgrammaticChangeEvents(false); // even though the listeners are defined later
+        modelSelectBox.clearItems();
+        modelSelectBox.setItems(array2);
+        modelSelectBox.getSelection().setProgrammaticChangeEvents(true);
     }
 
     public void addModelInstances(Array<FileHandle> modelFHs) {

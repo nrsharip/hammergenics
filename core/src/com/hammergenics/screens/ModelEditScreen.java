@@ -108,6 +108,7 @@ public class ModelEditScreen extends ScreenAdapter {
         if (!eng.assetsLoaded && eng.assetManager.update()) {
             eng.getAssets();
             eng.assetsLoaded = true;
+            stage.updateModelSelectBox();
         }
 
         modelEditInputController.update(delta);

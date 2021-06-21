@@ -95,7 +95,7 @@ public class HGEngine implements Disposable {
     public boolean assetsLoaded = true;
     public G3dModelSaver g3dSaver = new G3dModelSaver();
 
-    public Array<HGModel> hgModels = new Array<>();
+    public ArrayMap<FileHandle, HGModel> hgModels = new ArrayMap<>(FileHandle.class, HGModel.class);
     public Array<Texture> textures = new Array<>();
     // Auxiliary models:
     public HGModel gridHgModel = null;
@@ -276,8 +276,9 @@ public class HGEngine implements Disposable {
                 .map(model -> {
                     String fn = assetManager.getAssetFileName(model);
                     FileHandle fh = assetManager.getFileHandleResolver().resolve(fn);
-                    return new HGModel(model, fh); })                                  // Array<Model> -> Array<HGModel>
-                .collect(() -> new Array<>(HGModel.class), Array::add, Array::addAll); // retrieving the Array<HGModel>
+                    return new HGModel(model, fh); })                                     // Array<Model> -> Array<HGModel>
+                .collect(() -> new ArrayMap<>(FileHandle.class, HGModel.class),
+                        (accum, model) -> accum.put(model.afh, model), ArrayMap::putAll); // retrieving the ArrayMap<FileHandle, HGModel>
         Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "models loaded: " + hgModels.size);
 
         assetManager.getAll(Texture.class, textures);
@@ -382,7 +383,7 @@ public class HGEngine implements Disposable {
             for (Animation animation : currMI.animations) { animationsPresent.add(animation.id); }
 
             for (int i = 0; i < hgModels.size; i++) {  // using for loop instead of for-each to avoid nested iterators exception:
-                HGModel hgm = hgModels.get(i);         // GdxRuntimeException: #iterator() cannot be used nested.
+                HGModel hgm = hgModels.getValueAt(i);  // GdxRuntimeException: #iterator() cannot be used nested.
                 String filename = hgm.afh.path();      // thrown by Array$ArrayIterator...
                 if (filename.startsWith(animationsFolder.toString())) {
                     if (hgm.hasMaterials()) {
