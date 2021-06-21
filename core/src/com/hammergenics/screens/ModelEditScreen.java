@@ -17,41 +17,29 @@
 package com.hammergenics.screens;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.files.FileHandle;
-import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
-import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.SpotLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
-import com.badlogic.gdx.graphics.g3d.model.Node;
-import com.badlogic.gdx.math.Intersector;
-import com.badlogic.gdx.math.Matrix4;
-import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.math.collision.BoundingBox;
-import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.hammergenics.HGEngine;
 import com.hammergenics.HGGame;
-import com.hammergenics.screens.graphics.g3d.DebugModelInstance;
-import com.hammergenics.screens.graphics.g3d.HGModelInstance;
 import com.hammergenics.screens.graphics.g3d.utils.ModelEditInputController;
 import com.hammergenics.screens.graphics.glutils.HGImmediateModeRenderer20;
 import com.hammergenics.screens.stages.ModelEditStage;
 import com.hammergenics.screens.stages.ui.AttributesManagerTable;
-import com.hammergenics.screens.utils.AttributesMap;
 import com.hammergenics.utils.HGUtils;
 
 import static com.hammergenics.HGEngine.filterModels;
@@ -66,7 +54,7 @@ public class ModelEditScreen extends ScreenAdapter {
     public final HGGame game;
     private final ModelBatch modelBatch;
 
-    private final PerspectiveCamera perspectiveCamera;
+    public final PerspectiveCamera perspectiveCamera;
     private final ModelEditInputController modelEditInputController;
     public Environment environment;
 
@@ -395,292 +383,5 @@ public class ModelEditScreen extends ScreenAdapter {
         //float intensity = (eng.overallSize < 50f ? 10.10947f : 151.0947f) * eng.overallSize - 90f; // TODO: temporal solution, revisit
         //intensity = intensity <= 0 ? 1f : intensity;                                               // TODO: temporal solution, revisit
         //environment.add(new PointLight().set(Color.WHITE, plPosition, intensity < 0 ? 0.5f : intensity)); // syncup: pl
-    }
-
-    public void checkMouseMoved(int screenX, int screenY) {
-        Ray ray = perspectiveCamera.getPickRay(screenX, screenY);
-
-        if (eng.hoveredOverBBMI != null && eng.hoveredOverCornerMIs.size > 0) {
-            // we're hovering over some model instance having bounding box rendered as well
-            // let's check if we're hovering over a corner of that bounding box:
-            Array<HGModelInstance> outCorners;
-            outCorners = eng.rayMICollision(ray, eng.hoveredOverCornerMIs, new Array<>(HGModelInstance.class));
-            if (outCorners.size > 0 && !outCorners.get(0).equals(eng.hoveredOverCorner)) {
-                // we're hovering over the new corner, need to restore the attributes of the previous corner (if any)
-                eng.restoreAttributes(eng.hoveredOverCorner, eng.hoveredOverCornerAttributes);
-                eng.hoveredOverCorner = outCorners.get(0); // SWITCHING THE HOVERED OVER CORNER
-                eng.hoveredOverCornerAttributes = new AttributesMap();
-                eng.saveAttributes(eng.hoveredOverCorner, eng.hoveredOverCornerAttributes);
-                eng.hoveredOverCorner.setAttributes(new BlendingAttribute(1f));
-                return; // nothing else should be done
-            } else if (outCorners.size == 0) {
-                // we're not hovering over any corners
-                eng.restoreAttributes(eng.hoveredOverCorner, eng.hoveredOverCornerAttributes);
-                eng.hoveredOverCorner = null;
-                if (eng.hoveredOverCornerAttributes != null) { eng.hoveredOverCornerAttributes.clear(); }
-                eng.hoveredOverCornerAttributes = null;
-            } else if (outCorners.get(0).equals(eng.hoveredOverCorner)) {
-                // we're hovering over the same corner, nothing else to do here
-                return;
-            }
-        }
-
-        if (stage.nodesCheckBox.isChecked() && eng.hoveredOverMI != null) {
-            Array<BoundingBox> outNodeBBs;
-            outNodeBBs = eng.rayBBCollision(ray, eng.hoveredOverMI.bb2n.keys().toArray(), new Array<>(true, 16, BoundingBox.class));
-            for (BoundingBox bb:outNodeBBs) {
-                Gdx.app.debug(getClass().getSimpleName(), "node: " + eng.hoveredOverMI.bb2n.get(bb).id);
-            }
-            if (outNodeBBs.size > 0) {
-                eng.hoveredOverNode = eng.hoveredOverMI.bb2n.get(outNodeBBs.get(0));
-                eng.hoveredOverMI.hoveredOverNode = eng.hoveredOverNode;
-                return; // nothing else should be done
-            } else {
-                eng.hoveredOverMI.hoveredOverNode = null;
-                eng.hoveredOverNode = null;
-            }
-        }
-
-        Array<DebugModelInstance> out = eng.rayMICollision(ray, eng.dbgMIs, new Array<>(DebugModelInstance.class));
-        if (out.size > 0 && !out.get(0).equals(eng.hoveredOverMI)) {
-            // no need to dispose the box and the corners - will be done in HGModelInstance on dispose()
-            eng.auxMIs.clear();
-            eng.hoveredOverMI = out.get(0); // SWITCHING THE HOVERED OVER MODEL INSTANCE
-
-            eng.hoveredOverBBMI = eng.hoveredOverMI.getBBHgModelInstance(Color.BLACK);
-            eng.auxMIs.add(eng.hoveredOverBBMI);
-            eng.hoveredOverCornerMIs = eng.hoveredOverMI.getCornerHgModelInstances(Color.RED);
-            eng.auxMIs.addAll(eng.hoveredOverCornerMIs);
-        } else if (out.size == 0) {
-            eng.hoveredOverMI = null;
-            eng.hoveredOverBBMI = null;
-            // no need to dispose the box and the corners - will be done in HGModelInstance on dispose()
-            eng.auxMIs.clear();
-        }
-    }
-
-    public boolean checkTouchDown(float x, float y, int pointer, int button) {
-        if (eng.hoveredOverMI != null) {
-            Vector3 currTranslation = eng.hoveredOverMI.transform.getTranslation(new Vector3());
-            Vector3 currScale = eng.hoveredOverMI.transform.getScale(new Vector3());
-            Quaternion currRotation = eng.hoveredOverMI.transform.getRotation(new Quaternion());
-
-            Gdx.app.debug(getClass().getSimpleName(), "b translation: " + currTranslation);
-            Gdx.app.debug(getClass().getSimpleName(), "b scale: " + currScale);
-            Gdx.app.debug(getClass().getSimpleName(), "b rotation: " + currRotation);
-            Gdx.app.debug(getClass().getSimpleName(), "b:\n" + eng.hoveredOverMI.transform);
-        }
-        return true;
-    }
-
-    public void checkTap(float x, float y, int count, int button) {
-        Ray ray = perspectiveCamera.getPickRay(x, y);
-        switch (button) {
-            case Input.Buttons.LEFT:
-                Array<DebugModelInstance> out = eng.rayMICollision(ray, eng.dbgMIs, new Array<>(DebugModelInstance.class));
-                if (out != null && out.size > 0) {
-                    eng.currMI = out.get(0);
-                    stage.reset();
-                }
-                break;
-            case Input.Buttons.MIDDLE:
-                break;
-            case Input.Buttons.RIGHT:
-                break;
-        }
-    }
-
-    public boolean checkPan(float x, float y, float deltaX, float deltaY, int touchDownButton, float overallDistance) {
-        float fracX = deltaX / Gdx.graphics.getWidth(), fracY = deltaY / Gdx.graphics.getHeight();
-        Camera cam = perspectiveCamera;
-
-        Vector3 miCenter = null;
-        Vector3 miTranslation = null;
-        Vector3 miScale = null;
-        Quaternion miRot = null;
-        Matrix4 miTransform = null;
-
-        if (eng.hoveredOverMI != null) {
-            miCenter = eng.hoveredOverMI.getBB().getCenter(new Vector3());
-            miTransform = eng.hoveredOverMI.transform.cpy();
-            miTranslation = miTransform.getTranslation(new Vector3());
-            miScale = miTransform.getScale(new Vector3());
-            // see getRotation() description:
-            // normalizeAxes True to normalize the axes, necessary when the matrix might also include scaling.
-            miRot = miTransform.getRotation(new Quaternion(), true);
-            // see https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation
-            // see https://j3d.org/matrix_faq/matrfaq_latest.html
-            // see http://web.archive.org/web/20041029003853/http://web.archive.org/web/20041029003853/http://www.j3d.org/matrix_faq/matrfaq_latest.html#Q50
-        }
-
-        switch (touchDownButton) {
-            case Input.Buttons.LEFT:
-                if (eng.hoveredOverMI != null && eng.hoveredOverCorner != null) {
-                    // we hold the left button pressed on the model instance's corner - applying scaling
-                    eng.currMI = eng.hoveredOverMI;
-                    stage.reset();
-
-                    Vector3 corner = eng.hoveredOverCorner.getBB().getCenter(new Vector3());
-
-                    Vector3 coordCenter = cam.project(miCenter.cpy(), 0, 0, cam.viewportWidth, cam.viewportHeight);
-                    Vector3 coordCorner = cam.project(corner.cpy(), 0, 0, cam.viewportWidth, cam.viewportHeight);
-                    Vector3 coordDelta = new Vector3(deltaX, -deltaY, 0);
-                    Vector3 coordHlfDiag = coordCorner.cpy().sub(coordCenter);
-                    Vector3 coordDir = coordHlfDiag.cpy().nor();
-
-                    // need to make sure the gesture matches the corner correctly.
-                    // e.g. the gesture is top-right:
-                    // * for the top-right corner the scale should be increased
-                    // * for the bottom-left corner the scale should be decreased
-                    int sign = coordDelta.dot(coordDir) > 0 ? 1 : -1;
-                    float scale = 1 + sign * 0.04f ;
-
-                    eng.hoveredOverMI.transform.scale(scale, scale, scale);
-                    eng.hoveredOverMI.bbHgModelInstanceReset();
-                    eng.hoveredOverMI.bbCornersReset();
-//                    Gdx.app.debug(getClass().getSimpleName(), ""
-//                            + " coordCenter: " + coordCenter + " coordCorner: " + coordCorner
-//                            + " coordHlfDiag: " + coordHlfDiag + " coordDir: " + coordDir
-//                            + " sign: " + sign
-//                            + " x: " + x + " y: " + y
-//                            + " deltaX: " + deltaX + " deltaY: " + deltaY
-//                            + " coordDir.x: " + coordDir.x + " coordDir.y: " + coordDir.y
-//                            + " scale: " + scale
-//                            + " cam.viewportWidth: " + cam.viewportWidth + " cam.viewportHeight: " + cam.viewportHeight
-//                            + "\nprojtest100: " + cam.project(new Vector3(1,0,0), 0, 0, cam.viewportWidth, cam.viewportHeight)
-//                            + "\nprojtest010: " + cam.project(new Vector3(0,1,0), 0, 0, cam.viewportWidth, cam.viewportHeight)
-//                            + "\nprojtest001: " + cam.project(new Vector3(0,0,1), 0, 0, cam.viewportWidth, cam.viewportHeight)
-//                            + "\nprojtest200: " + cam.project(new Vector3(2,0,0), 0, 0, cam.viewportWidth, cam.viewportHeight)
-//                            + "\nprojtest020: " + cam.project(new Vector3(0,2,0), 0, 0, cam.viewportWidth, cam.viewportHeight)
-//                            + "\nprojtest002: " + cam.project(new Vector3(0,0,2), 0, 0, cam.viewportWidth, cam.viewportHeight)
-//                            + "cam.combined: \n" + cam.combined
-//                    );
-                    return false;
-                } else if (eng.hoveredOverMI != null && eng.hoveredOverNode != null && eng.hoveredOverNode.getParent() != null) {
-                    // we hold the left button pressed on the model instance's node
-                    Ray ray = cam.getPickRay(x + deltaX, y - deltaY);
-                    Node node = eng.hoveredOverNode;
-                    Node parent = eng.hoveredOverNode.getParent();
-
-                    Vector3 nodeTrans = node.globalTransform.getTranslation(new Vector3());
-                    Quaternion nodeRot = node.globalTransform.getRotation(new Quaternion(), true);
-                    Vector3 nodeScale = node.globalTransform.getScale(new Vector3());
-
-                    Vector3 parentTrans = parent.globalTransform.getTranslation(new Vector3());
-                    Quaternion parentRot = parent.globalTransform.getRotation(new Quaternion(), true);
-                    Vector3 parentScale = parent.globalTransform.getScale(new Vector3());
-
-                    // Example of parent global transform multiplied by child's local transform to get the resulting child's global transform:
-                    //            parent.global                        child.local                             child.global
-                    //  [100.0|     -0.0|      0.0|0.0] [-3.576E-7|-2.980E-8|   -0.999|0.204]   [-3.576E-5|-2.980E-6| -99.999| 20.420]
-                    //  [  0.0|-1.192E-5|   99.999|0.0] [      1.0|      0.0|-3.874E-7|0.148] = [-1.788E-5|  -99.999|5.960E-6| 19.320]
-                    //  [ -0.0|  -99.999|-1.192E-5|0.0] [-5.960E-8|   -0.999| 5.960E-8|0.193]   [-1.788E-5|  -99.999|5.960E-6| 19.320]
-                    //  [  0.0|      0.0|      0.0|1.0] [      0.0|      0.0|      0.0|  1.0]   [      0.0|      0.0|     0.0|    1.0]
-                    //
-                    // Basically this means that:
-                    //                    node.GT  =                     parent.GT  MUL node.LT
-                    // parent.GT.inv MUL (node.GT) =  parent.GT.inv MUL (parent.GT  MUL node.LT) : associativity
-                    // parent.GT.inv MUL  node.GT  = (parent.GT.inv MUL  parent.GT) MUL node.LT  : definition of inverse
-                    // parent.GT.inv MUL  node.GT  =                                    node.LT
-
-                    float radius = nodeTrans.cpy().mul(miTransform).sub(parentTrans.cpy().mul(miTransform)).len();
-                    Vector3 intersection = new Vector3();
-                    if (Intersector.intersectRaySphere(ray, parentTrans.cpy().mul(miTransform), radius, intersection)) {
-                        Vector3 dirOld = nodeTrans.cpy().sub(parentTrans).nor();
-                        Vector3 dirNew = intersection.cpy().sub(parentTrans.cpy().mul(miTransform)).nor();
-                        Quaternion rot = new Quaternion().setFromCross(dirOld, dirNew).nor();
-
-                        Matrix4 tmpGlobal = new Matrix4();
-                        Matrix4 tmpLocal = new Matrix4();
-
-                        tmpGlobal.setToTranslationAndScaling(parentTrans, parentScale);
-                        tmpGlobal.rotate(rot.mul(parentRot.cpy().nor()).nor());
-
-                        Node parent2 = parent.getParent();
-                        if (parent.inheritTransform && parent2 != null) {
-                            // parent.LT = parent2.GT.inv MUL parent.GT (see above)
-                            tmpLocal.set(parent2.globalTransform.cpy().inv().mul(tmpGlobal));
-                        } else {
-                            tmpLocal.set(tmpGlobal);
-                        }
-                        parent.translation.set(tmpLocal.getTranslation(new Vector3()));
-                        parent.rotation.set(tmpLocal.getRotation(new Quaternion()).nor());
-                        eng.hoveredOverMI.calculateTransforms();
-                        // this update will also affect:
-                        // parent.localTransform
-                        // parent.globalTransform
-                        // node.localTransform
-                        // node.globalTransform
-                    }
-
-                    return false;
-                } else if (eng.hoveredOverMI != null) {
-                    // we hold the left button pressed on the model instance itself - applying translation
-                    eng.currMI = eng.hoveredOverMI;
-                    stage.reset();
-                    eng.draggedMI = eng.hoveredOverMI;
-
-                    // removing the rotation and scale components from the transform
-                    eng.draggedMI.transform.setToTranslation(miTranslation);
-                    // translating as per the gesture
-                    Vector3 tmpV = cam.direction.cpy().crs(cam.up).nor().scl(4 * fracX * overallDistance);
-                    eng.draggedMI.transform.translate(tmpV);
-                    tmpV.set(cam.up).y = 0;
-                    tmpV.nor().scl(4 * -fracY * overallDistance);
-                    eng.draggedMI.transform.translate(tmpV);
-                    // restoring the original rotation
-                    eng.draggedMI.transform.rotate(miRot);
-                    // restoring the original scale
-                    eng.draggedMI.transform.scale(miScale.x, miScale.y, miScale.z);
-
-                    eng.draggedMI.bbHgModelInstanceReset();
-                    eng.draggedMI.bbCornersReset();
-
-                    return false;
-                }
-                return true;
-            case Input.Buttons.MIDDLE:
-                if (eng.hoveredOverMI != null) {
-                    // we hold the middle button pressed on the model instance itself - applying rotation
-                    eng.currMI = eng.hoveredOverMI;
-                    stage.reset();
-
-                    // removing the rotation and scale components from the transform
-                    eng.hoveredOverMI.transform.setToTranslation(miTranslation);
-                    // rotating as per the gesture
-                    eng.hoveredOverMI.transform.rotate(cam.up.cpy().nor(), fracX * 360f);
-                    eng.hoveredOverMI.transform.rotate(cam.direction.cpy().crs(cam.up).nor(), fracY * 360f);
-                    // restoring the original rotation
-                    eng.hoveredOverMI.transform.rotate(miRot);
-                    // restoring the original scale
-                    eng.hoveredOverMI.transform.scale(miScale.x, miScale.y, miScale.z);
-
-                    eng.hoveredOverMI.bbHgModelInstanceReset();
-                    eng.hoveredOverMI.bbCornersReset();
-
-                    return false;
-                }
-                return true;
-            case Input.Buttons.RIGHT:
-                return true;
-        }
-        return true;
-    }
-
-    public boolean checkPanStop(float x, float y, int pointer, int button) {
-        if (eng.hoveredOverMI != null) {
-            Vector3 currTranslation = eng.hoveredOverMI.transform.getTranslation(new Vector3());
-            Vector3 currScale = eng.hoveredOverMI.transform.getScale(new Vector3());
-            Quaternion currRotation = eng.hoveredOverMI.transform.getRotation(new Quaternion(), true);
-
-            Gdx.app.debug(getClass().getSimpleName(), "a translation: " + currTranslation);
-            Gdx.app.debug(getClass().getSimpleName(), "a scale: " + currScale);
-            Gdx.app.debug(getClass().getSimpleName(), "a rotation: " + currRotation);
-            Gdx.app.debug(getClass().getSimpleName(), "a:\n" + eng.hoveredOverMI.transform);
-        }
-        // TODO: fix BB checkbox
-        //eng.resetBBModelInstances();
-        eng.draggedMI = null;
-        return true;
     }
 }
