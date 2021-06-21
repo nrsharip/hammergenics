@@ -39,7 +39,7 @@ import com.hammergenics.HGGame;
 import com.hammergenics.screens.graphics.g3d.utils.ModelEditInputController;
 import com.hammergenics.screens.graphics.glutils.HGImmediateModeRenderer20;
 import com.hammergenics.screens.stages.ModelEditStage;
-import com.hammergenics.screens.stages.ui.AttributesManagerTable;
+import com.hammergenics.screens.stages.ui.attributes.AttributesManagerTable;
 import com.hammergenics.utils.HGUtils;
 
 import static com.hammergenics.HGEngine.filterModels;

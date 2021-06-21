@@ -53,7 +53,7 @@ import com.hammergenics.config.Config;
 import com.hammergenics.screens.ModelEditScreen;
 import com.hammergenics.screens.graphics.g3d.HGModel;
 import com.hammergenics.screens.stages.ui.AggregatedAttributesManagerTable;
-import com.hammergenics.screens.stages.ui.AttributesManagerTable;
+import com.hammergenics.screens.stages.ui.attributes.AttributesManagerTable;
 import com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable;
 import com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable.EventType;
 import com.hammergenics.utils.HGUtils;

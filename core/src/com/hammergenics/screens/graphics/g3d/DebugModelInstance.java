@@ -42,7 +42,7 @@ import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.hammergenics.screens.ModelEditScreen;
 import com.hammergenics.screens.graphics.glutils.HGImmediateModeRenderer20;
-import com.hammergenics.screens.stages.ui.AttributesManagerTable;
+import com.hammergenics.screens.stages.ui.attributes.AttributesManagerTable;
 import com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable;
 
 import static com.badlogic.gdx.graphics.GL20.GL_LINES;
