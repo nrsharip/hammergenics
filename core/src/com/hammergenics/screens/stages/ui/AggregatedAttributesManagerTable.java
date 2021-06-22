@@ -110,28 +110,16 @@ public class AggregatedAttributesManagerTable extends HGTable {
         if (!stage.isPressed(envTextButton)) {
             unpressAllButtons();
             stage.pressButton(envTextButton);
-        } else {
-//            stage.unpressButton(envTextButton);
-//
-//            stage.infoTCell.clearActor();
-//            stage.infoBCell.clearActor();
-//            attrTableCell.clearActor();
+            resetActors();
         }
-        resetActors();
     }
 
     public void pressMtl() {
         if (!stage.isPressed(mtlTextButton)) {
             unpressAllButtons();
             stage.pressButton(mtlTextButton);
-        } else {
-//            stage.unpressButton(mtlTextButton);
-//
-//            stage.infoTCell.clearActor();
-//            stage.infoBCell.clearActor();
-//            attrTableCell.clearActor();
+            resetActors();
         }
-        resetActors();
     }
 
     public void resetActors() {
@@ -141,7 +129,7 @@ public class AggregatedAttributesManagerTable extends HGTable {
 
         if (!isAnyButtonPressed()) { pressEnv(); }
 
-        if (modelES.environment != null && stage.isPressed(envTextButton)) {
+        if (stage.isPressed(envTextButton) && modelES.environment != null) {
             attrTableCell.setActor(stage.envAttrTable);
 
             stage.envLabel.setText("Environment:\n" + HGUtils.extractAttributes(modelES.environment,"", ""));
@@ -149,7 +137,7 @@ public class AggregatedAttributesManagerTable extends HGTable {
             stage.infoTCell.setActor(stage.envLabel);
         }
 
-        if (dbgModelInstance != null && stage.isPressed(mtlTextButton)) {
+        if (stage.isPressed(mtlTextButton) && dbgModelInstance != null) {
             dbgModelInstance.createMtlAttributeTable(stage.skin, mtlSelectBox.getSelected(), stage.eventListener, modelES);
             attrTableCell.setActor(dbgModelInstance.mtlid2atable.get(mtlSelectBox.getSelected()));
 
