@@ -182,9 +182,9 @@ public class HGUtils {
         FileHandle soughtFileHandle = null;
 
         if (startFileHandle.path().equals(Conventions.modelsRootDirectory)) {
-            Gdx.app.debug(getTag(),
-                    "start file '" + startFileHandle.path() + "' is the same as the assets root '"
-                            + Conventions.modelsRootDirectory + "'");
+            //Gdx.app.debug(getTag(),
+            //        "start file '" + startFileHandle.path() + "' is the same as the assets root '"
+            //                + Conventions.modelsRootDirectory + "'");
             return null;
         }
 

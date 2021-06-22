@@ -482,13 +482,11 @@ public class ModelEditStage extends Stage {
 
     public boolean addModelInstance(FileHandle assetFL) {
         boolean created = modelES.eng.addModelInstance(assetFL);
-        if (created) { aggrAttrTable.setDbgModelInstance(modelES.eng.currMI); }
         return created;
     }
 
     public boolean addModelInstance(Model model) {
         boolean created = modelES.eng.addModelInstance(model);
-        if (created) { aggrAttrTable.setDbgModelInstance(modelES.eng.currMI); }
         return created;
     }
 

@@ -128,9 +128,9 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
             if (n2np.containsKey(node)) { n2np.get(node).add(nodePart); }
             else { n2np.put(node, new Array<>(new NodePart[]{nodePart})); }
 
-            Gdx.app.debug(getClass().getSimpleName(), ""
-                    + (afh != null ? afh.name() : "empty") + ": node.id: " + node.id
-                    + " mesh.id: " + nodePart.meshPart.id + " material: " + nodePart.material.id);
+            //Gdx.app.debug(getClass().getSimpleName(), ""
+            //        + (afh != null ? afh.name() : "empty") + ": node.id: " + node.id
+            //        + " mesh.id: " + nodePart.meshPart.id + " material: " + nodePart.material.id);
         }
 
         Iterable<Node> children = node.getChildren();
