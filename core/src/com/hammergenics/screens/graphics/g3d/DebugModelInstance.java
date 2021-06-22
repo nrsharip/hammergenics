@@ -29,6 +29,7 @@ import com.badlogic.gdx.graphics.g3d.model.Animation;
 import com.badlogic.gdx.graphics.g3d.model.MeshPart;
 import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.model.NodeAnimation;
+import com.badlogic.gdx.graphics.g3d.model.NodeKeyframe;
 import com.badlogic.gdx.graphics.g3d.model.NodePart;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Matrix4;
@@ -72,6 +73,10 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
     public Array<String> mtlIds = new Array<>(true, 16, String.class);
     public final ArrayMap<Material, AttributesManagerTable> mtl2atable = new ArrayMap<>(Material.class, AttributesManagerTable.class);
     public final ArrayMap<String, AttributesManagerTable> mtlid2atable = new ArrayMap<>(String.class, AttributesManagerTable.class);
+    // Animations related
+    public float currKeyTime = 0f;
+    public Animation selectedAnimation = null;
+    public Array<String> animIds = new Array<>(true, 16, String.class);
 
     public HGModel bbHgModel = null;
     public HGModelInstance bbHgMI = null;
@@ -92,6 +97,7 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
         checkNodeParts();
         createNodePartModels();
         checkMaterials();
+        checkAnimations();
     }
 
     @Override
@@ -107,17 +113,18 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
 
     public void checkAnimations() {
         for (Animation anim:animations) {
-            Gdx.app.debug(getClass().getSimpleName(), ""
-                    + " anim.id " + anim.id + " anim.id " + anim.duration
-            );
-            for (NodeAnimation nodeAnim:anim.nodeAnimations) {
-                Gdx.app.debug(getClass().getSimpleName(), "    "
-                        + " nodeAnim.node.id " + (nodeAnim.node != null ? nodeAnim.node.id : "null")
-                        + " rotation.size " + (nodeAnim.rotation != null ? nodeAnim.rotation.size : "null")
-                        + " scaling.size " + (nodeAnim.scaling != null ? nodeAnim.scaling.size : "null")
-                        + " translation.size " + (nodeAnim.translation != null ? nodeAnim.translation.size : "null")
-                );
-            }
+            animIds.add(anim.id);
+//            Gdx.app.debug(getClass().getSimpleName(), ""
+//                    + " anim.id " + anim.id + " anim.id " + anim.duration
+//            );
+//            for (NodeAnimation nodeAnim:anim.nodeAnimations) {
+//                Gdx.app.debug(getClass().getSimpleName(), "    "
+//                        + " nodeAnim.node.id " + (nodeAnim.node != null ? nodeAnim.node.id : "null")
+//                        + " rotation.size " + (nodeAnim.rotation != null ? nodeAnim.rotation.size : "null")
+//                        + " scaling.size " + (nodeAnim.scaling != null ? nodeAnim.scaling.size : "null")
+//                        + " translation.size " + (nodeAnim.translation != null ? nodeAnim.translation.size : "null")
+//                );
+//            }
         }
     }
 
@@ -496,4 +503,57 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
                 break;
         }
     }
+
+    public void animApplyKeyTime(float keytime) {
+        if (selectedAnimation == null || keytime < 0 || keytime > selectedAnimation.duration) { return; }
+        currKeyTime = keytime;
+        Gdx.app.debug("ChangeListener", ""
+                + " anim id: " + selectedAnimation.id + " value: " + keytime);
+
+        for (NodeAnimation nodeAnim:selectedAnimation.nodeAnimations) { animApplyNodeAnimation(nodeAnim, keytime); }
+
+        // see ModelInstance.calculateTransforms:
+        // calculate both local and global transforms for each node and subnodes recursively.
+        // IMPORTANT to have isAnimated set to true so local transform is not reset
+        // seemingly bones transforms is based on the updated global transforms
+        calculateTransforms();
+    }
+
+    public void animApplyNodeAnimation(NodeAnimation nodeAnim, float keytime) {
+        // setting to false so calculateLocalTransform() would return the base values
+        nodeAnim.node.isAnimated = false;
+        nodeAnim.node.calculateLocalTransform();
+        // Getting the default base values for the node (prior any animations applied)
+        Vector3 tmpTrans = nodeAnim.node.localTransform.getTranslation(new Vector3());
+        Quaternion tmpRot = nodeAnim.node.localTransform.getRotation(new Quaternion(), true);
+        Vector3 tmpScale = nodeAnim.node.localTransform.getScale(new Vector3());
+
+        // the translation keyframes if any (might be null), sorted by time ascending
+        if (nodeAnim.translation != null) {
+            for (NodeKeyframe<Vector3> nTrans:nodeAnim.translation) {
+                if (nTrans.keytime <= keytime) { tmpTrans.set(nTrans.value); }
+                else { break; }}}
+        // the rotation keyframes if any (might be null), sorted by time ascending
+        if (nodeAnim.rotation != null) {
+            for (NodeKeyframe<Quaternion> nRot:nodeAnim.rotation) {
+                if (nRot.keytime <= keytime) { tmpRot.set(nRot.value); }
+                else { break; }}}
+        // the scaling keyframes if any (might be null), sorted by time ascending
+        if (nodeAnim.scaling != null) {
+            for (NodeKeyframe<Vector3> nScale:nodeAnim.scaling) {
+                if (nScale.keytime <= keytime) { tmpScale.set(nScale.value); }
+                else { break; }}}
+        Gdx.app.debug("", ""
+                + " node.id: " + nodeAnim.node.id + " node.parts.size: " + nodeAnim.node.parts.size
+                + " trans: " + tmpTrans + " rot: " + tmpRot + " scale: " + tmpScale
+        );
+        // setting isAnimated to true so the localTransform isn't reset to the base values.
+        // the real check happens in node.calculateLocalTransform()
+        nodeAnim.node.isAnimated = true;
+
+        // setting the local transform to the values from key frames (if not, the default used)
+        nodeAnim.node.localTransform.set(tmpTrans, tmpRot, tmpScale);
+    }
+
+    public void setSelectedAnimation(String animId) { selectedAnimation = getAnimation(animId); }
 }
