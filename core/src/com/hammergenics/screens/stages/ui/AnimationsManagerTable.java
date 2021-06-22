@@ -83,9 +83,9 @@ public class AnimationsManagerTable extends HGTable {
                 }
                 Gdx.app.debug(animationSelectBox.getClass().getSimpleName(), "animation selected: " + anim.id);
                 keyFrameSlider.setProgrammaticChangeEvents(false);
-                keyFrameSlider.setValue(0f);
                 keyFrameSlider.setRange(0f, anim.duration);
                 keyFrameSlider.setStepSize(anim.duration/1000f);
+                keyFrameSlider.setValue(0f);
                 keyFrameSlider.setProgrammaticChangeEvents(true);
             }
         });
@@ -139,13 +139,13 @@ public class AnimationsManagerTable extends HGTable {
             keyFrameSlider.setProgrammaticChangeEvents(false);
             if (dbgModelInstance.selectedAnimation != null) {
                 animationSelectBox.setSelected(dbgModelInstance.selectedAnimation.id);
-                keyFrameSlider.setValue(dbgModelInstance.currKeyTime);
                 keyFrameSlider.setRange(0f, dbgModelInstance.selectedAnimation.duration);
                 keyFrameSlider.setStepSize(dbgModelInstance.selectedAnimation.duration/1000f);
+                keyFrameSlider.setValue(dbgModelInstance.currKeyTime);
             } else {
-                keyFrameSlider.setValue(0f);
                 keyFrameSlider.setRange(0f, 1f);
                 keyFrameSlider.setStepSize(10f);
+                keyFrameSlider.setValue(0f);
             }
             keyFrameSlider.setProgrammaticChangeEvents(true);
         }
