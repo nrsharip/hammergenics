@@ -548,7 +548,7 @@ public class ModelEditStage extends Stage {
         btn.getColor().set(COLOR_DISABLED); btn.getLabel().getColor().set(COLOR_DISABLED);
     }
     public void enableButton(TextButton btn) {
-        btn.getColor().set(COLOR_UNPRESSED); btn.getLabel().getColor().set(COLOR_UNPRESSED);
+        btn.getColor().set(COLOR_UNPRESSED); btn.getLabel().getColor().set(Color.WHITE);
     }
     public boolean isPressed(TextButton btn) { return btn.getColor().equals(COLOR_PRESSED); }
     public boolean isDisabled(TextButton btn) { return btn.getColor().equals(COLOR_DISABLED); }
