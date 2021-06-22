@@ -37,8 +37,8 @@ import com.hammergenics.utils.HGUtils;
  */
 public class AggregatedAttributesManagerTable extends HGTable {
     public ModelEditScreen modelES;
-    public DebugModelInstance dbgModelInstance;
     public ModelEditStage stage;
+    public DebugModelInstance dbgModelInstance;
 
     public Cell<?> attrTableCell;
     

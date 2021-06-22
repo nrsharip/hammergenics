@@ -53,6 +53,7 @@ import com.hammergenics.config.Config;
 import com.hammergenics.screens.ModelEditScreen;
 import com.hammergenics.screens.graphics.g3d.HGModel;
 import com.hammergenics.screens.stages.ui.AggregatedAttributesManagerTable;
+import com.hammergenics.screens.stages.ui.AnimationsManagerTable;
 import com.hammergenics.screens.stages.ui.attributes.AttributesManagerTable;
 import com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable;
 import com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable.EventType;
@@ -87,6 +88,7 @@ public class ModelEditStage extends Stage {
 
     public AttributesManagerTable envAttrTable;
     public AggregatedAttributesManagerTable aggrAttrTable;
+    public AnimationsManagerTable animationsManagerTable;
 
     // 2D Stage Widgets:
     public Label miLabel;  // Model Instance Info
@@ -106,16 +108,11 @@ public class ModelEditStage extends Stage {
     public SelectBox<FileHandle> folderSelectBox;
     public SelectBox<FileHandle> modelSelectBox;
     public SelectBox<String> nodeSelectBox;
-    public SelectBox<String> animationSelectBox = null;
     public TextButton attrTextButton = null;
     public TextButton animTextButton = null;
     public TextButton clearModelsTextButton = null;
     public TextButton deleteCurrModelTextButton = null;
     public TextButton saveCurrModelTextButton = null;
-
-    // TODO: ANIMATIONS RELATED: to be moved to a separate class
-    public CheckBox animLoopCheckBox;
-    public Slider keyFrameSlider = null;
 
     public BaseAttributeTable.EventListener eventListener;
     
@@ -129,6 +126,7 @@ public class ModelEditStage extends Stage {
         setup2DStageLayout();
 
         aggrAttrTable = new AggregatedAttributesManagerTable(modelES, this);
+        animationsManagerTable = new AnimationsManagerTable(modelES, this);
     }
 
     /**
@@ -199,32 +197,6 @@ public class ModelEditStage extends Stage {
                         afterCurrentModelInstanceChanged();
                     }
                 }
-            }
-        });
-
-        // Select Box: Animations
-        // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#selectbox
-        animationSelectBox = new SelectBox<>(skin);
-        animationSelectBox.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                int index = animationSelectBox.getSelectedIndex() - 1; // -1 since we have "No Animation" item
-                if (modelES.eng.currMI.animationController == null) { return; }
-
-                if (index < 0) {
-                    modelES.eng.currMI.animationDesc = null;
-                    modelES.eng.currMI.animationController.setAnimation(null);
-                    return;
-                }
-
-                Animation anim = modelES.eng.currMI.getAnimation(animationSelectBox.getSelected());
-                if (animLoopCheckBox.isChecked()) {
-                    modelES.eng.currMI.animationDesc = modelES.eng.currMI.animationController.setAnimation(anim.id, -1);
-                }
-                Gdx.app.debug(animationSelectBox.getClass().getSimpleName(), "animation selected: " + anim.id);
-                keyFrameSlider.setValue(0f);
-                keyFrameSlider.setRange(0f, anim.duration);
-                keyFrameSlider.setStepSize(anim.duration/1000f);
             }
         });
 
@@ -316,6 +288,29 @@ public class ModelEditStage extends Stage {
 
         animTextButton = new TextButton("ANIM", skin);
         unpressButton(animTextButton);
+        animTextButton.addListener(new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                editCell.clearActor();
+                if (!isPressed(animTextButton)) {
+                    unpressAllButtons();
+                    pressButton(animTextButton);
+                    infoTCell.clearActor();
+                    infoBCell.clearActor();
+                    editCell.setActor(animationsManagerTable);
+                } else {
+                    unpressButton(animTextButton);
+                    infoTCell.clearActor();
+                    infoBCell.clearActor();
+                    editCell.clearActor();
+                }
+
+                return super.touchDown(event, x, y, pointer, button); // false
+                // If true is returned, this listener will have touch focus, so it will receive all
+                // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
+                // Also when true is returned, the event is handled
+            }
+        });
 
         clearModelsTextButton = new TextButton("clear all", skin);
         unpressButton(clearModelsTextButton);
@@ -348,90 +343,6 @@ public class ModelEditStage extends Stage {
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 modelES.eng.saveHgModelInstance(modelES.eng.currMI);
                 return super.touchDown(event, x, y, pointer, button);
-            }
-        });
-
-        // TODO: ANIMATIONS RELATED: to be moved to a separate class
-        animLoopCheckBox = new CheckBox("loop", skin);
-        animLoopCheckBox.setChecked(true);
-        animLoopCheckBox.addListener(new ChangeListener() {
-            @Override
-            public void changed (ChangeEvent event, Actor actor) {
-                if (modelES.eng.currMI.animationController == null) { return; }
-                if (animationSelectBox.getSelectedIndex() - 1 < 0) { // -1 since we have "No Animation" item
-                    // "No Animation" item selected
-                    modelES.eng.currMI.animationDesc = null;
-                    modelES.eng.currMI.animationController.setAnimation(null);
-                    return;
-                }
-
-                if (animLoopCheckBox.isChecked()) {
-                    Animation anim = modelES.eng.currMI.getAnimation(animationSelectBox.getSelected());
-                    modelES.eng.currMI.animationDesc = modelES.eng.currMI.animationController.setAnimation(anim.id, -1);
-                } else {
-                    modelES.eng.currMI.animationDesc = null;
-                    modelES.eng.currMI.animationController.setAnimation(null);
-                }
-            }
-        });
-
-        // SLIDERS:
-        keyFrameSlider = new Slider(0f, 10f, 0.1f, false, skin);
-        keyFrameSlider.addListener(new ChangeListener() {
-            @Override
-            public void changed (ChangeEvent event, Actor actor) {
-                if (animationSelectBox.getSelectedIndex() != 0) {
-                    float keytime = keyFrameSlider.getValue();
-
-                    // turning off the animation loop (assuming the change event is fired on the checkbox)
-                    animLoopCheckBox.setChecked(false);
-
-                    Animation anim = modelES.eng.currMI.getAnimation(animationSelectBox.getSelected());
-                    Gdx.app.debug("ChangeListener", ""
-                            + " anim id: " + anim.id + " value: " + keytime);
-
-                    for (NodeAnimation nodeAnim:anim.nodeAnimations) {
-                        // setting to false so calculateLocalTransform() would return the base values
-                        nodeAnim.node.isAnimated = false;
-                        nodeAnim.node.calculateLocalTransform();
-                        // Getting the default base values for the node (prior any animations applied)
-                        Vector3 tmpTrans = nodeAnim.node.localTransform.getTranslation(new Vector3());
-                        Quaternion tmpRot = nodeAnim.node.localTransform.getRotation(new Quaternion(), true);
-                        Vector3 tmpScale = nodeAnim.node.localTransform.getScale(new Vector3());
-
-                        // the translation keyframes if any (might be null), sorted by time ascending
-                        if (nodeAnim.translation != null) {
-                            for (NodeKeyframe<Vector3> nTrans:nodeAnim.translation) {
-                                if (nTrans.keytime <= keytime) { tmpTrans.set(nTrans.value); }
-                                else { break; }}}
-                        // the rotation keyframes if any (might be null), sorted by time ascending
-                        if (nodeAnim.rotation != null) {
-                            for (NodeKeyframe<Quaternion> nRot:nodeAnim.rotation) {
-                                if (nRot.keytime <= keytime) { tmpRot.set(nRot.value); }
-                                else { break; }}}
-                        // the scaling keyframes if any (might be null), sorted by time ascending
-                        if (nodeAnim.scaling != null) {
-                            for (NodeKeyframe<Vector3> nScale:nodeAnim.scaling) {
-                                if (nScale.keytime <= keytime) { tmpScale.set(nScale.value); }
-                                else { break; }}}
-                        Gdx.app.debug("", ""
-                                + " node.id: " + nodeAnim.node.id + " node.parts.size: " + nodeAnim.node.parts.size
-                                + " trans: " + tmpTrans + " rot: " + tmpRot + " scale: " + tmpScale
-                        );
-                        // setting isAnimated to true so the localTransform isn't reset to the base values.
-                        // the real check happens in node.calculateLocalTransform()
-                        nodeAnim.node.isAnimated = true;
-
-                        // setting the local transform to the values from key frames (if not, the default used)
-                        nodeAnim.node.localTransform.set(tmpTrans, tmpRot, tmpScale);
-                    }
-
-                    // see ModelInstance.calculateTransforms:
-                    // calculate both local and global transforms for each node and subnodes recursively.
-                    // IMPORTANT to have isAnimated set to true so local transform is not reset
-                    // seemingly bones transforms is based on the updated global transforms
-                    modelES.eng.currMI.calculateTransforms();
-                }
             }
         });
 
@@ -604,11 +515,6 @@ public class ModelEditStage extends Stage {
         upperPanel.add(modelSelectBox).padLeft(5f).left();
         upperPanel.add(new Label("Node: ", skin)).padLeft(5f).right();
         upperPanel.add(nodeSelectBox).padLeft(5f).left();
-        upperPanel.add(new Label("Animation: ", skin)).padLeft(5f).right();
-        // TODO: ANIMATIONS RELATED: to be moved to a separate class
-        upperPanel.add(animationSelectBox).padLeft(5f).left();
-        upperPanel.add(animLoopCheckBox).padLeft(5f).left();
-        upperPanel.add(keyFrameSlider).padLeft(5f).left();
         upperPanel.add().expandX();
 
         rootTable.add();
@@ -667,10 +573,16 @@ public class ModelEditStage extends Stage {
 
         textureImage.setDrawable(null);
 
-        aggrAttrTable.setDbgModelInstance(modelES.eng.currMI);
         if (isPressed(attrTextButton)) {
+            aggrAttrTable.setDbgModelInstance(modelES.eng.currMI);
             editCell.clearActor();
             editCell.setActor(aggrAttrTable);
+        }
+
+        if (isPressed(animTextButton)) {
+            animationsManagerTable.setDbgModelInstance(modelES.eng.currMI);
+            editCell.clearActor();
+            editCell.setActor(animationsManagerTable);
         }
 
         // Select Box: Nodes
@@ -686,16 +598,5 @@ public class ModelEditStage extends Stage {
         }
         nodeSelectBox.getSelection().setProgrammaticChangeEvents(true);
         nodeSelectBox.getColor().set(Color.WHITE);
-
-        // Select Box: Animations
-        animationSelectBox.getSelection().setProgrammaticChangeEvents(false);
-        animationSelectBox.clearItems();
-        if (modelES.eng.currMI != null) {
-            Array<String> itemsAnimation = new Array<>();
-            itemsAnimation.add("No Animation");
-            modelES.eng.currMI.animations.forEach(a -> itemsAnimation.add(a.id));
-            animationSelectBox.setItems(itemsAnimation);
-        }
-        animationSelectBox.getSelection().setProgrammaticChangeEvents(true);
     }
 }
