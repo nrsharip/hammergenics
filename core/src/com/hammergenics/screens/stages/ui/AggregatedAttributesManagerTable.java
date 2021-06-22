@@ -97,10 +97,7 @@ public class AggregatedAttributesManagerTable extends HGTable {
         this.dbgModelInstance = dbgModelInstance;
         mtlSelectBox.getSelection().setProgrammaticChangeEvents(false);
         mtlSelectBox.clearItems();
-        if (dbgModelInstance != null) {
-            dbgModelInstance.createMtlAttributeTables(stage.skin, stage.eventListener, modelES);
-            mtlSelectBox.setItems(dbgModelInstance.mtlid2atable.keys().toArray());
-        }
+        if (dbgModelInstance != null) { mtlSelectBox.setItems(dbgModelInstance.mtlIds); }
         mtlSelectBox.getSelection().setProgrammaticChangeEvents(true);
 
         resetActors();
@@ -156,8 +153,9 @@ public class AggregatedAttributesManagerTable extends HGTable {
         }
 
         if (dbgModelInstance != null && stage.isPressed(mtlTextButton)) {
+            dbgModelInstance.createMtlAttributeTable(stage.skin, mtlSelectBox.getSelected(), stage.eventListener, modelES);
             stage.miLabel.setText(HGUtils.getModelInstanceInfo(modelES.eng.currMI));
-            attrTableCell.setActor(dbgModelInstance.mtl2atable.getValueAt(mtlSelectBox.getSelectedIndex()));
+            attrTableCell.setActor(dbgModelInstance.mtlid2atable.get(mtlSelectBox.getSelected()));
         } else if (stage.isPressed(mtlTextButton)) {
             stage.miLabel.setText("");
             pressEnv();

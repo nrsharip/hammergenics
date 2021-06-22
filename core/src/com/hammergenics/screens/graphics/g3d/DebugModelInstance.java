@@ -69,6 +69,7 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
     public final ArrayMap<String, HGModel> nodeid2model = new ArrayMap<>(String.class, HGModel.class);
     public final ArrayMap<HGModel, Node> model2node = new ArrayMap<>(HGModel.class, Node.class);
     // Materials related
+    public Array<String> mtlIds = new Array<>(true, 16, String.class);
     public final ArrayMap<Material, AttributesManagerTable> mtl2atable = new ArrayMap<>(Material.class, AttributesManagerTable.class);
     public final ArrayMap<String, AttributesManagerTable> mtlid2atable = new ArrayMap<>(String.class, AttributesManagerTable.class);
 
@@ -90,6 +91,7 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
 
         checkNodeParts();
         createNodePartModels();
+        checkMaterials();
     }
 
     @Override
@@ -119,6 +121,8 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
         }
     }
 
+    public void checkMaterials() { mtlIds.clear(); for (Material mtl:materials) { mtlIds.add(mtl.id); } }
+
     public void checkNodeParts() { for (Node node:nodes) { checkNodeParts(node); } }
 
     public void checkNodeParts(Node node) {
@@ -142,6 +146,18 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
     public void createMtlAttributeTables(Skin skin, BaseAttributeTable.EventListener eventListener, ModelEditScreen modelES) {
         if (mtl2atable.size > 0) { return; } // tables already created
         for (Material mtl:materials) {
+            AttributesManagerTable mtlAttrTable = new AttributesManagerTable(skin, mtl, modelES);
+            mtlAttrTable.setListener(eventListener);
+
+            mtl2atable.put(mtl, mtlAttrTable);
+            mtlid2atable.put(mtl.id, mtlAttrTable);
+        }
+    }
+
+    public void createMtlAttributeTable(Skin skin, String mtlId, BaseAttributeTable.EventListener eventListener, ModelEditScreen modelES) {
+        if (mtlid2atable.containsKey(mtlId)) { return; } // table already created
+        Material mtl = getMaterial(mtlId);
+        if (mtl != null) {
             AttributesManagerTable mtlAttrTable = new AttributesManagerTable(skin, mtl, modelES);
             mtlAttrTable.setListener(eventListener);
 
