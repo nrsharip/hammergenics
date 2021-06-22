@@ -187,4 +187,12 @@ public class AnimationsManagerTable extends HGTable {
         }
         animationSelectBox.getSelection().setProgrammaticChangeEvents(true);
     }
+
+    public void resetActors() {
+        stage.infoTCell.clearActor();
+        stage.infoBCell.clearActor();
+        stage.editCell.clearActor();
+
+        stage.editCell.setActor(this);
+    }
 }

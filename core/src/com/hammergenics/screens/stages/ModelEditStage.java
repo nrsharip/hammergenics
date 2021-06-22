@@ -24,10 +24,6 @@ import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
-import com.badlogic.gdx.graphics.g3d.model.Animation;
-import com.badlogic.gdx.graphics.g3d.model.NodeAnimation;
-import com.badlogic.gdx.graphics.g3d.model.NodeKeyframe;
-import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -39,7 +35,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.SelectBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.Slider;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
@@ -262,23 +257,11 @@ public class ModelEditStage extends Stage {
                 editCell.clearActor();
                 if (!isPressed(attrTextButton)) {
                     unpressAllButtons();
-
                     pressButton(attrTextButton);
-                    if (!aggrAttrTable.isAnyButtonPressed()) { aggrAttrTable.pressEnv(); }
-                    else if (isPressed(aggrAttrTable.envTextButton)) {
-                        infoTCell.setActor(envLabel);
-                    } else if (isPressed(aggrAttrTable.mtlTextButton)) {
-                        infoTCell.setActor(miLabel);
-                        infoBCell.setActor(textureImage);
-                    }
-                    editCell.setActor(aggrAttrTable);
                 } else {
                     unpressButton(attrTextButton);
-                    infoTCell.clearActor();
-                    infoBCell.clearActor();
-                    editCell.clearActor();
                 }
-
+                resetTables();
                 return super.touchDown(event, x, y, pointer, button); // false
                 // If true is returned, this listener will have touch focus, so it will receive all
                 // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
@@ -295,16 +278,10 @@ public class ModelEditStage extends Stage {
                 if (!isPressed(animTextButton)) {
                     unpressAllButtons();
                     pressButton(animTextButton);
-                    infoTCell.clearActor();
-                    infoBCell.clearActor();
-                    editCell.setActor(animationsManagerTable);
                 } else {
                     unpressButton(animTextButton);
-                    infoTCell.clearActor();
-                    infoBCell.clearActor();
-                    editCell.clearActor();
                 }
-
+                resetTables();
                 return super.touchDown(event, x, y, pointer, button); // false
                 // If true is returned, this listener will have touch focus, so it will receive all
                 // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
@@ -569,21 +546,7 @@ public class ModelEditStage extends Stage {
     public boolean isPressed(TextButton btn) { return btn.getColor().equals(COLOR_PRESSED); }
 
     public void reset() {
-        if (modelES == null) { return; }
-
         textureImage.setDrawable(null);
-
-        if (isPressed(attrTextButton)) {
-            aggrAttrTable.setDbgModelInstance(modelES.eng.currMI);
-            editCell.clearActor();
-            editCell.setActor(aggrAttrTable);
-        }
-
-        if (isPressed(animTextButton)) {
-            animationsManagerTable.setDbgModelInstance(modelES.eng.currMI);
-            editCell.clearActor();
-            editCell.setActor(animationsManagerTable);
-        }
 
         // Select Box: Nodes
         // making sure no events fired during the nodeSelectBox reset
@@ -598,5 +561,21 @@ public class ModelEditStage extends Stage {
         }
         nodeSelectBox.getSelection().setProgrammaticChangeEvents(true);
         nodeSelectBox.getColor().set(Color.WHITE);
+
+        resetTables();
+    }
+
+    public void resetTables() {
+        if (modelES == null) { return; }
+
+        if (isPressed(attrTextButton)) {
+            aggrAttrTable.setDbgModelInstance(modelES.eng.currMI);
+            aggrAttrTable.resetActors();
+        }
+
+        if (isPressed(animTextButton)) {
+            animationsManagerTable.setDbgModelInstance(modelES.eng.currMI);
+            animationsManagerTable.resetActors();
+        }
     }
 }

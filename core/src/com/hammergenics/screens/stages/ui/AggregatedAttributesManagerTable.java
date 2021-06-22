@@ -110,8 +110,6 @@ public class AggregatedAttributesManagerTable extends HGTable {
         if (!stage.isPressed(envTextButton)) {
             unpressAllButtons();
             stage.pressButton(envTextButton);
-
-            stage.infoTCell.setActor(stage.envLabel);
         } else {
 //            stage.unpressButton(envTextButton);
 //
@@ -126,9 +124,6 @@ public class AggregatedAttributesManagerTable extends HGTable {
         if (!stage.isPressed(mtlTextButton)) {
             unpressAllButtons();
             stage.pressButton(mtlTextButton);
-
-            stage.infoTCell.setActor(stage.miLabel);
-            stage.infoBCell.setActor(stage.textureImage);
         } else {
 //            stage.unpressButton(mtlTextButton);
 //
@@ -140,25 +135,32 @@ public class AggregatedAttributesManagerTable extends HGTable {
     }
 
     public void resetActors() {
-        //stage.infoTCell.clearActor();
-        //stage.infoBCell.clearActor();
-        //attrTableCell.clearActor();
+        stage.infoTCell.clearActor();
+        stage.infoBCell.clearActor();
+        stage.editCell.clearActor();
 
-        // **************************
-        // **** ATTRIBUTES 2D UI ****
-        // **************************
+        if (!isAnyButtonPressed()) { pressEnv(); }
+
         if (modelES.environment != null && stage.isPressed(envTextButton)) {
-            stage.envLabel.setText("Environment:\n" + HGUtils.extractAttributes(modelES.environment,"", ""));
             attrTableCell.setActor(stage.envAttrTable);
+
+            stage.envLabel.setText("Environment:\n" + HGUtils.extractAttributes(modelES.environment,"", ""));
+
+            stage.infoTCell.setActor(stage.envLabel);
         }
 
         if (dbgModelInstance != null && stage.isPressed(mtlTextButton)) {
             dbgModelInstance.createMtlAttributeTable(stage.skin, mtlSelectBox.getSelected(), stage.eventListener, modelES);
-            stage.miLabel.setText(HGUtils.getModelInstanceInfo(modelES.eng.currMI));
             attrTableCell.setActor(dbgModelInstance.mtlid2atable.get(mtlSelectBox.getSelected()));
+
+            stage.miLabel.setText(HGUtils.getModelInstanceInfo(modelES.eng.currMI));
+
+            stage.infoTCell.setActor(stage.miLabel);
+            stage.infoBCell.setActor(stage.textureImage);
         } else if (stage.isPressed(mtlTextButton)) {
-            stage.miLabel.setText("");
             pressEnv();
         }
+
+        stage.editCell.setActor(this);
     }
 }
