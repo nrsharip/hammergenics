@@ -64,8 +64,9 @@ import static com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable.E
  * @author nrsharip
  */
 public class ModelEditStage extends Stage {
+    public static final Color COLOR_DISABLED = Color.GRAY;
     public static final Color COLOR_PRESSED = Color.RED;
-    public static final Color COLOR_UNPRESSED = Color.GRAY;
+    public static final Color COLOR_UNPRESSED = Color.LIGHT_GRAY;
 
     public final HGGame game;
     public final ModelEditScreen modelES;
@@ -543,7 +544,14 @@ public class ModelEditStage extends Stage {
     public void unpressAllButtons() { unpressButton(attrTextButton); unpressButton(animTextButton); }
     public void unpressButton(TextButton btn) { btn.getColor().set(COLOR_UNPRESSED); }
     public void pressButton(TextButton btn) { btn.getColor().set(COLOR_PRESSED); }
+    public void disableButton(TextButton btn) {
+        btn.getColor().set(COLOR_DISABLED); btn.getLabel().getColor().set(COLOR_DISABLED);
+    }
+    public void enableButton(TextButton btn) {
+        btn.getColor().set(COLOR_UNPRESSED); btn.getLabel().getColor().set(COLOR_UNPRESSED);
+    }
     public boolean isPressed(TextButton btn) { return btn.getColor().equals(COLOR_PRESSED); }
+    public boolean isDisabled(TextButton btn) { return btn.getColor().equals(COLOR_DISABLED); }
 
     public void reset() {
         textureImage.setDrawable(null);

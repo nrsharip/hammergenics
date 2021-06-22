@@ -39,9 +39,6 @@ import static com.hammergenics.utils.HGUtils.color_s2c;
  */
 public abstract class BaseLightsAttributeTable<T extends Attribute, L extends BaseLight<L>> extends AttributeTable<T> {
     private static final String ACTOR_BUTTON_PREFIX = "button_";
-    protected static final Color COLOR_DISABLED = Color.GRAY;
-    protected static final Color COLOR_PRESSED = Color.RED;
-    protected static final Color COLOR_UNPRESSED = Color.WHITE;
 
     protected Class<L> lightClass;
     protected Color color = new Color().set(Color.GRAY);
@@ -77,7 +74,7 @@ public abstract class BaseLightsAttributeTable<T extends Attribute, L extends Ba
         plsTextButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                if (plsTextButton.getColor().equals(COLOR_DISABLED) || lights == null || indexedTB == null) { return; }
+                if (modelES.stage.isDisabled(plsTextButton) || lights == null || indexedTB == null) { return; }
 
                 if (!enabledCheckBox.isChecked()) { enabledCheckBox.setChecked(true); }
 
@@ -89,8 +86,7 @@ public abstract class BaseLightsAttributeTable<T extends Attribute, L extends Ba
 
                 indexedTB.get(indexedTB.size - 1).setChecked(true); // "pressing" the button added
 
-                mnsTextButton.getColor().set(COLOR_UNPRESSED);
-                mnsTextButton.getLabel().getColor().set(COLOR_UNPRESSED);
+                modelES.stage.enableButton(mnsTextButton);
 
                 if (listener != null) { listener.onAttributeChange(container, currentType, currentTypeAlias); }
             }
@@ -100,9 +96,9 @@ public abstract class BaseLightsAttributeTable<T extends Attribute, L extends Ba
         mnsTextButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                if (mnsTextButton.getColor().equals(COLOR_DISABLED) || lights == null || indexedTB == null) { return; }
+                if (modelES.stage.isDisabled(mnsTextButton) || lights == null || indexedTB == null) { return; }
 
-                if (indexedTB.size > 2 && indexedTB.get(indexedTB.size - 1).getColor().equals(COLOR_PRESSED)) {
+                if (indexedTB.size > 2 && modelES.stage.isPressed(indexedTB.get(indexedTB.size - 1))) {
                     // trick to trigger the change event on the button before the one being removed ("press" button)
                     indexedTB.get(indexedTB.size - 2).setChecked(!indexedTB.get(indexedTB.size - 2).isChecked());
                 } else if (indexedTB.size == 2) {
@@ -118,8 +114,7 @@ public abstract class BaseLightsAttributeTable<T extends Attribute, L extends Ba
                 lights.removeIndex(lights.size - 1);
 
                 if (indexedTB.size == 0 || lights.size == 0) { // these should be equal
-                    mnsTextButton.getColor().set(COLOR_DISABLED);
-                    mnsTextButton.getLabel().getColor().set(COLOR_DISABLED);
+                    modelES.stage.disableButton(mnsTextButton);
                 }
 
                 postButtonRemove();
@@ -284,9 +279,9 @@ public abstract class BaseLightsAttributeTable<T extends Attribute, L extends Ba
         button.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                indexedTB.forEach(btn -> btn.getColor().set(COLOR_UNPRESSED));
+                indexedTB.forEach(btn -> modelES.stage.unpressButton(btn));
                 index = Integer.parseInt(actor.getName().replace(ACTOR_BUTTON_PREFIX,""));
-                indexedTB.get(index).getColor().set(COLOR_PRESSED);
+                modelES.stage.pressButton(indexedTB.get(index));
 
                 if (index >= 0 && index < lights.size) {
                     color.set(lights.get(index).color);
@@ -306,7 +301,7 @@ public abstract class BaseLightsAttributeTable<T extends Attribute, L extends Ba
 
         if (indexedTB.size == 1) { // the first button added
             index = 0;
-            indexedTB.get(index).getColor().set(COLOR_PRESSED);
+            modelES.stage.pressButton(indexedTB.get(index));
         }
     }
 
@@ -318,8 +313,7 @@ public abstract class BaseLightsAttributeTable<T extends Attribute, L extends Ba
     @Override
     protected void postRemoveAttr() {
         indexedTBTable.reset();
-        mnsTextButton.getColor().set(COLOR_DISABLED);
-        mnsTextButton.getLabel().getColor().set(COLOR_DISABLED);
+        modelES.stage.disableButton(mnsTextButton);
     }
 
     @Override
@@ -329,11 +323,9 @@ public abstract class BaseLightsAttributeTable<T extends Attribute, L extends Ba
         index = -1;
 
         if (lights == null || lights.size == 0) { // lights shouldn't be null
-            mnsTextButton.getColor().set(COLOR_DISABLED);
-            mnsTextButton.getLabel().getColor().set(COLOR_DISABLED);
+            modelES.stage.disableButton(mnsTextButton);
         } else {
-            mnsTextButton.getColor().set(COLOR_UNPRESSED);
-            mnsTextButton.getLabel().getColor().set(COLOR_UNPRESSED);
+            modelES.stage.enableButton(mnsTextButton);
         }
 
         if (rTF != null) { rTF.setText(String.valueOf((int)(Color.GRAY.r * 255))); } // extending the range from [0:1] to [0:255]
@@ -347,7 +339,7 @@ public abstract class BaseLightsAttributeTable<T extends Attribute, L extends Ba
 
         if (indexedTB.size > 0) {
             index = 0;
-            indexedTB.get(index).getColor().set(COLOR_PRESSED);
+            modelES.stage.pressButton(indexedTB.get(index));
         }
     }
 }

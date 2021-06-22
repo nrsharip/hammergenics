@@ -83,13 +83,11 @@ public class DirectionalLightsAttributeTable extends BaseLightsAttributeTable<Di
                     if (xTF.getColor().equals(Color.WHITE)
                             && yTF.getColor().equals(Color.WHITE)
                             && zTF.getColor().equals(Color.WHITE)) {
-                        setTB.getColor().set(COLOR_UNPRESSED);
-                        setTB.getLabel().getColor().set(COLOR_UNPRESSED);
+                        modelES.stage.enableButton(setTB);
                     }
                 } catch (NumberFormatException e) {
                     textField.getColor().set(Color.PINK);
-                    setTB.getColor().set(COLOR_DISABLED);
-                    setTB.getLabel().getColor().set(COLOR_DISABLED);
+                    modelES.stage.disableButton(setTB);
                 }
             }
         };
@@ -100,7 +98,7 @@ public class DirectionalLightsAttributeTable extends BaseLightsAttributeTable<Di
                     DirectionalLightsAttribute attr = null;
                     attr = container.get(DirectionalLightsAttribute.class, currentType);
 
-                    if (setTB.getColor().equals(COLOR_DISABLED)) {
+                    if (modelES.stage.isDisabled(setTB)) {
                         return super.touchDown(event, x, y, pointer, button);
                     }
 
