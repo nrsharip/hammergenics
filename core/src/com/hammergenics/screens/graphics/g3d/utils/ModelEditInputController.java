@@ -22,7 +22,9 @@ import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
+import com.badlogic.gdx.graphics.g3d.model.Animation;
 import com.badlogic.gdx.graphics.g3d.model.Node;
+import com.badlogic.gdx.graphics.g3d.model.NodeAnimation;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Plane;
@@ -36,6 +38,7 @@ import com.hammergenics.HGEngine;
 import com.hammergenics.screens.ModelEditScreen;
 import com.hammergenics.screens.graphics.g3d.DebugModelInstance;
 import com.hammergenics.screens.graphics.g3d.HGModelInstance;
+import com.hammergenics.screens.graphics.g3d.model.AnimationInfo;
 import com.hammergenics.screens.utils.AttributesMap;
 
 /**
@@ -353,8 +356,19 @@ public class ModelEditInputController extends SpectatorInputController {
                     } else {
                         tmpLocal.set(tmpGlobal);
                     }
-                    parent.translation.set(tmpLocal.getTranslation(new Vector3()));
-                    parent.rotation.set(tmpLocal.getRotation(new Quaternion()).nor());
+                    if (eng.hoveredOverMI.isAnimEditMode()) {
+                        Animation anim = eng.hoveredOverMI.selectedAnimation;
+                        AnimationInfo info = eng.hoveredOverMI.anim2info.get(anim);
+                        NodeAnimation nodeAnim = info.getNodeAnimation(parent);
+                        info.addNodeKeyFrame(nodeAnim,
+                                tmpLocal.getTranslation(new Vector3()),
+                                tmpLocal.getRotation(new Quaternion()).nor(),
+                                null);
+                        eng.hoveredOverMI.animApplyKeyTime();
+                    } else {
+                        parent.translation.set(tmpLocal.getTranslation(new Vector3()));
+                        parent.rotation.set(tmpLocal.getRotation(new Quaternion()).nor());
+                    }
                     eng.hoveredOverMI.calculateTransforms();
                     // this update will also affect:
                     // parent.localTransform

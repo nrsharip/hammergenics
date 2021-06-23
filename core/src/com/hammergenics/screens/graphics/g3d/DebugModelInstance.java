@@ -555,6 +555,8 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
         }
     }
 
+    public void animApplyKeyTime() { animApplyKeyTime(currKeyTime); }
+
     public void animApplyKeyTime(float keytime) {
         if (selectedAnimation == null || keytime < 0 || keytime > selectedAnimation.duration) { return; }
         currKeyTime = keytime;
