@@ -78,7 +78,6 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
     public float currKeyTime = 0f;
     public boolean animLoop = true;
     public Animation selectedAnimation = null;
-    public Array<String> animIds = new Array<>(true, 16, String.class);
     public ArrayMap<Animation, AnimationInfo> anim2info = new ArrayMap<>(Animation.class, AnimationInfo.class);
 
     public HGModel bbHgModel = null;
@@ -115,10 +114,12 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
     }
 
     public void checkAnimations() {
-        for (Animation anim:animations) {
-            animIds.add(anim.id);
-            anim2info.put(anim, new AnimationInfo(this, anim));
-        }
+        for (Animation anim:animations) { anim2info.put(anim, new AnimationInfo(this, anim)); }
+    }
+
+    public Array<String> getAnimIds(Array<String> out) {
+        for (Animation anim: anim2info.keys()) { out.add(anim.id); }
+        return out;
     }
 
     public void removeAnimations() {
