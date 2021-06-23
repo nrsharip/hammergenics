@@ -361,9 +361,6 @@ public class HGEngine implements Disposable {
         // ********************
         copyExternalAnimations(hgModel.afh);
 
-        currMI.animationController = null;
-        if (currMI.animations.size > 0) { currMI.animationController = new AnimationController(currMI); }
-
         currMI.checkAnimations();
 
         return true;

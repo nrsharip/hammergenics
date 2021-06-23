@@ -61,6 +61,7 @@ public class HGModelInstance extends ModelInstance implements Disposable {
         this.hgModel = hgModel;
         this.afh = assetFL;
         this.rni = rootNodeIds;
+        animationController = new AnimationController(this);
 
         calculateBoundingBox(bb);
         Vector3 dims = bb.getDimensions(new Vector3());

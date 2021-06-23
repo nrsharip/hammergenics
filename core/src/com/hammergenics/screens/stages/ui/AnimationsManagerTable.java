@@ -50,6 +50,7 @@ public class AnimationsManagerTable extends HGTable {
     public CheckBox animLoopCheckBox = null;
     public Slider keyFrameSlider = null;
     public TextField animIdTextField = null;
+    public TextButton createAnimTextButton = null;
     public TextButton deleteAnimTextButton = null;
 
     public AnimationsManagerTable(ModelEditScreen modelES, ModelEditStage stage) {
@@ -63,6 +64,7 @@ public class AnimationsManagerTable extends HGTable {
         add(animationSelectBox).padLeft(5f).left();
         add(animLoopCheckBox).padLeft(5f).left();
         add(deleteAnimTextButton).padLeft(5f).left();
+        add(createAnimTextButton).padLeft(5f).left();
         row();
         add(keyFrameSlider).padLeft(5f).left().colspan(3).fillX();
         row();
@@ -175,6 +177,22 @@ public class AnimationsManagerTable extends HGTable {
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 if (dbgModelInstance != null) {
                     dbgModelInstance.deleteAnimation(dbgModelInstance.selectedAnimation);
+                    setDbgModelInstance(dbgModelInstance);
+                }
+                return super.touchDown(event, x, y, pointer, button); // false
+                // If true is returned, this listener will have touch focus, so it will receive all
+                // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
+                // Also when true is returned, the event is handled
+            }
+        });
+
+        createAnimTextButton = new TextButton("new", stage.skin);
+        stage.unpressButton(createAnimTextButton);
+        createAnimTextButton.addListener(new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                if (dbgModelInstance != null) {
+                    dbgModelInstance.selectedAnimation = dbgModelInstance.createAnimation();
                     setDbgModelInstance(dbgModelInstance);
                 }
                 return super.touchDown(event, x, y, pointer, button); // false
