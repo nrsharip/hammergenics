@@ -90,7 +90,13 @@ public class AnimationInfo {
             duplicate = kt;
         }
 
-        if (keyTimes.size > 1) { minStep = Float.MAX_VALUE; } else { minStep = 0.1f; }
+        if (keyTimes.size > 1) {
+            float lastTime = keyTimes.get(keyTimes.size - 1);
+            if (a.duration < lastTime) { a.duration = lastTime; }
+            minStep = Float.MAX_VALUE;
+        } else {
+            minStep = 0.1f;
+        }
 
         float prev = 0f; float step;
         for (float keyTime:keyTimes.toArray()) {

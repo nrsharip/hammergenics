@@ -196,7 +196,17 @@ public class AnimationsManagerTable extends HGTable {
         keyTimeTextField.setTextFieldListener(new TextField.TextFieldListener() {
             @Override
             public void keyTyped(TextField textField, char c) {
+                try {
+                    float value = Float.parseFloat(textField.getText());
 
+                    if (value < 0) { textField.getColor().set(Color.PINK); return; }
+
+                    dbgModelInstance.currKeyTime = value;
+
+                    textField.getColor().set(Color.WHITE);
+                } catch (NumberFormatException e) {
+                    textField.getColor().set(Color.PINK);
+                }
             }
         });
 
