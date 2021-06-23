@@ -21,10 +21,13 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.model.Animation;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.SelectBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Slider;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Array;
@@ -46,7 +49,8 @@ public class AnimationsManagerTable extends HGTable {
     public SelectBox<String> animationSelectBox = null;
     public CheckBox animLoopCheckBox = null;
     public Slider keyFrameSlider = null;
-    private TextField animIdTextField = null;
+    public TextField animIdTextField = null;
+    public TextButton deleteAnimTextButton = null;
 
     public AnimationsManagerTable(ModelEditScreen modelES, ModelEditStage stage) {
         super(stage.skin);
@@ -58,6 +62,7 @@ public class AnimationsManagerTable extends HGTable {
         add(new Label("Animation: ", stage.skin)).padLeft(5f).right();
         add(animationSelectBox).padLeft(5f).left();
         add(animLoopCheckBox).padLeft(5f).left();
+        add(deleteAnimTextButton).padLeft(5f).left();
         row();
         add(keyFrameSlider).padLeft(5f).left().colspan(3).fillX();
         row();
@@ -79,7 +84,7 @@ public class AnimationsManagerTable extends HGTable {
                 if (animationSelectBox.getSelectedIndex() - 1 < 0) { // -1 since we have "No Animation" item
                     mi.currKeyTime = 0f;
                     mi.selectedAnimation = null;
-                    mi.removeAnimations();
+                    mi.undoAnimations();
                     setKeyFrameSlider(0f, 1f, 10f, 0f);
                     animIdTextField.setText("");
                     return;
@@ -115,12 +120,12 @@ public class AnimationsManagerTable extends HGTable {
                         modelES.eng.currMI.animationDesc = modelES.eng.currMI.animationController.setAnimation(anim.id, -1);
                     } else {
                         // animation selected, loop not checked
-                        modelES.eng.currMI.removeAnimations();
+                        modelES.eng.currMI.undoAnimations();
                         modelES.eng.currMI.animApplyKeyTime(keyFrameSlider.getValue());
                     }
                 } else {
                     // no animation selected
-                    modelES.eng.currMI.removeAnimations();
+                    modelES.eng.currMI.undoAnimations();
                 }
             }
         });
@@ -162,6 +167,22 @@ public class AnimationsManagerTable extends HGTable {
                 setAnimSelectBox(mi);
             }
         });
+
+        deleteAnimTextButton = new TextButton("delete", stage.skin);
+        stage.unpressButton(deleteAnimTextButton);
+        deleteAnimTextButton.addListener(new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                if (dbgModelInstance != null) {
+                    dbgModelInstance.deleteAnimation(dbgModelInstance.selectedAnimation);
+                    setDbgModelInstance(dbgModelInstance);
+                }
+                return super.touchDown(event, x, y, pointer, button); // false
+                // If true is returned, this listener will have touch focus, so it will receive all
+                // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
+                // Also when true is returned, the event is handled
+            }
+        });
     }
 
     private void setKeyFrameSlider(float min, float max, float step, float value) {
@@ -187,13 +208,10 @@ public class AnimationsManagerTable extends HGTable {
         animationSelectBox.getSelection().setProgrammaticChangeEvents(true);
     }
 
-    public void setDbgModelInstance(DebugModelInstance mi) {
-        this.dbgModelInstance = mi;
-
-        setAnimSelectBox(mi);
-        if (mi != null && mi.selectedAnimation != null) {
-            Animation anim = mi.selectedAnimation;
-            setKeyFrameSlider(0f, anim.duration, mi.anim2info.get(anim).minStep, mi.currKeyTime);
+    public void setAnimation(DebugModelInstance mi, Animation anim) {
+        if (mi != null && anim != null) {
+            AnimationInfo info = mi.anim2info.get(anim);
+            if (info != null) { setKeyFrameSlider(0f, anim.duration, info.minStep, mi.currKeyTime); }
             animIdTextField.setText(anim.id);
 
             // this is to make sure the change events are fired
@@ -204,6 +222,13 @@ public class AnimationsManagerTable extends HGTable {
             setKeyFrameSlider(0f, 1f, 10f, 0f);
             animIdTextField.setText("");
         }
+    }
+
+    public void setDbgModelInstance(DebugModelInstance mi) {
+        this.dbgModelInstance = mi;
+
+        setAnimSelectBox(mi);
+        if (mi != null) { setAnimation(mi, mi.selectedAnimation); }
     }
 
     public void resetActors() {

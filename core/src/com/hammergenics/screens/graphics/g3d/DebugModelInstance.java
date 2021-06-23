@@ -122,7 +122,22 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
         return out;
     }
 
-    public void removeAnimations() {
+    public void deleteAnimation(Animation toDelete) {
+        if (toDelete == null) { return; }
+
+        int index = -1;
+        if (selectedAnimation != null && selectedAnimation.equals(toDelete)) {
+            index = animations.indexOf(toDelete, false);
+            if (index == animations.size - 1) { index--; }
+        }
+        animations.removeValue(toDelete, false);
+        anim2info.removeKey(toDelete);
+
+        if (animations.size == 0 || anim2info.size == 0) { selectedAnimation = null; undoAnimations(); }
+        else if (index >= 0) { selectedAnimation = animations.get(index); }
+    }
+
+    public void undoAnimations() {
         animationDesc = null;
         if (animationController != null) { animationController.setAnimation(null); }
         for (Animation a: animations) {
