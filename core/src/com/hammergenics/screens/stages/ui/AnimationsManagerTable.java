@@ -74,21 +74,17 @@ public class AnimationsManagerTable extends HGTable {
                 if (animationSelectBox.getSelectedIndex() - 1 < 0) { // -1 since we have "No Animation" item
                     mi.currKeyTime = 0f;
                     mi.selectedAnimation = null;
-                    mi.animationDesc = null;
-                    mi.animationController.setAnimation(null);
+                    mi.removeAnimations();
+                    setKeyFrameSlider(0f, 1f, 10f, 0f);
                     return;
                 }
 
                 Animation anim = mi.getAnimation(animationSelectBox.getSelected());
-                mi.selectedAnimation = anim;
                 AnimationInfo info = mi.anim2info.get(anim);
+                mi.selectedAnimation = anim;
 
                 Gdx.app.debug(animationSelectBox.getClass().getSimpleName(), "animation selected: " + anim.id);
-                keyFrameSlider.setProgrammaticChangeEvents(false);
-                keyFrameSlider.setRange(0f, anim.duration);
-                keyFrameSlider.setStepSize(info.minStep);
-                keyFrameSlider.setValue(0f);
-                keyFrameSlider.setProgrammaticChangeEvents(true);
+                setKeyFrameSlider(0f, anim.duration, info.minStep, 0f);
 
                 // this is to make sure the change events are fired
                 boolean isChecked = mi.animLoop;
@@ -102,33 +98,46 @@ public class AnimationsManagerTable extends HGTable {
         animLoopCheckBox.addListener(new ChangeListener() {
             @Override
             public void changed (ChangeEvent event, Actor actor) {
-                modelES.eng.currMI.animLoop = animLoopCheckBox.isChecked();
+                if (modelES.eng.currMI == null) { return; }
+                boolean checked = modelES.eng.currMI.animLoop = animLoopCheckBox.isChecked();
 
-                if (modelES.eng.currMI.selectedAnimation == null) { return; }
-
-                if (animLoopCheckBox.isChecked()) {
-                    Animation anim = modelES.eng.currMI.selectedAnimation;
-                    modelES.eng.currMI.animationDesc = modelES.eng.currMI.animationController.setAnimation(anim.id, -1);
+                if (modelES.eng.currMI.selectedAnimation != null) {
+                    if (checked) {
+                        // animation selected, loop checked
+                        Animation anim = modelES.eng.currMI.selectedAnimation;
+                        modelES.eng.currMI.animationDesc = modelES.eng.currMI.animationController.setAnimation(anim.id, -1);
+                    } else {
+                        // animation selected, loop not checked
+                        modelES.eng.currMI.removeAnimations();
+                        modelES.eng.currMI.animApplyKeyTime(keyFrameSlider.getValue());
+                    }
                 } else {
-                    modelES.eng.currMI.animationDesc = null;
-                    modelES.eng.currMI.animationController.setAnimation(null);
+                    // no animation selected
+                    modelES.eng.currMI.removeAnimations();
                 }
             }
         });
 
         // SLIDERS:
-        keyFrameSlider = new Slider(0f, 10f, 0.1f, false, stage.skin);
+        keyFrameSlider = new Slider(0f, 1f, 10f, false, stage.skin);
         keyFrameSlider.addListener(new ChangeListener() {
             @Override
             public void changed (ChangeEvent event, Actor actor) {
                 if (animationSelectBox.getSelectedIndex() != 0) {
                     // turning off the animation loop (assuming the change event is fired on the checkbox)
                     animLoopCheckBox.setChecked(false);
-
                     modelES.eng.currMI.animApplyKeyTime(keyFrameSlider.getValue());
                 }
             }
         });
+    }
+
+    private void setKeyFrameSlider(float min, float max, float step, float value) {
+        keyFrameSlider.setProgrammaticChangeEvents(false);
+        keyFrameSlider.setRange(min, max);
+        keyFrameSlider.setStepSize(step);
+        keyFrameSlider.setValue(value);
+        keyFrameSlider.setProgrammaticChangeEvents(true);
     }
 
     public void setDbgModelInstance(DebugModelInstance mi) {
@@ -141,18 +150,13 @@ public class AnimationsManagerTable extends HGTable {
             itemsAnimation.add("No Animation");
             mi.animations.forEach(a -> itemsAnimation.add(a.id));
             animationSelectBox.setItems(itemsAnimation);
-            keyFrameSlider.setProgrammaticChangeEvents(false);
             if (mi.selectedAnimation != null) {
                 animationSelectBox.setSelected(mi.selectedAnimation.id);
-                keyFrameSlider.setRange(0f, mi.selectedAnimation.duration);
-                keyFrameSlider.setStepSize(mi.anim2info.get(mi.selectedAnimation).minStep);
-                keyFrameSlider.setValue(mi.currKeyTime);
+                setKeyFrameSlider(0f, mi.selectedAnimation.duration,
+                        mi.anim2info.get(mi.selectedAnimation).minStep, mi.currKeyTime);
             } else {
-                keyFrameSlider.setRange(0f, 1f);
-                keyFrameSlider.setStepSize(10f);
-                keyFrameSlider.setValue(0f);
+                setKeyFrameSlider(0f, 1f, 10f, 0f);
             }
-            keyFrameSlider.setProgrammaticChangeEvents(true);
 
             // this is to make sure the change events are fired
             boolean isChecked = mi.animLoop;

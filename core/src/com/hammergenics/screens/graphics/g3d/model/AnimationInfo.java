@@ -82,8 +82,14 @@ public class AnimationInfo {
             duplicate = kt;
         }
 
-        minStep = 0f; float prev = 0f;
-        for (float keyTime:keyTimes.toArray()) { minStep = keyTime - prev; prev = keyTime; }
+        minStep = Float.MAX_VALUE; float prev = 0f;
+        float step;
+        for (float keyTime:keyTimes.toArray()) {
+            step = keyTime - prev;
+            if (step == 0f) { continue; } // we're at the beginning
+            minStep = Math.min(minStep, step);
+            prev = keyTime;
+        }
 
         //Gdx.app.debug(getClass().getSimpleName(), ""
         //        + mi.afh.nameWithoutExtension() + ":" + a.id + " - "

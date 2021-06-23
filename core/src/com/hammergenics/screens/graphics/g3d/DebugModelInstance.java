@@ -121,6 +121,15 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
         }
     }
 
+    public void removeAnimations() {
+        animationDesc = null;
+        if (animationController != null) { animationController.setAnimation(null); }
+        for (Animation a: animations) {
+            for (final NodeAnimation na : a.nodeAnimations) { na.node.isAnimated = false; }
+        }
+        calculateTransforms();
+    }
+
     public void checkMaterials() { mtlIds.clear(); for (Material mtl:materials) { mtlIds.add(mtl.id); } }
 
     public void checkNodeParts() { for (Node node:nodes) { checkNodeParts(node); } }
