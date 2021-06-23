@@ -168,6 +168,8 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
         calculateTransforms();
     }
 
+    public boolean isAnimEditMode() { return !animLoop && selectedAnimation != null; }
+
     public void checkMaterials() { mtlIds.clear(); for (Material mtl:materials) { mtlIds.add(mtl.id); } }
 
     public void checkNodeParts() { for (Node node:nodes) { checkNodeParts(node); } }
@@ -332,7 +334,15 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
         Vector3 scl = tmpM4.getScale(new Vector3()).nor().scl(getMaxDimension()/40f);
         tmpM4.set(trn, rot, scl);
 
-        Color clr = !node.equals(hoveredOverNode) ? Color.CYAN : Color.PURPLE;
+        Color base = Color.CYAN;
+        if (isAnimEditMode()) {
+            AnimationInfo info = anim2info.get(selectedAnimation);
+            for (NodeAnimation nodeAnim: info.nAnim2keyTimes.keys().toArray()) {
+                if (nodeAnim.node.equals(node)) { base = Color.PINK; break; }
+            }
+        }
+        Color clr = !node.equals(hoveredOverNode) ? base : Color.PURPLE;
+
         BoundingBox bb = imr.box(tmpM4, clr);
         n2bb.put(node, bb);
         bb2n.put(bb, node);
@@ -560,13 +570,10 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
     }
 
     public void animApplyNodeAnimation(NodeAnimation nodeAnim, float keytime) {
-        // setting to false so calculateLocalTransform() would return the base values
-        nodeAnim.node.isAnimated = false;
-        nodeAnim.node.calculateLocalTransform();
-        // Getting the default base values for the node (prior any animations applied)
-        Vector3 tmpTrans = nodeAnim.node.localTransform.getTranslation(new Vector3());
-        Quaternion tmpRot = nodeAnim.node.localTransform.getRotation(new Quaternion(), true);
-        Vector3 tmpScale = nodeAnim.node.localTransform.getScale(new Vector3());
+        // Getting the default local values for the node (prior any animations applied)
+        Vector3 tmpTrans = nodeAnim.node.translation.cpy();
+        Quaternion tmpRot = nodeAnim.node.rotation.cpy();
+        Vector3 tmpScale = nodeAnim.node.scale.cpy();
 
         // the translation keyframes if any (might be null), sorted by time ascending
         if (nodeAnim.translation != null) {
