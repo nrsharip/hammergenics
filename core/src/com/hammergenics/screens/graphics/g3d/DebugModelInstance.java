@@ -336,9 +336,10 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
 
         Color base = Color.CYAN;
         if (isAnimEditMode()) {
+            base = Color.PINK;
             AnimationInfo info = anim2info.get(selectedAnimation);
             for (NodeAnimation nodeAnim: info.nAnim2keyTimes.keys().toArray()) {
-                if (nodeAnim.node.equals(node)) { base = Color.PINK; break; }
+                if (nodeAnim.node.equals(node)) { base = Color.ORANGE; break; }
             }
         }
         Color clr = !node.equals(hoveredOverNode) ? base : Color.PURPLE;

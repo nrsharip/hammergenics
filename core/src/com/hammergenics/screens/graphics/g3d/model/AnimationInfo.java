@@ -82,8 +82,9 @@ public class AnimationInfo {
             duplicate = kt;
         }
 
-        minStep = Float.MAX_VALUE; float prev = 0f;
-        float step;
+        if (keyTimes.size != 0) { minStep = Float.MAX_VALUE; } else { minStep = 0.1f; }
+
+        float prev = 0f; float step;
         for (float keyTime:keyTimes.toArray()) {
             step = keyTime - prev;
             if (step == 0f) { continue; } // we're at the beginning

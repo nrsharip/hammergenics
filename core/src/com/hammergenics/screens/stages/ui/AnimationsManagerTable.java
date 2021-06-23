@@ -28,6 +28,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.SelectBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Slider;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
@@ -54,8 +55,11 @@ public class AnimationsManagerTable extends HGTable {
     public CheckBox animLoopCheckBox = null;
     public Slider keyFrameSlider = null;
     public TextField animIdTextField = null;
+    public TextField keyTimeTextField = null;
     public TextButton createAnimTextButton = null;
     public TextButton deleteAnimTextButton = null;
+    public TextButton plsKeyFrameTextButton = null;
+    public TextButton mnsKeyFrameTextButton = null;
 
     public AnimationsManagerTable(ModelEditScreen modelES, ModelEditStage stage) {
         super(stage.skin);
@@ -69,10 +73,17 @@ public class AnimationsManagerTable extends HGTable {
         add(animLoopCheckBox).padLeft(5f).left();
         add(deleteAnimTextButton).padLeft(5f).left();
         add(createAnimTextButton).padLeft(5f).left();
+
         row();
-        add(keyFrameSlider).padLeft(5f).left().colspan(3).fillX();
+        add(animIdTextField).center().colspan(5).fillX();
+
         row();
-        add(animIdTextField).padLeft(5f).left().colspan(3).fillX();
+        Table kfTable = new Table();
+        kfTable.add(mnsKeyFrameTextButton).center();
+        kfTable.add(plsKeyFrameTextButton).center();
+        kfTable.add(keyFrameSlider).pad(5f).center().expandX().fillX();
+        kfTable.add(keyTimeTextField).width(80).maxWidth(80);
+        add(kfTable).left().colspan(5).fillX();
     }
 
     private void init() {
@@ -95,7 +106,7 @@ public class AnimationsManagerTable extends HGTable {
                     mi.selectedAnimation = null;
                     mi.undoAnimations();
                     setKeyFrameSlider(0f, 1f, 10f, 0f);
-                    updateAnimInfoLabel();
+                    updateActors();
                     return;
                 }
 
@@ -111,7 +122,7 @@ public class AnimationsManagerTable extends HGTable {
                 boolean isChecked = mi.animLoop;
                 animLoopCheckBox.setChecked(!isChecked);
                 animLoopCheckBox.setChecked(isChecked);
-                updateAnimInfoLabel();
+                updateActors();
             }
         });
 
@@ -137,7 +148,7 @@ public class AnimationsManagerTable extends HGTable {
                     // no animation selected
                     modelES.eng.currMI.undoAnimations();
                 }
-                updateAnimInfoLabel();
+                updateActors();
             }
         });
 
@@ -150,7 +161,7 @@ public class AnimationsManagerTable extends HGTable {
                     // turning off the animation loop (assuming the change event is fired on the checkbox)
                     animLoopCheckBox.setChecked(false);
                     modelES.eng.currMI.animApplyKeyTime(keyFrameSlider.getValue());
-                    updateAnimInfoLabel();
+                    updateActors();
                 }
             }
         });
@@ -177,7 +188,15 @@ public class AnimationsManagerTable extends HGTable {
                 anim.id = updAnimId;
 
                 setAnimSelectBox(mi);
-                updateAnimInfoLabel();
+                updateActors();
+            }
+        });
+
+        keyTimeTextField = new TextField("", stage.skin);
+        keyTimeTextField.setTextFieldListener(new TextField.TextFieldListener() {
+            @Override
+            public void keyTyped(TextField textField, char c) {
+
             }
         });
 
@@ -190,7 +209,7 @@ public class AnimationsManagerTable extends HGTable {
                     dbgModelInstance.deleteAnimation(dbgModelInstance.selectedAnimation);
                     setDbgModelInstance(dbgModelInstance);
                 }
-                updateAnimInfoLabel();
+                updateActors();
                 return super.touchDown(event, x, y, pointer, button); // false
                 // If true is returned, this listener will have touch focus, so it will receive all
                 // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
@@ -207,7 +226,33 @@ public class AnimationsManagerTable extends HGTable {
                     dbgModelInstance.selectedAnimation = dbgModelInstance.createAnimation();
                     setDbgModelInstance(dbgModelInstance);
                 }
-                updateAnimInfoLabel();
+                updateActors();
+                return super.touchDown(event, x, y, pointer, button); // false
+                // If true is returned, this listener will have touch focus, so it will receive all
+                // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
+                // Also when true is returned, the event is handled
+            }
+        });
+
+        plsKeyFrameTextButton = new TextButton("+", stage.skin);
+        stage.unpressButton(plsKeyFrameTextButton);
+        plsKeyFrameTextButton.addListener(new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+
+                return super.touchDown(event, x, y, pointer, button); // false
+                // If true is returned, this listener will have touch focus, so it will receive all
+                // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
+                // Also when true is returned, the event is handled
+            }
+        });
+
+        mnsKeyFrameTextButton = new TextButton("-", stage.skin);
+        stage.unpressButton(mnsKeyFrameTextButton);
+        mnsKeyFrameTextButton.addListener(new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+
                 return super.touchDown(event, x, y, pointer, button); // false
                 // If true is returned, this listener will have touch focus, so it will receive all
                 // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
@@ -239,7 +284,8 @@ public class AnimationsManagerTable extends HGTable {
         animationSelectBox.getSelection().setProgrammaticChangeEvents(true);
     }
 
-    private void updateAnimInfoLabel() {
+    private void updateActors() {
+        keyTimeTextField.setText(String.format("%.5f", keyFrameSlider.getValue()));
         if (dbgModelInstance != null && dbgModelInstance.selectedAnimation != null) {
             Animation anim = dbgModelInstance.selectedAnimation;
             AnimationInfo info = dbgModelInstance.anim2info.get(anim);
@@ -283,7 +329,7 @@ public class AnimationsManagerTable extends HGTable {
             AnimationInfo info = mi.anim2info.get(anim);
             if (info != null) { setKeyFrameSlider(0f, anim.duration, info.minStep, mi.currKeyTime); }
             animIdTextField.setText(anim.id);
-
+            keyTimeTextField.setText(String.format("%.5f", keyFrameSlider.getValue()));
             // this is to make sure the change events are fired
             boolean isChecked = mi.animLoop;
             animLoopCheckBox.setChecked(!isChecked);
@@ -291,6 +337,7 @@ public class AnimationsManagerTable extends HGTable {
         } else {
             setKeyFrameSlider(0f, 1f, 10f, 0f);
             animIdTextField.setText("");
+            keyTimeTextField.setText("");
         }
     }
 
@@ -299,7 +346,7 @@ public class AnimationsManagerTable extends HGTable {
 
         setAnimSelectBox(mi);
         if (mi != null) { setAnimation(mi, mi.selectedAnimation); }
-        updateAnimInfoLabel();
+        updateActors();
     }
 
     public void resetActors() {
