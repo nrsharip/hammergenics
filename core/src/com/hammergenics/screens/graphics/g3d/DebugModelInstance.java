@@ -42,6 +42,7 @@ import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.hammergenics.screens.ModelEditScreen;
+import com.hammergenics.screens.graphics.g3d.model.AnimationInfo;
 import com.hammergenics.screens.graphics.glutils.HGImmediateModeRenderer20;
 import com.hammergenics.screens.stages.ui.attributes.AttributesManagerTable;
 import com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable;
@@ -75,8 +76,10 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
     public final ArrayMap<String, AttributesManagerTable> mtlid2atable = new ArrayMap<>(String.class, AttributesManagerTable.class);
     // Animations related
     public float currKeyTime = 0f;
+    public boolean animLoop = true;
     public Animation selectedAnimation = null;
     public Array<String> animIds = new Array<>(true, 16, String.class);
+    public ArrayMap<Animation, AnimationInfo> anim2info = new ArrayMap<>(Animation.class, AnimationInfo.class);
 
     public HGModel bbHgModel = null;
     public HGModelInstance bbHgMI = null;
@@ -114,17 +117,7 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
     public void checkAnimations() {
         for (Animation anim:animations) {
             animIds.add(anim.id);
-//            Gdx.app.debug(getClass().getSimpleName(), ""
-//                    + " anim.id " + anim.id + " anim.id " + anim.duration
-//            );
-//            for (NodeAnimation nodeAnim:anim.nodeAnimations) {
-//                Gdx.app.debug(getClass().getSimpleName(), "    "
-//                        + " nodeAnim.node.id " + (nodeAnim.node != null ? nodeAnim.node.id : "null")
-//                        + " rotation.size " + (nodeAnim.rotation != null ? nodeAnim.rotation.size : "null")
-//                        + " scaling.size " + (nodeAnim.scaling != null ? nodeAnim.scaling.size : "null")
-//                        + " translation.size " + (nodeAnim.translation != null ? nodeAnim.translation.size : "null")
-//                );
-//            }
+            anim2info.put(anim, new AnimationInfo(this, anim));
         }
     }
 
@@ -507,8 +500,8 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
     public void animApplyKeyTime(float keytime) {
         if (selectedAnimation == null || keytime < 0 || keytime > selectedAnimation.duration) { return; }
         currKeyTime = keytime;
-        Gdx.app.debug("ChangeListener", ""
-                + " anim id: " + selectedAnimation.id + " value: " + keytime);
+        //Gdx.app.debug("ChangeListener", ""
+        //        + " anim id: " + selectedAnimation.id + " value: " + keytime);
 
         for (NodeAnimation nodeAnim:selectedAnimation.nodeAnimations) { animApplyNodeAnimation(nodeAnim, keytime); }
 
@@ -543,10 +536,10 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
             for (NodeKeyframe<Vector3> nScale:nodeAnim.scaling) {
                 if (nScale.keytime <= keytime) { tmpScale.set(nScale.value); }
                 else { break; }}}
-        Gdx.app.debug("", ""
-                + " node.id: " + nodeAnim.node.id + " node.parts.size: " + nodeAnim.node.parts.size
-                + " trans: " + tmpTrans + " rot: " + tmpRot + " scale: " + tmpScale
-        );
+        //Gdx.app.debug("", ""
+        //        + " node.id: " + nodeAnim.node.id + " node.parts.size: " + nodeAnim.node.parts.size
+        //        + " trans: " + tmpTrans + " rot: " + tmpRot + " scale: " + tmpScale
+        //);
         // setting isAnimated to true so the localTransform isn't reset to the base values.
         // the real check happens in node.calculateLocalTransform()
         nodeAnim.node.isAnimated = true;
