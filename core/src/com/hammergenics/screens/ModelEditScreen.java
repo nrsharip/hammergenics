@@ -113,7 +113,7 @@ public class ModelEditScreen extends ScreenAdapter {
 
         modelEditInputController.update(delta);
 
-        eng.dbgMIs.forEach(hgMI -> {
+        eng.physMIs.forEach(hgMI -> {
             if(hgMI.animationController != null) {
                 hgMI.animationController.update(delta);
 //                if (animationDesc.loopCount == 0) {
@@ -128,6 +128,24 @@ public class ModelEditScreen extends ScreenAdapter {
         // https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glClear.xml
         // (https://stackoverflow.com/questions/34164309/gl-color-buffer-bit-regenerating-which-memory)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+
+        if (stage.dynamicsCheckBox.isChecked()) {
+            // see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part2/
+            // The discrete dynamics world uses a fixed time step.
+            // This basically means that it will always use the same delta value to perform calculations.
+            // This fixed delta value is supplied as the third argument of stepSimulation.
+            // If the actual delta value (the first argument) is greater than the desired fixed delta value,
+            // then the calculation will be done multiple times.
+            // The maximum number of times that this will be done (the maximum number of sub-steps) is specified
+            // by the second argument.
+            eng.dynamicsWorld.stepSimulation(delta, 5, 1f/60f);
+
+            eng.physMIs.forEach(hgMI -> {
+                hgMI.rigidBody.getWorldTransform(hgMI.transform);
+                hgMI.bbHgModelInstanceReset();
+                hgMI.bbCornersReset();
+            });
+        }
 
         // https://github.com/libgdx/libgdx/wiki/ModelBatch
         // The Camera you supply is hold by reference, meaning that it must not be changed in between
@@ -146,12 +164,13 @@ public class ModelEditScreen extends ScreenAdapter {
 
         // for future reference:
         // * Enable caching as soon as multiple instances are rendered: https://github.com/libgdx/libgdx/wiki/ModelCache
-        if (eng.dbgMIs.size > 0 && environment != null) { modelBatch.render(eng.dbgMIs, environment); }
+        if (eng.physMIs.size > 0 && environment != null) { modelBatch.render(eng.physMIs, environment); }
         if (eng.auxMIs.size > 0) { modelBatch.render(eng.auxMIs); }
         if (eng.gridXZHgModelInstance != null && stage.gridXZCheckBox.isChecked()) {
             modelBatch.render(eng.gridXZHgModelInstance);
             modelBatch.render(eng.gridOHgModelInstance);
         }
+        if (eng.groundPhysModelInstance != null && stage.groundCheckBox.isChecked()) { modelBatch.render(eng.groundPhysModelInstance, environment); }
         if (eng.gridYHgModelInstance != null && stage.gridYCheckBox.isChecked()) { modelBatch.render(eng.gridYHgModelInstance); }
         if (eng.dlArrayHgModelInstance != null && stage.lightsCheckBox.isChecked()) { modelBatch.render(eng.dlArrayHgModelInstance, environment); }
         if (eng.plArrayHgModelInstance != null && stage.lightsCheckBox.isChecked()) { modelBatch.render(eng.plArrayHgModelInstance, environment); }
@@ -163,9 +182,9 @@ public class ModelEditScreen extends ScreenAdapter {
         modelBatch.end();
 
         immediateModeRenderer.begin(perspectiveCamera.combined, GL20.GL_LINES);
-        if (stage.nodesCheckBox.isChecked()) { eng.dbgMIs.forEach(hgMI -> hgMI.addNodesToRenderer(immediateModeRenderer)); }
-        if (stage.meshPartsCheckBox.isChecked()) { eng.dbgMIs.forEach(hgMI -> hgMI.addMeshPartsToRenderer(immediateModeRenderer)); }
-        if (stage.bonesCheckBox.isChecked()) { eng.dbgMIs.forEach(hgMI ->
+        if (stage.nodesCheckBox.isChecked()) { eng.physMIs.forEach(hgMI -> hgMI.addNodesToRenderer(immediateModeRenderer)); }
+        if (stage.meshPartsCheckBox.isChecked()) { eng.physMIs.forEach(hgMI -> hgMI.addMeshPartsToRenderer(immediateModeRenderer)); }
+        if (stage.bonesCheckBox.isChecked()) { eng.physMIs.forEach(hgMI ->
                 hgMI.addBonesToRenderer(immediateModeRenderer, stage.invertCheckBox.isChecked())); }
         immediateModeRenderer.end();
 

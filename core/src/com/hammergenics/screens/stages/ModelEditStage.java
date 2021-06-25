@@ -94,6 +94,8 @@ public class ModelEditStage extends Stage {
     public CheckBox debugStageCheckBox;
     public CheckBox gridXZCheckBox;
     public CheckBox gridYCheckBox;
+    public CheckBox dynamicsCheckBox;
+    public CheckBox groundCheckBox;
     public CheckBox lightsCheckBox;
     public CheckBox origScaleCheckBox;
     public CheckBox bbCheckBox;
@@ -218,6 +220,18 @@ public class ModelEditStage extends Stage {
         gridYCheckBox = new CheckBox("Y", skin);
         gridYCheckBox.setChecked(true);
 
+        dynamicsCheckBox = new CheckBox("dynamics", skin);
+        dynamicsCheckBox.setChecked(false);
+        dynamicsCheckBox.addListener(new ChangeListener() {
+            @Override
+            public void changed (ChangeEvent event, Actor actor) {
+                if (!dynamicsCheckBox.isChecked()) modelES.eng.arrangeInSpiral(origScaleCheckBox.isChecked());
+            }
+        });
+
+        groundCheckBox = new CheckBox("ground", skin);
+        groundCheckBox.setChecked(false);
+
         lightsCheckBox = new CheckBox("lights", skin);
         lightsCheckBox.setChecked(true);
 
@@ -307,7 +321,7 @@ public class ModelEditStage extends Stage {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 modelES.eng.removeDbgModelInstance(modelES.eng.currMI);
-                if (modelES.eng.dbgMIs.size > 0) { modelES.eng.currMI = modelES.eng.dbgMIs.get(0); }
+                if (modelES.eng.physMIs.size > 0) { modelES.eng.currMI = modelES.eng.physMIs.get(0); }
                 else { modelES.eng.currMI = null; }
                 reset();
                 return super.touchDown(event, x, y, pointer, button);
@@ -366,7 +380,7 @@ public class ModelEditStage extends Stage {
     public void addModelInstances(Array<FileHandle> modelFHs) {
         if (modelFHs == null) { return; }
         modelFHs.forEach(fileHandle -> addModelInstance(fileHandle));
-        if (modelES.eng.dbgMIs.size > 0) { modelES.eng.currMI = modelES.eng.dbgMIs.get(0); }
+        if (modelES.eng.physMIs.size > 0) { modelES.eng.currMI = modelES.eng.physMIs.get(0); }
     }
 
     public boolean addModelInstance(FileHandle assetFL) {
@@ -523,6 +537,8 @@ public class ModelEditStage extends Stage {
         lowerPanel.add(debugStageCheckBox).pad(3f);
         lowerPanel.add(gridXZCheckBox).pad(3f);
         lowerPanel.add(gridYCheckBox).pad(3f);
+        lowerPanel.add(dynamicsCheckBox).pad(3f);
+        lowerPanel.add(groundCheckBox).pad(3f);
         lowerPanel.add(lightsCheckBox).pad(3f);
         lowerPanel.add(origScaleCheckBox).pad(3f);
         // TODO: fix BB checkbox

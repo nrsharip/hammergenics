@@ -21,6 +21,7 @@ import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.assets.loaders.TextureLoader;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.ParticleEffect;
@@ -35,14 +36,25 @@ import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.environment.PointLight;
 import com.badlogic.gdx.graphics.g3d.model.Animation;
-import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.model.NodePart;
-import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
+import com.badlogic.gdx.physics.bullet.Bullet;
+import com.badlogic.gdx.physics.bullet.collision.ContactListener;
+import com.badlogic.gdx.physics.bullet.collision.btBroadphaseInterface;
+import com.badlogic.gdx.physics.bullet.collision.btCollisionConfiguration;
+import com.badlogic.gdx.physics.bullet.collision.btCollisionDispatcher;
+import com.badlogic.gdx.physics.bullet.collision.btDbvtBroadphase;
+import com.badlogic.gdx.physics.bullet.collision.btDefaultCollisionConfiguration;
+import com.badlogic.gdx.physics.bullet.collision.btDispatcher;
+import com.badlogic.gdx.physics.bullet.dynamics.btConstraintSolver;
+import com.badlogic.gdx.physics.bullet.dynamics.btDiscreteDynamicsWorld;
+import com.badlogic.gdx.physics.bullet.dynamics.btDynamicsWorld;
+import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
+import com.badlogic.gdx.physics.bullet.dynamics.btSequentialImpulseConstraintSolver;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Disposable;
@@ -55,7 +67,9 @@ import com.hammergenics.config.Config;
 import com.hammergenics.screens.graphics.g3d.DebugModelInstance;
 import com.hammergenics.screens.graphics.g3d.HGModel;
 import com.hammergenics.screens.graphics.g3d.HGModelInstance;
+import com.hammergenics.screens.graphics.g3d.PhysicalModelInstance;
 import com.hammergenics.screens.graphics.g3d.saver.G3dModelSaver;
+import com.hammergenics.screens.physics.bullet.collision.HGContactListener;
 import com.hammergenics.screens.utils.AttributesMap;
 import com.hammergenics.utils.HGUtils;
 
@@ -67,6 +81,7 @@ import java.util.Arrays;
 
 import static com.hammergenics.screens.graphics.g3d.utils.Models.createGridModel;
 import static com.hammergenics.screens.graphics.g3d.utils.Models.createLightsModel;
+import static com.hammergenics.screens.graphics.g3d.utils.Models.createTestBox;
 
 /**
  * Add description here
@@ -100,9 +115,11 @@ public class HGEngine implements Disposable {
     // Auxiliary models:
     public HGModel gridHgModel = null;
     public HGModel lightsHgModel = null;
+    public HGModel boxHgModel = null;
     public HGModelInstance gridXZHgModelInstance = null; // XZ plane: lines (yellow)
     public HGModelInstance gridYHgModelInstance = null;  // Y axis: vertical lines (red)
     public HGModelInstance gridOHgModelInstance = null;  // origin: sphere (red)
+    public PhysicalModelInstance groundPhysModelInstance = null;  // origin: sphere (red)
     public Array<HGModelInstance> dlArrayHgModelInstance = new Array<>(ModelInstance.class); // directional lights
     public Array<HGModelInstance> plArrayHgModelInstance = new Array<>(ModelInstance.class); // point lights
     public Array<HGModelInstance> bbArrayHgModelInstance = new Array<>(ModelInstance.class); // bounding boxes
@@ -110,26 +127,58 @@ public class HGEngine implements Disposable {
     public Array<HGModelInstance> auxMIs = new Array<>(HGModelInstance.class);
 
     // ModelInstance Related:
-    public Array<DebugModelInstance> dbgMIs = new Array<>(DebugModelInstance.class);
+    public Array<PhysicalModelInstance> physMIs = new Array<>(PhysicalModelInstance.class);
     public float unitSize = 0f;
     public float overallSize = 0f;
-    public DebugModelInstance currMI = null;
+    public PhysicalModelInstance currMI = null;
     public Vector2 currCell = Vector2.Zero.cpy();
-    // main Model Instances
-    public DebugModelInstance hoveredOverMI = null;
-    public AttributesMap hoveredOverMIAttributes = null;
-    public DebugModelInstance draggedMI = null;
-    // bounding box, corners
-    public HGModelInstance hoveredOverBBMI = null;
-    public Array<HGModelInstance> hoveredOverCornerMIs = null;
-    public HGModelInstance hoveredOverCorner = null;
-    public AttributesMap hoveredOverCornerAttributes = null;
-    // node
-    public Node hoveredOverNode = null;
+
+    // Physics related:
+
+    // see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/
+    // https://pybullet.org/Bullet/phpBB3/viewtopic.php?t=5449#p19521
+    // it’s generally better to use bits which aren’t used for anything else.
+    public final static short FLAG_GROUND = 1<<8;
+    public final static short FLAG_OBJECT = 1<<9;
+    public final static short FLAG_ALL = -1;
+
+    public final ArrayMap<PhysicalModelInstance, btRigidBody> mi2rb = new ArrayMap<>(PhysicalModelInstance.class, btRigidBody.class);
+    public final ArrayMap<btRigidBody, PhysicalModelInstance> rb2mi = new ArrayMap<>(btRigidBody.class, PhysicalModelInstance.class);
+    public final ArrayMap<Integer, btRigidBody> hc2rb = new ArrayMap<>(Integer.class, btRigidBody.class);
+    public final ArrayMap<btRigidBody, Integer> rb2hc = new ArrayMap<>(btRigidBody.class, Integer.class);
+
+    // IMPORTANT: see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/
+    // Because it’s not possible in Java to use global callback methods, the wrapper adds the ContactListener class
+    // to take care of that. This is also the reason that we don’t have to inform bullet to use our ContactListener,
+    // the wrapper takes care of that when you construct the ContactListener.
+    public ContactListener contactListener;
+    public btDynamicsWorld dynamicsWorld;
+    // simply said: constraints can be used to attach objects to each other
+    public btConstraintSolver constraintSolver;
+
+    // IMPORTANT: see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/
+    // Ideally we’d first check if the two objects are near each other, for example using a bounding box or bounding sphere.
+    // And only if they are near each other, we’d use the more accurate specialized collision algorithm.
+
+    // The first phase, where we find collision objects that are near each other, is called the broad phase.
+    // It’s therefore crucial that the broad phase is highly optimized. Bullet does this by caching the collision information,
+    // so it doesn’t have to recalculate it every time. There are several implementations you can choose from,
+    // but in practice this is done in the form a tree. I’ll not go into detail about this, but if you want to know more
+    // about it, you can search for “axis aligned bounding box tree” or in short “AABB tree”.
+    public btBroadphaseInterface broadPhase;
+    // The second phase, where a more accurate specialized collision algorithm is used, is called the near phase.
+
+
+    // see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/
+    // Before we can start the actual collision detection we need a few helper classes.
+    public btCollisionConfiguration collisionConfig;
+    public btDispatcher dispatcher;
 
     public HGEngine(HGGame game) {
         this.game = game;
         assetManager.getLogger().setLevel(Logger.DEBUG);
+
+        initBullet();
 
         // see public BitmapFont ()
         // Gdx.files.classpath("com/badlogic/gdx/utils/arial-15.fnt"), Gdx.files.classpath("com/badlogic/gdx/utils/arial-15.png")
@@ -139,10 +188,12 @@ public class HGEngine implements Disposable {
         // Creating the Aux Models beforehand:
         gridHgModel = new HGModel(createGridModel());
         lightsHgModel = new HGModel(createLightsModel());
+        boxHgModel = new HGModel(createTestBox(GL20.GL_TRIANGLES));
 
         gridXZHgModelInstance = new HGModelInstance(gridHgModel, "XZ");
         gridYHgModelInstance = new HGModelInstance(gridHgModel, "Y");
         gridOHgModelInstance = new HGModelInstance(gridHgModel, "origin");
+        groundPhysModelInstance = new PhysicalModelInstance(boxHgModel, 0f, "box");
     }
 
     @Override
@@ -150,7 +201,41 @@ public class HGEngine implements Disposable {
         assetManager.dispose();
         if (gridHgModel != null) { gridHgModel.dispose(); }
         if (lightsHgModel != null) { lightsHgModel.dispose(); }
-        for (DebugModelInstance mi: dbgMIs) { mi.dispose(); }
+        for (PhysicalModelInstance mi: physMIs) {
+            if (mi.rigidBody != null) { dynamicsWorld.removeRigidBody(mi.rigidBody); }
+            mi.dispose();
+        }
+
+        // IMPORTANT: see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/
+        // Every time you construct a bullet class in java, the wrapper will also construct the same class
+        // in the native (C++) library. But while in java the garbage collector takes care of memory management and will
+        // free an object when you don’t use it anymore, in C++ you’re responsible for freeing the memory yourself.
+        // You’re probably already familiar with this cconcept, because the same goes for a texture, model, model batch, shader etc.
+        // Because of this, you have to manually dispose the object when you no longer need it.
+        dynamicsWorld.dispose();
+        constraintSolver.dispose();
+        contactListener.dispose();
+        broadPhase.dispose();
+        collisionConfig.dispose();
+        dispatcher.dispose();
+    }
+
+
+    public void initBullet() {
+        Bullet.init();
+
+        collisionConfig = new btDefaultCollisionConfiguration();
+        dispatcher = new btCollisionDispatcher(collisionConfig);
+
+        // see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/
+        // For the broad phase I’ve chosen the btDbvtBroadphase implementation,
+        // which is a Dynamic Bounding Volume Tree implementation.
+        // In most scenario’s this implementation should suffice.
+        broadPhase = new btDbvtBroadphase();
+        constraintSolver = new btSequentialImpulseConstraintSolver();
+        dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadPhase, constraintSolver, collisionConfig);
+        dynamicsWorld.setGravity(Vector3.Y.cpy().scl(-10f));
+        contactListener = new HGContactListener(this);
     }
 
     public void queueAssets(FileHandle rootFileHandle) {
@@ -312,7 +397,7 @@ public class HGEngine implements Disposable {
         }
 
         if (nodeId == null) {
-            currMI = new DebugModelInstance(hgModel, hgModel.afh);
+            currMI = new PhysicalModelInstance(hgModel, hgModel.afh, 10f);
         } else {
             // TODO: maybe it's good to add a Tree for Node traversal
             // https://libgdx.badlogicgames.com/ci/nightlies/docs/api/com/badlogic/gdx/scenes/scene2d/ui/Tree.html
@@ -345,7 +430,7 @@ public class HGEngine implements Disposable {
                 }
             }
             Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),"nodeId: " + nodeId + " nodeIndex: " + nodeIndex);
-            currMI = new DebugModelInstance(hgModel, hgModel.afh, nodeId);
+            currMI = new PhysicalModelInstance(hgModel, hgModel.afh, 10f, nodeId);
             // for some reasons getting this exception in case nodeId == null:
             // (should be done like (String[])null maybe...)
             // Exception in thread "LWJGL Application" java.lang.NullPointerException
@@ -354,7 +439,8 @@ public class HGEngine implements Disposable {
             //        at com.badlogic.gdx.graphics.g3d.ModelInstance.<init>(ModelInstance.java:145)
         }
 
-        dbgMIs.add(currMI);
+        physMIs.add(currMI);
+        addRigidBody(currMI, FLAG_OBJECT, FLAG_GROUND);
 
         // ********************
         // **** ANIMATIONS ****
@@ -416,22 +502,25 @@ public class HGEngine implements Disposable {
     public Vector2 arrangeInSpiral(boolean keepOriginalScale) {
         Vector2 cell = Vector2.Zero.cpy();
         unitSize = 0f;
-        for(HGModelInstance hgMI: dbgMIs) { if (hgMI.maxD > unitSize) { unitSize = hgMI.maxD; } }
-        for(HGModelInstance hgMI: dbgMIs) {
-            hgMI.transform.idt(); // first cancel any previous transform
+        for(PhysicalModelInstance mi: physMIs) { if (mi.maxD > unitSize) { unitSize = mi.maxD; } }
+        for(PhysicalModelInstance mi: physMIs) {
+            mi.transform.idt(); // first cancel any previous transform
             float factor = 1f;
             // Scale: if the dimension of the current instance is less than maximum dimension of all instances scale it
-            if (!keepOriginalScale && hgMI.maxD < unitSize) { factor = unitSize/hgMI.maxD; }
+            if (!keepOriginalScale && mi.maxD < unitSize) { factor = unitSize/mi.maxD; }
 
-            Vector3 center = hgMI.getBB().getCenter(new Vector3());
+            Vector3 center = mi.getBB().getCenter(new Vector3());
             Vector3 position;
             // Position:
             // 1. Move the instance (scaled center) to the current base position ([cell.x, 0, cell.y] vector sub scaled center vector)
             // 2. Add half of the scaled height to the current position so bounding box's bottom matches XZ plane
             position = new Vector3(cell.x * 1.1f * unitSize, 0f, cell.y * 1.1f * unitSize)
                     .sub(center.cpy().scl(factor))
-                    .add(0, factor * hgMI.getBB().getHeight()/2, 0);
-            hgMI.moveAndScaleTo(position, Vector3.Zero.cpy().add(factor));
+                    .add(0, factor * mi.getBB().getHeight()/2, 0);
+            mi.moveAndScaleTo(position, Vector3.Zero.cpy().add(factor));
+
+            resetRigidBody(mi, FLAG_OBJECT, FLAG_GROUND);
+
             // spiral loop around (0, 0, 0)
             HGUtils.spiralGetNext(cell);
         }
@@ -455,12 +544,41 @@ public class HGEngine implements Disposable {
         gridXZHgModelInstance.transform.setToScaling(Vector3.Zero.cpy().add(overallSize/4f));
         gridYHgModelInstance.transform.setToScaling(Vector3.Zero.cpy().add(overallSize/4f));
         gridOHgModelInstance.transform.setToScaling(Vector3.Zero.cpy().add(unitSize/4f));
+
+        float height = unitSize/50f;
+        groundPhysModelInstance.transform.setToTranslationAndScaling(
+                Vector3.Y.cpy().scl(-height/2), new Vector3(15*overallSize, height, 15*overallSize));
+
+        resetRigidBody(groundPhysModelInstance, FLAG_GROUND, FLAG_ALL);
     }
+
+    public void addRigidBody(PhysicalModelInstance mi, int group, int mask) {
+        mi2rb.put(mi, mi.rigidBody);
+        rb2mi.put(mi.rigidBody, mi);
+        hc2rb.put(mi.rbHashCode, mi.rigidBody);
+        rb2hc.put(mi.rigidBody, mi.rbHashCode);
+        dynamicsWorld.addRigidBody(mi.rigidBody, group, mask);
+    }
+
+    public void removeRigidBody(PhysicalModelInstance mi) {
+        mi2rb.removeKey(mi);
+        rb2mi.removeKey(mi.rigidBody);
+        hc2rb.removeKey(mi.rbHashCode);
+        rb2hc.removeKey(mi.rigidBody);
+        dynamicsWorld.removeRigidBody(mi.rigidBody);
+    }
+
+    public void resetRigidBody(PhysicalModelInstance mi, int group, int mask) {
+        if (mi.rigidBody != null) { removeRigidBody(mi); }
+        mi.createRigidBody();
+        addRigidBody(mi, group, mask);
+    }
+
 
     public void resetBBModelInstances() {
         if (bbArrayHgModelInstance != null) { bbArrayHgModelInstance.clear(); } else { return; }
 
-        for (DebugModelInstance mi: dbgMIs) {
+        for (DebugModelInstance mi: physMIs) {
             if (mi.equals(currMI)) { bbArrayHgModelInstance.add(mi.getBBHgModelInstance(Color.GREEN)); }
             else { bbArrayHgModelInstance.add(mi.getBBHgModelInstance(Color.BLACK)); }
         }
@@ -471,8 +589,8 @@ public class HGEngine implements Disposable {
         if (plArrayHgModelInstance != null) { plArrayHgModelInstance.clear(); } else { return; }
 
         Vector3 envPosition;
-        if (dbgMIs != null && dbgMIs.size > 0) {
-            envPosition = dbgMIs.get(0).getBB().getCenter(new Vector3());
+        if (physMIs != null && physMIs.size > 0) {
+            envPosition = physMIs.get(0).getBB().getCenter(new Vector3());
         } else {
             envPosition = Vector3.Zero.cpy();
         }
@@ -617,15 +735,19 @@ public class HGEngine implements Disposable {
         }
     }
 
-    public void removeDbgModelInstance(DebugModelInstance mi) {
+    public void removeDbgModelInstance(PhysicalModelInstance mi) {
         if (mi == null) { return; }
-        dbgMIs.removeValue(mi, true);
+        if (mi.rigidBody != null) { dynamicsWorld.removeRigidBody(mi.rigidBody); }
+        physMIs.removeValue(mi, true);
         mi.dispose();
     }
 
     public void clearModelInstances() {
-        dbgMIs.forEach(HGModelInstance::dispose);
-        dbgMIs.clear();
+        physMIs.forEach(mi -> {
+            if (mi.rigidBody != null) { dynamicsWorld.removeRigidBody(mi.rigidBody); }
+            mi.dispose();
+        });
+        physMIs.clear();
         // no need to dispose - will be done in HGModelInstance on dispose()
         //auxMIs.forEach(HGModelInstance::dispose);
         auxMIs.clear();

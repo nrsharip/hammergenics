@@ -38,6 +38,7 @@ import com.hammergenics.HGEngine;
 import com.hammergenics.screens.ModelEditScreen;
 import com.hammergenics.screens.graphics.g3d.DebugModelInstance;
 import com.hammergenics.screens.graphics.g3d.HGModelInstance;
+import com.hammergenics.screens.graphics.g3d.PhysicalModelInstance;
 import com.hammergenics.screens.graphics.g3d.model.AnimationInfo;
 import com.hammergenics.screens.utils.AttributesMap;
 
@@ -49,6 +50,18 @@ import com.hammergenics.screens.utils.AttributesMap;
 public class ModelEditInputController extends SpectatorInputController {
     public ModelEditScreen modelES;
     public HGEngine eng;
+
+    // main Model Instances
+    public PhysicalModelInstance hoveredOverMI = null;
+    public AttributesMap hoveredOverMIAttributes = null;
+    public PhysicalModelInstance draggedMI = null;
+    // bounding box, corners
+    public HGModelInstance hoveredOverBBMI = null;
+    public Array<HGModelInstance> hoveredOverCornerMIs = null;
+    public HGModelInstance hoveredOverCorner = null;
+    public AttributesMap hoveredOverCornerAttributes = null;
+    // node
+    public Node hoveredOverNode = null;
 
     public ModelEditInputController(ModelEditScreen modelES, Camera camera) {
         this(modelES, camera, new ModelEditorGestureProcessor());
@@ -115,26 +128,26 @@ public class ModelEditInputController extends SpectatorInputController {
     public void checkMouseMoved(int screenX, int screenY) {
         Ray ray = modelES.perspectiveCamera.getPickRay(screenX, screenY);
 
-        if (eng.hoveredOverBBMI != null && eng.hoveredOverCornerMIs.size > 0) {
+        if (hoveredOverBBMI != null && hoveredOverCornerMIs.size > 0) {
             // we're hovering over some model instance having bounding box rendered as well
             // let's check if we're hovering over a corner of that bounding box:
             Array<HGModelInstance> outCorners;
-            outCorners = eng.rayMICollision(ray, eng.hoveredOverCornerMIs, new Array<>(HGModelInstance.class));
-            if (outCorners.size > 0 && !outCorners.get(0).equals(eng.hoveredOverCorner)) {
+            outCorners = eng.rayMICollision(ray, hoveredOverCornerMIs, new Array<>(HGModelInstance.class));
+            if (outCorners.size > 0 && !outCorners.get(0).equals(hoveredOverCorner)) {
                 // we're hovering over the new corner, need to restore the attributes of the previous corner (if any)
-                eng.restoreAttributes(eng.hoveredOverCorner, eng.hoveredOverCornerAttributes);
-                eng.hoveredOverCorner = outCorners.get(0); // SWITCHING THE HOVERED OVER CORNER
-                eng.hoveredOverCornerAttributes = new AttributesMap();
-                eng.saveAttributes(eng.hoveredOverCorner, eng.hoveredOverCornerAttributes);
-                eng.hoveredOverCorner.setAttributes(new BlendingAttribute(1f));
+                eng.restoreAttributes(hoveredOverCorner, hoveredOverCornerAttributes);
+                hoveredOverCorner = outCorners.get(0); // SWITCHING THE HOVERED OVER CORNER
+                hoveredOverCornerAttributes = new AttributesMap();
+                eng.saveAttributes(hoveredOverCorner, hoveredOverCornerAttributes);
+                hoveredOverCorner.setAttributes(new BlendingAttribute(1f));
                 return; // nothing else should be done
             } else if (outCorners.size == 0) {
                 // we're not hovering over any corners
-                eng.restoreAttributes(eng.hoveredOverCorner, eng.hoveredOverCornerAttributes);
-                eng.hoveredOverCorner = null;
-                if (eng.hoveredOverCornerAttributes != null) { eng.hoveredOverCornerAttributes.clear(); }
-                eng.hoveredOverCornerAttributes = null;
-            } else if (outCorners.get(0).equals(eng.hoveredOverCorner)) {
+                eng.restoreAttributes(hoveredOverCorner, hoveredOverCornerAttributes);
+                hoveredOverCorner = null;
+                if (hoveredOverCornerAttributes != null) { hoveredOverCornerAttributes.clear(); }
+                hoveredOverCornerAttributes = null;
+            } else if (outCorners.get(0).equals(hoveredOverCorner)) {
                 // we're hovering over the same corner, nothing else to do here
                 return;
             }
@@ -145,8 +158,8 @@ public class ModelEditInputController extends SpectatorInputController {
             // of all the models currently present
             Array<BoundingBox> outNodeBBs;
             Array<BoundingBox> inNodeBBs = new Array<>(true, 16, BoundingBox.class);
-            ArrayMap<BoundingBox, DebugModelInstance> bb2mi = new ArrayMap<>(BoundingBox.class, DebugModelInstance.class);
-            for (DebugModelInstance dbgMi: eng.dbgMIs) {
+            ArrayMap<BoundingBox, PhysicalModelInstance> bb2mi = new ArrayMap<>(BoundingBox.class, PhysicalModelInstance.class);
+            for (PhysicalModelInstance dbgMi: eng.physMIs) {
                 Array<BoundingBox> bbs = dbgMi.bb2n.keys().toArray();
                 for (BoundingBox bb: bbs) { bb2mi.put(bb, dbgMi); }
                 inNodeBBs.addAll(bbs);
@@ -161,25 +174,25 @@ public class ModelEditInputController extends SpectatorInputController {
             if (outNodeBBs.size > 0) {
                 // we got some nodes intersected by the ray, switching the hovered over model
                 // to the model owning the closest node intersected
-                switchHoveredOverMI(new Array<>(new DebugModelInstance[]{bb2mi.get(outNodeBBs.get(0))}));
+                switchHoveredOverMI(new Array<>(new PhysicalModelInstance[]{bb2mi.get(outNodeBBs.get(0))}));
                 // saving the info on the hovered over node in both engine and the model instance itself
-                eng.hoveredOverNode = eng.hoveredOverMI.bb2n.get(outNodeBBs.get(0));
-                eng.hoveredOverMI.hoveredOverNode = eng.hoveredOverNode;
+                hoveredOverNode = hoveredOverMI.bb2n.get(outNodeBBs.get(0));
+                hoveredOverMI.hoveredOverNode = hoveredOverNode;
                 return; // nothing else should be done
             } else {
                 // no nodes intersected, nullify all references
-                if (eng.hoveredOverMI != null) { eng.hoveredOverMI.hoveredOverNode = null; }
-                eng.hoveredOverNode = null;
+                if (hoveredOverMI != null) { hoveredOverMI.hoveredOverNode = null; }
+                hoveredOverNode = null;
             }
         }
 
-        Array<DebugModelInstance> out = null;
-        if (eng.hoveredOverMI != null) {
+        Array<PhysicalModelInstance> out = null;
+        if (hoveredOverMI != null) {
             // this is in case we hovered over the node of the model instance obscured by the
             // bounding box of another model instance - we still want to keep the current hovered
             // model to the one with the node previously intersected in case the ray intersects
             // this model instance
-            out = eng.rayMICollision(ray, new Array<>(new DebugModelInstance[]{eng.hoveredOverMI}),
+            out = eng.rayMICollision(ray, new Array<>(new PhysicalModelInstance[]{hoveredOverMI}),
                     new Array<>(DebugModelInstance.class));
         }
 
@@ -187,39 +200,39 @@ public class ModelEditInputController extends SpectatorInputController {
             // in case we're not intersecting any previously hovered model instances
             // check if we intersect any models at all. If we do then switch the current hovered
             // model instance.
-            out = eng.rayMICollision(ray, eng.dbgMIs, new Array<>(DebugModelInstance.class));
+            out = eng.rayMICollision(ray, eng.physMIs, new Array<>(PhysicalModelInstance.class));
             switchHoveredOverMI(out);
         }
     }
 
-    private void switchHoveredOverMI(Array<DebugModelInstance> mis) {
-        if (mis.size > 0 && !mis.get(0).equals(eng.hoveredOverMI)) {
+    private void switchHoveredOverMI(Array<PhysicalModelInstance> mis) {
+        if (mis.size > 0 && !mis.get(0).equals(hoveredOverMI)) {
             // no need to dispose the box and the corners - will be done in HGModelInstance on dispose()
             eng.auxMIs.clear();
-            eng.hoveredOverMI = mis.get(0); // SWITCHING THE HOVERED OVER MODEL INSTANCE
+            hoveredOverMI = mis.get(0); // SWITCHING THE HOVERED OVER MODEL INSTANCE
 
-            eng.hoveredOverBBMI = eng.hoveredOverMI.getBBHgModelInstance(Color.BLACK);
-            eng.auxMIs.add(eng.hoveredOverBBMI);
-            eng.hoveredOverCornerMIs = eng.hoveredOverMI.getCornerHgModelInstances(Color.RED);
-            eng.auxMIs.addAll(eng.hoveredOverCornerMIs);
+            hoveredOverBBMI = hoveredOverMI.getBBHgModelInstance(Color.BLACK);
+            eng.auxMIs.add(hoveredOverBBMI);
+            hoveredOverCornerMIs = hoveredOverMI.getCornerHgModelInstances(Color.RED);
+            eng.auxMIs.addAll(hoveredOverCornerMIs);
         } else if (mis.size == 0) {
-            eng.hoveredOverMI = null;
-            eng.hoveredOverBBMI = null;
+            hoveredOverMI = null;
+            hoveredOverBBMI = null;
             // no need to dispose the box and the corners - will be done in HGModelInstance on dispose()
             eng.auxMIs.clear();
         }
     }
 
     public boolean checkTouchDown(float x, float y, int pointer, int button) {
-        if (eng.hoveredOverMI != null) {
-            Vector3 currTranslation = eng.hoveredOverMI.transform.getTranslation(new Vector3());
-            Vector3 currScale = eng.hoveredOverMI.transform.getScale(new Vector3());
-            Quaternion currRotation = eng.hoveredOverMI.transform.getRotation(new Quaternion());
+        if (hoveredOverMI != null) {
+            Vector3 currTranslation = hoveredOverMI.transform.getTranslation(new Vector3());
+            Vector3 currScale = hoveredOverMI.transform.getScale(new Vector3());
+            Quaternion currRotation = hoveredOverMI.transform.getRotation(new Quaternion());
 
             Gdx.app.debug(getClass().getSimpleName(), "b translation: " + currTranslation);
             Gdx.app.debug(getClass().getSimpleName(), "b scale: " + currScale);
             Gdx.app.debug(getClass().getSimpleName(), "b rotation: " + currRotation);
-            Gdx.app.debug(getClass().getSimpleName(), "b:\n" + eng.hoveredOverMI.transform);
+            Gdx.app.debug(getClass().getSimpleName(), "b:\n" + hoveredOverMI.transform);
         }
         return true;
     }
@@ -227,7 +240,7 @@ public class ModelEditInputController extends SpectatorInputController {
     public void checkTap(float x, float y, int count, int button) {
         switch (button) {
             case Buttons.LEFT:
-                eng.currMI = eng.hoveredOverMI;
+                eng.currMI = hoveredOverMI;
                 modelES.stage.reset();
                 break;
             case Buttons.MIDDLE:
@@ -247,9 +260,9 @@ public class ModelEditInputController extends SpectatorInputController {
         Quaternion miRot = null;
         Matrix4 miTransform = null;
 
-        if (eng.hoveredOverMI != null) {
-            miCenter = eng.hoveredOverMI.getBB().getCenter(new Vector3());
-            miTransform = eng.hoveredOverMI.transform.cpy();
+        if (hoveredOverMI != null) {
+            miCenter = hoveredOverMI.getBB().getCenter(new Vector3());
+            miTransform = hoveredOverMI.transform.cpy();
             miTranslation = miTransform.getTranslation(new Vector3());
             miScale = miTransform.getScale(new Vector3());
             // see getRotation() description:
@@ -262,12 +275,12 @@ public class ModelEditInputController extends SpectatorInputController {
 
         switch (touchDownButton) {
             case Buttons.LEFT:
-                if (eng.hoveredOverMI != null && eng.hoveredOverCorner != null) {
+                if (hoveredOverMI != null && hoveredOverCorner != null) {
                     // we hold the left button pressed on the model instance's corner - applying scaling
-                    eng.currMI = eng.hoveredOverMI;
+                    eng.currMI = hoveredOverMI;
                     modelES.stage.reset();
 
-                    Vector3 corner = eng.hoveredOverCorner.getBB().getCenter(new Vector3());
+                    Vector3 corner = hoveredOverCorner.getBB().getCenter(new Vector3());
 
                     Vector3 coordCenter = cam.project(miCenter.cpy(), 0, 0, cam.viewportWidth, cam.viewportHeight);
                     Vector3 coordCorner = cam.project(corner.cpy(), 0, 0, cam.viewportWidth, cam.viewportHeight);
@@ -282,9 +295,10 @@ public class ModelEditInputController extends SpectatorInputController {
                     int sign = coordDelta.dot(coordDir) > 0 ? 1 : -1;
                     float scale = 1 + sign * 0.04f ;
 
-                    eng.hoveredOverMI.transform.scale(scale, scale, scale);
-                    eng.hoveredOverMI.bbHgModelInstanceReset();
-                    eng.hoveredOverMI.bbCornersReset();
+                    hoveredOverMI.transform.scale(scale, scale, scale);
+                    hoveredOverMI.bbHgModelInstanceReset();
+                    hoveredOverMI.bbCornersReset();
+                    eng.resetRigidBody(hoveredOverMI, HGEngine.FLAG_OBJECT, HGEngine.FLAG_GROUND);
 //                    Gdx.app.debug(getClass().getSimpleName(), ""
 //                            + " coordCenter: " + coordCenter + " coordCorner: " + coordCorner
 //                            + " coordHlfDiag: " + coordHlfDiag + " coordDir: " + coordDir
@@ -303,11 +317,11 @@ public class ModelEditInputController extends SpectatorInputController {
 //                            + "cam.combined: \n" + cam.combined
 //                    );
                     return false;
-                } else if (eng.hoveredOverMI != null && eng.hoveredOverNode != null && eng.hoveredOverNode.getParent() != null) {
+                } else if (hoveredOverMI != null && hoveredOverNode != null && hoveredOverNode.getParent() != null) {
                     // we hold the left button pressed on the model instance's node
                     Ray ray = cam.getPickRay(x + deltaX, y - deltaY);
-                    Node node = eng.hoveredOverNode;
-                    Node parent = eng.hoveredOverNode.getParent();
+                    Node node = hoveredOverNode;
+                    Node parent = hoveredOverNode.getParent();
 
                     Vector3 nodeTrans = node.globalTransform.getTranslation(new Vector3());
                     Quaternion nodeRot = node.globalTransform.getRotation(new Quaternion(), true);
@@ -356,20 +370,20 @@ public class ModelEditInputController extends SpectatorInputController {
                     } else {
                         tmpLocal.set(tmpGlobal);
                     }
-                    if (eng.hoveredOverMI.isAnimEditMode()) {
-                        Animation anim = eng.hoveredOverMI.selectedAnimation;
-                        AnimationInfo info = eng.hoveredOverMI.anim2info.get(anim);
+                    if (hoveredOverMI.isAnimEditMode()) {
+                        Animation anim = hoveredOverMI.selectedAnimation;
+                        AnimationInfo info = hoveredOverMI.anim2info.get(anim);
                         NodeAnimation nodeAnim = info.getNodeAnimation(parent);
                         info.addNodeKeyFrame(nodeAnim,
                                 tmpLocal.getTranslation(new Vector3()),
                                 tmpLocal.getRotation(new Quaternion()).nor(),
                                 null);
-                        eng.hoveredOverMI.animApplyKeyTime();
+                        hoveredOverMI.animApplyKeyTime();
                     } else {
                         parent.translation.set(tmpLocal.getTranslation(new Vector3()));
                         parent.rotation.set(tmpLocal.getRotation(new Quaternion()).nor());
                     }
-                    eng.hoveredOverMI.calculateTransforms();
+                    hoveredOverMI.calculateTransforms();
                     // this update will also affect:
                     // parent.localTransform
                     // parent.globalTransform
@@ -378,68 +392,68 @@ public class ModelEditInputController extends SpectatorInputController {
 
                     return false;
                 } else if ((keysPressed.contains(Keys.SHIFT_LEFT) || keysPressed.contains(Keys.SHIFT_RIGHT))
-                        && eng.hoveredOverMI != null) {
+                        && hoveredOverMI != null) {
                     // we hold the SHIFT key and left button pressed on the model instance itself - applying rotation
-                    eng.currMI = eng.hoveredOverMI;
+                    eng.currMI = hoveredOverMI;
                     modelES.stage.reset();
 
                     // removing the rotation and scale components from the transform
-                    eng.hoveredOverMI.transform.setToTranslation(miTranslation);
+                    hoveredOverMI.transform.setToTranslation(miTranslation);
                     // rotating as per the gesture
-                    eng.hoveredOverMI.transform.rotate(cam.up.cpy().nor(), fracX * 360f);
-                    eng.hoveredOverMI.transform.rotate(cam.direction.cpy().crs(cam.up).nor(), fracY * 360f);
+                    hoveredOverMI.transform.rotate(cam.up.cpy().nor(), fracX * 360f);
+                    hoveredOverMI.transform.rotate(cam.direction.cpy().crs(cam.up).nor(), fracY * 360f);
                     // restoring the original rotation
-                    eng.hoveredOverMI.transform.rotate(miRot);
+                    hoveredOverMI.transform.rotate(miRot);
                     // restoring the original scale
-                    eng.hoveredOverMI.transform.scale(miScale.x, miScale.y, miScale.z);
+                    hoveredOverMI.transform.scale(miScale.x, miScale.y, miScale.z);
 
-                    eng.hoveredOverMI.bbHgModelInstanceReset();
-                    eng.hoveredOverMI.bbCornersReset();
-
+                    hoveredOverMI.bbHgModelInstanceReset();
+                    hoveredOverMI.bbCornersReset();
+                    eng.resetRigidBody(hoveredOverMI, HGEngine.FLAG_OBJECT, HGEngine.FLAG_GROUND);
                     return false;
                 } else if ((keysPressed.contains(Keys.CONTROL_LEFT) || keysPressed.contains(Keys.CONTROL_RIGHT))
-                        && eng.hoveredOverMI != null) {
+                        && hoveredOverMI != null) {
                     // we hold the CTRL key and left button pressed on the model instance itself - applying vert translation
-                    eng.currMI = eng.hoveredOverMI;
+                    eng.currMI = hoveredOverMI;
                     modelES.stage.reset();
-                    eng.draggedMI = eng.hoveredOverMI;
+                    draggedMI = hoveredOverMI;
 
                     // removing the rotation and scale components from the transform
-                    eng.draggedMI.transform.setToTranslation(miTranslation);
+                    draggedMI.transform.setToTranslation(miTranslation);
                     // translating as per the gesture
                     Vector3 tmpV = Vector3.Y.cpy().scl(4 * -fracY * overallDistance);
-                    eng.draggedMI.transform.translate(tmpV);
+                    draggedMI.transform.translate(tmpV);
                     // restoring the original rotation
-                    eng.draggedMI.transform.rotate(miRot);
+                    draggedMI.transform.rotate(miRot);
                     // restoring the original scale
-                    eng.draggedMI.transform.scale(miScale.x, miScale.y, miScale.z);
+                    draggedMI.transform.scale(miScale.x, miScale.y, miScale.z);
 
-                    eng.draggedMI.bbHgModelInstanceReset();
-                    eng.draggedMI.bbCornersReset();
-
+                    draggedMI.bbHgModelInstanceReset();
+                    draggedMI.bbCornersReset();
+                    eng.resetRigidBody(draggedMI, HGEngine.FLAG_OBJECT, HGEngine.FLAG_GROUND);
                     return false;
-                } else if (eng.hoveredOverMI != null) {
+                } else if (hoveredOverMI != null) {
                     // we hold the left button pressed on the model instance itself - applying hor translation
-                    eng.currMI = eng.hoveredOverMI;
+                    eng.currMI = hoveredOverMI;
                     modelES.stage.reset();
-                    eng.draggedMI = eng.hoveredOverMI;
+                    draggedMI = hoveredOverMI;
 
                     // removing the rotation and scale components from the transform
-                    eng.draggedMI.transform.setToTranslation(miTranslation);
+                    draggedMI.transform.setToTranslation(miTranslation);
                     // translating as per the gesture
                     Vector3 tmpV = cam.direction.cpy().crs(cam.up).nor().scl(4 * fracX * overallDistance);
-                    eng.draggedMI.transform.translate(tmpV);
+                    draggedMI.transform.translate(tmpV);
                     tmpV.set(cam.up).y = 0;
                     tmpV.nor().scl(4 * -fracY * overallDistance);
-                    eng.draggedMI.transform.translate(tmpV);
+                    draggedMI.transform.translate(tmpV);
                     // restoring the original rotation
-                    eng.draggedMI.transform.rotate(miRot);
+                    draggedMI.transform.rotate(miRot);
                     // restoring the original scale
-                    eng.draggedMI.transform.scale(miScale.x, miScale.y, miScale.z);
+                    draggedMI.transform.scale(miScale.x, miScale.y, miScale.z);
 
-                    eng.draggedMI.bbHgModelInstanceReset();
-                    eng.draggedMI.bbCornersReset();
-
+                    draggedMI.bbHgModelInstanceReset();
+                    draggedMI.bbCornersReset();
+                    eng.resetRigidBody(draggedMI, HGEngine.FLAG_OBJECT, HGEngine.FLAG_GROUND);
                     return false;
                 }
                 return true;
@@ -453,19 +467,21 @@ public class ModelEditInputController extends SpectatorInputController {
     }
 
     public boolean checkPanStop(float x, float y, int pointer, int button) {
-        if (eng.hoveredOverMI != null) {
-            Vector3 currTranslation = eng.hoveredOverMI.transform.getTranslation(new Vector3());
-            Vector3 currScale = eng.hoveredOverMI.transform.getScale(new Vector3());
-            Quaternion currRotation = eng.hoveredOverMI.transform.getRotation(new Quaternion(), true);
+        if (hoveredOverMI != null) {
+            Vector3 currTranslation = hoveredOverMI.transform.getTranslation(new Vector3());
+            Vector3 currScale = hoveredOverMI.transform.getScale(new Vector3());
+            Quaternion currRotation = hoveredOverMI.transform.getRotation(new Quaternion(), true);
 
             Gdx.app.debug(getClass().getSimpleName(), "a translation: " + currTranslation);
             Gdx.app.debug(getClass().getSimpleName(), "a scale: " + currScale);
             Gdx.app.debug(getClass().getSimpleName(), "a rotation: " + currRotation);
-            Gdx.app.debug(getClass().getSimpleName(), "a:\n" + eng.hoveredOverMI.transform);
+            Gdx.app.debug(getClass().getSimpleName(), "a:\n" + hoveredOverMI.transform);
+
+            eng.resetRigidBody(hoveredOverMI, HGEngine.FLAG_OBJECT, HGEngine.FLAG_GROUND);
         }
         // TODO: fix BB checkbox
         //eng.resetBBModelInstances();
-        eng.draggedMI = null;
+        draggedMI = null;
         return true;
     }
 }
