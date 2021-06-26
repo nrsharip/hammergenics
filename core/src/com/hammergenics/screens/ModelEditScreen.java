@@ -36,6 +36,7 @@ import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.hammergenics.HGEngine;
 import com.hammergenics.HGGame;
+import com.hammergenics.screens.graphics.g3d.PhysicalModelInstance;
 import com.hammergenics.screens.graphics.g3d.utils.ModelEditInputController;
 import com.hammergenics.screens.graphics.glutils.HGImmediateModeRenderer20;
 import com.hammergenics.screens.stages.ModelEditStage;
@@ -139,12 +140,7 @@ public class ModelEditScreen extends ScreenAdapter {
             // The maximum number of times that this will be done (the maximum number of sub-steps) is specified
             // by the second argument.
             eng.dynamicsWorld.stepSimulation(delta, 5, 1f/60f);
-
-            eng.physMIs.forEach(hgMI -> {
-                hgMI.rigidBody.getWorldTransform(hgMI.transform);
-                hgMI.bbHgModelInstanceReset();
-                hgMI.bbCornersReset();
-            });
+            eng.physMIs.forEach(PhysicalModelInstance::syncWithRBTransform);
         }
 
         // https://github.com/libgdx/libgdx/wiki/ModelBatch

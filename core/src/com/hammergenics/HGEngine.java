@@ -440,7 +440,7 @@ public class HGEngine implements Disposable {
         }
 
         physMIs.add(currMI);
-        addRigidBody(currMI, FLAG_OBJECT, FLAG_GROUND);
+        addRigidBody(currMI, FLAG_OBJECT, FLAG_ALL);
 
         // ********************
         // **** ANIMATIONS ****
@@ -518,8 +518,8 @@ public class HGEngine implements Disposable {
                     .sub(center.cpy().scl(factor))
                     .add(0, factor * mi.getBB().getHeight()/2, 0);
             mi.moveAndScaleTo(position, Vector3.Zero.cpy().add(factor));
-
-            resetRigidBody(mi, FLAG_OBJECT, FLAG_GROUND);
+            //Gdx.app.debug("spiral", "transform:\n" + mi.transform);
+            resetRigidBody(mi, FLAG_OBJECT, FLAG_ALL);
 
             // spiral loop around (0, 0, 0)
             HGUtils.spiralGetNext(cell);
@@ -545,10 +545,9 @@ public class HGEngine implements Disposable {
         gridYHgModelInstance.transform.setToScaling(Vector3.Zero.cpy().add(overallSize/4f));
         gridOHgModelInstance.transform.setToScaling(Vector3.Zero.cpy().add(unitSize/4f));
 
-        float height = unitSize/50f;
+        float height = unitSize/10f;
         groundPhysModelInstance.transform.setToTranslationAndScaling(
-                Vector3.Y.cpy().scl(-height/2), new Vector3(15*overallSize, height, 15*overallSize));
-
+                Vector3.Y.cpy().scl(-height/2f), new Vector3(15*overallSize, height, 15*overallSize));
         resetRigidBody(groundPhysModelInstance, FLAG_GROUND, FLAG_ALL);
     }
 

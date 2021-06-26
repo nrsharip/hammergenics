@@ -71,9 +71,20 @@ public class PhysicalModelInstance extends DebugModelInstance implements Disposa
         if (constructionInfo != null) { constructionInfo.dispose(); }
         if (shape != null) { shape.dispose(); }
 
-        BoundingBox bb = getBB();
-        Vector3 dimensions = bb.getDimensions(new Vector3());
-        Vector3 center = bb.getCenter(new Vector3());
+        BoundingBox bbOrig = getBB(false);
+        BoundingBox bbTran = getBB(true);
+        //Gdx.app.debug("rb", "" +
+        //        "id: " + nodes.get(0).id + " bbOrig: " + bbOrig + " bbTran: " + bbTran);
+        //Gdx.app.debug("rb", "" +
+        //        "id: " + nodes.get(0).id
+        //        + " bbO.center: " + bbOrig.getCenter(new Vector3())
+        //        + " bbT.center: " + bbTran.getCenter(new Vector3()));
+        //Gdx.app.debug("rb", "" +
+        //        "id: " + nodes.get(0).id
+        //        + " bbO.dims: " + bbOrig.getDimensions(new Vector3())
+        //        + " bbT.dims: " + bbTran.getDimensions(new Vector3()));
+        Vector3 dimensions = bbTran.getDimensions(new Vector3());
+        Vector3 center = bbTran.getCenter(new Vector3());
         shape = new btBoxShape(dimensions.scl(0.5f)); // scl(0.5f) so we get half-extents
         //Gdx.app.debug("mi", "id: " + nodes.get(0).id + " dimensions: " + dimensions);
 
@@ -89,6 +100,9 @@ public class PhysicalModelInstance extends DebugModelInstance implements Disposa
         // In practice this means that you should never apply scaling directly to objects when using the bullet wrapper.
         // There are other ways to scale objects, but in general I would recommend to try to avoid scaling.
         rigidBody.setWorldTransform(new Matrix4().translate(center));
+        //Gdx.app.debug("rb", "" +
+        //        "id: " + nodes.get(0).id
+        //        + " rb.worldTransform:\n" + rigidBody.getWorldTransform());
         rigidBody.setUserValue(rbHashCode);
 
         // see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/
@@ -127,5 +141,18 @@ public class PhysicalModelInstance extends DebugModelInstance implements Disposa
 //            CF_ANISOTROPIC_ROLLING_FRICTION = 2;
 //        }
         return rbHashCode;
+    }
+
+    public void syncWithRBTransform() {
+        Vector3 translate = new Vector3();
+        Vector3 scl = new Vector3();
+
+        translate.set(0, -getBB(false).getCenterY(), 0);
+        transform.getScale(scl);
+        rigidBody.getWorldTransform(transform);
+        transform.translate(translate.scl(scl));
+        transform.scale(scl.x, scl.y, scl.z);
+        bbHgModelInstanceReset();
+        bbCornersReset();
     }
 }

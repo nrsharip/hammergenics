@@ -112,7 +112,11 @@ public class HGModelInstance extends ModelInstance implements Disposable {
 
     public float getMaxScale() { Vector3 s = transform.getScale(new Vector3()); return Math.max(Math.max(s.x, s.y), s.z); }
     // see Matrix4 set(...) for the entire map of translation rotation and scale
-    public BoundingBox getBB() { return new BoundingBox(bb).mul(transform); }
+    public BoundingBox getBB() { return getBB(true); }
+    public BoundingBox getBB(boolean applyTrans) {
+        if (applyTrans) { return new BoundingBox(bb).mul(transform); }
+        else { return new BoundingBox(bb); }
+    }
     public float getMaxDimension() {
         Vector3 dims = getBB().getDimensions(new Vector3());
         return Math.max(Math.max(dims.x, dims.y), dims.z);
