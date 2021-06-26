@@ -389,6 +389,7 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
 
         preCreateAttr(); // to setup a texture
         if (texture != null) {
+            // see Image (Texture texture) for example on how to convert Texture to Image
             modelES.stage.textureImage.setDrawable(new TextureRegionDrawable(new TextureRegion(texture)));
         }
     }
