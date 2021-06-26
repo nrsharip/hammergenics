@@ -51,6 +51,8 @@ public class ModelEditInputController extends SpectatorInputController {
     public ModelEditScreen modelES;
     public HGEngine eng;
 
+    public boolean editMode = false;
+
     // main Model Instances
     public PhysicalModelInstance hoveredOverMI = null;
     public AttributesMap hoveredOverMIAttributes = null;
@@ -233,6 +235,8 @@ public class ModelEditInputController extends SpectatorInputController {
             Gdx.app.debug(getClass().getSimpleName(), "b scale: " + currScale);
             Gdx.app.debug(getClass().getSimpleName(), "b rotation: " + currRotation);
             Gdx.app.debug(getClass().getSimpleName(), "b:\n" + hoveredOverMI.transform);
+
+            editMode = true;
         }
         return true;
     }
@@ -476,6 +480,8 @@ public class ModelEditInputController extends SpectatorInputController {
             Gdx.app.debug(getClass().getSimpleName(), "a scale: " + currScale);
             Gdx.app.debug(getClass().getSimpleName(), "a rotation: " + currRotation);
             Gdx.app.debug(getClass().getSimpleName(), "a:\n" + hoveredOverMI.transform);
+
+            editMode = false;
         }
         // TODO: fix BB checkbox
         //eng.resetBBModelInstances();

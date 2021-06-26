@@ -94,7 +94,7 @@ public class PhysicalModelInstance extends DebugModelInstance implements Disposa
         // There are other ways to scale objects, but in general I would recommend to try to avoid scaling.
         rigidBody.setWorldTransform(new Matrix4()
                 .setToTranslation(translation)
-                .rotate(rotate)
+                .rotate(rotate.nor())
                 .trn(trn)
         );
         rigidBody.setUserValue(rbHashCode);

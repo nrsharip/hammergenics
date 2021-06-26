@@ -56,7 +56,7 @@ public class ModelEditScreen extends ScreenAdapter {
     private final ModelBatch modelBatch;
 
     public final PerspectiveCamera perspectiveCamera;
-    private final ModelEditInputController modelEditInputController;
+    private final ModelEditInputController meic;
     public Environment environment;
 
     public HGEngine eng;
@@ -80,7 +80,7 @@ public class ModelEditScreen extends ScreenAdapter {
 
         // Camera related
         perspectiveCamera = new PerspectiveCamera(70f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        modelEditInputController = new ModelEditInputController(this, perspectiveCamera);
+        meic = new ModelEditInputController(this, perspectiveCamera);
         // Environment related
         environment = new Environment();
         resetEnvironment();
@@ -91,7 +91,7 @@ public class ModelEditScreen extends ScreenAdapter {
         InputMultiplexer inputMultiplexer = new InputMultiplexer();
         // order of addProcessor matter
         inputMultiplexer.addProcessor(stage);
-        inputMultiplexer.addProcessor(modelEditInputController);
+        inputMultiplexer.addProcessor(meic);
         Gdx.input.setInputProcessor(inputMultiplexer);
 
         //eng.addModelInstance(createTestBox(GL20.GL_POINTS));
@@ -112,7 +112,7 @@ public class ModelEditScreen extends ScreenAdapter {
             stage.updateModelSelectBox();
         }
 
-        modelEditInputController.update(delta);
+        meic.update(delta);
 
         eng.physMIs.forEach(hgMI -> {
             if(hgMI.animationController != null) {
@@ -130,7 +130,7 @@ public class ModelEditScreen extends ScreenAdapter {
         // (https://stackoverflow.com/questions/34164309/gl-color-buffer-bit-regenerating-which-memory)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
-        if (stage.dynamicsCheckBox.isChecked()) {
+        if (!meic.editMode && stage.dynamicsCheckBox.isChecked()) {
             // see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part2/
             // The discrete dynamics world uses a fixed time step.
             // This basically means that it will always use the same delta value to perform calculations.
@@ -198,10 +198,10 @@ public class ModelEditScreen extends ScreenAdapter {
     @Override
     public void resize(int width, int height) {
         super.resize(width, height);
-        if (modelEditInputController != null) {
-            modelEditInputController.camera.viewportWidth = width;
-            modelEditInputController.camera.viewportHeight = height;
-            modelEditInputController.update(-1f);
+        if (meic != null) {
+            meic.camera.viewportWidth = width;
+            meic.camera.viewportHeight = height;
+            meic.update(-1f);
         }
         if (stage != null) {
             stage.getViewport().update(width, height, true);
@@ -314,10 +314,10 @@ public class ModelEditScreen extends ScreenAdapter {
      * @param overallSize
      */
     private void resetScreenInputController(float unitSize, float overallSize, Vector3 rotateAroundVector) {
-        modelEditInputController.unitDistance = unitSize;
-        modelEditInputController.overallDistance = overallSize;
-        modelEditInputController.rotateAround.set(rotateAroundVector);
-        modelEditInputController.update(-1f);
+        meic.unitDistance = unitSize;
+        meic.overallDistance = overallSize;
+        meic.rotateAround.set(rotateAroundVector);
+        meic.update(-1f);
     }
 
     /**
