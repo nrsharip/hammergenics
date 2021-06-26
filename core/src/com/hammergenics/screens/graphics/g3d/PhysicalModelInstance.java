@@ -17,16 +17,17 @@
 package com.hammergenics.screens.graphics.g3d;
 
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.utils.Disposable;
+import com.hammergenics.screens.graphics.glutils.HGImmediateModeRenderer20;
 
 /**
  * Add description here
@@ -72,23 +73,14 @@ public class PhysicalModelInstance extends DebugModelInstance implements Disposa
         if (constructionInfo != null) { constructionInfo.dispose(); }
         if (shape != null) { shape.dispose(); }
 
-        BoundingBox bbOrig = getBB(false);
-        BoundingBox bbTran = getBB(true);
-        //Gdx.app.debug("rb", "" +
-        //        "id: " + nodes.get(0).id + " bbOrig: " + bbOrig + " bbTran: " + bbTran);
-        //Gdx.app.debug("rb", "" +
-        //        "id: " + nodes.get(0).id
-        //        + " bbO.center: " + bbOrig.getCenter(new Vector3())
-        //        + " bbT.center: " + bbTran.getCenter(new Vector3()));
-        //Gdx.app.debug("rb", "" +
-        //        "id: " + nodes.get(0).id
-        //        + " bbO.dims: " + bbOrig.getDimensions(new Vector3())
-        //        + " bbT.dims: " + bbTran.getDimensions(new Vector3()));
-        Vector3 dimensions = bbTran.getDimensions(new Vector3());
-        Vector3 center = bbTran.getCenter(new Vector3());
-        shape = new btBoxShape(dimensions.scl(0.5f)); // scl(0.5f) so we get half-extents
-        //Gdx.app.debug("mi", "id: " + nodes.get(0).id + " dimensions: " + dimensions);
+        Vector3 translation = transform.getTranslation(new Vector3());
+        Quaternion rotate = transform.getRotation(new Quaternion(), true).nor();
+        Vector3 scl = transform.getScale(new Vector3());
 
+        Vector3 dims = getBB(false).getDimensions(new Vector3()).scl(scl);
+        Vector3 trn = new Vector3(0, getBB(false).getCenterY(), 0).scl(scl);
+
+        shape = new btBoxShape(dims.scl(0.5f)); // scl(0.5f) so we get half-extents
         shape.calculateLocalInertia(mass, localInertia);
         constructionInfo = new btRigidBody.btRigidBodyConstructionInfo(mass, null, shape, localInertia);
 
@@ -101,12 +93,10 @@ public class PhysicalModelInstance extends DebugModelInstance implements Disposa
         // In practice this means that you should never apply scaling directly to objects when using the bullet wrapper.
         // There are other ways to scale objects, but in general I would recommend to try to avoid scaling.
         rigidBody.setWorldTransform(new Matrix4()
-                        .trn(center)
-                        .rotate(transform.getRotation(new Quaternion(), true).nor())
+                .setToTranslation(translation)
+                .rotate(rotate)
+                .trn(trn)
         );
-        //Gdx.app.debug("rb", "" +
-        //        "id: " + nodes.get(0).id
-        //        + " rb.worldTransform:\n" + rigidBody.getWorldTransform());
         rigidBody.setUserValue(rbHashCode);
 
         // see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/
@@ -115,35 +105,6 @@ public class PhysicalModelInstance extends DebugModelInstance implements Disposa
         rigidBody.setCollisionFlags(
                 rigidBody.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
 
-//        public final static class CollisionFlags {
-//            CF_STATIC_OBJECT = 1;
-//            CF_KINEMATIC_OBJECT = 2;
-//            CF_NO_CONTACT_RESPONSE = 4;
-//            CF_CUSTOM_MATERIAL_CALLBACK = 8;
-//            CF_CHARACTER_OBJECT = 16;
-//            CF_DISABLE_VISUALIZE_OBJECT = 32;
-//            CF_DISABLE_SPU_COLLISION_PROCESSING = 64;
-//            CF_HAS_CONTACT_STIFFNESS_DAMPING = 128;
-//            CF_HAS_CUSTOM_DEBUG_RENDERING_COLOR = 256;
-//            CF_HAS_FRICTION_ANCHOR = 512;
-//            CF_HAS_COLLISION_SOUND_TRIGGER = 1024;
-//        }
-//
-//        public final static class CollisionObjectTypes {
-//            CO_COLLISION_OBJECT = 1;
-//            CO_RIGID_BODY = 2;
-//            CO_GHOST_OBJECT = 4;
-//            CO_SOFT_BODY = 8;
-//            CO_HF_FLUID = 16;
-//            CO_USER_TYPE = 32;
-//            CO_FEATHERSTONE_LINK = 64;
-//        }
-//
-//        public final static class AnisotropicFrictionFlags {
-//            CF_ANISOTROPIC_FRICTION_DISABLED = 0;
-//            CF_ANISOTROPIC_FRICTION = 1;
-//            CF_ANISOTROPIC_ROLLING_FRICTION = 2;
-//        }
         return rbHashCode;
     }
 
@@ -158,5 +119,14 @@ public class PhysicalModelInstance extends DebugModelInstance implements Disposa
         transform.scale(scl.x, scl.y, scl.z);
         bbHgModelInstanceReset();
         bbCornersReset();
+    }
+
+    public void addRBShapeToRenderer(HGImmediateModeRenderer20 imr) {
+        Vector3 scl = transform.getScale(new Vector3());
+        Vector3 dims = getBB(false).getDimensions(new Vector3()).scl(scl);
+        Matrix4 tmpM4 = new Matrix4();
+        rigidBody.getWorldTransform(tmpM4);
+        tmpM4.scale(dims.x, dims.y, dims.z);
+        imr.box(tmpM4, Color.MAROON);
     }
 }

@@ -476,8 +476,6 @@ public class ModelEditInputController extends SpectatorInputController {
             Gdx.app.debug(getClass().getSimpleName(), "a scale: " + currScale);
             Gdx.app.debug(getClass().getSimpleName(), "a rotation: " + currRotation);
             Gdx.app.debug(getClass().getSimpleName(), "a:\n" + hoveredOverMI.transform);
-
-            eng.resetRigidBody(hoveredOverMI, HGEngine.FLAG_OBJECT, HGEngine.FLAG_ALL);
         }
         // TODO: fix BB checkbox
         //eng.resetBBModelInstances();

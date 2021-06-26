@@ -95,6 +95,7 @@ public class ModelEditStage extends Stage {
     public CheckBox gridXZCheckBox;
     public CheckBox gridYCheckBox;
     public CheckBox dynamicsCheckBox;
+    public CheckBox rbCheckBox;
     public CheckBox groundCheckBox;
     public CheckBox lightsCheckBox;
     public CheckBox origScaleCheckBox;
@@ -228,6 +229,9 @@ public class ModelEditStage extends Stage {
                 if (!dynamicsCheckBox.isChecked()) modelES.eng.arrangeInSpiral(origScaleCheckBox.isChecked());
             }
         });
+
+        rbCheckBox = new CheckBox("rigid body", skin);
+        rbCheckBox.setChecked(false);
 
         groundCheckBox = new CheckBox("ground", skin);
         groundCheckBox.setChecked(false);
@@ -538,6 +542,7 @@ public class ModelEditStage extends Stage {
         lowerPanel.add(gridXZCheckBox).pad(3f);
         lowerPanel.add(gridYCheckBox).pad(3f);
         lowerPanel.add(dynamicsCheckBox).pad(3f);
+        lowerPanel.add(rbCheckBox).pad(3f);
         lowerPanel.add(groundCheckBox).pad(3f);
         lowerPanel.add(lightsCheckBox).pad(3f);
         lowerPanel.add(origScaleCheckBox).pad(3f);
