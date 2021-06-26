@@ -63,6 +63,11 @@ import com.badlogic.gdx.utils.JsonValue;
 import com.badlogic.gdx.utils.Logger;
 import com.badlogic.gdx.utils.Sort;
 import com.badlogic.gdx.utils.UBJsonWriter;
+import com.github.czyzby.noise4j.map.Grid;
+import com.github.czyzby.noise4j.map.generator.cellular.CellularAutomataGenerator;
+import com.github.czyzby.noise4j.map.generator.noise.NoiseGenerator;
+import com.github.czyzby.noise4j.map.generator.room.dungeon.DungeonGenerator;
+import com.github.czyzby.noise4j.map.generator.util.Generators;
 import com.hammergenics.config.Config;
 import com.hammergenics.screens.graphics.g3d.DebugModelInstance;
 import com.hammergenics.screens.graphics.g3d.HGModel;
@@ -134,7 +139,6 @@ public class HGEngine implements Disposable {
     public Vector2 currCell = Vector2.Zero.cpy();
 
     // Physics related:
-
     // see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/
     // https://pybullet.org/Bullet/phpBB3/viewtopic.php?t=5449#p19521
     // it’s generally better to use bits which aren’t used for anything else.
@@ -168,11 +172,15 @@ public class HGEngine implements Disposable {
     public btBroadphaseInterface broadPhase;
     // The second phase, where a more accurate specialized collision algorithm is used, is called the near phase.
 
-
     // see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/
     // Before we can start the actual collision detection we need a few helper classes.
     public btCollisionConfiguration collisionConfig;
     public btDispatcher dispatcher;
+
+    // Map generation related:
+    public Grid gridNoise = new Grid(512);
+    public Grid gridCellular = new Grid(512);
+    public Grid gridDungeon = new Grid(512); // This algorithm likes odd-sized maps, although it works either way.
 
     public HGEngine(HGGame game) {
         this.game = game;
@@ -194,6 +202,8 @@ public class HGEngine implements Disposable {
         gridYHgModelInstance = new HGModelInstance(gridHgModel, "Y");
         gridOHgModelInstance = new HGModelInstance(gridHgModel, "origin");
         groundPhysModelInstance = new PhysicalModelInstance(boxHgModel, 0f, "box");
+
+        generateGrids();
     }
 
     @Override
@@ -236,6 +246,54 @@ public class HGEngine implements Disposable {
         dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadPhase, constraintSolver, collisionConfig);
         dynamicsWorld.setGravity(Vector3.Y.cpy().scl(-10f));
         contactListener = new HGContactListener(this);
+    }
+
+    public void generateGrids() {
+        generateNoise();
+        generateCellular();
+        generateDungeon();
+    }
+
+    // see: https://github.com/czyzby/noise4j
+    public void generateNoise() {
+        final NoiseGenerator noiseGenerator = new NoiseGenerator();
+
+        gridNoise.fill(0f);
+        noiseStage(gridNoise, noiseGenerator, 32, 0.6f);
+        noiseStage(gridNoise, noiseGenerator, 16, 0.2f);
+        noiseStage(gridNoise, noiseGenerator, 8, 0.1f);
+        noiseStage(gridNoise, noiseGenerator, 4, 0.1f);
+        noiseStage(gridNoise, noiseGenerator, 1, 0.05f);
+    }
+
+    // see: https://github.com/czyzby/noise4j
+    public void noiseStage(final Grid grid, final NoiseGenerator noiseGenerator, final int radius,
+                            final float modifier) {
+        noiseGenerator.setRadius(radius);
+        noiseGenerator.setModifier(modifier);
+        // Seed ensures randomness, can be saved if you feel the need to
+        // generate the same map in the future.
+        noiseGenerator.setSeed(Generators.rollSeed());
+        noiseGenerator.generate(grid);
+    }
+
+    // see: https://github.com/czyzby/noise4j
+    public void generateCellular() {
+        final CellularAutomataGenerator cellularGenerator = new CellularAutomataGenerator();
+        cellularGenerator.setAliveChance(0.5f);
+        cellularGenerator.setIterationsAmount(4);
+        cellularGenerator.generate(gridCellular);
+    }
+
+    // see: https://github.com/czyzby/noise4j
+    public void generateDungeon() {
+        // This algorithm likes odd-sized maps, although it works either way.
+        final DungeonGenerator dungeonGenerator = new DungeonGenerator();
+        dungeonGenerator.setRoomGenerationAttempts(500);
+        dungeonGenerator.setMaxRoomSize(75);
+        dungeonGenerator.setTolerance(10); // Max difference between width and height.
+        dungeonGenerator.setMinRoomSize(9);
+        dungeonGenerator.generate(gridDungeon);
     }
 
     public void queueAssets(FileHandle rootFileHandle) {

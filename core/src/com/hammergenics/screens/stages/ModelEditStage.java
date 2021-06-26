@@ -19,10 +19,7 @@ package com.hammergenics.screens.stages;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
@@ -41,23 +38,18 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
-import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.Viewport;
-import com.github.czyzby.noise4j.map.Grid;
-import com.github.czyzby.noise4j.map.generator.cellular.CellularAutomataGenerator;
-import com.github.czyzby.noise4j.map.generator.noise.NoiseGenerator;
-import com.github.czyzby.noise4j.map.generator.room.dungeon.DungeonGenerator;
-import com.github.czyzby.noise4j.map.generator.util.Generators;
 import com.hammergenics.HGGame;
 import com.hammergenics.config.Config;
 import com.hammergenics.screens.ModelEditScreen;
 import com.hammergenics.screens.graphics.g3d.HGModel;
 import com.hammergenics.screens.stages.ui.AggregatedAttributesManagerTable;
 import com.hammergenics.screens.stages.ui.AnimationsManagerTable;
+import com.hammergenics.screens.stages.ui.MapGenerationTable;
 import com.hammergenics.screens.stages.ui.attributes.AttributesManagerTable;
 import com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable;
 import com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable.EventType;
@@ -94,6 +86,7 @@ public class ModelEditStage extends Stage {
     public AttributesManagerTable envAttrTable;
     public AggregatedAttributesManagerTable aggrAttrTable;
     public AnimationsManagerTable animationsManagerTable;
+    public MapGenerationTable mapGenerationTable;
 
     // 2D Stage Widgets:
     public Label miLabel;  // Model Instance Info
@@ -118,16 +111,12 @@ public class ModelEditStage extends Stage {
     public SelectBox<String> nodeSelectBox;
     public TextButton attrTextButton = null;
     public TextButton animTextButton = null;
+    public TextButton mapTextButton = null;
     public TextButton clearModelsTextButton = null;
     public TextButton deleteCurrModelTextButton = null;
     public TextButton saveCurrModelTextButton = null;
 
     public BaseAttributeTable.EventListener eventListener;
-
-    // TODO: map generation - temporarily placing it here.
-    public Texture textureNoise;
-    public Texture textureCellular;
-    public Texture textureDungeon;
 
     public ModelEditStage(Viewport viewport, HGGame game, ModelEditScreen modelES) {
         super(viewport);
@@ -138,95 +127,9 @@ public class ModelEditStage extends Stage {
         setup2DStageWidgets();
         setup2DStageLayout();
 
-        // TODO: map generation - temporarily placing it here.
-        testNoise();
-        testCellular();
-        testDungeon();
-
         aggrAttrTable = new AggregatedAttributesManagerTable(modelES, this);
         animationsManagerTable = new AnimationsManagerTable(modelES, this);
-    }
-
-    // see: https://github.com/czyzby/noise4j
-    private void testNoise() {
-        final Pixmap map = new Pixmap(512, 512, Pixmap.Format.RGBA8888);
-        final NoiseGenerator noiseGenerator = new NoiseGenerator();
-        final Grid grid = new Grid(512);
-        noiseStage(grid, noiseGenerator, 32, 0.6f);
-        noiseStage(grid, noiseGenerator, 16, 0.2f);
-        noiseStage(grid, noiseGenerator, 8, 0.1f);
-        noiseStage(grid, noiseGenerator, 4, 0.1f);
-        noiseStage(grid, noiseGenerator, 1, 0.05f);
-
-        final Color color = new Color();
-        for (int x = 0; x < grid.getWidth(); x++) {
-            for (int y = 0; y < grid.getHeight(); y++) {
-                final float cell = grid.get(x, y);
-                color.set(cell, cell, cell, 1f);
-                map.drawPixel(x, y, Color.rgba8888(color));
-            }
-        }
-        textureNoise = new Texture(map);
-        map.dispose();
-    }
-
-    // see: https://github.com/czyzby/noise4j
-    private void noiseStage(final Grid grid, final NoiseGenerator noiseGenerator, final int radius,
-                            final float modifier) {
-        noiseGenerator.setRadius(radius);
-        noiseGenerator.setModifier(modifier);
-        // Seed ensures randomness, can be saved if you feel the need to
-        // generate the same map in the future.
-        noiseGenerator.setSeed(Generators.rollSeed());
-        noiseGenerator.generate(grid);
-    }
-
-    // see: https://github.com/czyzby/noise4j
-    private void testCellular() {
-        final Pixmap map = new Pixmap(512, 512, Pixmap.Format.RGBA8888);
-        final Grid grid = new Grid(512);
-
-        final CellularAutomataGenerator cellularGenerator = new CellularAutomataGenerator();
-        cellularGenerator.setAliveChance(0.5f);
-        cellularGenerator.setIterationsAmount(4);
-        cellularGenerator.generate(grid);
-
-        final Color color = new Color();
-        for (int x = 0; x < grid.getWidth(); x++) {
-            for (int y = 0; y < grid.getHeight(); y++) {
-                final float cell = grid.get(x, y);
-                color.set(cell, cell, cell, 1f);
-                map.drawPixel(x, y, Color.rgba8888(color));
-            }
-        }
-
-        textureCellular = new Texture(map);
-        map.dispose();
-    }
-
-    // see: https://github.com/czyzby/noise4j
-    private void testDungeon() {
-        final Pixmap map = new Pixmap(512, 512, Pixmap.Format.RGBA8888);
-        final Grid grid = new Grid(512); // This algorithm likes odd-sized maps, although it works either way.
-
-        final DungeonGenerator dungeonGenerator = new DungeonGenerator();
-        dungeonGenerator.setRoomGenerationAttempts(500);
-        dungeonGenerator.setMaxRoomSize(75);
-        dungeonGenerator.setTolerance(10); // Max difference between width and height.
-        dungeonGenerator.setMinRoomSize(9);
-        dungeonGenerator.generate(grid);
-
-        final Color color = new Color();
-        for (int x = 0; x < grid.getWidth(); x++) {
-            for (int y = 0; y < grid.getHeight(); y++) {
-                final float cell = 1f - grid.get(x, y);
-                color.set(cell, cell, cell, 1f);
-                map.drawPixel(x, y, Color.rgba8888(color));
-            }
-        }
-
-        textureDungeon = new Texture(map);
-        map.dispose();
+        mapGenerationTable = new MapGenerationTable(modelES, this);
     }
 
     /**
@@ -400,6 +303,26 @@ public class ModelEditStage extends Stage {
                     pressButton(animTextButton);
                 } else {
                     unpressButton(animTextButton);
+                }
+                resetTables();
+                return super.touchDown(event, x, y, pointer, button); // false
+                // If true is returned, this listener will have touch focus, so it will receive all
+                // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
+                // Also when true is returned, the event is handled
+            }
+        });
+
+        mapTextButton = new TextButton("MAP", skin);
+        unpressButton(mapTextButton);
+        mapTextButton.addListener(new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                editCell.clearActor();
+                if (!isPressed(mapTextButton)) {
+                    unpressAllButtons();
+                    pressButton(mapTextButton);
+                } else {
+                    unpressButton(mapTextButton);
                 }
                 resetTables();
                 return super.touchDown(event, x, y, pointer, button); // false
@@ -624,6 +547,8 @@ public class ModelEditStage extends Stage {
         leftPanel.row();
         leftPanel.add(animTextButton).fillX();
         leftPanel.row();
+        leftPanel.add(mapTextButton).fillX();
+        leftPanel.row();
 
         rootTable.add(leftPanel).padTop(10f).top().left();
 
@@ -663,7 +588,14 @@ public class ModelEditStage extends Stage {
         addActor(rootTable);
     }
 
-    public void unpressAllButtons() { unpressButton(attrTextButton); unpressButton(animTextButton); }
+    public void unpressAllButtons() {
+        unpressButton(attrTextButton);
+        unpressButton(animTextButton);
+        unpressButton(mapTextButton);
+    }
+    public boolean isAnyButtonPressed() {
+        return isPressed(attrTextButton) || isPressed(animTextButton) || isPressed(mapTextButton);
+    }
     public void unpressButton(TextButton btn) { btn.getColor().set(COLOR_UNPRESSED); }
     public void pressButton(TextButton btn) { btn.getColor().set(COLOR_PRESSED); }
     public void disableButton(TextButton btn) {
@@ -693,13 +625,6 @@ public class ModelEditStage extends Stage {
         nodeSelectBox.getColor().set(Color.WHITE);
 
         resetTables();
-
-        // TODO: map generation - temporarily placing it here.
-        infoBCell.setActor(textureImage);
-        // see Image (Texture texture) for example on how to convert Texture to Image
-        //textureImage.setDrawable(new TextureRegionDrawable(new TextureRegion(textureNoise)));
-        textureImage.setDrawable(new TextureRegionDrawable(new TextureRegion(textureCellular)));
-        //textureImage.setDrawable(new TextureRegionDrawable(new TextureRegion(textureDungeon)));
     }
 
     public void resetTables() {
@@ -713,6 +638,18 @@ public class ModelEditStage extends Stage {
         if (isPressed(animTextButton)) {
             animationsManagerTable.setDbgModelInstance(modelES.eng.currMI);
             animationsManagerTable.resetActors();
+        }
+
+        if (isPressed(mapTextButton)) {
+            //mapGenerationTable.setDbgModelInstance(modelES.eng.currMI);
+            mapGenerationTable.resetActors();
+        }
+
+        if (!isAnyButtonPressed()) {
+            infoTCell.clearActor();
+            infoBCell.clearActor();
+            editCell.clearActor();
+            textureImage.setDrawable(null);
         }
     }
 }
