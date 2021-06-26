@@ -28,6 +28,7 @@ import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.ArrowShapeBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.BoxShapeBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.SphereShapeBuilder;
+import com.github.czyzby.noise4j.map.Grid;
 
 /**
  * Add description here
@@ -75,6 +76,45 @@ public class Models {
         mpb = mb.part("origin", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
                 new Material(ColorAttribute.createDiffuse(Color.RED)));
         SphereShapeBuilder.build(mpb, 0.25f, 0.25f, 0.25f, 100, 100);
+        return mb.end();
+    }
+
+    public static Model createGridModel(Grid grid) {
+        ModelBuilder mb;
+        MeshPartBuilder mpb;
+
+        mb = new ModelBuilder();
+        mb.begin();
+
+        mb.node().id = "grid";
+        mpb = mb.part("grid", GL20.GL_LINES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
+                new Material(ColorAttribute.createDiffuse(Color.YELLOW)));
+
+        int width = grid.getWidth();
+        int height = grid.getHeight();
+
+        float y1, y2;
+        // drawing lines along X - axis
+        for (int z = 0; z < height; z++) {
+            for (int x = 0; x < width - 1; x++) {
+                y1 = grid.get(x, z);
+                y2 = grid.get(x + 1, z);
+                y1 *= 20; y1 -= 10; y2 *= 20; y2 -= 10;
+                //Gdx.app.debug("grid", "" + " x: " + x + " z: " + z + " y1: " + y1);
+                mpb.line(x, y1, z, x + 1, y2, z);
+            }
+        }
+
+        // drawing lines along Z - axis
+        for (int x = 0; x < width; x++) {
+            for (int z = 0; z < height - 1; z++) {
+                y1 = grid.get(x, z);
+                y2 = grid.get(x, z + 1);
+                y1 *= 20; y1 -= 10; y2 *= 20; y2 -= 10;
+                mpb.line(x, y1, z, x, y2, z + 1);
+            }
+        }
+
         return mb.end();
     }
 

@@ -178,9 +178,12 @@ public class HGEngine implements Disposable {
     public btDispatcher dispatcher;
 
     // Map generation related:
-    public Grid gridNoise = new Grid(512);
+    public Grid gridNoise = new Grid(128);
     public Grid gridCellular = new Grid(512);
     public Grid gridDungeon = new Grid(512); // This algorithm likes odd-sized maps, although it works either way.
+
+    public HGModel noiseHgModel = null;
+    public PhysicalModelInstance noisePhysModelInstance = null;
 
     public HGEngine(HGGame game) {
         this.game = game;
@@ -202,8 +205,6 @@ public class HGEngine implements Disposable {
         gridYHgModelInstance = new HGModelInstance(gridHgModel, "Y");
         gridOHgModelInstance = new HGModelInstance(gridHgModel, "origin");
         groundPhysModelInstance = new PhysicalModelInstance(boxHgModel, 0f, "box");
-
-        generateGrids();
     }
 
     @Override
@@ -259,11 +260,19 @@ public class HGEngine implements Disposable {
         final NoiseGenerator noiseGenerator = new NoiseGenerator();
 
         gridNoise.fill(0f);
-        noiseStage(gridNoise, noiseGenerator, 32, 0.6f);
-        noiseStage(gridNoise, noiseGenerator, 16, 0.2f);
-        noiseStage(gridNoise, noiseGenerator, 8, 0.1f);
-        noiseStage(gridNoise, noiseGenerator, 4, 0.1f);
-        noiseStage(gridNoise, noiseGenerator, 1, 0.05f);
+        noiseStage(gridNoise, noiseGenerator, 2, 0.8f);
+        noiseStage(gridNoise, noiseGenerator, 1, 0.2f);
+
+        //noiseStage(gridNoise, noiseGenerator, 32, 0.6f);
+        //noiseStage(gridNoise, noiseGenerator, 16, 0.2f);
+        //noiseStage(gridNoise, noiseGenerator, 8, 0.1f);
+        //noiseStage(gridNoise, noiseGenerator, 4, 0.1f);
+        //noiseStage(gridNoise, noiseGenerator, 1, 0.05f);
+
+        if (noiseHgModel != null) { noiseHgModel.dispose(); }
+        if (noisePhysModelInstance != null) { noisePhysModelInstance.dispose(); }
+        noiseHgModel = new HGModel(createGridModel(gridNoise));
+        noisePhysModelInstance = new PhysicalModelInstance(noiseHgModel, 0f, "grid");
     }
 
     // see: https://github.com/czyzby/noise4j

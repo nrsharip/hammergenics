@@ -172,6 +172,8 @@ public class ModelEditScreen extends ScreenAdapter {
         if (eng.plArrayHgModelInstance != null && stage.lightsCheckBox.isChecked()) { modelBatch.render(eng.plArrayHgModelInstance, environment); }
         if (eng.bbArrayHgModelInstance != null && stage.bbCheckBox.isChecked()) { modelBatch.render(eng.bbArrayHgModelInstance, environment); }
 
+        if (eng.noisePhysModelInstance != null) { modelBatch.render(eng.noisePhysModelInstance); }
+
         // https://github.com/libgdx/libgdx/wiki/ModelBatch
         // The actual rendering is performed at the call to end();.
         // If you want to force rendering in between, then you can use the modelBatch.flush(); method
