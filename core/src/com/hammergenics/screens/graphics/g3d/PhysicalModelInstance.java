@@ -19,6 +19,7 @@ package com.hammergenics.screens.graphics.g3d;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
@@ -99,7 +100,10 @@ public class PhysicalModelInstance extends DebugModelInstance implements Disposa
         // only contains a position and rotation. Any other transformation, like for example scaling, is not supported.
         // In practice this means that you should never apply scaling directly to objects when using the bullet wrapper.
         // There are other ways to scale objects, but in general I would recommend to try to avoid scaling.
-        rigidBody.setWorldTransform(new Matrix4().translate(center));
+        rigidBody.setWorldTransform(new Matrix4()
+                        .trn(center)
+                        .rotate(transform.getRotation(new Quaternion(), true).nor())
+        );
         //Gdx.app.debug("rb", "" +
         //        "id: " + nodes.get(0).id
         //        + " rb.worldTransform:\n" + rigidBody.getWorldTransform());
