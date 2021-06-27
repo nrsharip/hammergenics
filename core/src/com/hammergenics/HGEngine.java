@@ -249,24 +249,24 @@ public class HGEngine implements Disposable {
     public void generateNoise(float yScale, Array<HGGrid.NoiseStageInfo> stages) {
         if (stages.size == 0) { return; }
 
-        gridNoise.generateNoise(stages);
-        resetNoiseModelInstance(yScale);
+        gridNoise.generateNoise(yScale, stages);
+        resetNoiseModelInstance();
     }
 
     public void roundNoiseToDigits(float yScale, int digits) {
         gridNoise.roundToDigits(digits);
 
-        resetNoiseModelInstance(yScale);
+        resetNoiseModelInstance();
     }
 
     public void generateCellular() { gridCellular.generateCellular(); }
 
     public void generateDungeon() { gridDungeon.generateDungeon(); }
 
-    public void resetNoiseModelInstance(float yScale) {
+    public void resetNoiseModelInstance() {
         if (noiseHgModel != null) { noiseHgModel.dispose(); }
         if (noisePhysModelInstance != null) { noisePhysModelInstance.dispose(); }
-        noiseHgModel = new HGModel(createGridModel(gridNoise, yScale));
+        noiseHgModel = new HGModel(createGridModel(gridNoise));
         noisePhysModelInstance = new PhysicalModelInstance(noiseHgModel, 0f, "grid");
     }
 
