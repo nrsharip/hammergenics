@@ -182,6 +182,7 @@ public class HGEngine implements Disposable {
     public Grid gridCellular = new Grid(512);
     public Grid gridDungeon = new Grid(512); // This algorithm likes odd-sized maps, although it works either way.
 
+    // Noise Grid related:
     public HGModel noiseHgModel = null;
     public PhysicalModelInstance noisePhysModelInstance = null;
 
@@ -249,41 +250,45 @@ public class HGEngine implements Disposable {
         contactListener = new HGContactListener(this);
     }
 
-    public void generateGrids() {
-        generateNoise();
-        generateCellular();
-        generateDungeon();
+    public static class NoiseStageInfo {
+        public int radius = 32;
+        public float modifier = 1f;
+        public int seed = 0;
     }
 
     // see: https://github.com/czyzby/noise4j
-    public void generateNoise() {
+    public void generateNoise(float yScale, Array<NoiseStageInfo> stages) {
+        if (stages.size == 0) { return; }
         final NoiseGenerator noiseGenerator = new NoiseGenerator();
 
         gridNoise.fill(0f);
-        noiseStage(gridNoise, noiseGenerator, 2, 0.8f);
-        noiseStage(gridNoise, noiseGenerator, 1, 0.2f);
 
-        //noiseStage(gridNoise, noiseGenerator, 32, 0.6f);
-        //noiseStage(gridNoise, noiseGenerator, 16, 0.2f);
-        //noiseStage(gridNoise, noiseGenerator, 8, 0.1f);
-        //noiseStage(gridNoise, noiseGenerator, 4, 0.1f);
-        //noiseStage(gridNoise, noiseGenerator, 1, 0.05f);
+        for (NoiseStageInfo stage: stages) {
+            stage.seed = noiseStage(gridNoise, noiseGenerator, stage.radius, stage.modifier);
+        }
 
         if (noiseHgModel != null) { noiseHgModel.dispose(); }
         if (noisePhysModelInstance != null) { noisePhysModelInstance.dispose(); }
-        noiseHgModel = new HGModel(createGridModel(gridNoise));
+        noiseHgModel = new HGModel(createGridModel(gridNoise, yScale));
         noisePhysModelInstance = new PhysicalModelInstance(noiseHgModel, 0f, "grid");
     }
 
     // see: https://github.com/czyzby/noise4j
-    public void noiseStage(final Grid grid, final NoiseGenerator noiseGenerator, final int radius,
-                            final float modifier) {
+    public int noiseStage(final Grid grid, final NoiseGenerator noiseGenerator, final int radius,
+                           final float modifier) {
+        return noiseStage(grid, noiseGenerator, radius, modifier, Generators.rollSeed());
+    }
+
+    // see: https://github.com/czyzby/noise4j
+    public int noiseStage(final Grid grid, final NoiseGenerator noiseGenerator, final int radius,
+                            final float modifier, int seed) {
         noiseGenerator.setRadius(radius);
         noiseGenerator.setModifier(modifier);
         // Seed ensures randomness, can be saved if you feel the need to
         // generate the same map in the future.
-        noiseGenerator.setSeed(Generators.rollSeed());
+        noiseGenerator.setSeed(seed);
         noiseGenerator.generate(grid);
+        return seed;
     }
 
     // see: https://github.com/czyzby/noise4j
@@ -616,6 +621,10 @@ public class HGEngine implements Disposable {
         groundPhysModelInstance.transform.setToTranslationAndScaling(
                 Vector3.Y.cpy().scl(-height/2f), new Vector3(15*overallSize, height, 15*overallSize));
         resetRigidBody(groundPhysModelInstance, FLAG_GROUND, FLAG_ALL);
+
+        if (noisePhysModelInstance != null) {
+            noisePhysModelInstance.transform.setToScaling(Vector3.Zero.cpy().add(overallSize/4f));
+        }
     }
 
     public void addRigidBody(PhysicalModelInstance mi, int group, int mask) {
