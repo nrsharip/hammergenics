@@ -16,6 +16,8 @@
 
 package com.hammergenics.screens.stages.ui;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
@@ -24,17 +26,26 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.SelectBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.ArrayMap;
+import com.badlogic.gdx.utils.ObjectMap;
 import com.hammergenics.HGEngine;
+import com.hammergenics.HGEngine.TerrainPart;
 import com.hammergenics.map.HGGrid;
 import com.hammergenics.map.HGGrid.NoiseStageInfo;
 import com.hammergenics.screens.ModelEditScreen;
 import com.hammergenics.screens.graphics.g3d.DebugModelInstance;
 import com.hammergenics.screens.stages.ModelEditStage;
+
+import static com.hammergenics.HGEngine.TerrainPart.TRRN_FLAT;
+import static com.hammergenics.HGEngine.TerrainPart.TRRN_SIDE;
+import static com.hammergenics.HGEngine.TerrainPart.TRRN_SIDE_CORN_INN;
+import static com.hammergenics.HGEngine.TerrainPart.TRRN_SIDE_CORN_OUT;
 
 /**
  * Add description here
@@ -51,6 +62,9 @@ public class MapGenerationTable extends HGTable {
     public TextButton roundNoiseTextButton = null;
     public TextButton genCellTextButton = null;
     public TextButton genDungTextButton = null;
+
+    public ArrayMap<TerrainPart, SelectBox<FileHandle>> trrnSelectBoxes =
+            new ArrayMap<>(true, 16, TerrainPart.class, SelectBox.class);
 
     public Texture textureNoise;
     public Texture textureCellular;
@@ -83,7 +97,6 @@ public class MapGenerationTable extends HGTable {
         noiseGridTable.add(noiseDigitsTF).width(60).maxWidth(60).padRight(5f);
         noiseGridTable.add(roundNoiseTextButton).center().expandX().fillX();
 
-
         add(noiseGridTable).center().expandX().fillX();
         row();
 
@@ -92,6 +105,18 @@ public class MapGenerationTable extends HGTable {
         genGridTable.add(genDungTextButton).center().expandX().fillX();
 
         add(genGridTable).center().expandX().fillX();
+        row();
+
+        Table trrnPartTable = new Table();
+        for (ObjectMap.Entry<TerrainPart, SelectBox<FileHandle>> entry: trrnSelectBoxes) {
+            TerrainPart part = entry.key;
+            SelectBox<FileHandle> sb = entry.value;
+
+            trrnPartTable.add(new Label(part.description + ":", stage.skin)).right();
+            trrnPartTable.add(sb).center().expandX().fillX();
+            trrnPartTable.row();
+        }
+        add(trrnPartTable).center().expandX().fillX();
         row();
     }
 
@@ -259,6 +284,16 @@ public class MapGenerationTable extends HGTable {
                 textField.getColor().set(Color.PINK);
             }
         });
+
+        trrnSelectBoxes.put(TRRN_FLAT, new SelectBox<>(stage.skin));
+        trrnSelectBoxes.put(TRRN_SIDE, new SelectBox<>(stage.skin));
+        trrnSelectBoxes.put(TRRN_SIDE_CORN_INN, new SelectBox<>(stage.skin));
+        trrnSelectBoxes.put(TRRN_SIDE_CORN_OUT, new SelectBox<>(stage.skin));
+
+        trrnSelectBoxes.get(TRRN_FLAT).setName(TRRN_FLAT.name());
+        trrnSelectBoxes.get(TRRN_SIDE).setName(TRRN_SIDE.name());
+        trrnSelectBoxes.get(TRRN_SIDE_CORN_INN).setName(TRRN_SIDE_CORN_INN.name());
+        trrnSelectBoxes.get(TRRN_SIDE_CORN_OUT).setName(TRRN_SIDE_CORN_OUT.name());
     }
 
     // see: https://github.com/czyzby/noise4j
@@ -291,6 +326,39 @@ public class MapGenerationTable extends HGTable {
         Texture texture = new Texture(map);
         map.dispose();
         return texture;
+    }
+
+    public void updateTrrnSelectBoxes() {
+        if (stage.folderSelectBox.getSelectedIndex() == 0) {
+            for (ObjectMap.Entry<TerrainPart, SelectBox<FileHandle>> entry: trrnSelectBoxes) {
+                SelectBox<FileHandle> sb = entry.value;
+
+                sb.getSelection().setProgrammaticChangeEvents(false);
+                sb.clearItems();
+                sb.getSelection().setProgrammaticChangeEvents(true);
+            }
+            return;
+        }
+
+        // by this time the models should be loaded
+        Array<FileHandle> fhs = eng.folder2models.get(stage.folderSelectBox.getSelected());
+        Array<FileHandle> out = new Array<>(FileHandle.class);
+        for (FileHandle fh: fhs) { if (modelES.eng.hgModels.get(fh).hasMeshes()) { out.add(fh); } }
+
+        FileHandle array1[] = out.toArray(FileHandle.class);
+        FileHandle array2[] = new FileHandle[array1.length + 1];
+        System.arraycopy(array1, 0, array2, 1, array1.length);
+        array2[0] = Gdx.files.local("Select Model");
+
+        for (ObjectMap.Entry<TerrainPart, SelectBox<FileHandle>> entry: trrnSelectBoxes) {
+            TerrainPart part = entry.key;
+            SelectBox<FileHandle> sb = entry.value;
+
+            sb.getSelection().setProgrammaticChangeEvents(false);
+            sb.clearItems();
+            sb.setItems(array2);
+            sb.getSelection().setProgrammaticChangeEvents(true);
+        }
     }
 
     public void resetActors() {

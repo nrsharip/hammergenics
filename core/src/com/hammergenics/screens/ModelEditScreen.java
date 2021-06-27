@@ -110,6 +110,7 @@ public class ModelEditScreen extends ScreenAdapter {
             eng.getAssets();
             eng.assetsLoaded = true;
             stage.updateModelSelectBox();
+            stage.mapGenerationTable.updateTrrnSelectBoxes();
         }
 
         meic.update(delta);

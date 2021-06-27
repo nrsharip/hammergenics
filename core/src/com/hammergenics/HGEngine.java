@@ -178,6 +178,16 @@ public class HGEngine implements Disposable {
     public HGGrid gridCellular = new HGGrid(512);
     public HGGrid gridDungeon = new HGGrid(512); // This algorithm likes odd-sized maps, although it works either way.
 
+    // Terrain:
+    public enum TerrainPart {
+        TRRN_FLAT("flat surface"),
+        TRRN_SIDE("side surface"),
+        TRRN_SIDE_CORN_INN("outer corner surface"),
+        TRRN_SIDE_CORN_OUT("outer corner surface");
+        public String description;
+        TerrainPart(String description) { this.description = description; }
+    }
+
     // Noise Grid related:
     public HGModel noiseHgModel = null;
     public PhysicalModelInstance noisePhysModelInstance = null;
