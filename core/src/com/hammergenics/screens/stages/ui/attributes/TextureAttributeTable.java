@@ -346,8 +346,7 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
                     + Long.toHexString(currentType) + " alias = " + currentTypeAlias);
             return false;
         } else {
-            texture = modelES.eng.assetManager.get(textureSelectBox.getSelected(), Texture.class);
-            if (texture == null) {
+            if (!modelES.eng.assetManager.contains(textureSelectBox.getSelected())) {
                 Gdx.app.debug("enabledCheckBox", "Texture is not loaded from: " + textureSelectBox.getSelected()
                         + " (attribute: type = 0x" + Long.toHexString(currentType) + " alias = " + currentTypeAlias + ")");
                 enabledCheckBox.setProgrammaticChangeEvents(false); // making sure no events fired during setChecked()
@@ -355,6 +354,7 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
                 enabledCheckBox.setProgrammaticChangeEvents(true);  // enabling events back
                 return false;
             }
+            texture = modelES.eng.assetManager.get(textureSelectBox.getSelected(), Texture.class);
         }
         return true;
     }

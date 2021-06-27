@@ -61,6 +61,7 @@ import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
 import com.badlogic.gdx.utils.Logger;
+import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.utils.Sort;
 import com.badlogic.gdx.utils.UBJsonWriter;
 import com.hammergenics.config.Config;
@@ -182,11 +183,13 @@ public class HGEngine implements Disposable {
     public enum TerrainPart {
         TRRN_FLAT("flat surface"),
         TRRN_SIDE("side surface"),
-        TRRN_SIDE_CORN_INN("outer corner surface"),
+        TRRN_SIDE_CORN_INN("inner corner surface"),
         TRRN_SIDE_CORN_OUT("outer corner surface");
         public String description;
         TerrainPart(String description) { this.description = description; }
     }
+    public ArrayMap<TerrainPart, HGModel> tp2hgm = new ArrayMap<>(true, 16, TerrainPart.class, HGModel.class);
+    public Array<HGModelInstance> terrain = new Array<>(true, 16, HGModelInstance.class);
 
     // Noise Grid related:
     public HGModel noiseHgModel = null;
@@ -278,6 +281,54 @@ public class HGEngine implements Disposable {
         if (noisePhysModelInstance != null) { noisePhysModelInstance.dispose(); }
         noiseHgModel = new HGModel(createGridModel(gridNoise));
         noisePhysModelInstance = new PhysicalModelInstance(noiseHgModel, 0f, "grid");
+    }
+
+    public void applyTerrainParts(ArrayMap<TerrainPart, FileHandle> tp2fh) {
+        tp2hgm.clear(); // no need to dispose the previous models - should be taken care of by the asset manager
+        terrain.clear();
+
+        for (ObjectMap.Entry<TerrainPart, FileHandle> entry: tp2fh) {
+            TerrainPart tp = entry.key;
+            FileHandle fh = entry.value;
+            HGModel model;
+            if (!assetManager.contains(fh.path())) { return; }
+            tp2hgm.put(tp, model = new HGModel(assetManager.get(fh.path(), Model.class), fh));
+            if (!model.hasMeshes()) { return; }
+        }
+
+        ArrayMap<TerrainPart, HGModelInstance> miSamples =
+                new ArrayMap<>(true, 16, TerrainPart.class, HGModelInstance.class);
+
+        for (ObjectMap.Entry<TerrainPart, HGModel> entry: tp2hgm) {
+            TerrainPart tp = entry.key;
+            HGModel hgm = entry.value;
+
+            HGModelInstance hgmi = new HGModelInstance(hgm);
+            miSamples.put(tp, hgmi);
+        }
+
+        for (int x = 1; x < gridNoise.getWidth(); x++) {
+            for (int z = 1; z < gridNoise.getHeight(); z++) {
+                float y00 = gridNoise.get(x - 1, z - 1);
+                float y01 = gridNoise.get(x - 1,     z);
+                float y10 = gridNoise.get(    x, z - 1);
+                float y11 = gridNoise.get(    x,     z);
+
+                if (y00 == y01 && y01 == y10 && y10 == y11) {
+                    float posX, posY, posZ;
+
+                    HGModelInstance tmp = new HGModelInstance(tp2hgm.get(TerrainPart.TRRN_FLAT));
+
+                    posX = (x - 0.5f - gridNoise.getWidth()/2f) * tmp.dims.x;
+                    posY = (y00 - gridNoise.mid) * gridNoise.yScale; // * miSamples.get(TerrainPart.TRRN_SIDE).dims.y;
+                    posZ = (z - 0.5f - gridNoise.getHeight()/2f) * tmp.dims.z;
+
+                    Vector3 pos = new Vector3(posX, posY, posZ);
+                    tmp.transform.setToTranslation(pos.sub(tmp.center));
+                    terrain.add(tmp);
+                }
+            }
+        }
     }
 
     public void queueAssets(FileHandle rootFileHandle) {
@@ -415,6 +466,7 @@ public class HGEngine implements Disposable {
     public boolean addModelInstance(FileHandle assetFL) { return addModelInstance(assetFL, null, -1); }
 
     public boolean addModelInstance(FileHandle assetFL, String nodeId, int nodeIndex) {
+        if (!assetManager.contains(assetFL.path())) { return false; }
         HGModel hgModel = new HGModel(assetManager.get(assetFL.path(), Model.class), assetFL);
         return addModelInstance(hgModel, nodeId, nodeIndex);
     }

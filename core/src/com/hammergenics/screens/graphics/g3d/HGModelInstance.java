@@ -45,6 +45,8 @@ public class HGModelInstance extends ModelInstance implements Disposable {
     public String[] rni;
 
     private final BoundingBox bb = new BoundingBox();
+    public Vector3 center = new Vector3();
+    public Vector3 dims = new Vector3();
     public final float maxD;
     public AnimationController animationController = null;
     public AnimationController.AnimationDesc animationDesc = null;
@@ -64,7 +66,8 @@ public class HGModelInstance extends ModelInstance implements Disposable {
         animationController = new AnimationController(this);
 
         calculateBoundingBox(bb);
-        Vector3 dims = bb.getDimensions(new Vector3());
+        bb.getCenter(center);
+        bb.getDimensions(dims);
         maxD = Math.max(Math.max(dims.x, dims.y), dims.z);
     }
 

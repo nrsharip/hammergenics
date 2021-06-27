@@ -63,6 +63,8 @@ public class MapGenerationTable extends HGTable {
     public TextButton genCellTextButton = null;
     public TextButton genDungTextButton = null;
 
+    public TextButton applyTerrainTextButton = null;
+
     public ArrayMap<TerrainPart, SelectBox<FileHandle>> trrnSelectBoxes =
             new ArrayMap<>(true, 16, TerrainPart.class, SelectBox.class);
 
@@ -117,6 +119,9 @@ public class MapGenerationTable extends HGTable {
             trrnPartTable.row();
         }
         add(trrnPartTable).center().expandX().fillX();
+        row();
+
+        add(applyTerrainTextButton).center().expandX().fillX();
         row();
     }
 
@@ -254,6 +259,30 @@ public class MapGenerationTable extends HGTable {
                 textureDungeon = imageGrid(eng.gridDungeon);
                 // see Image (Texture texture) for example on how to convert Texture to Image
                 stage.textureImage.setDrawable(new TextureRegionDrawable(new TextureRegion(textureDungeon)));
+                return super.touchDown(event, x, y, pointer, button); // false
+                // If true is returned, this listener will have touch focus, so it will receive all
+                // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
+                // Also when true is returned, the event is handled
+            }
+        });
+
+        applyTerrainTextButton = new TextButton("apply terrain parts", stage.skin);
+        stage.unpressButton(applyTerrainTextButton);
+        applyTerrainTextButton.addListener(new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                ArrayMap<TerrainPart, FileHandle> tp2fh =
+                        new ArrayMap<>(true, 16, TerrainPart.class, FileHandle.class);
+                for (ObjectMap.Entry<TerrainPart, SelectBox<FileHandle>> entry: trrnSelectBoxes) {
+                    TerrainPart part = entry.key;
+                    SelectBox<FileHandle> sb = entry.value;
+
+                    if (sb.getSelectedIndex() == 0) { return super.touchDown(event, x, y, pointer, button); }
+                    tp2fh.put(part, sb.getSelected());
+                }
+
+                eng.applyTerrainParts(tp2fh);
+
                 return super.touchDown(event, x, y, pointer, button); // false
                 // If true is returned, this listener will have touch focus, so it will receive all
                 // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
