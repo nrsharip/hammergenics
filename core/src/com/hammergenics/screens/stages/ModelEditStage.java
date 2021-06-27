@@ -142,7 +142,7 @@ public class ModelEditStage extends Stage {
         // https://libgdx.info/basic_image/
         textureImage = new Image();
         textureImage.setPosition(0f, 0f);
-        textureImage.setScaling(Scaling.fit);
+        textureImage.setScaling(Scaling.fill);
         textureImage.setAlign(Align.bottomLeft);
 
         // LABELS:
@@ -555,7 +555,7 @@ public class ModelEditStage extends Stage {
         Table infoTable = new Table();
         infoTCell = infoTable.add().expand().top().left();
         infoTable.row();
-        infoBCell = infoTable.add().expand().bottom().left().maxHeight(Gdx.graphics.getHeight());
+        infoBCell = infoTable.add().expand().bottom().left().maxWidth(512).maxHeight(512);
 
         rootTable.add(infoTable).expand().fillY().left().pad(10f);
         editCell = rootTable.add().expand().right().top().pad(10f);

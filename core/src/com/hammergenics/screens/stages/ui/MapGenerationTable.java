@@ -30,6 +30,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
 import com.hammergenics.HGEngine;
+import com.hammergenics.map.HGGrid;
 import com.hammergenics.map.HGGrid.NoiseStageInfo;
 import com.hammergenics.screens.ModelEditScreen;
 import com.hammergenics.screens.graphics.g3d.DebugModelInstance;
@@ -176,7 +177,7 @@ public class MapGenerationTable extends HGTable {
                     nst.noiseGridSeedTF.setText(Integer.toString(nst.stageInfo.seed));
                 }
 
-                imageNoise();
+                textureNoise = imageGrid(eng.gridNoise);
                 // see Image (Texture texture) for example on how to convert Texture to Image
                 stage.textureImage.setDrawable(new TextureRegionDrawable(new TextureRegion(textureNoise)));
                 return super.touchDown(event, x, y, pointer, button); // false
@@ -193,7 +194,7 @@ public class MapGenerationTable extends HGTable {
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 eng.roundNoiseToDigits(noiseYScale, noiseDigits);
 
-                imageNoise();
+                textureNoise = imageGrid(eng.gridNoise);
                 // see Image (Texture texture) for example on how to convert Texture to Image
                 stage.textureImage.setDrawable(new TextureRegionDrawable(new TextureRegion(textureNoise)));
                 return super.touchDown(event, x, y, pointer, button); // false
@@ -209,7 +210,7 @@ public class MapGenerationTable extends HGTable {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 eng.generateCellular();
-                imageCellular();
+                textureCellular = imageGrid(eng.gridCellular);
                 // see Image (Texture texture) for example on how to convert Texture to Image
                 stage.textureImage.setDrawable(new TextureRegionDrawable(new TextureRegion(textureCellular)));
                 return super.touchDown(event, x, y, pointer, button); // false
@@ -225,7 +226,7 @@ public class MapGenerationTable extends HGTable {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 eng.generateDungeon();
-                imageDungeon();
+                textureDungeon = imageGrid(eng.gridDungeon);
                 // see Image (Texture texture) for example on how to convert Texture to Image
                 stage.textureImage.setDrawable(new TextureRegionDrawable(new TextureRegion(textureDungeon)));
                 return super.touchDown(event, x, y, pointer, button); // false
@@ -261,52 +262,35 @@ public class MapGenerationTable extends HGTable {
     }
 
     // see: https://github.com/czyzby/noise4j
-    public void imageNoise() {
-        final Pixmap map = new Pixmap(512, 512, Pixmap.Format.RGBA8888);
+    public Texture imageGrid(HGGrid grid) {
+        Pixmap map = new Pixmap(grid.getWidth(), grid.getHeight(), Pixmap.Format.RGBA8888);
 
         final Color color = new Color();
-        for (int x = 0; x < eng.gridNoise.getWidth(); x++) {
-            for (int y = 0; y < eng.gridNoise.getHeight(); y++) {
-                final float cell = eng.gridNoise.get(x, y);
-                color.set(cell, cell, cell, 1f);
-                map.drawPixel(x, y, Color.rgba8888(color));
-            }
-        }
-        textureNoise = new Texture(map);
-        map.dispose();
-    }
-
-    // see: https://github.com/czyzby/noise4j
-    public void imageCellular() {
-        final Pixmap map = new Pixmap(512, 512, Pixmap.Format.RGBA8888);
-        final Color color = new Color();
-        for (int x = 0; x < eng.gridCellular.getWidth(); x++) {
-            for (int y = 0; y < eng.gridCellular.getHeight(); y++) {
-                final float cell = eng.gridCellular.get(x, y);
+        for (int x = 0; x < grid.getWidth(); x++) {
+            for (int y = 0; y < grid.getHeight(); y++) {
+                final float cell = grid.get(x, y);
                 color.set(cell, cell, cell, 1f);
                 map.drawPixel(x, y, Color.rgba8888(color));
             }
         }
 
-        textureCellular = new Texture(map);
-        map.dispose();
-    }
+        if (grid.getWidth() == grid.getHeight() && grid.getWidth() < 512) {
+            Pixmap other = new Pixmap(512, 512, Pixmap.Format.RGBA8888);
 
-    // see: https://github.com/czyzby/noise4j
-    public void imageDungeon() {
-        final Pixmap map = new Pixmap(512, 512, Pixmap.Format.RGBA8888);
-
-        final Color color = new Color();
-        for (int x = 0; x < eng.gridDungeon.getWidth(); x++) {
-            for (int y = 0; y < eng.gridDungeon.getHeight(); y++) {
-                final float cell = 1f - eng.gridDungeon.get(x, y);
-                color.set(cell, cell, cell, 1f);
-                map.drawPixel(x, y, Color.rgba8888(color));
-            }
+            // see: https://libgdx.badlogicgames.com/ci/nightlies/docs/api/com/badlogic/gdx/graphics/Pixmap.html
+            // Draws an area from another Pixmap to this Pixmap. This will automatically scale and stretch
+            // the source image to the specified target rectangle. Use setFilter(Filter) to specify the type
+            // of filtering to be used (nearest neighbour or bilinear).
+            other.drawPixmap(map,
+                    0, 0, grid.getWidth(), grid.getHeight(),
+                    0, 0, 512, 512);
+            map.dispose();
+            map = other;
         }
 
-        textureDungeon = new Texture(map);
+        Texture texture = new Texture(map);
         map.dispose();
+        return texture;
     }
 
     public void resetActors() {

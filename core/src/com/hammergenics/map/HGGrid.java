@@ -61,7 +61,7 @@ public class HGGrid extends Grid {
     // TODO: need a better round function to create steps, like 0.05 0.025 etc.
 
     // see: https://github.com/czyzby/noise4j
-    public void generateNoise(float yScale, Array<NoiseStageInfo> stages) {
+    public void generateNoise(Array<NoiseStageInfo> stages) {
         if (stages.size == 0) { return; }
         final NoiseGenerator noiseGenerator = new NoiseGenerator();
 

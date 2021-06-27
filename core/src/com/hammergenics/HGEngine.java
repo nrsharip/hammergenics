@@ -249,7 +249,7 @@ public class HGEngine implements Disposable {
     public void generateNoise(float yScale, Array<HGGrid.NoiseStageInfo> stages) {
         if (stages.size == 0) { return; }
 
-        gridNoise.generateNoise(yScale, stages);
+        gridNoise.generateNoise(stages);
         resetNoiseModelInstance(yScale);
     }
 
