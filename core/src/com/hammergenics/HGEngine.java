@@ -63,12 +63,8 @@ import com.badlogic.gdx.utils.JsonValue;
 import com.badlogic.gdx.utils.Logger;
 import com.badlogic.gdx.utils.Sort;
 import com.badlogic.gdx.utils.UBJsonWriter;
-import com.github.czyzby.noise4j.map.Grid;
-import com.github.czyzby.noise4j.map.generator.cellular.CellularAutomataGenerator;
-import com.github.czyzby.noise4j.map.generator.noise.NoiseGenerator;
-import com.github.czyzby.noise4j.map.generator.room.dungeon.DungeonGenerator;
-import com.github.czyzby.noise4j.map.generator.util.Generators;
 import com.hammergenics.config.Config;
+import com.hammergenics.map.HGGrid;
 import com.hammergenics.screens.graphics.g3d.DebugModelInstance;
 import com.hammergenics.screens.graphics.g3d.HGModel;
 import com.hammergenics.screens.graphics.g3d.HGModelInstance;
@@ -178,9 +174,9 @@ public class HGEngine implements Disposable {
     public btDispatcher dispatcher;
 
     // Map generation related:
-    public Grid gridNoise = new Grid(128);
-    public Grid gridCellular = new Grid(512);
-    public Grid gridDungeon = new Grid(512); // This algorithm likes odd-sized maps, although it works either way.
+    public HGGrid gridNoise = new HGGrid(128);
+    public HGGrid gridCellular = new HGGrid(512);
+    public HGGrid gridDungeon = new HGGrid(512); // This algorithm likes odd-sized maps, although it works either way.
 
     // Noise Grid related:
     public HGModel noiseHgModel = null;
@@ -250,64 +246,28 @@ public class HGEngine implements Disposable {
         contactListener = new HGContactListener(this);
     }
 
-    public static class NoiseStageInfo {
-        public int radius = 32;
-        public float modifier = 1f;
-        public int seed = 0;
+    public void generateNoise(float yScale, Array<HGGrid.NoiseStageInfo> stages) {
+        if (stages.size == 0) { return; }
+
+        gridNoise.generateNoise(yScale, stages);
+        resetNoiseModelInstance(yScale);
     }
 
-    // see: https://github.com/czyzby/noise4j
-    public void generateNoise(float yScale, Array<NoiseStageInfo> stages) {
-        if (stages.size == 0) { return; }
-        final NoiseGenerator noiseGenerator = new NoiseGenerator();
+    public void roundNoiseToDigits(float yScale, int digits) {
+        gridNoise.roundToDigits(digits);
 
-        gridNoise.fill(0f);
+        resetNoiseModelInstance(yScale);
+    }
 
-        for (NoiseStageInfo stage: stages) {
-            stage.seed = noiseStage(gridNoise, noiseGenerator, stage.radius, stage.modifier);
-        }
+    public void generateCellular() { gridCellular.generateCellular(); }
 
+    public void generateDungeon() { gridDungeon.generateDungeon(); }
+
+    public void resetNoiseModelInstance(float yScale) {
         if (noiseHgModel != null) { noiseHgModel.dispose(); }
         if (noisePhysModelInstance != null) { noisePhysModelInstance.dispose(); }
         noiseHgModel = new HGModel(createGridModel(gridNoise, yScale));
         noisePhysModelInstance = new PhysicalModelInstance(noiseHgModel, 0f, "grid");
-    }
-
-    // see: https://github.com/czyzby/noise4j
-    public int noiseStage(final Grid grid, final NoiseGenerator noiseGenerator, final int radius,
-                           final float modifier) {
-        return noiseStage(grid, noiseGenerator, radius, modifier, Generators.rollSeed());
-    }
-
-    // see: https://github.com/czyzby/noise4j
-    public int noiseStage(final Grid grid, final NoiseGenerator noiseGenerator, final int radius,
-                            final float modifier, int seed) {
-        noiseGenerator.setRadius(radius);
-        noiseGenerator.setModifier(modifier);
-        // Seed ensures randomness, can be saved if you feel the need to
-        // generate the same map in the future.
-        noiseGenerator.setSeed(seed);
-        noiseGenerator.generate(grid);
-        return seed;
-    }
-
-    // see: https://github.com/czyzby/noise4j
-    public void generateCellular() {
-        final CellularAutomataGenerator cellularGenerator = new CellularAutomataGenerator();
-        cellularGenerator.setAliveChance(0.5f);
-        cellularGenerator.setIterationsAmount(4);
-        cellularGenerator.generate(gridCellular);
-    }
-
-    // see: https://github.com/czyzby/noise4j
-    public void generateDungeon() {
-        // This algorithm likes odd-sized maps, although it works either way.
-        final DungeonGenerator dungeonGenerator = new DungeonGenerator();
-        dungeonGenerator.setRoomGenerationAttempts(500);
-        dungeonGenerator.setMaxRoomSize(75);
-        dungeonGenerator.setTolerance(10); // Max difference between width and height.
-        dungeonGenerator.setMinRoomSize(9);
-        dungeonGenerator.generate(gridDungeon);
     }
 
     public void queueAssets(FileHandle rootFileHandle) {

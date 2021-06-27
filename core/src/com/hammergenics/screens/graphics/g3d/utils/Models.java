@@ -28,9 +28,7 @@ import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.ArrowShapeBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.BoxShapeBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.SphereShapeBuilder;
-import com.github.czyzby.noise4j.map.Grid;
-
-import java.util.Arrays;
+import com.hammergenics.map.HGGrid;
 
 /**
  * Add description here
@@ -81,7 +79,7 @@ public class Models {
         return mb.end();
     }
 
-    public static Model createGridModel(Grid grid, float yScale) {
+    public static Model createGridModel(HGGrid grid, float yScale) {
         ModelBuilder mb;
         MeshPartBuilder mpb;
 
@@ -92,13 +90,6 @@ public class Models {
         mpb = mb.part("grid", GL20.GL_LINES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
                 new Material(ColorAttribute.createDiffuse(Color.YELLOW)));
 
-        float[] values = new float[grid.getArray().length];
-        System.arraycopy(grid.getArray(), 0, values, 0, values.length);
-        Arrays.sort(values, 0, values.length);
-        float min = values[0];
-        float max = values[values.length - 1];
-        float mid = (max + min)/2f;
-
         int width = grid.getWidth();
         int height = grid.getHeight();
 
@@ -108,7 +99,7 @@ public class Models {
             for (int x = 0; x < width - 1; x++) {
                 y1 = grid.get(x, z);
                 y2 = grid.get(x + 1, z);
-                y1 *= yScale; y1 -= mid*yScale; y2 *= yScale; y2 -= mid*yScale;
+                y1 *= yScale; y1 -= grid.mid*yScale; y2 *= yScale; y2 -= grid.mid*yScale;
                 //Gdx.app.debug("grid", "" + " x: " + x + " z: " + z + " y1: " + y1);
                 mpb.line(x - width/2f, y1, z - height/2f, x + 1 - width/2f, y2, z - height/2f);
             }
@@ -119,7 +110,7 @@ public class Models {
             for (int z = 0; z < height - 1; z++) {
                 y1 = grid.get(x, z);
                 y2 = grid.get(x, z + 1);
-                y1 *= yScale; y1 -= mid*yScale; y2 *= yScale; y2 -= mid*yScale;
+                y1 *= yScale; y1 -= grid.mid*yScale; y2 *= yScale; y2 -= grid.mid*yScale;
                 mpb.line(x - width/2f, y1, z - height/2f, x - width/2f, y2, z + 1 - height/2f);
             }
         }

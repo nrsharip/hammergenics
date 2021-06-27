@@ -30,7 +30,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
 import com.hammergenics.HGEngine;
-import com.hammergenics.HGEngine.NoiseStageInfo;
+import com.hammergenics.map.HGGrid.NoiseStageInfo;
 import com.hammergenics.screens.ModelEditScreen;
 import com.hammergenics.screens.graphics.g3d.DebugModelInstance;
 import com.hammergenics.screens.stages.ModelEditStage;
@@ -47,6 +47,7 @@ public class MapGenerationTable extends HGTable {
     public DebugModelInstance dbgModelInstance;
 
     public TextButton genNoiseTextButton = null;
+    public TextButton roundNoiseTextButton = null;
     public TextButton genCellTextButton = null;
     public TextButton genDungTextButton = null;
 
@@ -57,6 +58,8 @@ public class MapGenerationTable extends HGTable {
     public Array<NoiseStageTable> noiseStageTables = new Array<>(true, 16, NoiseStageTable.class);
     public float noiseYScale = 20f;
     public TextField noiseYScaleTF;
+    public int noiseDigits = 5;
+    public TextField noiseDigitsTF;
 
     public MapGenerationTable(ModelEditScreen modelES, ModelEditStage stage) {
         super(stage.skin);
@@ -71,12 +74,16 @@ public class MapGenerationTable extends HGTable {
             row();
         }
 
-        Table genNoiseGridTable = new Table();
-        genNoiseGridTable.add(new Label("yScale:", stage.skin)).right();
-        genNoiseGridTable.add(noiseYScaleTF).width(60).maxWidth(60).padRight(5f);
-        genNoiseGridTable.add(genNoiseTextButton).center().expandX().fillX();
+        Table noiseGridTable = new Table();
+        noiseGridTable.add(new Label("yScale:", stage.skin)).right();
+        noiseGridTable.add(noiseYScaleTF).width(60).maxWidth(60).padRight(5f);
+        noiseGridTable.add(genNoiseTextButton).center().expandX().fillX();
+        noiseGridTable.add(new Label("digits:", stage.skin)).right();
+        noiseGridTable.add(noiseDigitsTF).width(60).maxWidth(60).padRight(5f);
+        noiseGridTable.add(roundNoiseTextButton).center().expandX().fillX();
 
-        add(genNoiseGridTable).center().expandX().fillX();
+
+        add(noiseGridTable).center().expandX().fillX();
         row();
 
         Table genGridTable = new Table();
@@ -179,6 +186,23 @@ public class MapGenerationTable extends HGTable {
             }
         });
 
+        roundNoiseTextButton = new TextButton("round noise", stage.skin);
+        stage.unpressButton(roundNoiseTextButton);
+        roundNoiseTextButton.addListener(new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                eng.roundNoiseToDigits(noiseYScale, noiseDigits);
+
+                imageNoise();
+                // see Image (Texture texture) for example on how to convert Texture to Image
+                stage.textureImage.setDrawable(new TextureRegionDrawable(new TextureRegion(textureNoise)));
+                return super.touchDown(event, x, y, pointer, button); // false
+                // If true is returned, this listener will have touch focus, so it will receive all
+                // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
+                // Also when true is returned, the event is handled
+            }
+        });
+
         genCellTextButton = new TextButton("gen cellular grid", stage.skin);
         stage.unpressButton(genCellTextButton);
         genCellTextButton.addListener(new InputListener() {
@@ -217,6 +241,18 @@ public class MapGenerationTable extends HGTable {
                 float value = Float.parseFloat(textField.getText());
                 if (value <= 0) { textField.getColor().set(Color.PINK); return; }
                 noiseYScale = value;
+                textField.getColor().set(Color.WHITE);
+            } catch (NumberFormatException e) {
+                textField.getColor().set(Color.PINK);
+            }
+        });
+
+        noiseDigitsTF = new TextField(Integer.toString(noiseDigits), stage.skin);
+        noiseDigitsTF.setTextFieldListener((textField, c) -> {
+            try {
+                int value = Integer.parseInt(textField.getText());
+                if (value <= 0) { textField.getColor().set(Color.PINK); return; }
+                noiseDigits = value;
                 textField.getColor().set(Color.WHITE);
             } catch (NumberFormatException e) {
                 textField.getColor().set(Color.PINK);
