@@ -333,9 +333,9 @@ public class HGEngine implements Disposable {
 
                     HGModelInstance tmp = new HGModelInstance(tp2hgm.get(TerrainPart.TRRN_FLAT));
 
-                    posX = (x - gridNoise.getWidth()/2f) * tmp.dims.x;
+                    posX = (x - 0.5f - gridNoise.getWidth()/2f) * tmp.dims.x;
                     posY = (y00 - gridNoise.mid) * gridNoise.yScale; // * miSamples.get(TerrainPart.TRRN_SIDE).dims.y;
-                    posZ = (z - gridNoise.getHeight()/2f) * tmp.dims.z;
+                    posZ = (z - 0.5f - gridNoise.getHeight()/2f) * tmp.dims.z;
 
                     Vector3 pos = new Vector3(posX, posY, posZ);
                     tmp.transform.setToTranslation(pos.sub(tmp.center));

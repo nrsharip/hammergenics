@@ -52,8 +52,9 @@ public class HGModel implements Disposable {
         getMeshData();
         // this is done mostly for the simplicity of rigid body calculations
         // so there would be no need to take care of the offset between the
-        // rigid body (with the box shape) and the Bounding Box of the model
-        centerToOrigin();
+        // rigid body (with the box shape) and the Bounding Box of the model.
+        // For now only models loaded from files are being centered to origin by default.
+        if (assetFileHandle != null) { centerToOrigin(); }
     }
 
     @Override
