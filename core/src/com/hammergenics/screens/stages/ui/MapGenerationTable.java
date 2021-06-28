@@ -59,27 +59,31 @@ public class MapGenerationTable extends HGTable {
     public DebugModelInstance dbgModelInstance;
 
     public TextButton genNoiseTextButton = null;
-    public TextButton roundDigitsNoiseTextButton = null;
-    public TextButton roundStepNoiseTextButton = null;
     public TextButton genCellTextButton = null;
     public TextButton genDungTextButton = null;
-
-    public TextButton applyTerrainTextButton = null;
-
-    public ArrayMap<TerrainPart, SelectBox<FileHandle>> trrnSelectBoxes =
-            new ArrayMap<>(true, 16, TerrainPart.class, SelectBox.class);
 
     public Texture textureNoise;
     public Texture textureCellular;
     public Texture textureDungeon;
 
     public Array<NoiseStageTable> noiseStageTables = new Array<>(true, 16, NoiseStageTable.class);
-    public float noiseYScale = 20f;
+    public TextButton roundDigitsNoiseTextButton = null;
+    public TextButton roundStepNoiseTextButton = null;
+
+    public CheckBox previewNoiseGrid = null;
+    public CheckBox previewTerrain = null;
+
     public TextField noiseYScaleTF;
-    public int noiseDigits = 5;
-    public float noiseStep = 0.05f;
     public TextField noiseDigitsTF;
     public TextField noiseStepTF;
+
+    public float noiseYScale = 20f;
+    public int noiseDigits = 5;
+    public float noiseStep = 0.05f;
+
+    public TextButton applyTerrainTextButton = null;
+    public ArrayMap<TerrainPart, SelectBox<FileHandle>> trrnSelectBoxes =
+            new ArrayMap<>(true, 16, TerrainPart.class, SelectBox.class);
 
     public MapGenerationTable(ModelEditScreen modelES, ModelEditStage stage) {
         super(stage.skin);
@@ -99,15 +103,22 @@ public class MapGenerationTable extends HGTable {
         noiseGridTable.add(noiseYScaleTF).width(60).maxWidth(60).padRight(5f);
         noiseGridTable.add(genNoiseTextButton).center().expandX().fillX();
 
-        noiseGridTable.add(new Label("digits:", stage.skin)).right();
-        noiseGridTable.add(noiseDigitsTF).width(60).maxWidth(60).padRight(5f);
-        noiseGridTable.add(roundDigitsNoiseTextButton).center().expandX().fillX();
-
         noiseGridTable.add(new Label("step:", stage.skin)).right();
         noiseGridTable.add(noiseStepTF).width(60).maxWidth(60).padRight(5f);
         noiseGridTable.add(roundStepNoiseTextButton).center().expandX().fillX();
 
+        noiseGridTable.add(new Label("digits:", stage.skin)).right();
+        noiseGridTable.add(noiseDigitsTF).width(60).maxWidth(60).padRight(5f);
+        noiseGridTable.add(roundDigitsNoiseTextButton).center().expandX().fillX();
+
         add(noiseGridTable).center().expandX().fillX();
+        row();
+
+        Table previewCheckBoxes = new Table();
+        previewCheckBoxes.add(previewNoiseGrid).center().expandX().fillX();
+        previewCheckBoxes.add(previewTerrain).center().expandX().fillX();
+
+        add(previewCheckBoxes).center().expandX().fillX();
         row();
 
         Table genGridTable = new Table();
@@ -292,7 +303,9 @@ public class MapGenerationTable extends HGTable {
                     TerrainPart part = entry.key;
                     SelectBox<FileHandle> sb = entry.value;
 
-                    if (sb.getSelectedIndex() == 0) { return super.touchDown(event, x, y, pointer, button); }
+                    if (sb.getItems().size == 0 || sb.getSelectedIndex() == 0) {
+                        return super.touchDown(event, x, y, pointer, button);
+                    }
                     tp2fh.put(part, sb.getSelected());
                 }
 
@@ -340,6 +353,12 @@ public class MapGenerationTable extends HGTable {
                 textField.getColor().set(Color.PINK);
             }
         });
+
+        previewNoiseGrid = new CheckBox("preview noise grid", stage.skin);
+        previewNoiseGrid.setChecked(true);
+
+        previewTerrain = new CheckBox("preview terrain", stage.skin);
+        previewTerrain.setChecked(true);
 
         trrnSelectBoxes.put(TRRN_FLAT, new SelectBox<>(stage.skin));
         trrnSelectBoxes.put(TRRN_SIDE, new SelectBox<>(stage.skin));
