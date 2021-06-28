@@ -432,18 +432,20 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
     }
 
     public void addMeshPartToRenderer(HGImmediateModeRenderer20 imr, Node node, NodePart nodePart, MeshPart mp) {
-        if (node == null || nodePart == null || !nodePart.enabled || mp == null || mp.mesh == null) { return; }
+        if (hgModel == null || node == null || nodePart == null || !nodePart.enabled || mp == null
+                || mp.mesh == null) { return; }
 
-        // TODO: this should be the part of HGModel
-        VertexAttributes vertexAttributes = mp.mesh.getVertexAttributes();
+        HGModel.MeshData meshData = hgModel.mesh2data.get(mp.mesh);
+
+        if (meshData == null) { return; }
+
+        VertexAttributes vertexAttributes = meshData.vertexAttributes;
         // IMPORTANT: vertex size is in bytes, float is 4 bytes long
         // TODO: there's also a notion of 'OpenGL type': GL_FLOAT or GL_UNSIGNED_BYTE stored in VertexAttribute.type
         int vs = vertexAttributes.vertexSize / 4;
 
-        short[] indices = new short[mp.mesh.getNumIndices()];
-        float[] vertices = new float[vs * mp.mesh.getNumVertices()];
-        mp.mesh.getIndices(indices);
-        mp.mesh.getVertices(vertices);
+        short[] indices = meshData.indices;
+        float[] vertices = meshData.vertices;
 
         //Gdx.app.debug(getClass().getSimpleName(), "indices: \n" + Arrays.toString(indices));
         //Gdx.app.debug(getClass().getSimpleName(), "vertices: \n" + Arrays.toString(vertices));
