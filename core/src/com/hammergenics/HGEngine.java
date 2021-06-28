@@ -66,6 +66,7 @@ import com.badlogic.gdx.utils.Sort;
 import com.badlogic.gdx.utils.UBJsonWriter;
 import com.hammergenics.config.Config;
 import com.hammergenics.map.HGGrid;
+import com.hammergenics.map.HGGrid.NoiseStageInfo;
 import com.hammergenics.screens.graphics.g3d.DebugModelInstance;
 import com.hammergenics.screens.graphics.g3d.HGModel;
 import com.hammergenics.screens.graphics.g3d.HGModelInstance;
@@ -175,9 +176,12 @@ public class HGEngine implements Disposable {
     public btDispatcher dispatcher;
 
     // Map generation related:
-    public HGGrid gridNoise = new HGGrid(128);
+    public HGGrid gridNoise = new HGGrid(128, Integer.MAX_VALUE/512, Integer.MAX_VALUE/512);
     public HGGrid gridCellular = new HGGrid(512);
     public HGGrid gridDungeon = new HGGrid(512); // This algorithm likes odd-sized maps, although it works either way.
+
+    Array<NoiseStageInfo> noiseStages = new Array<>(true, 16, NoiseStageInfo.class);
+    public float yScale = 1f;
 
     // Terrain:
     public enum TerrainPart {
@@ -259,8 +263,12 @@ public class HGEngine implements Disposable {
         contactListener = new HGContactListener(this);
     }
 
-    public void generateNoise(float yScale, Array<HGGrid.NoiseStageInfo> stages) {
+    public void generateNoise(float yScale, Array<NoiseStageInfo> stages) {
         if (stages.size == 0) { return; }
+
+        this.yScale = yScale;
+        noiseStages.clear();
+        noiseStages.addAll(stages);
 
         gridNoise.generateNoise(yScale, stages);
         resetNoiseModelInstance();
@@ -325,12 +333,16 @@ public class HGEngine implements Disposable {
 
                     HGModelInstance tmp = new HGModelInstance(tp2hgm.get(TerrainPart.TRRN_FLAT));
 
-                    posX = (x - 0.5f - gridNoise.getWidth()/2f) * tmp.dims.x;
+                    posX = (x - gridNoise.getWidth()/2f) * tmp.dims.x;
                     posY = (y00 - gridNoise.mid) * gridNoise.yScale; // * miSamples.get(TerrainPart.TRRN_SIDE).dims.y;
-                    posZ = (z - 0.5f - gridNoise.getHeight()/2f) * tmp.dims.z;
+                    posZ = (z - gridNoise.getHeight()/2f) * tmp.dims.z;
 
                     Vector3 pos = new Vector3(posX, posY, posZ);
                     tmp.transform.setToTranslation(pos.sub(tmp.center));
+//                    Gdx.app.debug("trn", ""
+//                            + " x: " + x + " z: " + z + " dims: " + tmp.dims + " cnt: " + tmp.center
+//                            + " pos: " + pos + " tmp.transform:\n" + tmp.transform
+//                    );
                     terrain.add(tmp);
                 }
             }

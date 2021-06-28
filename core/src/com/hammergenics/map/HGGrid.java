@@ -22,7 +22,6 @@ import com.github.czyzby.noise4j.map.generator.cellular.CellularAutomataGenerato
 import com.github.czyzby.noise4j.map.generator.noise.NoiseGenerator;
 import com.github.czyzby.noise4j.map.generator.room.dungeon.DungeonGenerator;
 import com.github.czyzby.noise4j.map.generator.util.Generators;
-import com.hammergenics.HGEngine;
 
 import java.util.Arrays;
 
@@ -32,12 +31,41 @@ import java.util.Arrays;
  * @author nrsharip
  */
 public class HGGrid extends Grid {
+    // these are to trick NoiseGenerator to generate the noise at the custom position (x0,z0)
+    public int x0, z0;
+
     public float min;
     public float max;
     public float mid;
     public float yScale = 1f;
+    Array<NoiseStageInfo> noiseStages = new Array<>(true, 16, NoiseStageInfo.class);
 
-    public HGGrid(int size) { super(size); }
+    public HGGrid(int size) { this(size, 0, 0); }
+
+    public HGGrid(int size, int x0, int z0) {
+        super(size);
+        this.x0 = x0;
+        this.z0 = z0;
+    }
+
+    // the overrides below are to trick NoiseGenerator to generate the noise at the custom position (x0,z0)
+    @Override
+    public float get(int x, int y) { return super.get(x0 + x, z0 + y); }
+
+    @Override
+    public float set(int x, int y, float value) { return super.set(x0 + x, z0 + y, value); }
+
+    @Override
+    public boolean isIndexValid(int x, int y) { return super.isIndexValid(x - x0, y - z0); }
+
+    @Override
+    public int toIndex(int x, int y) { return super.toIndex(x - x0, y - z0); }
+
+    @Override
+    public int toX(int index) { return super.toX(index) + x0; }
+
+    @Override
+    public int toY(int index) { return super.toY(index) + z0; }
 
     public void calculateMinMaxMid() {
         float[] values = new float[getArray().length];
@@ -58,6 +86,8 @@ public class HGGrid extends Grid {
                 set(x, y, value);
             }
         }
+
+        calculateMinMaxMid();
     }
 
     public void roundToStep(float step) {
@@ -72,6 +102,8 @@ public class HGGrid extends Grid {
                 set(x, y, value);
             }
         }
+
+        calculateMinMaxMid();
     }
 
     // see: https://github.com/czyzby/noise4j
@@ -81,6 +113,9 @@ public class HGGrid extends Grid {
 
         fill(0f);
         this.yScale = yScale;
+
+        noiseStages.clear();
+        noiseStages.addAll(stages);
 
         for (NoiseStageInfo stage: stages) {
             stage.seed = noiseStage(this, noiseGenerator, stage.radius, stage.modifier);

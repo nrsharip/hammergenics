@@ -16,7 +16,6 @@
 
 package com.hammergenics.screens.graphics.g3d.utils;
 
-
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.VertexAttributes;
@@ -100,7 +99,7 @@ public class Models {
                 y1 = grid.get(x, z);
                 y2 = grid.get(x + 1, z);
                 y1 -= grid.mid; y1 *= grid.yScale; y2 -= grid.mid; y2 *= grid.yScale;
-                //Gdx.app.debug("grid", "" + " x: " + x + " z: " + z + " y1: " + y1);
+                //Gdx.app.debug("grid", "" + " x: " + x + " z: " + z + " y1: " + y1 + " y2: " + y2);
                 mpb.line(x - width/2f, y1, z - height/2f, x + 1 - width/2f, y2, z - height/2f);
             }
         }
