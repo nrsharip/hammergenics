@@ -17,7 +17,12 @@
 package com.hammergenics.screens.graphics.g3d;
 
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.g3d.model.Node;
+import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.BoundingBox;
+import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Disposable;
 
 /**
@@ -35,12 +40,23 @@ public class HGModel implements Disposable {
      */
     public FileHandle afh;
 
+    public ArrayMap<Mesh, MeshData> mesh2data = new ArrayMap<>(Mesh.class, MeshData.class);
+
     public HGModel(Model model) { this(model, null); }
 
     public HGModel(Model model, FileHandle assetFileHandle) {
         this.obj = model;
         this.afh = assetFileHandle;
+
+        getMeshData();
+        // this is done mostly for the simplicity of rigid body calculations
+        // so there would be no need to take care of the offset between the
+        // rigid body (with the box shape) and the Bounding Box of the model
+        centerToOrigin();
     }
+
+    @Override
+    public void dispose() { obj.dispose(); }
 
     public boolean hasAnimations() { return obj.animations.size != 0; }
     public boolean hasMaterials() { return obj.materials.size != 0; }
@@ -48,6 +64,46 @@ public class HGModel implements Disposable {
     public boolean hasMeshParts() { return obj.meshParts.size != 0; }
     public boolean hasNodes() { return obj.nodes.size != 0; }
 
-    @Override
-    public void dispose() { obj.dispose(); }
+    public void getMeshData() {
+        for (Mesh mesh: obj.meshes) {
+            int vs = mesh.getVertexAttributes().vertexSize / 4;
+            short[] indices = new short[mesh.getNumIndices()];
+            float[] vertices = new float[vs * mesh.getNumVertices()];
+            mesh.getIndices(indices);
+            mesh.getVertices(vertices);
+            mesh2data.put(mesh, new MeshData(indices, vertices));
+        }
+    }
+
+    public void centerToOrigin() {
+        HGModelInstance mi = new HGModelInstance(this);
+        BoundingBox bb = mi.calculateBoundingBox(new BoundingBox());
+        Vector3 center = bb.getCenter(new Vector3());
+
+        if (!center.equals(Vector3.Zero)) {
+            // only root nodes matter for world translation
+            for (Node node: obj.nodes) { centerNodeToOrigin(node, Vector3.Zero.cpy().sub(center)); }
+        }
+    }
+
+    public void centerNodeToOrigin(Node node, Vector3 translation) {
+        //Gdx.app.debug("node to center: ",  "b node.id: " + node.id + " translation: " + node.translation);
+        node.translation.add(translation);
+        node.calculateTransforms(true);
+        node.calculateBoneTransforms(true);
+        //Gdx.app.debug("node to center: ",  "a node.id: " + node.id + " translation: " + node.translation);
+
+        // only root nodes matter for world translation
+        // so not making it recursive on children
+    }
+
+    public static class MeshData {
+        public short[] indices;
+        public float[] vertices;
+
+        public MeshData(short[] indices, float[] vertices) {
+            this.indices = indices;
+            this.vertices = vertices;
+        }
+    }
 }

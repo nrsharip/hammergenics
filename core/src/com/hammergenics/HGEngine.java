@@ -609,13 +609,13 @@ public class HGEngine implements Disposable {
             // Scale: if the dimension of the current instance is less than maximum dimension of all instances scale it
             if (!keepOriginalScale && mi.maxD < unitSize) { factor = unitSize/mi.maxD; }
 
-            Vector3 center = mi.getBB().getCenter(new Vector3());
             Vector3 position;
             // Position:
-            // 1. Move the instance (scaled center) to the current base position ([cell.x, 0, cell.y] vector sub scaled center vector)
+            // NOTE: Assuming that the model is centered to origin (see HGModel.centerToOrigin())
+            //       Otherwise additional adjustments need to be done
+            // 1. Move the instance to the current base position ([cell.x, 0, cell.y] vector sub scaled center vector)
             // 2. Add half of the scaled height to the current position so bounding box's bottom matches XZ plane
             position = new Vector3(cell.x * 1.1f * unitSize, 0f, cell.y * 1.1f * unitSize)
-                    .sub(center.cpy().scl(factor))
                     .add(0, factor * mi.getBB().getHeight()/2, 0);
             mi.moveAndScaleTo(position, Vector3.Zero.cpy().add(factor));
             //Gdx.app.debug("spiral", "transform:\n" + mi.transform);
