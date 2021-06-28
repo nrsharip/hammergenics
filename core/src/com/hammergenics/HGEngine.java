@@ -266,8 +266,14 @@ public class HGEngine implements Disposable {
         resetNoiseModelInstance();
     }
 
-    public void roundNoiseToDigits(float yScale, int digits) {
+    public void roundNoiseToDigits(int digits) {
         gridNoise.roundToDigits(digits);
+
+        resetNoiseModelInstance();
+    }
+
+    public void roundNoiseToStep(float step) {
+        gridNoise.roundToStep(step);
 
         resetNoiseModelInstance();
     }

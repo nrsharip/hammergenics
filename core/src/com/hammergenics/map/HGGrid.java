@@ -59,7 +59,20 @@ public class HGGrid extends Grid {
             }
         }
     }
-    // TODO: need a better round function to create steps, like 0.05 0.025 etc.
+
+    public void roundToStep(float step) {
+        if (step >= 1f || step <= 0f) { return; }
+
+        for (int x = 0; x < getWidth(); x++) {
+            for (int y = 0; y < getHeight(); y++) {
+                float value = get(x, y);
+                float mod = value % step;
+                value -= mod;
+                if (mod > step/2f) { value += step; }
+                set(x, y, value);
+            }
+        }
+    }
 
     // see: https://github.com/czyzby/noise4j
     public void generateNoise(float yScale, Array<NoiseStageInfo> stages) {

@@ -59,7 +59,8 @@ public class MapGenerationTable extends HGTable {
     public DebugModelInstance dbgModelInstance;
 
     public TextButton genNoiseTextButton = null;
-    public TextButton roundNoiseTextButton = null;
+    public TextButton roundDigitsNoiseTextButton = null;
+    public TextButton roundStepNoiseTextButton = null;
     public TextButton genCellTextButton = null;
     public TextButton genDungTextButton = null;
 
@@ -76,7 +77,9 @@ public class MapGenerationTable extends HGTable {
     public float noiseYScale = 20f;
     public TextField noiseYScaleTF;
     public int noiseDigits = 5;
+    public float noiseStep = 0.05f;
     public TextField noiseDigitsTF;
+    public TextField noiseStepTF;
 
     public MapGenerationTable(ModelEditScreen modelES, ModelEditStage stage) {
         super(stage.skin);
@@ -95,9 +98,14 @@ public class MapGenerationTable extends HGTable {
         noiseGridTable.add(new Label("yScale:", stage.skin)).right();
         noiseGridTable.add(noiseYScaleTF).width(60).maxWidth(60).padRight(5f);
         noiseGridTable.add(genNoiseTextButton).center().expandX().fillX();
+
         noiseGridTable.add(new Label("digits:", stage.skin)).right();
         noiseGridTable.add(noiseDigitsTF).width(60).maxWidth(60).padRight(5f);
-        noiseGridTable.add(roundNoiseTextButton).center().expandX().fillX();
+        noiseGridTable.add(roundDigitsNoiseTextButton).center().expandX().fillX();
+
+        noiseGridTable.add(new Label("step:", stage.skin)).right();
+        noiseGridTable.add(noiseStepTF).width(60).maxWidth(60).padRight(5f);
+        noiseGridTable.add(roundStepNoiseTextButton).center().expandX().fillX();
 
         add(noiseGridTable).center().expandX().fillX();
         row();
@@ -208,8 +216,6 @@ public class MapGenerationTable extends HGTable {
                 }
 
                 textureNoise = imageGrid(eng.gridNoise);
-                // see Image (Texture texture) for example on how to convert Texture to Image
-                stage.textureImage.setDrawable(new TextureRegionDrawable(new TextureRegion(textureNoise)));
                 return super.touchDown(event, x, y, pointer, button); // false
                 // If true is returned, this listener will have touch focus, so it will receive all
                 // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
@@ -217,16 +223,29 @@ public class MapGenerationTable extends HGTable {
             }
         });
 
-        roundNoiseTextButton = new TextButton("round noise", stage.skin);
-        stage.unpressButton(roundNoiseTextButton);
-        roundNoiseTextButton.addListener(new InputListener() {
+        roundDigitsNoiseTextButton = new TextButton("round: digits", stage.skin);
+        stage.unpressButton(roundDigitsNoiseTextButton);
+        roundDigitsNoiseTextButton.addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                eng.roundNoiseToDigits(noiseYScale, noiseDigits);
+                eng.roundNoiseToDigits(noiseDigits);
 
                 textureNoise = imageGrid(eng.gridNoise);
-                // see Image (Texture texture) for example on how to convert Texture to Image
-                stage.textureImage.setDrawable(new TextureRegionDrawable(new TextureRegion(textureNoise)));
+                return super.touchDown(event, x, y, pointer, button); // false
+                // If true is returned, this listener will have touch focus, so it will receive all
+                // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
+                // Also when true is returned, the event is handled
+            }
+        });
+
+        roundStepNoiseTextButton = new TextButton("round: step", stage.skin);
+        stage.unpressButton(roundStepNoiseTextButton);
+        roundStepNoiseTextButton.addListener(new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                eng.roundNoiseToStep(noiseStep);
+
+                textureNoise = imageGrid(eng.gridNoise);
                 return super.touchDown(event, x, y, pointer, button); // false
                 // If true is returned, this listener will have touch focus, so it will receive all
                 // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
@@ -241,8 +260,6 @@ public class MapGenerationTable extends HGTable {
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 eng.generateCellular();
                 textureCellular = imageGrid(eng.gridCellular);
-                // see Image (Texture texture) for example on how to convert Texture to Image
-                stage.textureImage.setDrawable(new TextureRegionDrawable(new TextureRegion(textureCellular)));
                 return super.touchDown(event, x, y, pointer, button); // false
                 // If true is returned, this listener will have touch focus, so it will receive all
                 // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
@@ -257,8 +274,6 @@ public class MapGenerationTable extends HGTable {
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 eng.generateDungeon();
                 textureDungeon = imageGrid(eng.gridDungeon);
-                // see Image (Texture texture) for example on how to convert Texture to Image
-                stage.textureImage.setDrawable(new TextureRegionDrawable(new TextureRegion(textureDungeon)));
                 return super.touchDown(event, x, y, pointer, button); // false
                 // If true is returned, this listener will have touch focus, so it will receive all
                 // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
@@ -314,6 +329,18 @@ public class MapGenerationTable extends HGTable {
             }
         });
 
+        noiseStepTF = new TextField(Float.toString(noiseStep), stage.skin);
+        noiseStepTF.setTextFieldListener((textField, c) -> {
+            try {
+                float value = Float.parseFloat(textField.getText());
+                if (value >= 1 || value <= 0) { textField.getColor().set(Color.PINK); return; }
+                noiseStep = value;
+                textField.getColor().set(Color.WHITE);
+            } catch (NumberFormatException e) {
+                textField.getColor().set(Color.PINK);
+            }
+        });
+
         trrnSelectBoxes.put(TRRN_FLAT, new SelectBox<>(stage.skin));
         trrnSelectBoxes.put(TRRN_SIDE, new SelectBox<>(stage.skin));
         trrnSelectBoxes.put(TRRN_SIDE_CORN_INN, new SelectBox<>(stage.skin));
@@ -354,6 +381,10 @@ public class MapGenerationTable extends HGTable {
 
         Texture texture = new Texture(map);
         map.dispose();
+
+        // see Image (Texture texture) for example on how to convert Texture to Image
+        stage.textureImage.setDrawable(new TextureRegionDrawable(new TextureRegion(texture)));
+
         return texture;
     }
 
