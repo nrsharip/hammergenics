@@ -23,7 +23,10 @@ import com.github.czyzby.noise4j.map.generator.noise.NoiseGenerator;
 import com.github.czyzby.noise4j.map.generator.room.dungeon.DungeonGenerator;
 import com.github.czyzby.noise4j.map.generator.util.Generators;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
+
+import static java.math.BigDecimal.ROUND_HALF_UP;
 
 /**
  * Add description here
@@ -73,7 +76,8 @@ public class HGGrid extends Grid {
         Arrays.sort(values, 0, values.length);
         min = values[0];
         max = values[values.length - 1];
-        mid = (max + min)/2f;
+        int scale = new BigDecimal(Float.toString(min)).scale();
+        mid = BigDecimal.valueOf((max + min)/2f).setScale(scale, ROUND_HALF_UP).floatValue();
     }
 
     public void roundToDigits(int digits) {
@@ -93,12 +97,14 @@ public class HGGrid extends Grid {
     public void roundToStep(float step) {
         if (step >= 1f || step <= 0f) { return; }
 
+        int scale = new BigDecimal(Float.toString(step)).scale();
         for (int x = 0; x < getWidth(); x++) {
             for (int y = 0; y < getHeight(); y++) {
                 float value = get(x, y);
                 float mod = value % step;
                 value -= mod;
                 if (mod > step/2f) { value += step; }
+                value = BigDecimal.valueOf(value).setScale(scale, ROUND_HALF_UP).floatValue();
                 set(x, y, value);
             }
         }
