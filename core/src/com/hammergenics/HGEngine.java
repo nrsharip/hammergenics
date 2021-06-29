@@ -61,12 +61,12 @@ import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
 import com.badlogic.gdx.utils.Logger;
-import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.utils.Sort;
 import com.badlogic.gdx.utils.UBJsonWriter;
 import com.hammergenics.config.Config;
 import com.hammergenics.map.HGGrid;
 import com.hammergenics.map.HGGrid.NoiseStageInfo;
+import com.hammergenics.map.TerrainPartsEnum;
 import com.hammergenics.screens.graphics.g3d.DebugModelInstance;
 import com.hammergenics.screens.graphics.g3d.HGModel;
 import com.hammergenics.screens.graphics.g3d.HGModelInstance;
@@ -82,6 +82,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 
+import static com.hammergenics.map.TerrainPartsEnum.TRRN_FLAT;
 import static com.hammergenics.screens.graphics.g3d.utils.Models.createGridModel;
 import static com.hammergenics.screens.graphics.g3d.utils.Models.createLightsModel;
 import static com.hammergenics.screens.graphics.g3d.utils.Models.createTestBox;
@@ -195,15 +196,6 @@ public class HGEngine implements Disposable {
     public float mid;
 
     // Terrain:
-    public enum TerrainPart {
-        TRRN_FLAT("flat surface"),
-        TRRN_SIDE("side surface"),
-        TRRN_SIDE_CORN_INN("inner corner surface"),
-        TRRN_SIDE_CORN_OUT("outer corner surface");
-        public String description;
-        TerrainPart(String description) { this.description = description; }
-    }
-    public ArrayMap<TerrainPart, HGModel> tp2hgm = new ArrayMap<>(true, 16, TerrainPart.class, HGModel.class);
     public Array<HGModelInstance> terrain = new Array<>(true, 16, HGModelInstance.class);
 
     // Noise Grid related:
@@ -349,28 +341,12 @@ public class HGEngine implements Disposable {
                 gridNoise11.x0 - MAP_CENTER, -mid * yScale, gridNoise11.z0 - MAP_CENTER);
     }
 
-    public void applyTerrainParts(ArrayMap<TerrainPart, FileHandle> tp2fh) {
-        tp2hgm.clear(); // no need to dispose the previous models - should be taken care of by the asset manager
+    public void applyTerrainParts(final ArrayMap<TerrainPartsEnum, FileHandle> tp2fh) {
         terrain.clear();
 
-        for (ObjectMap.Entry<TerrainPart, FileHandle> entry: tp2fh) {
-            TerrainPart tp = entry.key;
-            FileHandle fh = entry.value;
-            HGModel model;
-            if (!assetManager.contains(fh.path())) { return; }
-            tp2hgm.put(tp, model = new HGModel(assetManager.get(fh.path(), Model.class), fh));
-            if (!model.hasMeshes()) { return; }
-        }
-
-        ArrayMap<TerrainPart, HGModelInstance> miSamples =
-                new ArrayMap<>(true, 16, TerrainPart.class, HGModelInstance.class);
-
-        for (ObjectMap.Entry<TerrainPart, HGModel> entry: tp2hgm) {
-            TerrainPart tp = entry.key;
-            HGModel hgm = entry.value;
-
-            HGModelInstance hgmi = new HGModelInstance(hgm);
-            miSamples.put(tp, hgmi);
+        TerrainPartsEnum.clearAll();
+        for (TerrainPartsEnum tp: TerrainPartsEnum.values()) {
+            if (!tp.processFileHandle(assetManager, tp2fh.get(tp))) { return; }
         }
 
         for (int x = 1; x < gridNoise00.getWidth(); x++) {
@@ -383,10 +359,10 @@ public class HGEngine implements Disposable {
                 if (y00 == y01 && y01 == y10 && y10 == y11) {
                     float posX, posY, posZ;
 
-                    HGModelInstance tmp = new HGModelInstance(tp2hgm.get(TerrainPart.TRRN_FLAT));
+                    HGModelInstance tmp = new HGModelInstance(TRRN_FLAT.model);
 
                     posX = (x - (tmp.dims.x / 2f));
-                    posY = (y00 - mid) * yScale; // * miSamples.get(TerrainPart.TRRN_SIDE).dims.y;
+                    posY = (y00 - mid) * yScale;
                     posZ = (z - (tmp.dims.z / 2f));
 
                     Vector3 pos = new Vector3(posX, posY, posZ);

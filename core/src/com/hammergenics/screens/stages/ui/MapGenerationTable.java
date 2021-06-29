@@ -37,17 +37,17 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.hammergenics.HGEngine;
-import com.hammergenics.HGEngine.TerrainPart;
 import com.hammergenics.map.HGGrid;
 import com.hammergenics.map.HGGrid.NoiseStageInfo;
+import com.hammergenics.map.TerrainPartsEnum;
 import com.hammergenics.screens.ModelEditScreen;
 import com.hammergenics.screens.graphics.g3d.DebugModelInstance;
 import com.hammergenics.screens.stages.ModelEditStage;
 
-import static com.hammergenics.HGEngine.TerrainPart.TRRN_FLAT;
-import static com.hammergenics.HGEngine.TerrainPart.TRRN_SIDE;
-import static com.hammergenics.HGEngine.TerrainPart.TRRN_SIDE_CORN_INN;
-import static com.hammergenics.HGEngine.TerrainPart.TRRN_SIDE_CORN_OUT;
+import static com.hammergenics.map.TerrainPartsEnum.TRRN_FLAT;
+import static com.hammergenics.map.TerrainPartsEnum.TRRN_SIDE;
+import static com.hammergenics.map.TerrainPartsEnum.TRRN_SIDE_CORN_INN;
+import static com.hammergenics.map.TerrainPartsEnum.TRRN_SIDE_CORN_OUT;
 
 /**
  * Add description here
@@ -87,8 +87,8 @@ public class MapGenerationTable extends HGTable {
 
     public TextButton applyTerrainTextButton = null;
     public TextButton clearTerrainTextButton = null;
-    public ArrayMap<TerrainPart, SelectBox<FileHandle>> trrnSelectBoxes =
-            new ArrayMap<>(true, 16, TerrainPart.class, SelectBox.class);
+    public ArrayMap<TerrainPartsEnum, SelectBox<FileHandle>> trrnSelectBoxes =
+            new ArrayMap<>(true, 16, TerrainPartsEnum.class, SelectBox.class);
 
     public MapGenerationTable(ModelEditScreen modelES, ModelEditStage stage) {
         super(stage.skin);
@@ -134,8 +134,8 @@ public class MapGenerationTable extends HGTable {
         row();
 
         Table trrnPartTable = new Table();
-        for (ObjectMap.Entry<TerrainPart, SelectBox<FileHandle>> entry: trrnSelectBoxes) {
-            TerrainPart part = entry.key;
+        for (ObjectMap.Entry<TerrainPartsEnum, SelectBox<FileHandle>> entry: trrnSelectBoxes) {
+            TerrainPartsEnum part = entry.key;
             SelectBox<FileHandle> sb = entry.value;
 
             trrnPartTable.add(new Label(part.description + ":", stage.skin)).right();
@@ -326,10 +326,10 @@ public class MapGenerationTable extends HGTable {
         applyTerrainTextButton.addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                ArrayMap<TerrainPart, FileHandle> tp2fh =
-                        new ArrayMap<>(true, 16, TerrainPart.class, FileHandle.class);
-                for (ObjectMap.Entry<TerrainPart, SelectBox<FileHandle>> entry: trrnSelectBoxes) {
-                    TerrainPart part = entry.key;
+                ArrayMap<TerrainPartsEnum, FileHandle> tp2fh =
+                        new ArrayMap<>(true, 16, TerrainPartsEnum.class, FileHandle.class);
+                for (ObjectMap.Entry<TerrainPartsEnum, SelectBox<FileHandle>> entry: trrnSelectBoxes) {
+                    TerrainPartsEnum part = entry.key;
                     SelectBox<FileHandle> sb = entry.value;
 
                     if (sb.getItems().size == 0 || sb.getSelectedIndex() == 0) {
@@ -466,7 +466,7 @@ public class MapGenerationTable extends HGTable {
 
     public void updateTrrnSelectBoxes() {
         if (stage.folderSelectBox.getSelectedIndex() == 0) {
-            for (ObjectMap.Entry<TerrainPart, SelectBox<FileHandle>> entry: trrnSelectBoxes) {
+            for (ObjectMap.Entry<TerrainPartsEnum, SelectBox<FileHandle>> entry: trrnSelectBoxes) {
                 SelectBox<FileHandle> sb = entry.value;
 
                 sb.getSelection().setProgrammaticChangeEvents(false);
@@ -486,8 +486,8 @@ public class MapGenerationTable extends HGTable {
         System.arraycopy(array1, 0, array2, 1, array1.length);
         array2[0] = Gdx.files.local("Select Model");
 
-        for (ObjectMap.Entry<TerrainPart, SelectBox<FileHandle>> entry: trrnSelectBoxes) {
-            TerrainPart part = entry.key;
+        for (ObjectMap.Entry<TerrainPartsEnum, SelectBox<FileHandle>> entry: trrnSelectBoxes) {
+            TerrainPartsEnum part = entry.key;
             SelectBox<FileHandle> sb = entry.value;
 
             sb.getSelection().setProgrammaticChangeEvents(false);
