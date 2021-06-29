@@ -82,6 +82,7 @@ public class MapGenerationTable extends HGTable {
     public float noiseStep = 0.05f;
 
     public TextButton applyTerrainTextButton = null;
+    public TextButton clearTerrainTextButton = null;
     public ArrayMap<TerrainPart, SelectBox<FileHandle>> trrnSelectBoxes =
             new ArrayMap<>(true, 16, TerrainPart.class, SelectBox.class);
 
@@ -116,7 +117,6 @@ public class MapGenerationTable extends HGTable {
 
         Table previewCheckBoxes = new Table();
         previewCheckBoxes.add(previewNoiseGrid).center().expandX().fillX();
-        previewCheckBoxes.add(previewTerrain).center().expandX().fillX();
 
         add(previewCheckBoxes).center().expandX().fillX();
         row();
@@ -140,7 +140,11 @@ public class MapGenerationTable extends HGTable {
         add(trrnPartTable).center().expandX().fillX();
         row();
 
-        add(applyTerrainTextButton).center().expandX().fillX();
+        Table trrnTable = new Table();
+        trrnTable.add(applyTerrainTextButton).center().expandX().fillX();
+        trrnTable.add(previewTerrain).center().expandX().fillX();
+        trrnTable.add(clearTerrainTextButton).center().expandX().fillX();
+        add(trrnTable).center().expandX().fillX();
         row();
     }
 
@@ -310,6 +314,20 @@ public class MapGenerationTable extends HGTable {
                 }
 
                 eng.applyTerrainParts(tp2fh);
+
+                return super.touchDown(event, x, y, pointer, button); // false
+                // If true is returned, this listener will have touch focus, so it will receive all
+                // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
+                // Also when true is returned, the event is handled
+            }
+        });
+
+        clearTerrainTextButton = new TextButton("apply terrain parts", stage.skin);
+        stage.unpressButton(clearTerrainTextButton);
+        clearTerrainTextButton.addListener(new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                eng.clearTerrain();
 
                 return super.touchDown(event, x, y, pointer, button); // false
                 // If true is returned, this listener will have touch focus, so it will receive all
