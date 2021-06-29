@@ -98,7 +98,7 @@ public class Models {
             for (int x = 0; x < width - 1; x++) {
                 y1 = grid.get(x, z);
                 y2 = grid.get(x + 1, z);
-                y1 -= grid.mid; y1 *= grid.yScale; y2 -= grid.mid; y2 *= grid.yScale;
+                y1 *= grid.yScale; y2 *= grid.yScale;
                 //Gdx.app.debug("grid", "" + " x: " + x + " z: " + z + " y1: " + y1 + " y2: " + y2);
                 mpb.line(x, y1, z, x + 1, y2, z);
             }
@@ -109,7 +109,7 @@ public class Models {
             for (int z = 0; z < height - 1; z++) {
                 y1 = grid.get(x, z);
                 y2 = grid.get(x, z + 1);
-                y1 -= grid.mid; y1 *= grid.yScale; y2 -= grid.mid; y2 *= grid.yScale;
+                y1 *= grid.yScale; y2 *= grid.yScale;
                 mpb.line(x, y1, z, x, y2, z + 1);
             }
         }

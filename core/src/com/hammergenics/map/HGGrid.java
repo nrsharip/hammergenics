@@ -124,7 +124,8 @@ public class HGGrid extends Grid {
         noiseStages.addAll(stages);
 
         for (NoiseStageInfo stage: stages) {
-            stage.seed = noiseStage(this, noiseGenerator, stage.radius, stage.modifier);
+            if (stage.seed < 0) { stage.seed = Generators.rollSeed(); }
+            noiseStage(this, noiseGenerator, stage.radius, stage.modifier, stage.seed);
         }
 
         calculateMinMaxMid();
@@ -170,6 +171,6 @@ public class HGGrid extends Grid {
     public static class NoiseStageInfo {
         public int radius = 32;
         public float modifier = 1f;
-        public int seed = 0;
+        public int seed = -1;
     }
 }

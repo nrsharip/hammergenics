@@ -22,6 +22,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
@@ -30,6 +31,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.SelectBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
@@ -71,6 +73,8 @@ public class MapGenerationTable extends HGTable {
     public TextButton roundStepNoiseTextButton = null;
 
     public CheckBox previewNoiseGrid = null;
+    // TODO: preview image should be more general option on the stage level
+    public CheckBox previewNoiseImage = null;
     public CheckBox previewTerrain = null;
 
     public TextField noiseYScaleTF;
@@ -117,6 +121,7 @@ public class MapGenerationTable extends HGTable {
 
         Table previewCheckBoxes = new Table();
         previewCheckBoxes.add(previewNoiseGrid).center().expandX().fillX();
+        previewCheckBoxes.add(previewNoiseImage).center().expandX().fillX();
 
         add(previewCheckBoxes).center().expandX().fillX();
         row();
@@ -154,6 +159,7 @@ public class MapGenerationTable extends HGTable {
         public NoiseStageInfo stageInfo = new NoiseStageInfo();
 
         public CheckBox enabledCB;
+        public CheckBox applySeedCB;
         public TextField radiusTF;
         public TextField modifierTF;
 
@@ -191,8 +197,22 @@ public class MapGenerationTable extends HGTable {
             enabledCB = new CheckBox("enabled", stage.skin);
             enabledCB.setChecked(true);
 
+            applySeedCB = new CheckBox("apply seed", stage.skin);
+            applySeedCB.setChecked(false);
+
             noiseGridSeedTF = new TextField(Integer.toString(stageInfo.seed), stage.skin);
-            noiseGridSeedTF.setDisabled(true);
+            noiseGridSeedTF.setTextFieldListener((textField, c) -> {
+                try {
+                    int value = Integer.parseInt(textField.getText());
+                    if (value <= 0) { textField.getColor().set(Color.PINK); return; }
+                    stageInfo.seed = value;
+                    applySeedCB.setChecked(true);
+                    textField.getColor().set(Color.WHITE);
+                } catch (NumberFormatException e) {
+                    applySeedCB.setChecked(false);
+                    textField.getColor().set(Color.PINK);
+                }
+            });
 
             add(enabledCB).padRight(5f);
             add(new Label("radius:", stage.skin)).right();
@@ -201,6 +221,7 @@ public class MapGenerationTable extends HGTable {
             add(modifierTF).width(40).maxWidth(40).padRight(5f);
             add(new Label("seed:", stage.skin)).right();
             add(noiseGridSeedTF).width(200).maxWidth(200).padRight(5f);
+            add(applySeedCB).padRight(5f);
         }
     }
 
@@ -220,17 +241,21 @@ public class MapGenerationTable extends HGTable {
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 Array<NoiseStageInfo> stages = new Array<>(true, 16, NoiseStageInfo.class);
                 for (NoiseStageTable nst: noiseStageTables) {
-                    if (nst.enabledCB.isChecked()) { stages.add(nst.stageInfo); }
+                    if (nst.enabledCB.isChecked()) {
+                        if (!nst.applySeedCB.isChecked()) { nst.stageInfo.seed = -1; }
+                        stages.add(nst.stageInfo);
+                    }
                 }
                 if (stages.size == 0) { return super.touchDown(event, x, y, pointer, button); }
 
                 eng.generateNoise(noiseYScale, stages);
 
                 for (NoiseStageTable nst: noiseStageTables) {
+                    nst.noiseGridSeedTF.getColor().set(Color.WHITE);
                     nst.noiseGridSeedTF.setText(Integer.toString(nst.stageInfo.seed));
                 }
 
-                textureNoise = imageGrid(eng.gridNoise);
+                textureNoise = imageGrid(eng.gridNoise00);
                 return super.touchDown(event, x, y, pointer, button); // false
                 // If true is returned, this listener will have touch focus, so it will receive all
                 // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
@@ -245,7 +270,7 @@ public class MapGenerationTable extends HGTable {
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 eng.roundNoiseToDigits(noiseDigits);
 
-                textureNoise = imageGrid(eng.gridNoise);
+                textureNoise = imageGrid(eng.gridNoise00);
                 return super.touchDown(event, x, y, pointer, button); // false
                 // If true is returned, this listener will have touch focus, so it will receive all
                 // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
@@ -260,7 +285,7 @@ public class MapGenerationTable extends HGTable {
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 eng.roundNoiseToStep(noiseStep);
 
-                textureNoise = imageGrid(eng.gridNoise);
+                textureNoise = imageGrid(eng.gridNoise00);
                 return super.touchDown(event, x, y, pointer, button); // false
                 // If true is returned, this listener will have touch focus, so it will receive all
                 // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
@@ -322,7 +347,7 @@ public class MapGenerationTable extends HGTable {
             }
         });
 
-        clearTerrainTextButton = new TextButton("apply terrain parts", stage.skin);
+        clearTerrainTextButton = new TextButton("clear terrain", stage.skin);
         stage.unpressButton(clearTerrainTextButton);
         clearTerrainTextButton.addListener(new InputListener() {
             @Override
@@ -374,6 +399,20 @@ public class MapGenerationTable extends HGTable {
 
         previewNoiseGrid = new CheckBox("preview noise grid", stage.skin);
         previewNoiseGrid.setChecked(true);
+
+        // TODO: preview image should be more general option on the stage level
+        previewNoiseImage = new CheckBox("preview noise image", stage.skin);
+        previewNoiseImage.setChecked(true);
+        previewNoiseImage.addListener(new ChangeListener() {
+            @Override
+            public void changed (ChangeEvent event, Actor actor) {
+                if (previewNoiseImage.isChecked()) {
+                    stage.infoBCell.setActor(stage.textureImage);
+                } else {
+                    stage.infoBCell.clearActor();
+                }
+            }
+        });
 
         previewTerrain = new CheckBox("preview terrain", stage.skin);
         previewTerrain.setChecked(true);

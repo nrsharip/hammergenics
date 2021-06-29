@@ -165,8 +165,11 @@ public class ModelEditScreen extends ScreenAdapter {
         if (eng.auxMIs.size > 0) { modelBatch.render(eng.auxMIs); }
 
         if (stage.isPressed(stage.mapTextButton)) {
-            if (stage.mapGenerationTable.previewNoiseGrid.isChecked() && eng.noisePhysModelInstance != null) {
-                modelBatch.render(eng.noisePhysModelInstance);
+            if (stage.mapGenerationTable.previewNoiseGrid.isChecked() && eng.noisePhysModelInstance00 != null) {
+                modelBatch.render(eng.noisePhysModelInstance00);
+                modelBatch.render(eng.noisePhysModelInstance01);
+                modelBatch.render(eng.noisePhysModelInstance10);
+                modelBatch.render(eng.noisePhysModelInstance11);
             }
             if (stage.mapGenerationTable.previewTerrain.isChecked() && eng.terrain.size > 0) {
                 modelBatch.render(eng.terrain, environment);

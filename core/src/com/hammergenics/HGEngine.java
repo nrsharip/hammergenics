@@ -176,12 +176,23 @@ public class HGEngine implements Disposable {
     public btDispatcher dispatcher;
 
     // Map generation related:
-    public HGGrid gridNoise = new HGGrid(128, Integer.MAX_VALUE/512, Integer.MAX_VALUE/512);
+    // Integer.MAX_VALUE = 0x7fffffff = 2,147,483,647
+    // Integer.MAX_VALUE / 512 = 4,194,303
+    public final static int MAP_CENTER = Integer.MAX_VALUE / 512;
+    public final static int MAP_SIZE = 64; // amount of cells on one side of the grid
+
+    // taking size + 1 to have the actual [SIZE x SIZE] cells grid
+    // which will take [SIZE + 1 x SIZE + 1] vertex grid to define
+    public HGGrid gridNoise00 = new HGGrid(MAP_SIZE + 1, MAP_CENTER - MAP_SIZE, MAP_CENTER - MAP_SIZE);
+    public HGGrid gridNoise01 = new HGGrid(MAP_SIZE + 1, MAP_CENTER - MAP_SIZE, MAP_CENTER               );
+    public HGGrid gridNoise10 = new HGGrid(MAP_SIZE + 1, MAP_CENTER               , MAP_CENTER - MAP_SIZE);
+    public HGGrid gridNoise11 = new HGGrid(MAP_SIZE + 1, MAP_CENTER               , MAP_CENTER               );
     public HGGrid gridCellular = new HGGrid(512);
     public HGGrid gridDungeon = new HGGrid(512); // This algorithm likes odd-sized maps, although it works either way.
 
     Array<NoiseStageInfo> noiseStages = new Array<>(true, 16, NoiseStageInfo.class);
     public float yScale = 1f;
+    public float mid;
 
     // Terrain:
     public enum TerrainPart {
@@ -196,8 +207,14 @@ public class HGEngine implements Disposable {
     public Array<HGModelInstance> terrain = new Array<>(true, 16, HGModelInstance.class);
 
     // Noise Grid related:
-    public HGModel noiseHgModel = null;
-    public PhysicalModelInstance noisePhysModelInstance = null;
+    public HGModel noiseHgModel00 = null;
+    public HGModel noiseHgModel01 = null;
+    public HGModel noiseHgModel10 = null;
+    public HGModel noiseHgModel11 = null;
+    public PhysicalModelInstance noisePhysModelInstance00 = null;
+    public PhysicalModelInstance noisePhysModelInstance01 = null;
+    public PhysicalModelInstance noisePhysModelInstance10 = null;
+    public PhysicalModelInstance noisePhysModelInstance11 = null;
 
     public HGEngine(HGGame game) {
         this.game = game;
@@ -270,18 +287,28 @@ public class HGEngine implements Disposable {
         noiseStages.clear();
         noiseStages.addAll(stages);
 
-        gridNoise.generateNoise(yScale, stages);
+        gridNoise00.generateNoise(yScale, stages);
+        gridNoise01.generateNoise(yScale, stages);
+        gridNoise10.generateNoise(yScale, stages);
+        gridNoise11.generateNoise(yScale, stages);
+
         resetNoiseModelInstance();
     }
 
     public void roundNoiseToDigits(int digits) {
-        gridNoise.roundToDigits(digits);
+        gridNoise00.roundToDigits(digits);
+        gridNoise01.roundToDigits(digits);
+        gridNoise10.roundToDigits(digits);
+        gridNoise11.roundToDigits(digits);
 
         resetNoiseModelInstance();
     }
 
     public void roundNoiseToStep(float step) {
-        gridNoise.roundToStep(step);
+        gridNoise00.roundToStep(step);
+        gridNoise01.roundToStep(step);
+        gridNoise10.roundToStep(step);
+        gridNoise11.roundToStep(step);
 
         resetNoiseModelInstance();
     }
@@ -291,10 +318,35 @@ public class HGEngine implements Disposable {
     public void generateDungeon() { gridDungeon.generateDungeon(); }
 
     public void resetNoiseModelInstance() {
-        if (noiseHgModel != null) { noiseHgModel.dispose(); }
-        if (noisePhysModelInstance != null) { noisePhysModelInstance.dispose(); }
-        noiseHgModel = new HGModel(createGridModel(gridNoise));
-        noisePhysModelInstance = new PhysicalModelInstance(noiseHgModel, 0f, "grid");
+        if (noiseHgModel00 != null) { noiseHgModel00.dispose(); }
+        if (noiseHgModel01 != null) { noiseHgModel01.dispose(); }
+        if (noiseHgModel10 != null) { noiseHgModel10.dispose(); }
+        if (noiseHgModel11 != null) { noiseHgModel11.dispose(); }
+        if (noisePhysModelInstance00 != null) { noisePhysModelInstance00.dispose(); }
+        if (noisePhysModelInstance01 != null) { noisePhysModelInstance01.dispose(); }
+        if (noisePhysModelInstance10 != null) { noisePhysModelInstance10.dispose(); }
+        if (noisePhysModelInstance11 != null) { noisePhysModelInstance11.dispose(); }
+        noiseHgModel00 = new HGModel(createGridModel(gridNoise00));
+        noiseHgModel01 = new HGModel(createGridModel(gridNoise01));
+        noiseHgModel10 = new HGModel(createGridModel(gridNoise10));
+        noiseHgModel11 = new HGModel(createGridModel(gridNoise11));
+        noisePhysModelInstance00 = new PhysicalModelInstance(noiseHgModel00, 0f, "grid");
+        noisePhysModelInstance01 = new PhysicalModelInstance(noiseHgModel01, 0f, "grid");
+        noisePhysModelInstance10 = new PhysicalModelInstance(noiseHgModel10, 0f, "grid");
+        noisePhysModelInstance11 = new PhysicalModelInstance(noiseHgModel11, 0f, "grid");
+
+        mid = (float) Arrays.stream(new double[] {
+                gridNoise00.mid, gridNoise01.mid, gridNoise10.mid, gridNoise11.mid
+        }).average().orElse(0f);
+
+        noisePhysModelInstance00.transform.setToTranslation(
+                gridNoise00.x0 - MAP_CENTER, -mid * yScale, gridNoise00.z0 - MAP_CENTER);
+        noisePhysModelInstance01.transform.setToTranslation(
+                gridNoise01.x0 - MAP_CENTER, -mid * yScale, gridNoise01.z0 - MAP_CENTER);
+        noisePhysModelInstance10.transform.setToTranslation(
+                gridNoise10.x0 - MAP_CENTER, -mid * yScale, gridNoise10.z0 - MAP_CENTER);
+        noisePhysModelInstance11.transform.setToTranslation(
+                gridNoise11.x0 - MAP_CENTER, -mid * yScale, gridNoise11.z0 - MAP_CENTER);
     }
 
     public void applyTerrainParts(ArrayMap<TerrainPart, FileHandle> tp2fh) {
@@ -321,12 +373,12 @@ public class HGEngine implements Disposable {
             miSamples.put(tp, hgmi);
         }
 
-        for (int x = 1; x < gridNoise.getWidth(); x++) {
-            for (int z = 1; z < gridNoise.getHeight(); z++) {
-                float y00 = gridNoise.get(x - 1, z - 1);
-                float y01 = gridNoise.get(x - 1,     z);
-                float y10 = gridNoise.get(    x, z - 1);
-                float y11 = gridNoise.get(    x,     z);
+        for (int x = 1; x < gridNoise00.getWidth(); x++) {
+            for (int z = 1; z < gridNoise00.getHeight(); z++) {
+                float y00 = gridNoise00.get(x - 1, z - 1);
+                float y01 = gridNoise00.get(x - 1,     z);
+                float y10 = gridNoise00.get(    x, z - 1);
+                float y11 = gridNoise00.get(    x,     z);
 
                 if (y00 == y01 && y01 == y10 && y10 == y11) {
                     float posX, posY, posZ;
@@ -334,11 +386,13 @@ public class HGEngine implements Disposable {
                     HGModelInstance tmp = new HGModelInstance(tp2hgm.get(TerrainPart.TRRN_FLAT));
 
                     posX = (x - (tmp.dims.x / 2f));
-                    posY = (y00 - gridNoise.mid) * gridNoise.yScale; // * miSamples.get(TerrainPart.TRRN_SIDE).dims.y;
+                    posY = (y00 - mid) * yScale; // * miSamples.get(TerrainPart.TRRN_SIDE).dims.y;
                     posZ = (z - (tmp.dims.z / 2f));
 
                     Vector3 pos = new Vector3(posX, posY, posZ);
-                    tmp.transform.setToTranslation(pos.sub(tmp.center));
+                    tmp.transform.setToTranslation(
+                            pos.add(gridNoise00.x0 - MAP_CENTER, 0, gridNoise00.z0 - MAP_CENTER)
+                    );
 //                    Gdx.app.debug("trn", ""
 //                            + " x: " + x + " z: " + z + " dims: " + tmp.dims + " cnt: " + tmp.center
 //                            + " pos: " + pos + " tmp.transform:\n" + tmp.transform
@@ -664,8 +718,8 @@ public class HGEngine implements Disposable {
                 Vector3.Y.cpy().scl(-height/2f), new Vector3(15*overallSize, height, 15*overallSize));
         resetRigidBody(groundPhysModelInstance, FLAG_GROUND, FLAG_ALL);
 
-        if (noisePhysModelInstance != null) {
-            noisePhysModelInstance.transform.setToScaling(Vector3.Zero.cpy().add(overallSize/4f));
+        if (noisePhysModelInstance00 != null) {
+            noisePhysModelInstance00.transform.setToScaling(Vector3.Zero.cpy().add(overallSize/4f));
         }
     }
 
