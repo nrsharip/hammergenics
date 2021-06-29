@@ -365,7 +365,7 @@ public class ModelEditScreen extends ScreenAdapter {
         environment.set(ColorAttribute.createSpecular(Color.GRAY));          // min enabled
         environment.set(ColorAttribute.createReflection(Color.GRAY));        // min enabled
 //      environment.set(ColorAttribute.createEmissive(Color.GRAY));          // ! adds glowing effect  // JdxLib v1.10.0
-        environment.set(ColorAttribute.createAmbientLight(Color.DARK_GRAY)); // min enabled            // JdxLib v1.10.0
+        environment.set(ColorAttribute.createAmbientLight(Color.GRAY));      // min enabled            // JdxLib v1.10.0
         environment.set(ColorAttribute.createFog(Color.GRAY));               // min enabled            // JdxLib v1.10.0
 
         if (environment.has(DirectionalLightsAttribute.Type)) { environment.remove(DirectionalLightsAttribute.Type); }
@@ -397,7 +397,7 @@ public class ModelEditScreen extends ScreenAdapter {
         // Any remaining lights will be added to an ambient cubemap which is much less accurate.
 
         // adding a single directional light
-        environment.add(new DirectionalLight().set(Color.WHITE, -1f, -0.5f, -1f));
+        environment.add(new DirectionalLight().set(Color.LIGHT_GRAY, -1f, -0.5f, -1f));
         // TODO: revisit the commented code below (Point Light addition).
         //       Issue: when more objects are added the grid gets rescaled and point lights are no longer visible.
         // adding a single point light

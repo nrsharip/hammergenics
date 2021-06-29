@@ -184,9 +184,9 @@ public class HGEngine implements Disposable {
     // taking size + 1 to have the actual [SIZE x SIZE] cells grid
     // which will take [SIZE + 1 x SIZE + 1] vertex grid to define
     public HGGrid gridNoise00 = new HGGrid(MAP_SIZE + 1, MAP_CENTER - MAP_SIZE, MAP_CENTER - MAP_SIZE);
-    public HGGrid gridNoise01 = new HGGrid(MAP_SIZE + 1, MAP_CENTER - MAP_SIZE, MAP_CENTER               );
-    public HGGrid gridNoise10 = new HGGrid(MAP_SIZE + 1, MAP_CENTER               , MAP_CENTER - MAP_SIZE);
-    public HGGrid gridNoise11 = new HGGrid(MAP_SIZE + 1, MAP_CENTER               , MAP_CENTER               );
+    public HGGrid gridNoise01 = new HGGrid(MAP_SIZE + 1, MAP_CENTER - MAP_SIZE, MAP_CENTER           );
+    public HGGrid gridNoise10 = new HGGrid(MAP_SIZE + 1, MAP_CENTER           , MAP_CENTER - MAP_SIZE);
+    public HGGrid gridNoise11 = new HGGrid(MAP_SIZE + 1, MAP_CENTER           , MAP_CENTER           );
     public HGGrid gridCellular = new HGGrid(512);
     public HGGrid gridDungeon = new HGGrid(512); // This algorithm likes odd-sized maps, although it works either way.
 

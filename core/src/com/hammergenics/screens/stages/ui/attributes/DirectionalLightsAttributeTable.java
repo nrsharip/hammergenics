@@ -180,6 +180,6 @@ public class DirectionalLightsAttributeTable extends BaseLightsAttributeTable<Di
             dir = new Vector3(-1f, -0.5f, -1f);
         }
 
-        return new DirectionalLight().set(Color.WHITE, dir);
+        return new DirectionalLight().set(Color.LIGHT_GRAY, dir);
     }
 }
