@@ -120,6 +120,7 @@ public class HGGrid extends Grid {
 
         fill(0f);
         this.yScale = yScale;
+        this.step = -1f;
 
         noiseStages.clear();
         noiseStages.addAll(stages);

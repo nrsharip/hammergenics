@@ -281,6 +281,8 @@ public class HGEngine implements Disposable {
         if (stages.size == 0) { return; }
 
         this.yScale = yScale;
+        this.step = -1f;
+
         noiseStages.clear();
         noiseStages.addAll(stages);
 
