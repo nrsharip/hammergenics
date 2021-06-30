@@ -40,6 +40,7 @@ import com.badlogic.gdx.graphics.g3d.model.NodePart;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Plane;
 import com.badlogic.gdx.math.Plane.PlaneSide;
+import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
@@ -361,6 +362,7 @@ public class HGEngine implements Disposable {
         Array<Vector3> points = new Array<>(new Vector3[]{ new Vector3(), new Vector3(), new Vector3(), new Vector3() });
 
         Vector3 translation = new Vector3();
+        Quaternion rotation = new Quaternion();
         Vector3 scaling = new Vector3();
 
         ArrayMap<Integer, Plane> index2plane = new ArrayMap<>(Integer.class, Plane.class);
@@ -433,6 +435,13 @@ public class HGEngine implements Disposable {
 
                         float factor = yScale * gridNoise00.step/tmp.dims.y;
 
+                        rotation.idt();
+                        switch (TRRN_CORN_INN.leadingCornerI2d ^ ippoint) {
+                            case 0b01: rotation.setEulerAngles(-90, 0, 0); break;
+                            case 0b10: rotation.setEulerAngles(90, 0, 0); break;
+                            case 0b11: rotation.setEulerAngles(180, 0, 0); break;
+                        }
+
                         translation.set(points.get(0b11));
                         translation.y = points.get(ippoint).y + gridNoise00.step;
                         translation.sub(0, mid, 0).scl(1f, yScale, 1f);
@@ -440,6 +449,7 @@ public class HGEngine implements Disposable {
                         translation.add(gridNoise00.x0 - MAP_CENTER, 0, gridNoise00.z0 - MAP_CENTER);
                         scaling.set(1, factor, 1f);
                         tmp.transform.setToTranslationAndScaling(translation, scaling);
+                        tmp.transform.rotate(rotation);
                         terrain.add(tmp);
                     }
                 }

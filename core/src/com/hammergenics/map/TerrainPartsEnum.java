@@ -77,7 +77,8 @@ public enum TerrainPartsEnum {
             tmp ^= 0b010;
 
             leadingCornerV.set(sample.getBBCorner(tmp, false, cornerVs.get(tmp)));
-            leadingCornerI = tmp;
+            leadingCornerI2d = ((tmp & 0b100) >> 1) | (tmp & 0b001);
+            leadingCornerI3d = tmp;
 
             //Gdx.app.debug("TRRN_CORN_INN", "index: " + leadingCornerI + " vector: " + leadingCornerV);
             return true;
@@ -99,7 +100,8 @@ public enum TerrainPartsEnum {
     public HGModel model = null;
     public HGModelInstance sample = null;
     public Vector3 leadingCornerV = new Vector3(Vector3.Zero);
-    public int leadingCornerI = -1;
+    public int leadingCornerI2d = -1;
+    public int leadingCornerI3d = -1;
     public boolean ready = false;
 
     public boolean processFileHandle(AssetManager am, FileHandle fh) {
@@ -124,6 +126,8 @@ public enum TerrainPartsEnum {
         this.model = null;
         this.sample = null;
         this.leadingCornerV.set(Vector3.Zero);
+        this.leadingCornerI2d = -1;
+        this.leadingCornerI3d = -1;
         this.ready = false;
     }
 
