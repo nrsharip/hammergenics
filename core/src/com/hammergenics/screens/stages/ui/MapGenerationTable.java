@@ -332,9 +332,7 @@ public class MapGenerationTable extends HGTable {
                     TerrainPartsEnum part = entry.key;
                     SelectBox<FileHandle> sb = entry.value;
 
-                    if (sb.getItems().size == 0 || sb.getSelectedIndex() == 0) {
-                        return super.touchDown(event, x, y, pointer, button);
-                    }
+                    if (sb.getItems().size == 0 || sb.getSelectedIndex() == 0) { continue; }
                     tp2fh.put(part, sb.getSelected());
                 }
 

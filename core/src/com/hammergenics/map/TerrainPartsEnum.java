@@ -19,6 +19,7 @@ package com.hammergenics.map;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.math.Vector3;
 import com.hammergenics.screens.graphics.g3d.HGModel;
 import com.hammergenics.screens.graphics.g3d.HGModelInstance;
 
@@ -64,6 +65,7 @@ public enum TerrainPartsEnum {
     public FileHandle fh = null;
     public HGModel model = null;
     public HGModelInstance sample = null;
+    public Vector3 leadingCorner = new Vector3(Vector3.Zero);
     public boolean ready = false;
 
     public boolean processFileHandle(AssetManager am, FileHandle fh) {
@@ -87,6 +89,7 @@ public enum TerrainPartsEnum {
         // no need to dispose the model - should be taken care of by the asset manager
         this.model = null;
         this.sample = null;
+        this.leadingCorner.set(Vector3.Zero);
         this.ready = false;
     }
 

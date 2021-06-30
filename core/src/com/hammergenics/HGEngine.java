@@ -346,7 +346,7 @@ public class HGEngine implements Disposable {
 
         TerrainPartsEnum.clearAll();
         for (TerrainPartsEnum tp: TerrainPartsEnum.values()) {
-            if (!tp.processFileHandle(assetManager, tp2fh.get(tp))) { return; }
+            tp.processFileHandle(assetManager, tp2fh.get(tp));
         }
 
         for (int x = 1; x < gridNoise00.getWidth(); x++) {
@@ -356,13 +356,13 @@ public class HGEngine implements Disposable {
                 float y10 = gridNoise00.get(    x, z - 1);
                 float y11 = gridNoise00.get(    x,     z);
 
-                if (y00 == y01 && y01 == y10 && y10 == y11) {
+                if (TRRN_FLAT.ready && y00 == y01 && y01 == y10 && y10 == y11) {
                     float posX, posY, posZ;
 
                     HGModelInstance tmp = new HGModelInstance(TRRN_FLAT.model);
 
                     posX = (x - (tmp.dims.x / 2f));
-                    posY = (y00 - mid) * yScale;
+                    posY = (y00 - mid) * yScale - (tmp.dims.y / 2f);
                     posZ = (z - (tmp.dims.z / 2f));
 
                     Vector3 pos = new Vector3(posX, posY, posZ);
