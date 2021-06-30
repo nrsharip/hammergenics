@@ -63,6 +63,7 @@ import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
 import com.badlogic.gdx.utils.Logger;
+import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.utils.Sort;
 import com.badlogic.gdx.utils.UBJsonWriter;
 import com.hammergenics.config.Config;
@@ -351,17 +352,16 @@ public class HGEngine implements Disposable {
             tp.processFileHandle(assetManager, tp2fh.get(tp));
         }
 
-        Vector3 point00 = new Vector3();
-        Vector3 point01 = new Vector3();
-        Vector3 point10 = new Vector3();
-        Vector3 point11 = new Vector3();
+        Array<Vector3> points = new Array<>(new Vector3[]{ new Vector3(), new Vector3(), new Vector3(), new Vector3() });
 
         Vector3 position = new Vector3();
 
-        Plane pln000110 = new Plane();
-        Plane pln000111 = new Plane();
-        Plane pln001011 = new Plane();
-        Plane pln011011 = new Plane();
+        ArrayMap<Integer, Plane> index2plane = new ArrayMap<>(Integer.class, Plane.class);
+
+        index2plane.put(0b000110, new Plane());
+        index2plane.put(0b000111, new Plane());
+        index2plane.put(0b001011, new Plane());
+        index2plane.put(0b011011, new Plane());
 
         for (int x = 1; x < gridNoise00.getWidth(); x++) {
             for (int z = 1; z < gridNoise00.getHeight(); z++) {
@@ -370,27 +370,50 @@ public class HGEngine implements Disposable {
                 float y10 = gridNoise00.get(    x, z - 1);
                 float y11 = gridNoise00.get(    x,     z);
 
-                point00.set(x - 1, y00, z - 1);
-                point01.set(x - 1, y01, z    );
-                point10.set(x    , y10, z - 1);
-                point11.set(x    , y11, z    );
+                points.get(0b00).set(x - 1, y00, z - 1);
+                points.get(0b01).set(x - 1, y01, z    );
+                points.get(0b10).set(x    , y10, z - 1);
+                points.get(0b11).set(x    , y11, z    );
 
-                pln000110.set(point00, point01, point10);
+                index2plane.get(0b000110).set(points.get(0b00), points.get(0b01), points.get(0b10));
 
                 // check if all 4 points are on the same plane
-                if (pln000110.testPoint(point11) == PlaneSide.OnPlane) {
+                if (index2plane.get(0b000110).testPoint(points.get(0b11)) == PlaneSide.OnPlane) {
                     // all 4 points are on the same plane, possible options:
-                    // 1. plane is parallel to XZ - we're dealing with the flat surface
-                    if (TRRN_FLAT.ready && pln000110.normal.isOnLine(Vector3.Y)) {
+                    // 1. plane is parallel to XZ - we're dealing with the flat surface - TRRN_FLAT
+                    if (TRRN_FLAT.ready && index2plane.get(0b000110).normal.isOnLine(Vector3.Y)) {
                         HGModelInstance tmp = new HGModelInstance(TRRN_FLAT.model);
 
-                        position.set(point11);
+                        position.set(points.get(0b11));
                         position.sub(0, mid, 0).scl(1f, yScale, 1f);
                         position.sub(tmp.dims.cpy().scl(1/2f));
                         position.add(gridNoise00.x0 - MAP_CENTER, 0, gridNoise00.z0 - MAP_CENTER);
                         tmp.transform.setToTranslation(position);
                         terrain.add(tmp);
                     }
+                    // 2. plane has a tilt. The points form a rectangle - TRRN_SIDE
+                    // 3. plane has a tilt. The points form a rhombus - ?
+                } else {
+                    // 4 points form a triangle pyramid. One point triple should define a plane
+                    // which should be parallel to XZ plane (P). Let's find P.
+                    index2plane.get(0b000111).set(points.get(0b00), points.get(0b01), points.get(0b11));
+                    index2plane.get(0b001011).set(points.get(0b00), points.get(0b10), points.get(0b11));
+                    index2plane.get(0b011011).set(points.get(0b01), points.get(0b10), points.get(0b11));
+
+                    // Index of P
+                    int ip = -1;
+                    for (ObjectMap.Entry<Integer, Plane> entry: index2plane) {
+                        if (entry.value.normal.isOnLine(Vector3.Y)) { ip = entry.key; break; }
+                    }
+                    if (ip < 0) { continue; }
+
+                    // Index of Protrusive Point
+                    int ippoint = ((ip & 0b110000) >> 4) ^ ((ip & 0b1100) >> 2) ^ (ip & 0b11);
+
+                    // now as we found the plane (point triple) parallel to XZ and the protrusive point
+                    // we have the following options:
+                    // 1. The protrusive point is above P - TRRN_CORN_OUT
+                    // 2. The protrusive point is below P - TRRN_CORN_INN
                 }
             }
         }
