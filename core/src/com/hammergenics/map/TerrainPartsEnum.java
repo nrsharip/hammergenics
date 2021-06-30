@@ -56,12 +56,7 @@ public enum TerrainPartsEnum {
 
             int[] indices = {0b010, 0b011, 0b110, 0b111};
 
-            for (int i: indices) { sample.getBBCorner(i, false, cornerVs.get(i)); }
-            for (int i: indices) { model.closestVertex(cornerVs.get(i), vertexVs.get(i)); }
-
-            final ArrayMap<Integer, Float> index2distance = new ArrayMap<>(Integer.class, Float.class);
-
-            Arrays.stream(indices).forEach(i -> index2distance.put(i, cornerVs.get(i).dst2(vertexVs.get(i))));
+            if (!fillWithClosest(indices, model, sample)) { return false; }
 
             float max = Float.MIN_VALUE;
             int tmp = -1;
@@ -75,10 +70,7 @@ public enum TerrainPartsEnum {
 
             // setting the actual leading corner to be the one below the top corner with the most distance
             tmp ^= 0b010;
-
-            leadingCornerV.set(sample.getBBCorner(tmp, false, cornerVs.get(tmp)));
-            leadingCornerI2d = ((tmp & 0b100) >> 1) | (tmp & 0b001);
-            leadingCornerI3d = tmp;
+            setLeadingCorner(tmp, sample);
 
             //Gdx.app.debug("TRRN_CORN_INN", "index: " + leadingCornerI + " vector: " + leadingCornerV);
             return true;
@@ -87,7 +79,24 @@ public enum TerrainPartsEnum {
     TRRN_CORN_OUT("outer corner surface") {
         @Override
         public boolean parseMesh(HGModel model, HGModelInstance sample) {
+            // expecting one of the top BB corners to be significantly closer
+            // to the vertices than the rest three top corners
 
+            int[] indices = {0b010, 0b011, 0b110, 0b111};
+
+            if (!fillWithClosest(indices, model, sample)) { return false; }
+
+            float min = Float.MAX_VALUE;
+            int tmp = -1;
+
+            for (ObjectMap.Entry<Integer, Float> entry: index2distance) {
+                if (min > entry.value) {
+                    tmp = entry.key;
+                    min = entry.value;
+                }
+            }
+
+            setLeadingCorner(tmp, sample);
             return true;
         }
     };
@@ -103,6 +112,8 @@ public enum TerrainPartsEnum {
     public int leadingCornerI2d = -1;
     public int leadingCornerI3d = -1;
     public boolean ready = false;
+
+    protected final ArrayMap<Integer, Float> index2distance = new ArrayMap<>(Integer.class, Float.class);
 
     public boolean processFileHandle(AssetManager am, FileHandle fh) {
         HGModel model;
@@ -135,8 +146,25 @@ public enum TerrainPartsEnum {
         for (TerrainPartsEnum tp: TerrainPartsEnum.values()) { tp.clear(); }
     }
 
-    public abstract boolean parseMesh(HGModel model, HGModelInstance sample);
+    public boolean fillWithClosest(int[] indices, HGModel model, HGModelInstance sample) {
+        Vector3 result;
+        index2distance.clear();
+        for (int i: indices) { sample.getBBCorner(i, false, cornerVs.get(i)); }
+        for (int i: indices) {
+            result = model.closestVertex(cornerVs.get(i), vertexVs.get(i));
+            if (result == null) { return false; }
+        }
+        Arrays.stream(indices).forEach(i -> index2distance.put(i, cornerVs.get(i).dst2(vertexVs.get(i))));
+        return true;
+    }
 
+    public void setLeadingCorner(int index, HGModelInstance sample) {
+        leadingCornerV.set(sample.getBBCorner(index, false, cornerVs.get(index)));
+        leadingCornerI2d = ((index & 0b100) >> 1) | (index & 0b001);
+        leadingCornerI3d = index;
+    }
+
+    public abstract boolean parseMesh(HGModel model, HGModelInstance sample);
 
     private final static Array<Vector3> cornerVs = new Array<>(new Vector3[]{
             new Vector3(), new Vector3(), new Vector3(), new Vector3(),

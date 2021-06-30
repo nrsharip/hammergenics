@@ -87,6 +87,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 
 import static com.hammergenics.map.TerrainPartsEnum.TRRN_CORN_INN;
+import static com.hammergenics.map.TerrainPartsEnum.TRRN_CORN_OUT;
 import static com.hammergenics.map.TerrainPartsEnum.TRRN_FLAT;
 import static com.hammergenics.screens.graphics.g3d.utils.Models.createGridModel;
 import static com.hammergenics.screens.graphics.g3d.utils.Models.createLightsModel;
@@ -412,6 +413,9 @@ public class HGEngine implements Disposable {
                     // Index of P
                     int ip = -1;
                     for (ObjectMap.Entry<Integer, Plane> entry: index2plane) {
+                        // checking each plane if it's normal is collinear with the Y unit vector
+                        // meaning the plane is parallel to XZ. Expecting to have only one such
+                        // plane so on positive match - break the loop
                         if (entry.value.normal.isOnLine(Vector3.Y)) { ip = entry.key; break; }
                     }
                     if (ip < 0) { continue; }
@@ -425,12 +429,11 @@ public class HGEngine implements Disposable {
                         index2plane.get(ip).d *= -1f;
                     }
 
+                    PlaneSide side = index2plane.get(ip).testPoint(points.get(ippoint));
                     // now as we found the plane (points triple) parallel to XZ and the protrusive point
                     // we have the following options:
-                    // 1. The protrusive point is above P - TRRN_CORN_OUT
-                    // 2. The protrusive point is below P - TRRN_CORN_INN
-
-                    if (TRRN_CORN_INN.ready && index2plane.get(ip).testPoint(points.get(ippoint)).equals(PlaneSide.Back)) {
+                    // 1. The protrusive point is below P - TRRN_CORN_INN
+                    if (TRRN_CORN_INN.ready && side.equals(PlaneSide.Back)) {
                         HGModelInstance tmp = new HGModelInstance(TRRN_CORN_INN.model);
 
                         float factor = yScale * gridNoise00.step/tmp.dims.y;
@@ -444,6 +447,29 @@ public class HGEngine implements Disposable {
 
                         translation.set(points.get(0b11));
                         translation.y = points.get(ippoint).y + gridNoise00.step;
+                        translation.sub(0, mid, 0).scl(1f, yScale, 1f);
+                        translation.sub(tmp.dims.cpy().scl(1, factor, 1).scl(1/2f));
+                        translation.add(gridNoise00.x0 - MAP_CENTER, 0, gridNoise00.z0 - MAP_CENTER);
+                        scaling.set(1, factor, 1f);
+                        tmp.transform.setToTranslationAndScaling(translation, scaling);
+                        tmp.transform.rotate(rotation);
+                        terrain.add(tmp);
+                    }
+                    // 2. The protrusive point is above P - TRRN_CORN_OUT
+                    if (TRRN_CORN_OUT.ready && side.equals(PlaneSide.Front)) {
+                        HGModelInstance tmp = new HGModelInstance(TRRN_CORN_OUT.model);
+
+                        float factor = yScale * gridNoise00.step/tmp.dims.y;
+
+                        rotation.idt();
+                        switch (TRRN_CORN_OUT.leadingCornerI2d ^ ippoint) {
+                            case 0b01: rotation.setEulerAngles(-90, 0, 0); break;
+                            case 0b10: rotation.setEulerAngles(90, 0, 0); break;
+                            case 0b11: rotation.setEulerAngles(180, 0, 0); break;
+                        }
+
+                        translation.set(points.get(0b11));
+                        translation.y = points.get(ippoint).y;
                         translation.sub(0, mid, 0).scl(1f, yScale, 1f);
                         translation.sub(tmp.dims.cpy().scl(1, factor, 1).scl(1/2f));
                         translation.add(gridNoise00.x0 - MAP_CENTER, 0, gridNoise00.z0 - MAP_CENTER);
