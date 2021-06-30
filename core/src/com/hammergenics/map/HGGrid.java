@@ -41,6 +41,7 @@ public class HGGrid extends Grid {
     public float max;
     public float mid;
     public float yScale = 1f;
+    public float step = -1f;
     Array<NoiseStageInfo> noiseStages = new Array<>(true, 16, NoiseStageInfo.class);
 
     public HGGrid(int size) { this(size, 0, 0); }
@@ -96,7 +97,7 @@ public class HGGrid extends Grid {
 
     public void roundToStep(float step) {
         if (step >= 1f || step <= 0f) { return; }
-
+        this.step = step;
         int scale = new BigDecimal(Float.toString(step)).scale();
         for (int x = 0; x < getWidth(); x++) {
             for (int y = 0; y < getHeight(); y++) {

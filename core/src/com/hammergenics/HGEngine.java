@@ -85,6 +85,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 
+import static com.hammergenics.map.TerrainPartsEnum.TRRN_CORN_INN;
 import static com.hammergenics.map.TerrainPartsEnum.TRRN_FLAT;
 import static com.hammergenics.screens.graphics.g3d.utils.Models.createGridModel;
 import static com.hammergenics.screens.graphics.g3d.utils.Models.createLightsModel;
@@ -195,8 +196,9 @@ public class HGEngine implements Disposable {
     public HGGrid gridDungeon = new HGGrid(512); // This algorithm likes odd-sized maps, although it works either way.
 
     Array<NoiseStageInfo> noiseStages = new Array<>(true, 16, NoiseStageInfo.class);
-    public float yScale = 1f;
     public float mid;
+    public float yScale = 1f;
+    public float step = -1f;
 
     // Terrain:
     public Array<HGModelInstance> terrain = new Array<>(true, 16, HGModelInstance.class);
@@ -300,6 +302,7 @@ public class HGEngine implements Disposable {
     }
 
     public void roundNoiseToStep(float step) {
+        this.step = step;
         gridNoise00.roundToStep(step);
         gridNoise01.roundToStep(step);
         gridNoise10.roundToStep(step);
@@ -345,6 +348,7 @@ public class HGEngine implements Disposable {
     }
 
     public void applyTerrainParts(final ArrayMap<TerrainPartsEnum, FileHandle> tp2fh) {
+        if (step < 0) { return; }
         terrain.clear();
 
         TerrainPartsEnum.clearAll();
@@ -354,7 +358,8 @@ public class HGEngine implements Disposable {
 
         Array<Vector3> points = new Array<>(new Vector3[]{ new Vector3(), new Vector3(), new Vector3(), new Vector3() });
 
-        Vector3 position = new Vector3();
+        Vector3 translation = new Vector3();
+        Vector3 scaling = new Vector3();
 
         ArrayMap<Integer, Plane> index2plane = new ArrayMap<>(Integer.class, Plane.class);
 
@@ -378,17 +383,17 @@ public class HGEngine implements Disposable {
                 index2plane.get(0b000110).set(points.get(0b00), points.get(0b01), points.get(0b10));
 
                 // check if all 4 points are on the same plane
-                if (index2plane.get(0b000110).testPoint(points.get(0b11)) == PlaneSide.OnPlane) {
+                if (index2plane.get(0b000110).testPoint(points.get(0b11)).equals(PlaneSide.OnPlane)) {
                     // all 4 points are on the same plane, possible options:
                     // 1. plane is parallel to XZ - we're dealing with the flat surface - TRRN_FLAT
                     if (TRRN_FLAT.ready && index2plane.get(0b000110).normal.isOnLine(Vector3.Y)) {
                         HGModelInstance tmp = new HGModelInstance(TRRN_FLAT.model);
 
-                        position.set(points.get(0b11));
-                        position.sub(0, mid, 0).scl(1f, yScale, 1f);
-                        position.sub(tmp.dims.cpy().scl(1/2f));
-                        position.add(gridNoise00.x0 - MAP_CENTER, 0, gridNoise00.z0 - MAP_CENTER);
-                        tmp.transform.setToTranslation(position);
+                        translation.set(points.get(0b11));
+                        translation.sub(0, mid, 0).scl(1f, yScale, 1f);
+                        translation.sub(tmp.dims.cpy().scl(1/2f));
+                        translation.add(gridNoise00.x0 - MAP_CENTER, 0, gridNoise00.z0 - MAP_CENTER);
+                        tmp.transform.setToTranslation(translation);
                         terrain.add(tmp);
                     }
                     // 2. plane has a tilt. The points form a rectangle - TRRN_SIDE
@@ -410,10 +415,31 @@ public class HGEngine implements Disposable {
                     // Index of Protrusive Point
                     int ippoint = ((ip & 0b110000) >> 4) ^ ((ip & 0b1100) >> 2) ^ (ip & 0b11);
 
-                    // now as we found the plane (point triple) parallel to XZ and the protrusive point
+                    // making sure the P plane's normal points into the Y axis direction
+                    if (Vector3.Y.dot(index2plane.get(ip).normal) < 0) {
+                        index2plane.get(ip).normal.set(Vector3.Y);
+                        index2plane.get(ip).d *= -1f;
+                    }
+
+                    // now as we found the plane (points triple) parallel to XZ and the protrusive point
                     // we have the following options:
                     // 1. The protrusive point is above P - TRRN_CORN_OUT
                     // 2. The protrusive point is below P - TRRN_CORN_INN
+
+                    if (TRRN_CORN_INN.ready && index2plane.get(ip).testPoint(points.get(ippoint)).equals(PlaneSide.Back)) {
+                        HGModelInstance tmp = new HGModelInstance(TRRN_CORN_INN.model);
+
+                        float factor = yScale * gridNoise00.step/tmp.dims.y;
+
+                        translation.set(points.get(0b11));
+                        translation.y = points.get(ippoint).y + gridNoise00.step;
+                        translation.sub(0, mid, 0).scl(1f, yScale, 1f);
+                        translation.sub(tmp.dims.cpy().scl(1, factor, 1).scl(1/2f));
+                        translation.add(gridNoise00.x0 - MAP_CENTER, 0, gridNoise00.z0 - MAP_CENTER);
+                        scaling.set(1, factor, 1f);
+                        tmp.transform.setToTranslationAndScaling(translation, scaling);
+                        terrain.add(tmp);
+                    }
                 }
             }
         }
