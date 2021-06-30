@@ -38,6 +38,8 @@ import com.badlogic.gdx.graphics.g3d.environment.PointLight;
 import com.badlogic.gdx.graphics.g3d.model.Animation;
 import com.badlogic.gdx.graphics.g3d.model.NodePart;
 import com.badlogic.gdx.math.Intersector;
+import com.badlogic.gdx.math.Plane;
+import com.badlogic.gdx.math.Plane.PlaneSide;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
@@ -349,6 +351,18 @@ public class HGEngine implements Disposable {
             tp.processFileHandle(assetManager, tp2fh.get(tp));
         }
 
+        Vector3 point00 = new Vector3();
+        Vector3 point01 = new Vector3();
+        Vector3 point10 = new Vector3();
+        Vector3 point11 = new Vector3();
+
+        Vector3 position = new Vector3();
+
+        Plane pln000110 = new Plane();
+        Plane pln000111 = new Plane();
+        Plane pln001011 = new Plane();
+        Plane pln011011 = new Plane();
+
         for (int x = 1; x < gridNoise00.getWidth(); x++) {
             for (int z = 1; z < gridNoise00.getHeight(); z++) {
                 float y00 = gridNoise00.get(x - 1, z - 1);
@@ -356,24 +370,27 @@ public class HGEngine implements Disposable {
                 float y10 = gridNoise00.get(    x, z - 1);
                 float y11 = gridNoise00.get(    x,     z);
 
-                if (TRRN_FLAT.ready && y00 == y01 && y01 == y10 && y10 == y11) {
-                    float posX, posY, posZ;
+                point00.set(x - 1, y00, z - 1);
+                point01.set(x - 1, y01, z    );
+                point10.set(x    , y10, z - 1);
+                point11.set(x    , y11, z    );
 
-                    HGModelInstance tmp = new HGModelInstance(TRRN_FLAT.model);
+                pln000110.set(point00, point01, point10);
 
-                    posX = (x - (tmp.dims.x / 2f));
-                    posY = (y00 - mid) * yScale - (tmp.dims.y / 2f);
-                    posZ = (z - (tmp.dims.z / 2f));
+                // check if all 4 points are on the same plane
+                if (pln000110.testPoint(point11) == PlaneSide.OnPlane) {
+                    // all 4 points are on the same plane, possible options:
+                    // 1. plane is parallel to XZ - we're dealing with the flat surface
+                    if (TRRN_FLAT.ready && pln000110.normal.isOnLine(Vector3.Y)) {
+                        HGModelInstance tmp = new HGModelInstance(TRRN_FLAT.model);
 
-                    Vector3 pos = new Vector3(posX, posY, posZ);
-                    tmp.transform.setToTranslation(
-                            pos.add(gridNoise00.x0 - MAP_CENTER, 0, gridNoise00.z0 - MAP_CENTER)
-                    );
-//                    Gdx.app.debug("trn", ""
-//                            + " x: " + x + " z: " + z + " dims: " + tmp.dims + " cnt: " + tmp.center
-//                            + " pos: " + pos + " tmp.transform:\n" + tmp.transform
-//                    );
-                    terrain.add(tmp);
+                        position.set(point11);
+                        position.sub(0, mid, 0).scl(1f, yScale, 1f);
+                        position.sub(tmp.dims.cpy().scl(1/2f));
+                        position.add(gridNoise00.x0 - MAP_CENTER, 0, gridNoise00.z0 - MAP_CENTER);
+                        tmp.transform.setToTranslation(position);
+                        terrain.add(tmp);
+                    }
                 }
             }
         }
