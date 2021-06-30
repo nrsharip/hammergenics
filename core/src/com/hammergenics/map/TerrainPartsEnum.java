@@ -20,8 +20,13 @@ import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.ArrayMap;
+import com.badlogic.gdx.utils.ObjectMap;
 import com.hammergenics.screens.graphics.g3d.HGModel;
 import com.hammergenics.screens.graphics.g3d.HGModelInstance;
+
+import java.util.Arrays;
 
 /**
  * Add description here
@@ -43,14 +48,42 @@ public enum TerrainPartsEnum {
             return true;
         }
     },
-    TRRN_SIDE_CORN_INN("inner corner surface") {
+    TRRN_CORN_INN("inner corner surface") {
         @Override
         public boolean parseMesh(HGModel model, HGModelInstance sample) {
+            // expecting one of the top BB corners to be significantly farther
+            // from the vertices than the rest three top corners
 
+            int[] indices = {0b010, 0b011, 0b110, 0b111};
+
+            for (int i: indices) { sample.getBBCorner(i, false, cornerVs.get(i)); }
+            for (int i: indices) { model.closestVertex(cornerVs.get(i), vertexVs.get(i)); }
+
+            final ArrayMap<Integer, Float> index2distance = new ArrayMap<>(Integer.class, Float.class);
+
+            Arrays.stream(indices).forEach(i -> index2distance.put(i, cornerVs.get(i).dst2(vertexVs.get(i))));
+
+            float max = Float.MIN_VALUE;
+            int tmp = -1;
+
+            for (ObjectMap.Entry<Integer, Float> entry: index2distance) {
+                if (max < entry.value) {
+                    tmp = entry.key;
+                    max = entry.value;
+                }
+            }
+
+            // setting the actual leading corner to be the one below the top corner with the most distance
+            tmp ^= 0b010;
+
+            leadingCornerV.set(sample.getBBCorner(tmp, false, cornerVs.get(tmp)));
+            leadingCornerI = tmp;
+
+            //Gdx.app.debug("TRRN_CORN_INN", "index: " + leadingCornerI + " vector: " + leadingCornerV);
             return true;
         }
     },
-    TRRN_SIDE_CORN_OUT("outer corner surface") {
+    TRRN_CORN_OUT("outer corner surface") {
         @Override
         public boolean parseMesh(HGModel model, HGModelInstance sample) {
 
@@ -65,7 +98,8 @@ public enum TerrainPartsEnum {
     public FileHandle fh = null;
     public HGModel model = null;
     public HGModelInstance sample = null;
-    public Vector3 leadingCorner = new Vector3(Vector3.Zero);
+    public Vector3 leadingCornerV = new Vector3(Vector3.Zero);
+    public int leadingCornerI = -1;
     public boolean ready = false;
 
     public boolean processFileHandle(AssetManager am, FileHandle fh) {
@@ -89,7 +123,7 @@ public enum TerrainPartsEnum {
         // no need to dispose the model - should be taken care of by the asset manager
         this.model = null;
         this.sample = null;
-        this.leadingCorner.set(Vector3.Zero);
+        this.leadingCornerV.set(Vector3.Zero);
         this.ready = false;
     }
 
@@ -98,4 +132,15 @@ public enum TerrainPartsEnum {
     }
 
     public abstract boolean parseMesh(HGModel model, HGModelInstance sample);
+
+
+    private final static Array<Vector3> cornerVs = new Array<>(new Vector3[]{
+            new Vector3(), new Vector3(), new Vector3(), new Vector3(),
+            new Vector3(), new Vector3(), new Vector3(), new Vector3()
+    });
+
+    private final static Array<Vector3> vertexVs = new Array<>(new Vector3[]{
+            new Vector3(), new Vector3(), new Vector3(), new Vector3(),
+            new Vector3(), new Vector3(), new Vector3(), new Vector3()
+    });
 }

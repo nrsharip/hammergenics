@@ -46,8 +46,8 @@ import com.hammergenics.screens.stages.ModelEditStage;
 
 import static com.hammergenics.map.TerrainPartsEnum.TRRN_FLAT;
 import static com.hammergenics.map.TerrainPartsEnum.TRRN_SIDE;
-import static com.hammergenics.map.TerrainPartsEnum.TRRN_SIDE_CORN_INN;
-import static com.hammergenics.map.TerrainPartsEnum.TRRN_SIDE_CORN_OUT;
+import static com.hammergenics.map.TerrainPartsEnum.TRRN_CORN_INN;
+import static com.hammergenics.map.TerrainPartsEnum.TRRN_CORN_OUT;
 
 /**
  * Add description here
@@ -417,13 +417,13 @@ public class MapGenerationTable extends HGTable {
 
         trrnSelectBoxes.put(TRRN_FLAT, new SelectBox<>(stage.skin));
         trrnSelectBoxes.put(TRRN_SIDE, new SelectBox<>(stage.skin));
-        trrnSelectBoxes.put(TRRN_SIDE_CORN_INN, new SelectBox<>(stage.skin));
-        trrnSelectBoxes.put(TRRN_SIDE_CORN_OUT, new SelectBox<>(stage.skin));
+        trrnSelectBoxes.put(TRRN_CORN_INN, new SelectBox<>(stage.skin));
+        trrnSelectBoxes.put(TRRN_CORN_OUT, new SelectBox<>(stage.skin));
 
         trrnSelectBoxes.get(TRRN_FLAT).setName(TRRN_FLAT.name());
         trrnSelectBoxes.get(TRRN_SIDE).setName(TRRN_SIDE.name());
-        trrnSelectBoxes.get(TRRN_SIDE_CORN_INN).setName(TRRN_SIDE_CORN_INN.name());
-        trrnSelectBoxes.get(TRRN_SIDE_CORN_OUT).setName(TRRN_SIDE_CORN_OUT.name());
+        trrnSelectBoxes.get(TRRN_CORN_INN).setName(TRRN_CORN_INN.name());
+        trrnSelectBoxes.get(TRRN_CORN_OUT).setName(TRRN_CORN_OUT.name());
     }
 
     // see: https://github.com/czyzby/noise4j
