@@ -557,6 +557,45 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
         }
     }
 
+    public void addVerticesToRenderer(HGImmediateModeRenderer20 imr) {
+        addVerticesToRenderer(imr, Color.PINK, Color.CYAN);
+    }
+
+    public void addVerticesToRenderer(HGImmediateModeRenderer20 imr, Color cCenter, Color cVertex) {
+        Vector3 tmpV1 = new Vector3();
+        Vector3 tmpV2 = new Vector3();
+
+        //Gdx.app.debug("vertices", hgModel.getVertices().toString(","));
+        for (Vector3 vertex: hgModel.getVertices()) {
+            tmpV1.set(Vector3.Zero).mul(transform);
+            tmpV2.set(vertex).mul(transform);
+
+            //Gdx.app.debug("vertices", "vertex: " + tmpV2);
+            imr.line(tmpV1, tmpV2, cCenter, cVertex);
+        }
+    }
+
+    public void addClosestVerticesToRenderer(HGImmediateModeRenderer20 imr) {
+        addClosestVerticesToRenderer(imr, Color.BLUE, Color.GREEN);
+    }
+
+    public void addClosestVerticesToRenderer(HGImmediateModeRenderer20 imr, Color cCorner, Color cVertex) {
+        Vector3 tmpV1 = new Vector3();
+        Vector3 tmpV2 = new Vector3();
+        ArrayMap<Vector3, Vector3> corner2closest = new ArrayMap<>(Vector3.class, Vector3.class);
+        for (int corner = 0; corner < 8; corner++) {
+            getBBCorner(corner, tmpV1);
+            hgModel.closestVertex(tmpV1, tmpV2);
+            corner2closest.put(tmpV1.cpy(), tmpV2.cpy());
+        }
+
+        if (corner2closest.size != 8) { return; } // expecting all 8 corners
+
+        for (ObjectMap.Entry<Vector3, Vector3> entry: corner2closest) {
+            imr.line(entry.key.mul(transform), entry.value.mul(transform), cCorner, cVertex);
+        }
+    }
+
     public void animApplyKeyTime() { animApplyKeyTime(currKeyTime); }
 
     public void animApplyKeyTime(float keytime) {

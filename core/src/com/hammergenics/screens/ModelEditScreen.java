@@ -197,6 +197,8 @@ public class ModelEditScreen extends ScreenAdapter {
         if (stage.bonesCheckBox.isChecked()) { eng.physMIs.forEach(hgMI ->
                 hgMI.addBonesToRenderer(immediateModeRenderer, stage.invertCheckBox.isChecked())); }
         if (stage.rbCheckBox.isChecked()) { eng.physMIs.forEach(mi -> mi.addRBShapeToRenderer(immediateModeRenderer)); }
+        if (stage.verticesCheckBox.isChecked()) { eng.physMIs.forEach(mi -> mi.addVerticesToRenderer(immediateModeRenderer)); }
+        if (stage.closestCheckBox.isChecked()) { eng.physMIs.forEach(mi -> mi.addClosestVerticesToRenderer(immediateModeRenderer)); }
         immediateModeRenderer.end();
 
         checkTimerEvents(delta);

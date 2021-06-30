@@ -28,10 +28,34 @@ import com.hammergenics.screens.graphics.g3d.HGModelInstance;
  * @author nrsharip
  */
 public enum TerrainPartsEnum {
-    TRRN_FLAT("flat surface"),
-    TRRN_SIDE("side surface"),
-    TRRN_SIDE_CORN_INN("inner corner surface"),
-    TRRN_SIDE_CORN_OUT("outer corner surface");
+    TRRN_FLAT("flat surface") {
+        @Override
+        public boolean parseMesh(HGModel model, HGModelInstance sample) {
+
+            return true;
+        }
+    },
+    TRRN_SIDE("side surface") {
+        @Override
+        public boolean parseMesh(HGModel model, HGModelInstance sample) {
+
+            return true;
+        }
+    },
+    TRRN_SIDE_CORN_INN("inner corner surface") {
+        @Override
+        public boolean parseMesh(HGModel model, HGModelInstance sample) {
+
+            return true;
+        }
+    },
+    TRRN_SIDE_CORN_OUT("outer corner surface") {
+        @Override
+        public boolean parseMesh(HGModel model, HGModelInstance sample) {
+
+            return true;
+        }
+    };
 
     public String description;
 
@@ -40,25 +64,35 @@ public enum TerrainPartsEnum {
     public FileHandle fh = null;
     public HGModel model = null;
     public HGModelInstance sample = null;
+    public boolean ready = false;
 
     public boolean processFileHandle(AssetManager am, FileHandle fh) {
         HGModel model;
         if (am == null || fh == null || !am.contains(fh.path())) { return false; }
         model = new HGModel(am.get(fh.path(), Model.class), fh);
         if (!model.hasMeshes()) { return false; }
+        HGModelInstance sample = new HGModelInstance(model);
+
+        if (!parseMesh(model, sample)) { return false; }
 
         this.fh = fh;
         this.model = model;
-        sample = new HGModelInstance(model);
+        this.sample = sample;
+        this.ready = true;
         return true;
     }
 
-    public static void clearAll() {
-        for (TerrainPartsEnum tp: TerrainPartsEnum.values()) {
-            tp.fh = null;
-            // no need to dispose the model - should be taken care of by the asset manager
-            tp.model = null;
-            tp.sample = null;
-        }
+    public void clear() {
+        this.fh = null;
+        // no need to dispose the model - should be taken care of by the asset manager
+        this.model = null;
+        this.sample = null;
+        this.ready = false;
     }
+
+    public static void clearAll() {
+        for (TerrainPartsEnum tp: TerrainPartsEnum.values()) { tp.clear(); }
+    }
+
+    public abstract boolean parseMesh(HGModel model, HGModelInstance sample);
 }

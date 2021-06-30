@@ -16,15 +16,21 @@
 
 package com.hammergenics.screens.graphics.g3d;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Mesh;
+import com.badlogic.gdx.graphics.VertexAttribute;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.model.Node;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Disposable;
+
+import static com.badlogic.gdx.graphics.VertexAttributes.Usage.Position;
 
 /**
  * Add description here
@@ -42,6 +48,7 @@ public class HGModel implements Disposable {
     public FileHandle afh;
 
     public ArrayMap<Mesh, MeshData> mesh2data = new ArrayMap<>(Mesh.class, MeshData.class);
+    private Array<Vector3> vertices = new Array<>(Vector3.class);
 
     public HGModel(Model model) { this(model, null); }
 
@@ -105,5 +112,61 @@ public class HGModel implements Disposable {
             this.indices = indices;
             this.vertices = vertices;
         }
+    }
+
+    public Vector3 closestVertex(Vector3 point, Vector3 out) {
+        Array<Vector3> vertices = getVertices();
+        if (vertices.size == 0) { return null; }
+        float min = Float.MAX_VALUE;
+        float dst2;
+        for (Vector3 vertex: vertices) {
+            dst2 = point.dst2(vertex);
+            if (min > dst2) { out.set(vertex); min = dst2; }
+        }
+        //Gdx.app.debug("closest", "dist: " + min);
+        return out;
+    }
+
+    public Array<Vector3> getVertices() {
+        if (vertices.size == 0) { verticesPos(vertices); }
+        return vertices;
+    }
+
+    public Array<Vector3> verticesPos(Array<Vector3> out) {
+        // only for models with no more than one root node for now
+        if (obj.nodes.size != 1) { return out; }
+
+        Matrix4 globalTransform = obj.nodes.get(0).globalTransform;
+
+        for (Mesh mesh: obj.meshes) {
+            HGModel.MeshData meshData = mesh2data.get(mesh);
+
+            if (meshData == null) { continue; }
+
+            VertexAttributes vertexAttributes = meshData.vertexAttributes;
+            // IMPORTANT: vertex size is in bytes, float is 4 bytes long
+            int vs = vertexAttributes.vertexSize / 4;
+
+            float[] vertices = meshData.vertices;
+
+            // Attribute: Position
+            VertexAttribute vaPosition = vertexAttributes.findByUsage(Position);
+            if (vaPosition == null) { return out; }
+            int po = vaPosition.offset / 4; // NOTE: the offset is in bytes as well, see VertexAttribute.offset
+            int pn = vaPosition.numComponents;
+
+            // expecting 3 components (x, y, z) for now...
+            if (pn != 3) {
+                Gdx.app.error(getClass().getSimpleName(), "world vertices: WRONG number of components " + pn);
+                return out;
+            }
+
+            for (int i = 0; i < vertices.length/vs; i++) {
+                out.add(new Vector3(vertices[i*vs + po], vertices[i*vs + po + 1], vertices[i*vs + po + 2])
+                        .mul(globalTransform));
+            }
+        }
+
+        return out;
     }
 }

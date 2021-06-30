@@ -96,9 +96,6 @@ public class ModelEditStage extends Stage {
     public CheckBox debugStageCheckBox;
     public CheckBox gridXZCheckBox;
     public CheckBox gridYCheckBox;
-    public CheckBox dynamicsCheckBox;
-    public CheckBox rbCheckBox;
-    public CheckBox groundCheckBox;
     public CheckBox lightsCheckBox;
     public CheckBox origScaleCheckBox;
     public CheckBox bbCheckBox;
@@ -106,6 +103,11 @@ public class ModelEditStage extends Stage {
     public CheckBox bonesCheckBox;
     public CheckBox invertCheckBox;
     public CheckBox meshPartsCheckBox;
+    public CheckBox verticesCheckBox;
+    public CheckBox closestCheckBox;
+    public CheckBox dynamicsCheckBox;
+    public CheckBox rbCheckBox;
+    public CheckBox groundCheckBox;
     public SelectBox<FileHandle> folderSelectBox;
     public SelectBox<FileHandle> modelSelectBox;
     public SelectBox<String> nodeSelectBox;
@@ -225,21 +227,6 @@ public class ModelEditStage extends Stage {
         gridYCheckBox = new CheckBox("Y", skin);
         gridYCheckBox.setChecked(true);
 
-        dynamicsCheckBox = new CheckBox("dynamics", skin);
-        dynamicsCheckBox.setChecked(false);
-        dynamicsCheckBox.addListener(new ChangeListener() {
-            @Override
-            public void changed (ChangeEvent event, Actor actor) {
-                if (!dynamicsCheckBox.isChecked()) modelES.eng.arrangeInSpiral(origScaleCheckBox.isChecked());
-            }
-        });
-
-        rbCheckBox = new CheckBox("rigid body", skin);
-        rbCheckBox.setChecked(false);
-
-        groundCheckBox = new CheckBox("ground", skin);
-        groundCheckBox.setChecked(false);
-
         lightsCheckBox = new CheckBox("lights", skin);
         lightsCheckBox.setChecked(true);
 
@@ -269,6 +256,27 @@ public class ModelEditStage extends Stage {
 
         meshPartsCheckBox = new CheckBox("mesh parts", skin);
         meshPartsCheckBox.setChecked(false);
+
+        verticesCheckBox = new CheckBox("vertices (", skin);
+        verticesCheckBox.setChecked(false);
+
+        closestCheckBox = new CheckBox("closest to corners)", skin);
+        closestCheckBox.setChecked(false);
+
+        dynamicsCheckBox = new CheckBox("dynamics", skin);
+        dynamicsCheckBox.setChecked(false);
+        dynamicsCheckBox.addListener(new ChangeListener() {
+            @Override
+            public void changed (ChangeEvent event, Actor actor) {
+                if (!dynamicsCheckBox.isChecked()) modelES.eng.arrangeInSpiral(origScaleCheckBox.isChecked());
+            }
+        });
+
+        rbCheckBox = new CheckBox("rigid body", skin);
+        rbCheckBox.setChecked(false);
+
+        groundCheckBox = new CheckBox("ground", skin);
+        groundCheckBox.setChecked(false);
 
         // TEXT BUTTONS:
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textbutton
@@ -567,9 +575,6 @@ public class ModelEditStage extends Stage {
         lowerPanel.add(debugStageCheckBox).pad(3f);
         lowerPanel.add(gridXZCheckBox).pad(3f);
         lowerPanel.add(gridYCheckBox).pad(3f);
-        lowerPanel.add(dynamicsCheckBox).pad(3f);
-        lowerPanel.add(rbCheckBox).pad(3f);
-        lowerPanel.add(groundCheckBox).pad(3f);
         lowerPanel.add(lightsCheckBox).pad(3f);
         lowerPanel.add(origScaleCheckBox).pad(3f);
         // TODO: fix BB checkbox
@@ -578,6 +583,11 @@ public class ModelEditStage extends Stage {
         lowerPanel.add(bonesCheckBox);
         lowerPanel.add(invertCheckBox).pad(3f);
         lowerPanel.add(meshPartsCheckBox).pad(3f);
+        lowerPanel.add(verticesCheckBox);
+        lowerPanel.add(closestCheckBox).pad(3f);
+        lowerPanel.add(dynamicsCheckBox).pad(3f);
+        lowerPanel.add(rbCheckBox).pad(3f);
+        lowerPanel.add(groundCheckBox).pad(3f);
         lowerPanel.add(saveCurrModelTextButton).pad(3f);
         lowerPanel.add(deleteCurrModelTextButton).pad(3f);
         lowerPanel.add(clearModelsTextButton).pad(3f);

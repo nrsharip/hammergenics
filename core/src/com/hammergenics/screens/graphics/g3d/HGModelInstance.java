@@ -138,4 +138,15 @@ public class HGModelInstance extends ModelInstance implements Disposable {
         Material material = getMaterial(mtlId);
         if (material != null) { getMaterial(mtlId).set(attributes); }
     }
+
+    public Vector3 getBBCorner(int corner, Vector3 out) { return getBBCorner(corner, false, out); }
+
+    public Vector3 getBBCorner(int corner, boolean transform, Vector3 out) {
+        if (out == null) { return null; }
+        BoundingBox bb = transform ? getBB(true) : this.bb;
+        if (((corner % 8) & (1 << 2)) == 0) { out.x = bb.min.x; } else { out.x = bb.max.x; }
+        if (((corner % 8) & (1 << 1)) == 0) { out.y = bb.min.y; } else { out.y = bb.max.y; }
+        if (((corner % 8) & (1 << 0)) == 0) { out.z = bb.min.z; } else { out.z = bb.max.z; }
+        return out;
+    }
 }
