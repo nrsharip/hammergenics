@@ -38,9 +38,6 @@ import com.badlogic.gdx.graphics.g3d.environment.PointLight;
 import com.badlogic.gdx.graphics.g3d.model.Animation;
 import com.badlogic.gdx.graphics.g3d.model.NodePart;
 import com.badlogic.gdx.math.Intersector;
-import com.badlogic.gdx.math.Plane;
-import com.badlogic.gdx.math.Plane.PlaneSide;
-import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
@@ -64,12 +61,12 @@ import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
 import com.badlogic.gdx.utils.Logger;
-import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.utils.Sort;
 import com.badlogic.gdx.utils.UBJsonWriter;
 import com.hammergenics.config.Config;
 import com.hammergenics.map.HGGrid;
 import com.hammergenics.map.HGGrid.NoiseStageInfo;
+import com.hammergenics.map.TerrainChunk;
 import com.hammergenics.map.TerrainPartsEnum;
 import com.hammergenics.screens.graphics.g3d.DebugModelInstance;
 import com.hammergenics.screens.graphics.g3d.HGModel;
@@ -82,20 +79,13 @@ import com.hammergenics.utils.HGUtils;
 
 import java.io.FileFilter;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
-import java.util.Comparator;
 
-import static com.hammergenics.map.TerrainPartsEnum.TRRN_CORN_INN;
-import static com.hammergenics.map.TerrainPartsEnum.TRRN_CORN_OUT;
-import static com.hammergenics.map.TerrainPartsEnum.TRRN_FLAT;
-import static com.hammergenics.map.TerrainPartsEnum.TRRN_SIDE;
 import static com.hammergenics.screens.graphics.g3d.utils.Models.createGridModel;
 import static com.hammergenics.screens.graphics.g3d.utils.Models.createLightsModel;
 import static com.hammergenics.screens.graphics.g3d.utils.Models.createTestBox;
-import static java.math.BigDecimal.ROUND_HALF_UP;
 
 /**
  * Add description here
@@ -194,10 +184,12 @@ public class HGEngine implements Disposable {
 
     // taking size + 1 to have the actual [SIZE x SIZE] cells grid
     // which will take [SIZE + 1 x SIZE + 1] vertex grid to define
-    public HGGrid gridNoise00 = new HGGrid(MAP_SIZE + 1, MAP_CENTER - MAP_SIZE, MAP_CENTER - MAP_SIZE);
-    public HGGrid gridNoise01 = new HGGrid(MAP_SIZE + 1, MAP_CENTER - MAP_SIZE, MAP_CENTER           );
-    public HGGrid gridNoise10 = new HGGrid(MAP_SIZE + 1, MAP_CENTER           , MAP_CENTER - MAP_SIZE);
-    public HGGrid gridNoise11 = new HGGrid(MAP_SIZE + 1, MAP_CENTER           , MAP_CENTER           );
+    public Array<TerrainChunk> chunks = new Array<>(new TerrainChunk[]{
+            new TerrainChunk(MAP_SIZE + 1, MAP_CENTER - MAP_SIZE, MAP_CENTER - MAP_SIZE),
+            new TerrainChunk(MAP_SIZE + 1, MAP_CENTER - MAP_SIZE, MAP_CENTER           ),
+            new TerrainChunk(MAP_SIZE + 1, MAP_CENTER           , MAP_CENTER - MAP_SIZE),
+            new TerrainChunk(MAP_SIZE + 1, MAP_CENTER           , MAP_CENTER           )
+    });
     public HGGrid gridCellular = new HGGrid(512);
     public HGGrid gridDungeon = new HGGrid(512); // This algorithm likes odd-sized maps, although it works either way.
 
@@ -205,19 +197,6 @@ public class HGEngine implements Disposable {
     public float mid;
     public float yScale = 1f;
     public float step = -1f;
-
-    // Terrain:
-    public Array<HGModelInstance> terrain = new Array<>(true, 16, HGModelInstance.class);
-
-    // Noise Grid related:
-    public HGModel noiseHgModel00 = null;
-    public HGModel noiseHgModel01 = null;
-    public HGModel noiseHgModel10 = null;
-    public HGModel noiseHgModel11 = null;
-    public PhysicalModelInstance noisePhysModelInstance00 = null;
-    public PhysicalModelInstance noisePhysModelInstance01 = null;
-    public PhysicalModelInstance noisePhysModelInstance10 = null;
-    public PhysicalModelInstance noisePhysModelInstance11 = null;
 
     public HGEngine(HGGame game) {
         this.game = game;
@@ -265,7 +244,6 @@ public class HGEngine implements Disposable {
         dispatcher.dispose();
     }
 
-
     public void initBullet() {
         Bullet.init();
 
@@ -292,29 +270,15 @@ public class HGEngine implements Disposable {
         noiseStages.clear();
         noiseStages.addAll(stages);
 
-        gridNoise00.generateNoise(yScale, stages);
-        gridNoise01.generateNoise(yScale, stages);
-        gridNoise10.generateNoise(yScale, stages);
-        gridNoise11.generateNoise(yScale, stages);
-
-        resetNoiseModelInstance();
-    }
-
-    public void roundNoiseToDigits(int digits) {
-        gridNoise00.roundToDigits(digits);
-        gridNoise01.roundToDigits(digits);
-        gridNoise10.roundToDigits(digits);
-        gridNoise11.roundToDigits(digits);
+        for (TerrainChunk tc: chunks) { tc.generateNoise(yScale, stages); }
 
         resetNoiseModelInstance();
     }
 
     public void roundNoiseToStep(float step) {
         this.step = step;
-        gridNoise00.roundToStep(step);
-        gridNoise01.roundToStep(step);
-        gridNoise10.roundToStep(step);
-        gridNoise11.roundToStep(step);
+
+        for (TerrainChunk tc: chunks) { tc.roundNoiseToStep(step); }
 
         resetNoiseModelInstance();
     }
@@ -324,229 +288,19 @@ public class HGEngine implements Disposable {
     public void generateDungeon() { gridDungeon.generateDungeon(); }
 
     public void resetNoiseModelInstance() {
-        if (noiseHgModel00 != null) { noiseHgModel00.dispose(); }
-        if (noiseHgModel01 != null) { noiseHgModel01.dispose(); }
-        if (noiseHgModel10 != null) { noiseHgModel10.dispose(); }
-        if (noiseHgModel11 != null) { noiseHgModel11.dispose(); }
-        if (noisePhysModelInstance00 != null) { noisePhysModelInstance00.dispose(); }
-        if (noisePhysModelInstance01 != null) { noisePhysModelInstance01.dispose(); }
-        if (noisePhysModelInstance10 != null) { noisePhysModelInstance10.dispose(); }
-        if (noisePhysModelInstance11 != null) { noisePhysModelInstance11.dispose(); }
-        noiseHgModel00 = new HGModel(createGridModel(gridNoise00));
-        noiseHgModel01 = new HGModel(createGridModel(gridNoise01));
-        noiseHgModel10 = new HGModel(createGridModel(gridNoise10));
-        noiseHgModel11 = new HGModel(createGridModel(gridNoise11));
-        noisePhysModelInstance00 = new PhysicalModelInstance(noiseHgModel00, 0f, "grid");
-        noisePhysModelInstance01 = new PhysicalModelInstance(noiseHgModel01, 0f, "grid");
-        noisePhysModelInstance10 = new PhysicalModelInstance(noiseHgModel10, 0f, "grid");
-        noisePhysModelInstance11 = new PhysicalModelInstance(noiseHgModel11, 0f, "grid");
-
-        mid = (float) Arrays.stream(new double[] {
-                gridNoise00.mid, gridNoise01.mid, gridNoise10.mid, gridNoise11.mid
-        }).average().orElse(0f);
-
-        noisePhysModelInstance00.transform.setToTranslation(
-                gridNoise00.x0 - MAP_CENTER, -mid * yScale, gridNoise00.z0 - MAP_CENTER);
-        noisePhysModelInstance01.transform.setToTranslation(
-                gridNoise01.x0 - MAP_CENTER, -mid * yScale, gridNoise01.z0 - MAP_CENTER);
-        noisePhysModelInstance10.transform.setToTranslation(
-                gridNoise10.x0 - MAP_CENTER, -mid * yScale, gridNoise10.z0 - MAP_CENTER);
-        noisePhysModelInstance11.transform.setToTranslation(
-                gridNoise11.x0 - MAP_CENTER, -mid * yScale, gridNoise11.z0 - MAP_CENTER);
+        for (TerrainChunk tc: chunks) { tc.resetNoiseModelInstance(); }
     }
 
     public void applyTerrainParts(final ArrayMap<TerrainPartsEnum, FileHandle> tp2fh) {
-        if (step < 0) { return; }
-        terrain.clear();
-
         TerrainPartsEnum.clearAll();
         for (TerrainPartsEnum tp: TerrainPartsEnum.values()) {
             tp.processFileHandle(assetManager, tp2fh.get(tp));
         }
 
-        Array<Float> ys = new Array<>(true, 16, Float.class);
-        Array<Vector3> points = new Array<>(new Vector3[]{ new Vector3(), new Vector3(), new Vector3(), new Vector3() });
-
-        Vector3 translation = new Vector3();
-        Quaternion rotation = new Quaternion();
-        Vector3 scaling = new Vector3();
-
-        ArrayMap<Integer, Plane> index2plane = new ArrayMap<>(Integer.class, Plane.class);
-
-        index2plane.put(0b000110, new Plane());
-        index2plane.put(0b000111, new Plane());
-        index2plane.put(0b001011, new Plane());
-        index2plane.put(0b011011, new Plane());
-
-        int floatScale = new BigDecimal(Float.toString(gridNoise00.step)).scale();
-        for (int x = 1; x < gridNoise00.getWidth(); x++) {
-            for (int z = 1; z < gridNoise00.getHeight(); z++) {
-                ys.clear();
-                ys.addAll(
-                        gridNoise00.get(x - 1, z - 1),
-                        gridNoise00.get(x - 1,     z),
-                        gridNoise00.get(    x, z - 1),
-                        gridNoise00.get(    x,     z)
-                );
-
-                points.get(0b00).set(x - 1, ys.get(0b00), z - 1);
-                points.get(0b01).set(x - 1, ys.get(0b01), z    );
-                points.get(0b10).set(x    , ys.get(0b10), z - 1);
-                points.get(0b11).set(x    , ys.get(0b11), z    );
-
-                index2plane.get(0b000110).set(points.get(0b00), points.get(0b01), points.get(0b10));
-
-                // Getting issues with precision thus setting it here explicitly
-                float dot = index2plane.get(0b000110).normal.dot(points.get(0b11));
-                dot = BigDecimal.valueOf(dot).setScale(floatScale, ROUND_HALF_UP).floatValue();
-                float d = index2plane.get(0b000110).d;
-                d = BigDecimal.valueOf(d).setScale(floatScale, ROUND_HALF_UP).floatValue();
-
-                // check if all 4 points are on the same plane
-                if (dot + d == 0) {
-                    // all 4 points are on the same plane, possible options:
-                    // 1. plane is parallel to XZ - we're dealing with the flat surface - TRRN_FLAT
-                    if (TRRN_FLAT.ready && index2plane.get(0b000110).normal.isOnLine(Vector3.Y)) {
-                        HGModelInstance tmp = new HGModelInstance(TRRN_FLAT.model);
-
-                        translation.set(points.get(0b11));
-                        translation.sub(0, mid, 0).scl(1f, yScale, 1f);
-                        translation.sub(tmp.dims.cpy().scl(1/2f));
-                        translation.add(gridNoise00.x0 - MAP_CENTER, 0, gridNoise00.z0 - MAP_CENTER);
-                        tmp.transform.setToTranslation(translation);
-                        terrain.add(tmp);
-                        continue;
-                    } else if (index2plane.get(0b000110).normal.isOnLine(Vector3.Y)) {
-                        continue; // to make sure that no other parts are applied for flat
-                    }
-
-                    Vector3 line1 = points.get(0b01).cpy().sub(points.get(0b00));
-                    Vector3 line2 = points.get(0b10).cpy().sub(points.get(0b00));
-
-                    // 2. plane has a tilt. The points form a rectangle - TRRN_SIDE
-                    // It is sufficient to check if either of two adjacent sides of the polygon
-                    // is collinear with X or Z unit vectors. If it is the polygon is a rectangle
-                    if (TRRN_SIDE.ready && (
-                            line1.isOnLine(Vector3.X) || line1.isOnLine(Vector3.Z) ||
-                            line2.isOnLine(Vector3.X) || line2.isOnLine(Vector3.Z))) {
-
-                        Array<Float> sorted = new Array<>(ys);
-                        Sort.instance().sort(sorted, Comparator.comparingDouble(Float::doubleValue));
-
-                        int index = ys.indexOf(sorted.get(0), false);
-                        // ATTENTION: on indexOf(...) use, since the y value most likely will match precisely
-                        //            It is safer to check the next adjacent corner if it has the second greatest distance
-                        //            If not - we already got the corner of maximum index
-                        if (ys.get(HGModelInstance.getNext2dIndex(index)).equals(sorted.get(1))) {
-                            index = HGModelInstance.getNext2dIndex(index);
-                        }
-
-                        HGModelInstance tmp = new HGModelInstance(TRRN_SIDE.model);
-
-                        float factor = yScale * gridNoise00.step/tmp.dims.y;
-
-                        rotation.idt();
-                        switch (TRRN_SIDE.leadingCornerI2d ^ index) {
-                            case 0b01: rotation.setEulerAngles(90, 0, 0); break;
-                            case 0b10: rotation.setEulerAngles(-90, 0, 0); break;
-                            case 0b11: rotation.setEulerAngles(180, 0, 0); break;
-                        }
-
-                        translation.set(points.get(0b11));
-                        translation.y = points.get(index).y + gridNoise00.step;
-                        translation.sub(0, mid, 0).scl(1f, yScale, 1f);
-                        translation.sub(tmp.dims.cpy().scl(1, factor, 1).scl(1/2f));
-                        translation.add(gridNoise00.x0 - MAP_CENTER, 0, gridNoise00.z0 - MAP_CENTER);
-                        scaling.set(1, factor, 1f);
-                        tmp.transform.setToTranslationAndScaling(translation, scaling);
-                        tmp.transform.rotate(rotation);
-                        terrain.add(tmp);
-                        continue;
-                    }
-                    // 3. plane has a tilt. The points form a rhombus - ?
-                } else {
-                    // 4 points form a triangle pyramid. One point triple should define a plane
-                    // which should be parallel to XZ plane (P). Let's find P.
-                    index2plane.get(0b000111).set(points.get(0b00), points.get(0b01), points.get(0b11));
-                    index2plane.get(0b001011).set(points.get(0b00), points.get(0b10), points.get(0b11));
-                    index2plane.get(0b011011).set(points.get(0b01), points.get(0b10), points.get(0b11));
-
-                    // Index of P
-                    int ip = -1;
-                    for (ObjectMap.Entry<Integer, Plane> entry: index2plane) {
-                        // checking each plane if it's normal is collinear with the Y unit vector
-                        // meaning the plane is parallel to XZ. Expecting to have only one such
-                        // plane so on positive match - break the loop
-                        if (entry.value.normal.isOnLine(Vector3.Y)) { ip = entry.key; break; }
-                    }
-                    if (ip < 0) { continue; }
-
-                    // Index of Protrusive Point
-                    int ippoint = ((ip & 0b110000) >> 4) ^ ((ip & 0b1100) >> 2) ^ (ip & 0b11);
-
-                    // making sure the P plane's normal points into the Y axis direction
-                    if (Vector3.Y.dot(index2plane.get(ip).normal) < 0) {
-                        index2plane.get(ip).normal.set(Vector3.Y);
-                        index2plane.get(ip).d *= -1f;
-                    }
-
-                    PlaneSide side = index2plane.get(ip).testPoint(points.get(ippoint));
-                    // now as we found the plane (points triple) parallel to XZ and the protrusive point
-                    // we have the following options:
-                    // 1. The protrusive point is below P - TRRN_CORN_INN
-                    if (TRRN_CORN_INN.ready && side.equals(PlaneSide.Back)) {
-                        HGModelInstance tmp = new HGModelInstance(TRRN_CORN_INN.model);
-
-                        float factor = yScale * gridNoise00.step/tmp.dims.y;
-
-                        rotation.idt();
-                        switch (TRRN_CORN_INN.leadingCornerI2d ^ ippoint) {
-                            case 0b01: rotation.setEulerAngles(-90, 0, 0); break;
-                            case 0b10: rotation.setEulerAngles(90, 0, 0); break;
-                            case 0b11: rotation.setEulerAngles(180, 0, 0); break;
-                        }
-
-                        translation.set(points.get(0b11));
-                        translation.y = points.get(ippoint).y + gridNoise00.step;
-                        translation.sub(0, mid, 0).scl(1f, yScale, 1f);
-                        translation.sub(tmp.dims.cpy().scl(1, factor, 1).scl(1/2f));
-                        translation.add(gridNoise00.x0 - MAP_CENTER, 0, gridNoise00.z0 - MAP_CENTER);
-                        scaling.set(1, factor, 1f);
-                        tmp.transform.setToTranslationAndScaling(translation, scaling);
-                        tmp.transform.rotate(rotation);
-                        terrain.add(tmp);
-                        continue;
-                    }
-                    // 2. The protrusive point is above P - TRRN_CORN_OUT
-                    if (TRRN_CORN_OUT.ready && side.equals(PlaneSide.Front)) {
-                        HGModelInstance tmp = new HGModelInstance(TRRN_CORN_OUT.model);
-
-                        float factor = yScale * gridNoise00.step/tmp.dims.y;
-
-                        rotation.idt();
-                        switch (TRRN_CORN_OUT.leadingCornerI2d ^ ippoint) {
-                            case 0b01: rotation.setEulerAngles(-90, 0, 0); break;
-                            case 0b10: rotation.setEulerAngles(90, 0, 0); break;
-                            case 0b11: rotation.setEulerAngles(180, 0, 0); break;
-                        }
-
-                        translation.set(points.get(0b11));
-                        translation.y = points.get(ippoint).y;
-                        translation.sub(0, mid, 0).scl(1f, yScale, 1f);
-                        translation.sub(tmp.dims.cpy().scl(1, factor, 1).scl(1/2f));
-                        translation.add(gridNoise00.x0 - MAP_CENTER, 0, gridNoise00.z0 - MAP_CENTER);
-                        scaling.set(1, factor, 1f);
-                        tmp.transform.setToTranslationAndScaling(translation, scaling);
-                        tmp.transform.rotate(rotation);
-                        terrain.add(tmp);
-                        continue;
-                    }
-                }
-            }
-        }
+        for (TerrainChunk tc: chunks) { tc.applyTerrainParts(); }
     }
 
-    public void clearTerrain() { terrain.clear(); }
+    public void clearTerrain() { for (TerrainChunk tc: chunks) { tc.clearTerrain(); } }
 
     public void queueAssets(FileHandle rootFileHandle) {
         assetsLoaded = false;
@@ -860,10 +614,6 @@ public class HGEngine implements Disposable {
         groundPhysModelInstance.transform.setToTranslationAndScaling(
                 Vector3.Y.cpy().scl(-height/2f), new Vector3(15*overallSize, height, 15*overallSize));
         resetRigidBody(groundPhysModelInstance, FLAG_GROUND, FLAG_ALL);
-
-        if (noisePhysModelInstance00 != null) {
-            noisePhysModelInstance00.transform.setToScaling(Vector3.Zero.cpy().add(overallSize/4f));
-        }
     }
 
     public void addRigidBody(PhysicalModelInstance mi, int group, int mask) {

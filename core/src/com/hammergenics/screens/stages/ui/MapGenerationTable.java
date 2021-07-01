@@ -69,7 +69,6 @@ public class MapGenerationTable extends HGTable {
     public Texture textureDungeon;
 
     public Array<NoiseStageTable> noiseStageTables = new Array<>(true, 16, NoiseStageTable.class);
-    public TextButton roundDigitsNoiseTextButton = null;
     public TextButton roundStepNoiseTextButton = null;
 
     public CheckBox previewNoiseGrid = null;
@@ -78,11 +77,9 @@ public class MapGenerationTable extends HGTable {
     public CheckBox previewTerrain = null;
 
     public TextField noiseYScaleTF;
-    public TextField noiseDigitsTF;
     public TextField noiseStepTF;
 
     public float noiseYScale = 20f;
-    public int noiseDigits = 5;
     public float noiseStep = 0.05f;
 
     public TextButton applyTerrainTextButton = null;
@@ -111,10 +108,6 @@ public class MapGenerationTable extends HGTable {
         noiseGridTable.add(new Label("step:", stage.skin)).right();
         noiseGridTable.add(noiseStepTF).width(60).maxWidth(60).padRight(5f);
         noiseGridTable.add(roundStepNoiseTextButton).center().expandX().fillX();
-
-        noiseGridTable.add(new Label("digits:", stage.skin)).right();
-        noiseGridTable.add(noiseDigitsTF).width(60).maxWidth(60).padRight(5f);
-        noiseGridTable.add(roundDigitsNoiseTextButton).center().expandX().fillX();
 
         add(noiseGridTable).center().expandX().fillX();
         row();
@@ -255,22 +248,7 @@ public class MapGenerationTable extends HGTable {
                     nst.noiseGridSeedTF.setText(Integer.toString(nst.stageInfo.seed));
                 }
 
-                textureNoise = imageGrid(eng.gridNoise00);
-                return super.touchDown(event, x, y, pointer, button); // false
-                // If true is returned, this listener will have touch focus, so it will receive all
-                // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
-                // Also when true is returned, the event is handled
-            }
-        });
-
-        roundDigitsNoiseTextButton = new TextButton("round: digits", stage.skin);
-        stage.unpressButton(roundDigitsNoiseTextButton);
-        roundDigitsNoiseTextButton.addListener(new InputListener() {
-            @Override
-            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                eng.roundNoiseToDigits(noiseDigits);
-
-                textureNoise = imageGrid(eng.gridNoise00);
+                //textureNoise = imageGrid(eng.gridNoise00);
                 return super.touchDown(event, x, y, pointer, button); // false
                 // If true is returned, this listener will have touch focus, so it will receive all
                 // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
@@ -285,7 +263,7 @@ public class MapGenerationTable extends HGTable {
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 eng.roundNoiseToStep(noiseStep);
 
-                textureNoise = imageGrid(eng.gridNoise00);
+                //textureNoise = imageGrid(eng.gridNoise00);
                 return super.touchDown(event, x, y, pointer, button); // false
                 // If true is returned, this listener will have touch focus, so it will receive all
                 // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
@@ -365,18 +343,6 @@ public class MapGenerationTable extends HGTable {
                 float value = Float.parseFloat(textField.getText());
                 if (value <= 0) { textField.getColor().set(Color.PINK); return; }
                 noiseYScale = value;
-                textField.getColor().set(Color.WHITE);
-            } catch (NumberFormatException e) {
-                textField.getColor().set(Color.PINK);
-            }
-        });
-
-        noiseDigitsTF = new TextField(Integer.toString(noiseDigits), stage.skin);
-        noiseDigitsTF.setTextFieldListener((textField, c) -> {
-            try {
-                int value = Integer.parseInt(textField.getText());
-                if (value <= 0) { textField.getColor().set(Color.PINK); return; }
-                noiseDigits = value;
                 textField.getColor().set(Color.WHITE);
             } catch (NumberFormatException e) {
                 textField.getColor().set(Color.PINK);

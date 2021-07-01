@@ -36,6 +36,7 @@ import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.hammergenics.HGEngine;
 import com.hammergenics.HGGame;
+import com.hammergenics.map.TerrainChunk;
 import com.hammergenics.screens.graphics.g3d.PhysicalModelInstance;
 import com.hammergenics.screens.graphics.g3d.utils.ModelEditInputController;
 import com.hammergenics.screens.graphics.glutils.HGImmediateModeRenderer20;
@@ -164,15 +165,16 @@ public class ModelEditScreen extends ScreenAdapter {
         if (eng.physMIs.size > 0 && environment != null) { modelBatch.render(eng.physMIs, environment); }
         if (eng.auxMIs.size > 0) { modelBatch.render(eng.auxMIs); }
 
-        if (stage.isPressed(stage.mapTextButton)) {
-            if (stage.mapGenerationTable.previewNoiseGrid.isChecked() && eng.noisePhysModelInstance00 != null) {
-                modelBatch.render(eng.noisePhysModelInstance00);
-                modelBatch.render(eng.noisePhysModelInstance01);
-                modelBatch.render(eng.noisePhysModelInstance10);
-                modelBatch.render(eng.noisePhysModelInstance11);
+        if (stage.isPressed(stage.mapTextButton) && eng.chunks.size > 0) {
+            if (stage.mapGenerationTable.previewNoiseGrid.isChecked()) {
+                for (TerrainChunk tc: eng.chunks) {
+                    if (tc.noisePhysModelInstance != null) { modelBatch.render(tc.noisePhysModelInstance, environment); }
+                }
             }
-            if (stage.mapGenerationTable.previewTerrain.isChecked() && eng.terrain.size > 0) {
-                modelBatch.render(eng.terrain, environment);
+            if (stage.mapGenerationTable.previewTerrain.isChecked()) {
+                for (TerrainChunk tc: eng.chunks) {
+                    modelBatch.render(tc.terrain, environment);
+                }
             }
         } else {
             if (eng.gridXZHgModelInstance != null && stage.gridXZCheckBox.isChecked()) {
