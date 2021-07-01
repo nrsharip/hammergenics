@@ -82,16 +82,20 @@ import com.hammergenics.utils.HGUtils;
 
 import java.io.FileFilter;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.Comparator;
 
 import static com.hammergenics.map.TerrainPartsEnum.TRRN_CORN_INN;
 import static com.hammergenics.map.TerrainPartsEnum.TRRN_CORN_OUT;
 import static com.hammergenics.map.TerrainPartsEnum.TRRN_FLAT;
+import static com.hammergenics.map.TerrainPartsEnum.TRRN_SIDE;
 import static com.hammergenics.screens.graphics.g3d.utils.Models.createGridModel;
 import static com.hammergenics.screens.graphics.g3d.utils.Models.createLightsModel;
 import static com.hammergenics.screens.graphics.g3d.utils.Models.createTestBox;
+import static java.math.BigDecimal.ROUND_HALF_UP;
 
 /**
  * Add description here
@@ -360,6 +364,7 @@ public class HGEngine implements Disposable {
             tp.processFileHandle(assetManager, tp2fh.get(tp));
         }
 
+        Array<Float> ys = new Array<>(true, 16, Float.class);
         Array<Vector3> points = new Array<>(new Vector3[]{ new Vector3(), new Vector3(), new Vector3(), new Vector3() });
 
         Vector3 translation = new Vector3();
@@ -373,22 +378,38 @@ public class HGEngine implements Disposable {
         index2plane.put(0b001011, new Plane());
         index2plane.put(0b011011, new Plane());
 
+        int floatScale = new BigDecimal(Float.toString(gridNoise00.step)).scale();
         for (int x = 1; x < gridNoise00.getWidth(); x++) {
             for (int z = 1; z < gridNoise00.getHeight(); z++) {
-                float y00 = gridNoise00.get(x - 1, z - 1);
-                float y01 = gridNoise00.get(x - 1,     z);
-                float y10 = gridNoise00.get(    x, z - 1);
-                float y11 = gridNoise00.get(    x,     z);
+                ys.clear();
+                ys.addAll(
+                        gridNoise00.get(x - 1, z - 1),
+                        gridNoise00.get(x - 1,     z),
+                        gridNoise00.get(    x, z - 1),
+                        gridNoise00.get(    x,     z)
+                );
 
-                points.get(0b00).set(x - 1, y00, z - 1);
-                points.get(0b01).set(x - 1, y01, z    );
-                points.get(0b10).set(x    , y10, z - 1);
-                points.get(0b11).set(x    , y11, z    );
+                points.get(0b00).set(x - 1, ys.get(0b00), z - 1);
+                points.get(0b01).set(x - 1, ys.get(0b01), z    );
+                points.get(0b10).set(x    , ys.get(0b10), z - 1);
+                points.get(0b11).set(x    , ys.get(0b11), z    );
 
                 index2plane.get(0b000110).set(points.get(0b00), points.get(0b01), points.get(0b10));
 
+                // making sure the plane's normal points into the Y axis direction
+                if (Vector3.Y.dot(index2plane.get(0b000110).normal) < 0) {
+                    index2plane.get(0b000110).normal.set(Vector3.Y);
+                    index2plane.get(0b000110).d *= -1f;
+                }
+
+                // Getting issues with precision thus setting it here explicitly
+                float dot = index2plane.get(0b000110).normal.dot(points.get(0b11));
+                dot = BigDecimal.valueOf(dot).setScale(floatScale, ROUND_HALF_UP).floatValue();
+                float d = index2plane.get(0b000110).d;
+                d = BigDecimal.valueOf(d).setScale(floatScale, ROUND_HALF_UP).floatValue();
+
                 // check if all 4 points are on the same plane
-                if (index2plane.get(0b000110).testPoint(points.get(0b11)).equals(PlaneSide.OnPlane)) {
+                if (dot + d == 0) {
                     // all 4 points are on the same plane, possible options:
                     // 1. plane is parallel to XZ - we're dealing with the flat surface - TRRN_FLAT
                     if (TRRN_FLAT.ready && index2plane.get(0b000110).normal.isOnLine(Vector3.Y)) {
@@ -400,8 +421,54 @@ public class HGEngine implements Disposable {
                         translation.add(gridNoise00.x0 - MAP_CENTER, 0, gridNoise00.z0 - MAP_CENTER);
                         tmp.transform.setToTranslation(translation);
                         terrain.add(tmp);
+                        continue;
+                    } else if (index2plane.get(0b000110).normal.isOnLine(Vector3.Y)) {
+                        continue; // to make sure that no other parts are applied for flat
                     }
+
+                    Vector3 line1 = points.get(0b01).cpy().sub(points.get(0b00));
+                    Vector3 line2 = points.get(0b10).cpy().sub(points.get(0b00));
+
                     // 2. plane has a tilt. The points form a rectangle - TRRN_SIDE
+                    // It is sufficient to check if either of two adjacent sides of the polygon
+                    // is collinear with X or Z unit vectors. If it is the polygon is a rectangle
+                    if (TRRN_SIDE.ready && (
+                            line1.isOnLine(Vector3.X) || line1.isOnLine(Vector3.Z) ||
+                            line2.isOnLine(Vector3.X) || line2.isOnLine(Vector3.Z))) {
+
+                        Array<Float> sorted = new Array<>(ys);
+                        Sort.instance().sort(sorted, Comparator.comparingDouble(Float::doubleValue));
+
+                        int index = ys.indexOf(sorted.get(0), false);
+                        // ATTENTION: on indexOf(...) use, since the y value most likely will match precisely
+                        //            It is safer to check the next adjacent corner if it has the second greatest distance
+                        //            If not - we already got the corner of maximum index
+                        if (ys.get(HGModelInstance.getNext2dIndex(index)).equals(sorted.get(1))) {
+                            index = HGModelInstance.getNext2dIndex(index);
+                        }
+
+                        HGModelInstance tmp = new HGModelInstance(TRRN_SIDE.model);
+
+                        float factor = yScale * gridNoise00.step/tmp.dims.y;
+
+                        rotation.idt();
+                        switch (TRRN_SIDE.leadingCornerI2d ^ index) {
+                            case 0b01: rotation.setEulerAngles(90, 0, 0); break;
+                            case 0b10: rotation.setEulerAngles(-90, 0, 0); break;
+                            case 0b11: rotation.setEulerAngles(180, 0, 0); break;
+                        }
+
+                        translation.set(points.get(0b11));
+                        translation.y = points.get(index).y + gridNoise00.step;
+                        translation.sub(0, mid, 0).scl(1f, yScale, 1f);
+                        translation.sub(tmp.dims.cpy().scl(1, factor, 1).scl(1/2f));
+                        translation.add(gridNoise00.x0 - MAP_CENTER, 0, gridNoise00.z0 - MAP_CENTER);
+                        scaling.set(1, factor, 1f);
+                        tmp.transform.setToTranslationAndScaling(translation, scaling);
+                        tmp.transform.rotate(rotation);
+                        terrain.add(tmp);
+                        continue;
+                    }
                     // 3. plane has a tilt. The points form a rhombus - ?
                 } else {
                     // 4 points form a triangle pyramid. One point triple should define a plane
@@ -454,6 +521,7 @@ public class HGEngine implements Disposable {
                         tmp.transform.setToTranslationAndScaling(translation, scaling);
                         tmp.transform.rotate(rotation);
                         terrain.add(tmp);
+                        continue;
                     }
                     // 2. The protrusive point is above P - TRRN_CORN_OUT
                     if (TRRN_CORN_OUT.ready && side.equals(PlaneSide.Front)) {
@@ -477,6 +545,7 @@ public class HGEngine implements Disposable {
                         tmp.transform.setToTranslationAndScaling(translation, scaling);
                         tmp.transform.rotate(rotation);
                         terrain.add(tmp);
+                        continue;
                     }
                 }
             }

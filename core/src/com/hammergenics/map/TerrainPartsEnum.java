@@ -23,10 +23,12 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.ObjectMap;
+import com.badlogic.gdx.utils.Sort;
 import com.hammergenics.screens.graphics.g3d.HGModel;
 import com.hammergenics.screens.graphics.g3d.HGModelInstance;
 
 import java.util.Arrays;
+import java.util.Comparator;
 
 /**
  * Add description here
@@ -44,7 +46,28 @@ public enum TerrainPartsEnum {
     TRRN_SIDE("side surface") {
         @Override
         public boolean parseMesh(HGModel model, HGModelInstance sample) {
+            // expecting two adjacent top BB corners to be significantly farther
+            // from the vertices than the the other two adjacent top corners
 
+            Array<Integer> indices = new Array<>(new Integer[]{0b010, 0b011, 0b110, 0b111});
+
+            if (!fillWithClosest(indices, model, sample)) { return false; }
+
+            Array<Float> distances = new Array<>(index2distance.values().toArray());
+
+            Sort.instance().sort(distances, Comparator.comparingDouble(Float::doubleValue).reversed());
+
+            int tmp;
+            tmp = index2distance.indexOfValue(distances.get(0), false);
+            tmp = index2distance.getKeyAt(tmp);
+            // ATTENTION: on indexOfValue(distances...) use, since the distances can match precisely
+            //            It is safer to check the next adjacent corner if it has the second greatest distance
+            //            If not - we already got the corner of maximum index
+            if (index2distance.get(HGModelInstance.getNext3dIndex(tmp)).equals(distances.get(1))) {
+                tmp = HGModelInstance.getNext3dIndex(tmp);
+            }
+
+            setLeadingCorner(tmp, sample);
             return true;
         }
     },
@@ -54,7 +77,7 @@ public enum TerrainPartsEnum {
             // expecting one of the top BB corners to be significantly farther
             // from the vertices than the rest three top corners
 
-            int[] indices = {0b010, 0b011, 0b110, 0b111};
+            Array<Integer> indices = new Array<>(new Integer[]{0b010, 0b011, 0b110, 0b111});
 
             if (!fillWithClosest(indices, model, sample)) { return false; }
 
@@ -82,7 +105,7 @@ public enum TerrainPartsEnum {
             // expecting one of the top BB corners to be significantly closer
             // to the vertices than the rest three top corners
 
-            int[] indices = {0b010, 0b011, 0b110, 0b111};
+            Array<Integer> indices = new Array<>(new Integer[]{0b010, 0b011, 0b110, 0b111});
 
             if (!fillWithClosest(indices, model, sample)) { return false; }
 
@@ -146,7 +169,7 @@ public enum TerrainPartsEnum {
         for (TerrainPartsEnum tp: TerrainPartsEnum.values()) { tp.clear(); }
     }
 
-    public boolean fillWithClosest(int[] indices, HGModel model, HGModelInstance sample) {
+    public boolean fillWithClosest(Array<Integer> indices, HGModel model, HGModelInstance sample) {
         Vector3 result;
         index2distance.clear();
         for (int i: indices) { sample.getBBCorner(i, false, cornerVs.get(i)); }
@@ -154,7 +177,7 @@ public enum TerrainPartsEnum {
             result = model.closestVertex(cornerVs.get(i), vertexVs.get(i));
             if (result == null) { return false; }
         }
-        Arrays.stream(indices).forEach(i -> index2distance.put(i, cornerVs.get(i).dst2(vertexVs.get(i))));
+        Arrays.stream(indices.toArray()).forEach(i -> index2distance.put(i, cornerVs.get(i).dst2(vertexVs.get(i))));
         return true;
     }
 

@@ -26,6 +26,7 @@ import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 
 /**
@@ -43,6 +44,8 @@ public class HGModelInstance extends ModelInstance implements Disposable {
      * root node ids
      */
     public String[] rni;
+
+    public static final Array<Integer> indices2d = new Array<>(new Integer[]{0b00, 0b01, 0b11, 0b10});
 
     private final BoundingBox bb = new BoundingBox();
     public Vector3 center = new Vector3();
@@ -148,5 +151,14 @@ public class HGModelInstance extends ModelInstance implements Disposable {
         if (((corner % 8) & (1 << 1)) == 0) { out.y = bb.min.y; } else { out.y = bb.max.y; }
         if (((corner % 8) & (1 << 0)) == 0) { out.z = bb.min.z; } else { out.z = bb.max.z; }
         return out;
+    }
+
+    public static int getNext2dIndex(int ind2d) {
+        return indices2d.get((indices2d.indexOf(ind2d, false) + 1) & 0b11);
+    }
+    public static int getNext3dIndex(int ind3d) {
+        int ind2d = ((ind3d & 0b100) >> 1) | (ind3d & 0b001);
+        ind2d = getNext2dIndex(ind2d);
+        return ((ind2d & 0b10) << 1) | (ind3d & 0b010) | (ind2d & 0b01);
     }
 }
