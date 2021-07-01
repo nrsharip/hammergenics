@@ -263,4 +263,22 @@ public class TerrainChunk {
     }
 
     public void clearTerrain() { terrain.clear(); }
+
+    public void trn(float x, float y, float z) {
+        trnNoisePhysModelInstance(x, y, z);
+        trnTerrain(x, y, z);
+    }
+
+    public void trnNoisePhysModelInstance(float x, float y, float z) {
+        if (noisePhysModelInstance == null) { return; }
+
+        noisePhysModelInstance.transform.trn(x, y, z);
+    }
+
+    public void trnTerrain(float x, float y, float z) {
+        if (terrain.size == 0) { return; }
+
+        for (HGModelInstance mi: terrain) { mi.transform.trn(x, y, z); }
+    }
+
 }

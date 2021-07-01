@@ -272,7 +272,7 @@ public class HGEngine implements Disposable {
 
         for (TerrainChunk tc: chunks) { tc.generateNoise(yScale, stages); }
 
-        resetNoiseModelInstance();
+        resetChunks();
     }
 
     public void roundNoiseToStep(float step) {
@@ -280,15 +280,22 @@ public class HGEngine implements Disposable {
 
         for (TerrainChunk tc: chunks) { tc.roundNoiseToStep(step); }
 
-        resetNoiseModelInstance();
+        resetChunks();
     }
 
     public void generateCellular() { gridCellular.generateCellular(); }
 
     public void generateDungeon() { gridDungeon.generateDungeon(); }
 
-    public void resetNoiseModelInstance() {
+    public void resetChunks() {
         for (TerrainChunk tc: chunks) { tc.resetNoiseModelInstance(); }
+
+        mid = (float) Arrays.stream(chunks.toArray())
+                .map(TerrainChunk::getGridNoise)
+                .mapToDouble(HGGrid::getMid)
+                .average().orElse(0f);
+
+        for (TerrainChunk tc: chunks) { tc.trn(0f, -mid * tc.gridNoise.yScale, 0f); }
     }
 
     public void applyTerrainParts(final ArrayMap<TerrainPartsEnum, FileHandle> tp2fh) {
@@ -298,6 +305,8 @@ public class HGEngine implements Disposable {
         }
 
         for (TerrainChunk tc: chunks) { tc.applyTerrainParts(); }
+
+        resetChunks();
     }
 
     public void clearTerrain() { for (TerrainChunk tc: chunks) { tc.clearTerrain(); } }

@@ -77,6 +77,7 @@ public class HGGrid extends Grid {
     public int getX0(boolean adjCenter) { return adjCenter ? x0 - MAP_CENTER : x0; }
     public int getZ0() { return getZ0(true); }
     public int getZ0(boolean adjCenter) { return adjCenter ? z0 - MAP_CENTER : z0; }
+    public float getMid() { return mid; }
 
     public static Rectangle getCombinedBounds(Array<HGGrid> grids, Rectangle out) {
         if (out == null) { return null; }
