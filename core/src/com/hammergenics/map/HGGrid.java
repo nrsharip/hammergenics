@@ -16,6 +16,7 @@
 
 package com.hammergenics.map;
 
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
 import com.github.czyzby.noise4j.map.Grid;
 import com.github.czyzby.noise4j.map.generator.cellular.CellularAutomataGenerator;
@@ -26,6 +27,7 @@ import com.github.czyzby.noise4j.map.generator.util.Generators;
 import java.math.BigDecimal;
 import java.util.Arrays;
 
+import static com.hammergenics.HGEngine.MAP_CENTER;
 import static java.math.BigDecimal.ROUND_HALF_UP;
 
 /**
@@ -70,6 +72,26 @@ public class HGGrid extends Grid {
 
     @Override
     public int toY(int index) { return super.toY(index) + z0; }
+
+    public int getX0() { return getX0(true); }
+    public int getX0(boolean adjCenter) { return adjCenter ? x0 - MAP_CENTER : x0; }
+    public int getZ0() { return getZ0(true); }
+    public int getZ0(boolean adjCenter) { return adjCenter ? z0 - MAP_CENTER : z0; }
+
+    public static Rectangle getCombinedBounds(Array<HGGrid> grids, Rectangle out) {
+        if (out == null) { return null; }
+        int x0 = Integer.MAX_VALUE; int z0 = Integer.MAX_VALUE;
+        int x1 = Integer.MIN_VALUE; int z1 = Integer.MIN_VALUE;
+        for (HGGrid grid: grids) {
+            if (x0 > grid.getX0()) { x0 = grid.getX0(); }
+            if (z0 > grid.getZ0()) { z0 = grid.getZ0(); }
+
+            if (x1 < grid.getX0() + grid.getWidth()) { x1 = grid.getX0() + grid.getWidth(); }
+            if (z1 < grid.getZ0() + grid.getHeight()) { z1 = grid.getZ0() + grid.getHeight(); }
+        }
+
+        return out.set(x0, z0, x1 - x0, z1 - z0);
+    }
 
     public void calculateMinMaxMid() {
         float[] values = new float[getArray().length];

@@ -44,7 +44,6 @@ import static java.math.BigDecimal.ROUND_HALF_UP;
  * @author nrsharip
  */
 public class TerrainChunk {
-
     public HGGrid gridNoise;
     public HGModel noiseHgModel = null;
     public PhysicalModelInstance noisePhysModelInstance = null;
@@ -53,6 +52,8 @@ public class TerrainChunk {
     public TerrainChunk(int size, int x0, int z0) {
         gridNoise = new HGGrid(size, x0, z0);
     }
+
+    public HGGrid getGridNoise() { return gridNoise; }
 
     public void generateNoise(float yScale, Array<HGGrid.NoiseStageInfo> stages) {
         clearTerrain();
@@ -72,8 +73,7 @@ public class TerrainChunk {
         noiseHgModel = new HGModel(createGridModel(gridNoise));
         noisePhysModelInstance = new PhysicalModelInstance(noiseHgModel, 0f, "grid");
 
-        noisePhysModelInstance.transform.setToTranslation(
-                gridNoise.x0 - MAP_CENTER, 0, gridNoise.z0 - MAP_CENTER);
+        noisePhysModelInstance.transform.setToTranslation(gridNoise.getX0(), 0, gridNoise.getZ0());
     }
 
     public void applyTerrainParts() {
@@ -128,7 +128,7 @@ public class TerrainChunk {
                         translation.set(points.get(0b11));
                         translation.scl(1f, gridNoise.yScale, 1f);
                         translation.sub(tmp.dims.cpy().scl(1/2f));
-                        translation.add(gridNoise.x0 - MAP_CENTER, 0, gridNoise.z0 - MAP_CENTER);
+                        translation.add(gridNoise.getX0(), 0, gridNoise.getZ0());
                         tmp.transform.setToTranslation(translation);
                         terrain.add(tmp);
                         continue;
@@ -172,7 +172,7 @@ public class TerrainChunk {
                         translation.y = points.get(index).y + gridNoise.step;
                         translation.scl(1f, gridNoise.yScale, 1f);
                         translation.sub(tmp.dims.cpy().scl(1, factor, 1).scl(1/2f));
-                        translation.add(gridNoise.x0 - MAP_CENTER, 0, gridNoise.z0 - MAP_CENTER);
+                        translation.add(gridNoise.getX0(), 0, gridNoise.getZ0());
                         scaling.set(1, factor, 1f);
                         tmp.transform.setToTranslationAndScaling(translation, scaling);
                         tmp.transform.rotate(rotation);
@@ -226,7 +226,7 @@ public class TerrainChunk {
                         translation.y = points.get(ippoint).y + gridNoise.step;
                         translation.scl(1f, gridNoise.yScale, 1f);
                         translation.sub(tmp.dims.cpy().scl(1, factor, 1).scl(1/2f));
-                        translation.add(gridNoise.x0 - MAP_CENTER, 0, gridNoise.z0 - MAP_CENTER);
+                        translation.add(gridNoise.getX0(), 0, gridNoise.getZ0());
                         scaling.set(1, factor, 1f);
                         tmp.transform.setToTranslationAndScaling(translation, scaling);
                         tmp.transform.rotate(rotation);
@@ -250,7 +250,7 @@ public class TerrainChunk {
                         translation.y = points.get(ippoint).y;
                         translation.scl(1f, gridNoise.yScale, 1f);
                         translation.sub(tmp.dims.cpy().scl(1, factor, 1).scl(1/2f));
-                        translation.add(gridNoise.x0 - MAP_CENTER, 0, gridNoise.z0 - MAP_CENTER);
+                        translation.add(gridNoise.getX0(), 0, gridNoise.getZ0());
                         scaling.set(1, factor, 1f);
                         tmp.transform.setToTranslationAndScaling(translation, scaling);
                         tmp.transform.rotate(rotation);

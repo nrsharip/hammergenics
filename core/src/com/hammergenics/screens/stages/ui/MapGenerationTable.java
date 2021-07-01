@@ -22,6 +22,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
@@ -39,15 +40,18 @@ import com.badlogic.gdx.utils.ObjectMap;
 import com.hammergenics.HGEngine;
 import com.hammergenics.map.HGGrid;
 import com.hammergenics.map.HGGrid.NoiseStageInfo;
+import com.hammergenics.map.TerrainChunk;
 import com.hammergenics.map.TerrainPartsEnum;
 import com.hammergenics.screens.ModelEditScreen;
 import com.hammergenics.screens.graphics.g3d.DebugModelInstance;
 import com.hammergenics.screens.stages.ModelEditStage;
 
-import static com.hammergenics.map.TerrainPartsEnum.TRRN_FLAT;
-import static com.hammergenics.map.TerrainPartsEnum.TRRN_SIDE;
+import java.util.Arrays;
+
 import static com.hammergenics.map.TerrainPartsEnum.TRRN_CORN_INN;
 import static com.hammergenics.map.TerrainPartsEnum.TRRN_CORN_OUT;
+import static com.hammergenics.map.TerrainPartsEnum.TRRN_FLAT;
+import static com.hammergenics.map.TerrainPartsEnum.TRRN_SIDE;
 
 /**
  * Add description here
@@ -248,7 +252,9 @@ public class MapGenerationTable extends HGTable {
                     nst.noiseGridSeedTF.setText(Integer.toString(nst.stageInfo.seed));
                 }
 
-                //textureNoise = imageGrid(eng.gridNoise00);
+                Array<HGGrid> grids = Arrays.stream(eng.chunks.toArray())
+                        .map(TerrainChunk::getGridNoise).collect(Array::new, Array::add, Array::addAll);
+                textureNoise = imageGrid(grids);
                 return super.touchDown(event, x, y, pointer, button); // false
                 // If true is returned, this listener will have touch focus, so it will receive all
                 // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
@@ -263,7 +269,9 @@ public class MapGenerationTable extends HGTable {
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 eng.roundNoiseToStep(noiseStep);
 
-                //textureNoise = imageGrid(eng.gridNoise00);
+                Array<HGGrid> grids = Arrays.stream(eng.chunks.toArray())
+                        .map(TerrainChunk::getGridNoise).collect(Array::new, Array::add, Array::addAll);
+                textureNoise = imageGrid(grids);
                 return super.touchDown(event, x, y, pointer, button); // false
                 // If true is returned, this listener will have touch focus, so it will receive all
                 // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
@@ -277,7 +285,7 @@ public class MapGenerationTable extends HGTable {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 eng.generateCellular();
-                textureCellular = imageGrid(eng.gridCellular);
+                textureCellular = imageGrid(new Array<>(new HGGrid[]{eng.gridCellular}));
                 return super.touchDown(event, x, y, pointer, button); // false
                 // If true is returned, this listener will have touch focus, so it will receive all
                 // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
@@ -291,7 +299,7 @@ public class MapGenerationTable extends HGTable {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 eng.generateDungeon();
-                textureDungeon = imageGrid(eng.gridDungeon);
+                textureDungeon = imageGrid(new Array<>(new HGGrid[]{eng.gridDungeon}));
                 return super.touchDown(event, x, y, pointer, button); // false
                 // If true is returned, this listener will have touch focus, so it will receive all
                 // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
@@ -393,19 +401,30 @@ public class MapGenerationTable extends HGTable {
     }
 
     // see: https://github.com/czyzby/noise4j
-    public Texture imageGrid(HGGrid grid) {
-        Pixmap map = new Pixmap(grid.getWidth(), grid.getHeight(), Pixmap.Format.RGBA8888);
+    public Texture imageGrid(Array<HGGrid> grids) {
+
+        Rectangle combined = HGGrid.getCombinedBounds(grids, new Rectangle());
+        Gdx.app.debug("image", ""
+                + " w: " + (int)combined.getWidth()
+                + " h: " + (int)combined.getHeight());
+        Pixmap map = new Pixmap((int)combined.getWidth(), (int)combined.getHeight(), Pixmap.Format.RGBA8888);
 
         final Color color = new Color();
-        for (int x = 0; x < grid.getWidth(); x++) {
-            for (int y = 0; y < grid.getHeight(); y++) {
-                final float cell = grid.get(x, y);
-                color.set(cell, cell, cell, 1f);
-                map.drawPixel(x, y, Color.rgba8888(color));
+        int x0, y0;
+        for (HGGrid grid: grids) {
+            x0 = grid.getX0();
+            y0 = grid.getZ0();
+            Gdx.app.debug("image", "x0: " + x0 + " y0: " + y0);
+            for (int x = 0; x < grid.getWidth(); x++) {
+                for (int y = 0; y < grid.getHeight(); y++) {
+                    final float cell = grid.get(x, y);
+                    color.set(cell, cell, cell, 1f);
+                    map.drawPixel(x + x0 - (int)combined.x, y + y0 - (int)combined.y, Color.rgba8888(color));
+                }
             }
         }
 
-        if (grid.getWidth() == grid.getHeight() && grid.getWidth() < 512) {
+        if ((int)combined.getWidth() == (int)combined.getHeight() && (int)combined.getWidth() < 512) {
             Pixmap other = new Pixmap(512, 512, Pixmap.Format.RGBA8888);
 
             // see: https://libgdx.badlogicgames.com/ci/nightlies/docs/api/com/badlogic/gdx/graphics/Pixmap.html
@@ -413,7 +432,7 @@ public class MapGenerationTable extends HGTable {
             // the source image to the specified target rectangle. Use setFilter(Filter) to specify the type
             // of filtering to be used (nearest neighbour or bilinear).
             other.drawPixmap(map,
-                    0, 0, grid.getWidth(), grid.getHeight(),
+                    0, 0, (int)combined.getWidth(), (int)combined.getHeight(),
                     0, 0, 512, 512);
             map.dispose();
             map = other;
