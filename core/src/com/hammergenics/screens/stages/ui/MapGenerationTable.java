@@ -43,7 +43,7 @@ import com.hammergenics.map.HGGrid.NoiseStageInfo;
 import com.hammergenics.map.TerrainChunk;
 import com.hammergenics.map.TerrainPartsEnum;
 import com.hammergenics.screens.ModelEditScreen;
-import com.hammergenics.screens.graphics.g3d.DebugModelInstance;
+import com.hammergenics.screens.graphics.g3d.EditableModelInstance;
 import com.hammergenics.screens.stages.ModelEditStage;
 
 import java.util.Arrays;
@@ -62,7 +62,7 @@ public class MapGenerationTable extends HGTable {
     public ModelEditScreen modelES;
     public ModelEditStage stage;
     public HGEngine eng;
-    public DebugModelInstance dbgModelInstance;
+    public EditableModelInstance dbgModelInstance;
 
     public TextButton genNoiseTextButton = null;
     public TextButton genCellTextButton = null;

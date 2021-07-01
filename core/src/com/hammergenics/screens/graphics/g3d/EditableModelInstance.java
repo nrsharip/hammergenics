@@ -61,7 +61,7 @@ import static com.hammergenics.utils.HGUtils.aux_colors;
  *
  * @author nrsharip
  */
-public class DebugModelInstance extends HGModelInstance implements Disposable {
+public class EditableModelInstance extends PhysicalModelInstance implements Disposable {
     // Nodes related
     public final ArrayMap<Node, Array<NodePart>> n2np = new ArrayMap<>(Node.class, Array.class);
     public final ArrayMap<Node, BoundingBox> n2bb = new ArrayMap<>(Node.class, BoundingBox.class);
@@ -86,20 +86,27 @@ public class DebugModelInstance extends HGModelInstance implements Disposable {
     public int auxMeshCounter;
     public Node hoveredOverNode = null;
 
-    public DebugModelInstance(Model model) { this(new HGModel(model), null, (String[])null); }
-    public DebugModelInstance(Model model, String... rootNodeIds) { this(new HGModel(model), null, rootNodeIds); }
-    public DebugModelInstance(HGModel hgModel) { this(hgModel, null, (String[])null); }
-    public DebugModelInstance(HGModel hgModel, String... rootNodeIds) { this(hgModel, null, rootNodeIds); }
-    public DebugModelInstance(HGModel hgModel, FileHandle assetFL) { this(hgModel, assetFL, (String[])null); }
+    public EditableModelInstance(Model model, float mass) { this(new HGModel(model), null, mass, (String[])null); }
+    public EditableModelInstance(Model model, float mass, String... rootNodeIds) { this(new HGModel(model), null, mass, rootNodeIds); }
+    public EditableModelInstance(HGModel hgModel, float mass) { this(hgModel, null, mass, (String[])null); }
+    public EditableModelInstance(HGModel hgModel, float mass, String... rootNodeIds) { this(hgModel, null, mass, rootNodeIds); }
+    public EditableModelInstance(HGModel hgModel, FileHandle assetFL, float mass) { this(hgModel, assetFL, mass, (String[])null); }
 
-    public DebugModelInstance(HGModel hgModel, FileHandle assetFL, String... rootNodeIds) {
-        super(hgModel, assetFL, rootNodeIds);
+    public EditableModelInstance(HGModel hgModel, FileHandle assetFL, float mass, String... rootNodeIds) {
+        super(hgModel, assetFL, mass, rootNodeIds);
         createBBModel();
 
         checkNodeParts();
         createNodePartModels();
         checkMaterials();
         checkAnimations();
+    }
+
+    @Override
+    public void syncWithRBTransform() {
+        super.syncWithRBTransform();
+        bbHgModelInstanceReset();
+        bbCornersReset();
     }
 
     @Override

@@ -187,8 +187,8 @@ public class PointLightsAttributeTable extends BaseLightsAttributeTable<PointLig
             float size;
             if (container instanceof Environment) {
                 size = modelES.eng.overallSize;
-                if (modelES.eng.physMIs.size > 0) {
-                    position.set(modelES.eng.physMIs.get(0).getBB().getCenter(new Vector3()).cpy());
+                if (modelES.eng.editableMIs.size > 0) {
+                    position.set(modelES.eng.editableMIs.get(0).getBB().getCenter(new Vector3()).cpy());
                 }
             } else if (container instanceof Material) {
                 size = modelES.eng.unitSize;

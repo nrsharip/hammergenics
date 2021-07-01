@@ -116,7 +116,7 @@ public class ModelEditScreen extends ScreenAdapter {
 
         meic.update(delta);
 
-        eng.physMIs.forEach(hgMI -> {
+        eng.editableMIs.forEach(hgMI -> {
             if(hgMI.animationController != null) {
                 hgMI.animationController.update(delta);
 //                if (animationDesc.loopCount == 0) {
@@ -142,7 +142,7 @@ public class ModelEditScreen extends ScreenAdapter {
             // The maximum number of times that this will be done (the maximum number of sub-steps) is specified
             // by the second argument.
             eng.dynamicsWorld.stepSimulation(delta, 5, 1f/60f);
-            eng.physMIs.forEach(PhysicalModelInstance::syncWithRBTransform);
+            eng.editableMIs.forEach(PhysicalModelInstance::syncWithRBTransform);
         }
 
         // https://github.com/libgdx/libgdx/wiki/ModelBatch
@@ -162,7 +162,7 @@ public class ModelEditScreen extends ScreenAdapter {
 
         // for future reference:
         // * Enable caching as soon as multiple instances are rendered: https://github.com/libgdx/libgdx/wiki/ModelCache
-        if (eng.physMIs.size > 0 && environment != null) { modelBatch.render(eng.physMIs, environment); }
+        if (eng.editableMIs.size > 0 && environment != null) { modelBatch.render(eng.editableMIs, environment); }
         if (eng.auxMIs.size > 0) { modelBatch.render(eng.auxMIs); }
 
         if (stage.isPressed(stage.mapTextButton) && eng.chunks.size > 0) {
@@ -194,13 +194,13 @@ public class ModelEditScreen extends ScreenAdapter {
         modelBatch.end();
 
         immediateModeRenderer.begin(perspectiveCamera.combined, GL20.GL_LINES);
-        if (stage.nodesCheckBox.isChecked()) { eng.physMIs.forEach(hgMI -> hgMI.addNodesToRenderer(immediateModeRenderer)); }
-        if (stage.meshPartsCheckBox.isChecked()) { eng.physMIs.forEach(hgMI -> hgMI.addMeshPartsToRenderer(immediateModeRenderer)); }
-        if (stage.bonesCheckBox.isChecked()) { eng.physMIs.forEach(hgMI ->
+        if (stage.nodesCheckBox.isChecked()) { eng.editableMIs.forEach(hgMI -> hgMI.addNodesToRenderer(immediateModeRenderer)); }
+        if (stage.meshPartsCheckBox.isChecked()) { eng.editableMIs.forEach(hgMI -> hgMI.addMeshPartsToRenderer(immediateModeRenderer)); }
+        if (stage.bonesCheckBox.isChecked()) { eng.editableMIs.forEach(hgMI ->
                 hgMI.addBonesToRenderer(immediateModeRenderer, stage.invertCheckBox.isChecked())); }
-        if (stage.rbCheckBox.isChecked()) { eng.physMIs.forEach(mi -> mi.addRBShapeToRenderer(immediateModeRenderer)); }
-        if (stage.verticesCheckBox.isChecked()) { eng.physMIs.forEach(mi -> mi.addVerticesToRenderer(immediateModeRenderer)); }
-        if (stage.closestCheckBox.isChecked()) { eng.physMIs.forEach(mi -> mi.addClosestVerticesToRenderer(immediateModeRenderer)); }
+        if (stage.rbCheckBox.isChecked()) { eng.editableMIs.forEach(mi -> mi.addRBShapeToRenderer(immediateModeRenderer)); }
+        if (stage.verticesCheckBox.isChecked()) { eng.editableMIs.forEach(mi -> mi.addVerticesToRenderer(immediateModeRenderer)); }
+        if (stage.closestCheckBox.isChecked()) { eng.editableMIs.forEach(mi -> mi.addClosestVerticesToRenderer(immediateModeRenderer)); }
         immediateModeRenderer.end();
 
         checkTimerEvents(delta);

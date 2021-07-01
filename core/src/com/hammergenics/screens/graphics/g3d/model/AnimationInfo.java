@@ -26,7 +26,7 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.FloatArray;
 import com.badlogic.gdx.utils.ObjectMap;
-import com.hammergenics.screens.graphics.g3d.DebugModelInstance;
+import com.hammergenics.screens.graphics.g3d.EditableModelInstance;
 
 /**
  * Add description here
@@ -34,7 +34,7 @@ import com.hammergenics.screens.graphics.g3d.DebugModelInstance;
  * @author nrsharip
  */
 public class AnimationInfo {
-    public DebugModelInstance mi;
+    public EditableModelInstance mi;
     public Animation a;
     public FloatArray keyTimes = new FloatArray(true, 16); // aggregated from all Node Animations
     public ArrayMap<Node, NodeAnimation> n2nAnim = new ArrayMap<>(Node.class, NodeAnimation.class);
@@ -42,7 +42,7 @@ public class AnimationInfo {
     public ArrayMap<NodeAnimation, FloatArray> nAnim2keyTimes = new ArrayMap<>(NodeAnimation.class, FloatArray.class);
     public float minStep = 0f;
 
-    public AnimationInfo(DebugModelInstance mi, Animation animation) {
+    public AnimationInfo(EditableModelInstance mi, Animation animation) {
         this.mi = mi;
         this.a = animation;
         checkAnimation();

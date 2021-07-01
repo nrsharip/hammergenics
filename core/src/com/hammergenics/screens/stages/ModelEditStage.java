@@ -356,8 +356,8 @@ public class ModelEditStage extends Stage {
         deleteCurrModelTextButton.addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                modelES.eng.removeDbgModelInstance(modelES.eng.currMI);
-                if (modelES.eng.physMIs.size > 0) { modelES.eng.currMI = modelES.eng.physMIs.get(0); }
+                modelES.eng.removeEditableModelInstance(modelES.eng.currMI);
+                if (modelES.eng.editableMIs.size > 0) { modelES.eng.currMI = modelES.eng.editableMIs.get(0); }
                 else { modelES.eng.currMI = null; }
                 reset();
                 return super.touchDown(event, x, y, pointer, button);
@@ -416,7 +416,7 @@ public class ModelEditStage extends Stage {
     public void addModelInstances(Array<FileHandle> modelFHs) {
         if (modelFHs == null) { return; }
         modelFHs.forEach(fileHandle -> addModelInstance(fileHandle));
-        if (modelES.eng.physMIs.size > 0) { modelES.eng.currMI = modelES.eng.physMIs.get(0); }
+        if (modelES.eng.editableMIs.size > 0) { modelES.eng.currMI = modelES.eng.editableMIs.get(0); }
     }
 
     public boolean addModelInstance(FileHandle assetFL) {

@@ -36,7 +36,7 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.FloatArray;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.hammergenics.screens.ModelEditScreen;
-import com.hammergenics.screens.graphics.g3d.DebugModelInstance;
+import com.hammergenics.screens.graphics.g3d.EditableModelInstance;
 import com.hammergenics.screens.graphics.g3d.model.AnimationInfo;
 import com.hammergenics.screens.stages.ModelEditStage;
 
@@ -48,7 +48,7 @@ import com.hammergenics.screens.stages.ModelEditStage;
 public class AnimationsManagerTable extends HGTable {
     public ModelEditScreen modelES;
     public ModelEditStage stage;
-    public DebugModelInstance dbgModelInstance;
+    public EditableModelInstance dbgModelInstance;
 
     public Label animInfoLabel;
     public SelectBox<String> animationSelectBox = null;
@@ -98,7 +98,7 @@ public class AnimationsManagerTable extends HGTable {
             public void changed(ChangeEvent event, Actor actor) {
                 if (modelES.eng.currMI.animationController == null) { return; }
 
-                DebugModelInstance mi = modelES.eng.currMI;
+                EditableModelInstance mi = modelES.eng.currMI;
 
                 animIdTextField.getColor().set(Color.WHITE);
                 if (animationSelectBox.getSelectedIndex() - 1 < 0) { // -1 since we have "No Animation" item
@@ -170,7 +170,7 @@ public class AnimationsManagerTable extends HGTable {
         animIdTextField.setTextFieldListener(new TextField.TextFieldListener() {
             @Override
             public void keyTyped(TextField textField, char c) {
-                DebugModelInstance mi = modelES.eng.currMI;
+                EditableModelInstance mi = modelES.eng.currMI;
                 if (mi == null || mi.selectedAnimation == null) { return; }
                 Animation anim = mi.selectedAnimation;
 
@@ -279,7 +279,7 @@ public class AnimationsManagerTable extends HGTable {
         keyFrameSlider.setProgrammaticChangeEvents(true);
     }
 
-    private void setAnimSelectBox(DebugModelInstance mi) {
+    private void setAnimSelectBox(EditableModelInstance mi) {
         // Select Box: Animations
         animationSelectBox.getSelection().setProgrammaticChangeEvents(false);
         animationSelectBox.clearItems();
@@ -334,7 +334,7 @@ public class AnimationsManagerTable extends HGTable {
         }
     }
 
-    public void setAnimation(DebugModelInstance mi, Animation anim) {
+    public void setAnimation(EditableModelInstance mi, Animation anim) {
         if (mi != null && anim != null) {
             AnimationInfo info = mi.anim2info.get(anim);
             if (info != null) { setKeyFrameSlider(0f, anim.duration, info.minStep, mi.currKeyTime); }
@@ -351,7 +351,7 @@ public class AnimationsManagerTable extends HGTable {
         }
     }
 
-    public void setDbgModelInstance(DebugModelInstance mi) {
+    public void setDbgModelInstance(EditableModelInstance mi) {
         this.dbgModelInstance = mi;
 
         setAnimSelectBox(mi);

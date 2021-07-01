@@ -36,7 +36,7 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.hammergenics.HGEngine;
 import com.hammergenics.screens.ModelEditScreen;
-import com.hammergenics.screens.graphics.g3d.DebugModelInstance;
+import com.hammergenics.screens.graphics.g3d.EditableModelInstance;
 import com.hammergenics.screens.graphics.g3d.HGModelInstance;
 import com.hammergenics.screens.graphics.g3d.PhysicalModelInstance;
 import com.hammergenics.screens.graphics.g3d.model.AnimationInfo;
@@ -54,9 +54,9 @@ public class ModelEditInputController extends SpectatorInputController {
     public boolean editMode = false;
 
     // main Model Instances
-    public PhysicalModelInstance hoveredOverMI = null;
+    public EditableModelInstance hoveredOverMI = null;
     public AttributesMap hoveredOverMIAttributes = null;
-    public PhysicalModelInstance draggedMI = null;
+    public EditableModelInstance draggedMI = null;
     // bounding box, corners
     public HGModelInstance hoveredOverBBMI = null;
     public Array<HGModelInstance> hoveredOverCornerMIs = null;
@@ -160,10 +160,10 @@ public class ModelEditInputController extends SpectatorInputController {
             // of all the models currently present
             Array<BoundingBox> outNodeBBs;
             Array<BoundingBox> inNodeBBs = new Array<>(true, 16, BoundingBox.class);
-            ArrayMap<BoundingBox, PhysicalModelInstance> bb2mi = new ArrayMap<>(BoundingBox.class, PhysicalModelInstance.class);
-            for (PhysicalModelInstance dbgMi: eng.physMIs) {
-                Array<BoundingBox> bbs = dbgMi.bb2n.keys().toArray();
-                for (BoundingBox bb: bbs) { bb2mi.put(bb, dbgMi); }
+            ArrayMap<BoundingBox, EditableModelInstance> bb2mi = new ArrayMap<>(BoundingBox.class, EditableModelInstance.class);
+            for (EditableModelInstance editableMi: eng.editableMIs) {
+                Array<BoundingBox> bbs = editableMi.bb2n.keys().toArray();
+                for (BoundingBox bb: bbs) { bb2mi.put(bb, editableMi); }
                 inNodeBBs.addAll(bbs);
             }
             // inNodeBBs now have all nodes of all models present
@@ -176,7 +176,7 @@ public class ModelEditInputController extends SpectatorInputController {
             if (outNodeBBs.size > 0) {
                 // we got some nodes intersected by the ray, switching the hovered over model
                 // to the model owning the closest node intersected
-                switchHoveredOverMI(new Array<>(new PhysicalModelInstance[]{bb2mi.get(outNodeBBs.get(0))}));
+                switchHoveredOverMI(new Array<>(new EditableModelInstance[]{bb2mi.get(outNodeBBs.get(0))}));
                 // saving the info on the hovered over node in both engine and the model instance itself
                 hoveredOverNode = hoveredOverMI.bb2n.get(outNodeBBs.get(0));
                 hoveredOverMI.hoveredOverNode = hoveredOverNode;
@@ -188,26 +188,26 @@ public class ModelEditInputController extends SpectatorInputController {
             }
         }
 
-        Array<PhysicalModelInstance> out = null;
+        Array<EditableModelInstance> out = null;
         if (hoveredOverMI != null) {
             // this is in case we hovered over the node of the model instance obscured by the
             // bounding box of another model instance - we still want to keep the current hovered
             // model to the one with the node previously intersected in case the ray intersects
             // this model instance
-            out = eng.rayMICollision(ray, new Array<>(new PhysicalModelInstance[]{hoveredOverMI}),
-                    new Array<>(DebugModelInstance.class));
+            out = eng.rayMICollision(ray, new Array<>(new EditableModelInstance[]{hoveredOverMI}),
+                    new Array<>(EditableModelInstance.class));
         }
 
         if (out == null || out.size == 0) {
             // in case we're not intersecting any previously hovered model instances
             // check if we intersect any models at all. If we do then switch the current hovered
             // model instance.
-            out = eng.rayMICollision(ray, eng.physMIs, new Array<>(PhysicalModelInstance.class));
+            out = eng.rayMICollision(ray, eng.editableMIs, new Array<>(EditableModelInstance.class));
             switchHoveredOverMI(out);
         }
     }
 
-    private void switchHoveredOverMI(Array<PhysicalModelInstance> mis) {
+    private void switchHoveredOverMI(Array<EditableModelInstance> mis) {
         if (mis.size > 0 && !mis.get(0).equals(hoveredOverMI)) {
             // no need to dispose the box and the corners - will be done in HGModelInstance on dispose()
             eng.auxMIs.clear();

@@ -26,7 +26,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.hammergenics.screens.ModelEditScreen;
-import com.hammergenics.screens.graphics.g3d.DebugModelInstance;
+import com.hammergenics.screens.graphics.g3d.EditableModelInstance;
 import com.hammergenics.screens.stages.ModelEditStage;
 import com.hammergenics.utils.HGUtils;
 
@@ -38,7 +38,7 @@ import com.hammergenics.utils.HGUtils;
 public class AggregatedAttributesManagerTable extends HGTable {
     public ModelEditScreen modelES;
     public ModelEditStage stage;
-    public DebugModelInstance dbgModelInstance;
+    public EditableModelInstance dbgModelInstance;
 
     public Cell<?> attrTableCell;
     
@@ -93,7 +93,7 @@ public class AggregatedAttributesManagerTable extends HGTable {
         });
     }
 
-    public void setDbgModelInstance(DebugModelInstance dbgModelInstance) {
+    public void setDbgModelInstance(EditableModelInstance dbgModelInstance) {
         this.dbgModelInstance = dbgModelInstance;
         mtlSelectBox.getSelection().setProgrammaticChangeEvents(false);
         mtlSelectBox.clearItems();

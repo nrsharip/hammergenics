@@ -68,7 +68,7 @@ import com.hammergenics.map.HGGrid;
 import com.hammergenics.map.HGGrid.NoiseStageInfo;
 import com.hammergenics.map.TerrainChunk;
 import com.hammergenics.map.TerrainPartsEnum;
-import com.hammergenics.screens.graphics.g3d.DebugModelInstance;
+import com.hammergenics.screens.graphics.g3d.EditableModelInstance;
 import com.hammergenics.screens.graphics.g3d.HGModel;
 import com.hammergenics.screens.graphics.g3d.HGModelInstance;
 import com.hammergenics.screens.graphics.g3d.PhysicalModelInstance;
@@ -131,10 +131,10 @@ public class HGEngine implements Disposable {
     public Array<HGModelInstance> auxMIs = new Array<>(HGModelInstance.class);
 
     // ModelInstance Related:
-    public Array<PhysicalModelInstance> physMIs = new Array<>(PhysicalModelInstance.class);
+    public Array<EditableModelInstance> editableMIs = new Array<>(EditableModelInstance.class);
     public float unitSize = 0f;
     public float overallSize = 0f;
-    public PhysicalModelInstance currMI = null;
+    public EditableModelInstance currMI = null;
     public Vector2 currCell = Vector2.Zero.cpy();
 
     // Physics related:
@@ -225,7 +225,7 @@ public class HGEngine implements Disposable {
         assetManager.dispose();
         if (gridHgModel != null) { gridHgModel.dispose(); }
         if (lightsHgModel != null) { lightsHgModel.dispose(); }
-        for (PhysicalModelInstance mi: physMIs) {
+        for (EditableModelInstance mi: editableMIs) {
             if (mi.rigidBody != null) { dynamicsWorld.removeRigidBody(mi.rigidBody); }
             mi.dispose();
         }
@@ -473,7 +473,7 @@ public class HGEngine implements Disposable {
         }
 
         if (nodeId == null) {
-            currMI = new PhysicalModelInstance(hgModel, hgModel.afh, 10f);
+            currMI = new EditableModelInstance(hgModel, hgModel.afh, 10f);
         } else {
             // TODO: maybe it's good to add a Tree for Node traversal
             // https://libgdx.badlogicgames.com/ci/nightlies/docs/api/com/badlogic/gdx/scenes/scene2d/ui/Tree.html
@@ -506,7 +506,7 @@ public class HGEngine implements Disposable {
                 }
             }
             Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),"nodeId: " + nodeId + " nodeIndex: " + nodeIndex);
-            currMI = new PhysicalModelInstance(hgModel, hgModel.afh, 10f, nodeId);
+            currMI = new EditableModelInstance(hgModel, hgModel.afh, 10f, nodeId);
             // for some reasons getting this exception in case nodeId == null:
             // (should be done like (String[])null maybe...)
             // Exception in thread "LWJGL Application" java.lang.NullPointerException
@@ -515,7 +515,7 @@ public class HGEngine implements Disposable {
             //        at com.badlogic.gdx.graphics.g3d.ModelInstance.<init>(ModelInstance.java:145)
         }
 
-        physMIs.add(currMI);
+        editableMIs.add(currMI);
         addRigidBody(currMI, FLAG_OBJECT, FLAG_ALL);
 
         // ********************
@@ -578,8 +578,8 @@ public class HGEngine implements Disposable {
     public Vector2 arrangeInSpiral(boolean keepOriginalScale) {
         Vector2 cell = Vector2.Zero.cpy();
         unitSize = 0f;
-        for(PhysicalModelInstance mi: physMIs) { if (mi.maxD > unitSize) { unitSize = mi.maxD; } }
-        for(PhysicalModelInstance mi: physMIs) {
+        for(EditableModelInstance mi: editableMIs) { if (mi.maxD > unitSize) { unitSize = mi.maxD; } }
+        for(EditableModelInstance mi: editableMIs) {
             mi.transform.idt(); // first cancel any previous transform
             float factor = 1f;
             // Scale: if the dimension of the current instance is less than maximum dimension of all instances scale it
@@ -653,7 +653,7 @@ public class HGEngine implements Disposable {
     public void resetBBModelInstances() {
         if (bbArrayHgModelInstance != null) { bbArrayHgModelInstance.clear(); } else { return; }
 
-        for (DebugModelInstance mi: physMIs) {
+        for (EditableModelInstance mi: editableMIs) {
             if (mi.equals(currMI)) { bbArrayHgModelInstance.add(mi.getBBHgModelInstance(Color.GREEN)); }
             else { bbArrayHgModelInstance.add(mi.getBBHgModelInstance(Color.BLACK)); }
         }
@@ -664,8 +664,8 @@ public class HGEngine implements Disposable {
         if (plArrayHgModelInstance != null) { plArrayHgModelInstance.clear(); } else { return; }
 
         Vector3 envPosition;
-        if (physMIs != null && physMIs.size > 0) {
-            envPosition = physMIs.get(0).getBB().getCenter(new Vector3());
+        if (editableMIs != null && editableMIs.size > 0) {
+            envPosition = editableMIs.get(0).getBB().getCenter(new Vector3());
         } else {
             envPosition = Vector3.Zero.cpy();
         }
@@ -810,19 +810,19 @@ public class HGEngine implements Disposable {
         }
     }
 
-    public void removeDbgModelInstance(PhysicalModelInstance mi) {
+    public void removeEditableModelInstance(EditableModelInstance mi) {
         if (mi == null) { return; }
         if (mi.rigidBody != null) { dynamicsWorld.removeRigidBody(mi.rigidBody); }
-        physMIs.removeValue(mi, true);
+        editableMIs.removeValue(mi, true);
         mi.dispose();
     }
 
     public void clearModelInstances() {
-        physMIs.forEach(mi -> {
+        editableMIs.forEach(mi -> {
             if (mi.rigidBody != null) { dynamicsWorld.removeRigidBody(mi.rigidBody); }
             mi.dispose();
         });
-        physMIs.clear();
+        editableMIs.clear();
         // no need to dispose - will be done in HGModelInstance on dispose()
         //auxMIs.forEach(HGModelInstance::dispose);
         auxMIs.clear();

@@ -46,7 +46,7 @@ import static java.math.BigDecimal.ROUND_HALF_UP;
 public class TerrainChunk {
     public HGGrid gridNoise;
     public HGModel noiseHgModel = null;
-    public PhysicalModelInstance noisePhysModelInstance = null;
+    public HGModelInstance noisePhysModelInstance = null;
     public Array<HGModelInstance> terrain = new Array<>(true, 16, HGModelInstance.class);
 
     public TerrainChunk(int size, int x0, int z0) {
@@ -69,7 +69,7 @@ public class TerrainChunk {
         if (noiseHgModel != null) { noiseHgModel.dispose(); }
         if (noisePhysModelInstance != null) { noisePhysModelInstance.dispose(); }
         noiseHgModel = new HGModel(createGridModel(gridNoise));
-        noisePhysModelInstance = new PhysicalModelInstance(noiseHgModel, 0f, "grid");
+        noisePhysModelInstance = new HGModelInstance(noiseHgModel, "grid");
 
         noisePhysModelInstance.transform.setToTranslationAndScaling(
                 gridNoise.getX0() * scale, 0, gridNoise.getZ0() * scale,

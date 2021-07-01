@@ -34,7 +34,7 @@ import com.hammergenics.screens.graphics.glutils.HGImmediateModeRenderer20;
  *
  * @author nrsharip
  */
-public class PhysicalModelInstance extends DebugModelInstance implements Disposable {
+public class PhysicalModelInstance extends HGModelInstance implements Disposable {
     public btRigidBody rigidBody;
     public int rbHashCode = -1;
     public btRigidBody.btRigidBodyConstructionInfo constructionInfo;
@@ -117,8 +117,6 @@ public class PhysicalModelInstance extends DebugModelInstance implements Disposa
         rigidBody.getWorldTransform(transform);
         transform.translate(translate.scl(scl));
         transform.scale(scl.x, scl.y, scl.z);
-        bbHgModelInstanceReset();
-        bbCornersReset();
     }
 
     public void addRBShapeToRenderer(HGImmediateModeRenderer20 imr) {
