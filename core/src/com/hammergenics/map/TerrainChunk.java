@@ -58,25 +58,26 @@ public class TerrainChunk {
     public void generateNoise(float yScale, Array<HGGrid.NoiseStageInfo> stages) {
         clearTerrain();
         gridNoise.generateNoise(yScale, stages);
-        resetNoiseModelInstance();
     }
 
     public void roundNoiseToStep(float step) {
         clearTerrain();
         gridNoise.roundToStep(step);
-        resetNoiseModelInstance();
     }
     
-    public void resetNoiseModelInstance() {
+    public void resetNoiseModelInstance(float scale) {
         if (noiseHgModel != null) { noiseHgModel.dispose(); }
         if (noisePhysModelInstance != null) { noisePhysModelInstance.dispose(); }
         noiseHgModel = new HGModel(createGridModel(gridNoise));
         noisePhysModelInstance = new PhysicalModelInstance(noiseHgModel, 0f, "grid");
 
-        noisePhysModelInstance.transform.setToTranslation(gridNoise.getX0(), 0, gridNoise.getZ0());
+        noisePhysModelInstance.transform.setToTranslationAndScaling(
+                gridNoise.getX0() * scale, 0, gridNoise.getZ0() * scale,
+                scale, scale, scale
+        );
     }
 
-    public void applyTerrainParts() {
+    public void applyTerrainParts(float scale) {
         if (gridNoise.step < 0) { return; }
         terrain.clear();
 
@@ -129,7 +130,8 @@ public class TerrainChunk {
                         translation.scl(1f, gridNoise.yScale, 1f);
                         translation.sub(tmp.dims.cpy().scl(1/2f));
                         translation.add(gridNoise.getX0(), 0, gridNoise.getZ0());
-                        tmp.transform.setToTranslation(translation);
+                        scaling.set(scale, scale, scale);
+                        tmp.transform.setToTranslationAndScaling(translation.scl(scaling), scaling);
                         terrain.add(tmp);
                         continue;
                     } else if (index2plane.get(0b000110).normal.isOnLine(Vector3.Y)) {
@@ -173,8 +175,8 @@ public class TerrainChunk {
                         translation.scl(1f, gridNoise.yScale, 1f);
                         translation.sub(tmp.dims.cpy().scl(1, factor, 1).scl(1/2f));
                         translation.add(gridNoise.getX0(), 0, gridNoise.getZ0());
-                        scaling.set(1, factor, 1f);
-                        tmp.transform.setToTranslationAndScaling(translation, scaling);
+                        scaling.set(scale, factor * scale, scale);
+                        tmp.transform.setToTranslationAndScaling(translation.scl(scale), scaling);
                         tmp.transform.rotate(rotation);
                         terrain.add(tmp);
                         continue;
@@ -227,8 +229,8 @@ public class TerrainChunk {
                         translation.scl(1f, gridNoise.yScale, 1f);
                         translation.sub(tmp.dims.cpy().scl(1, factor, 1).scl(1/2f));
                         translation.add(gridNoise.getX0(), 0, gridNoise.getZ0());
-                        scaling.set(1, factor, 1f);
-                        tmp.transform.setToTranslationAndScaling(translation, scaling);
+                        scaling.set(scale, factor * scale, scale);
+                        tmp.transform.setToTranslationAndScaling(translation.scl(scale), scaling);
                         tmp.transform.rotate(rotation);
                         terrain.add(tmp);
                         continue;
@@ -251,8 +253,8 @@ public class TerrainChunk {
                         translation.scl(1f, gridNoise.yScale, 1f);
                         translation.sub(tmp.dims.cpy().scl(1, factor, 1).scl(1/2f));
                         translation.add(gridNoise.getX0(), 0, gridNoise.getZ0());
-                        scaling.set(1, factor, 1f);
-                        tmp.transform.setToTranslationAndScaling(translation, scaling);
+                        scaling.set(scale, factor * scale, scale);
+                        tmp.transform.setToTranslationAndScaling(translation.scl(scale), scaling);
                         tmp.transform.rotate(rotation);
                         terrain.add(tmp);
                         continue;
@@ -280,5 +282,4 @@ public class TerrainChunk {
 
         for (HGModelInstance mi: terrain) { mi.transform.trn(x, y, z); }
     }
-
 }

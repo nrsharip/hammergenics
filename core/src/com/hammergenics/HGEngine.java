@@ -272,7 +272,7 @@ public class HGEngine implements Disposable {
 
         for (TerrainChunk tc: chunks) { tc.generateNoise(yScale, stages); }
 
-        resetChunks();
+        resetChunks(unitSize);
     }
 
     public void roundNoiseToStep(float step) {
@@ -280,23 +280,12 @@ public class HGEngine implements Disposable {
 
         for (TerrainChunk tc: chunks) { tc.roundNoiseToStep(step); }
 
-        resetChunks();
+        resetChunks(unitSize);
     }
 
     public void generateCellular() { gridCellular.generateCellular(); }
 
     public void generateDungeon() { gridDungeon.generateDungeon(); }
-
-    public void resetChunks() {
-        for (TerrainChunk tc: chunks) { tc.resetNoiseModelInstance(); }
-
-        mid = (float) Arrays.stream(chunks.toArray())
-                .map(TerrainChunk::getGridNoise)
-                .mapToDouble(HGGrid::getMid)
-                .average().orElse(0f);
-
-        for (TerrainChunk tc: chunks) { tc.trn(0f, -mid * tc.gridNoise.yScale, 0f); }
-    }
 
     public void applyTerrainParts(final ArrayMap<TerrainPartsEnum, FileHandle> tp2fh) {
         TerrainPartsEnum.clearAll();
@@ -304,12 +293,25 @@ public class HGEngine implements Disposable {
             tp.processFileHandle(assetManager, tp2fh.get(tp));
         }
 
-        for (TerrainChunk tc: chunks) { tc.applyTerrainParts(); }
-
-        resetChunks();
+        resetChunks(unitSize);
     }
 
     public void clearTerrain() { for (TerrainChunk tc: chunks) { tc.clearTerrain(); } }
+
+    public void resetChunks(float scale) {
+        mid = (float) Arrays.stream(chunks.toArray())
+                .map(TerrainChunk::getGridNoise)
+                .mapToDouble(HGGrid::getMid)
+                .average().orElse(0f);
+
+        for (TerrainChunk tc: chunks) {
+            tc.resetNoiseModelInstance(scale);
+            tc.trnNoisePhysModelInstance(0f, -mid * tc.gridNoise.yScale * scale, 0f);
+
+            tc.applyTerrainParts(scale);
+            tc.trnTerrain(0f, -mid * tc.gridNoise.yScale * scale, 0f);
+        }
+    }
 
     public void queueAssets(FileHandle rootFileHandle) {
         assetsLoaded = false;

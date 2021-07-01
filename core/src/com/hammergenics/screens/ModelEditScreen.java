@@ -278,6 +278,7 @@ public class ModelEditScreen extends ScreenAdapter {
 
         eng.resetGridModelInstances();
         eng.resetLightsModelInstances(center.cpy(), environment);
+        eng.resetChunks(eng.unitSize);
 
         stage.envAttrTable = new AttributesManagerTable(stage.skin, environment, this);
         stage.envAttrTable.setListener(stage.eventListener);
