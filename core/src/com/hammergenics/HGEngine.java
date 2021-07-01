@@ -396,12 +396,6 @@ public class HGEngine implements Disposable {
 
                 index2plane.get(0b000110).set(points.get(0b00), points.get(0b01), points.get(0b10));
 
-                // making sure the plane's normal points into the Y axis direction
-                if (Vector3.Y.dot(index2plane.get(0b000110).normal) < 0) {
-                    index2plane.get(0b000110).normal.set(Vector3.Y);
-                    index2plane.get(0b000110).d *= -1f;
-                }
-
                 // Getting issues with precision thus setting it here explicitly
                 float dot = index2plane.get(0b000110).normal.dot(points.get(0b11));
                 dot = BigDecimal.valueOf(dot).setScale(floatScale, ROUND_HALF_UP).floatValue();
