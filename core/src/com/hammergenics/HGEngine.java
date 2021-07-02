@@ -135,10 +135,11 @@ public class HGEngine implements Disposable {
     public Array<HGModelInstance> auxMIs = new Array<>(HGModelInstance.class);
 
     // ModelInstance Related:
-    public Array<EditableModelInstance> editableMIs = new Array<>(EditableModelInstance.class);
+    public final Array<EditableModelInstance> editableMIs = new Array<>(EditableModelInstance.class);
     public float unitSize = 0f;
     public float overallSize = 0f;
     public EditableModelInstance currMI = null;
+    public final Array<EditableModelInstance> selectedMIs = new Array<>(EditableModelInstance.class);
     public Vector2 currCell = Vector2.Zero.cpy();
 
     // Physics related:

@@ -91,7 +91,13 @@ public class ModelEditInputController extends SpectatorInputController {
 
         @Override
         public boolean tap(float x, float y, int count, int button) {
-            if (meic.modelES != null) { meic.checkTap(x, y, count, button); }
+            if (meic.modelES != null) {
+                if (meic.checkTap(x, y, count, button)) {
+                    return super.tap(x, y, count, button);
+                } else {
+                    return false;
+                }
+            }
             return super.tap(x, y, count, button);
         }
 
@@ -241,17 +247,31 @@ public class ModelEditInputController extends SpectatorInputController {
         return true;
     }
 
-    public void checkTap(float x, float y, int count, int button) {
+    public boolean checkTap(float x, float y, int count, int button) {
         switch (button) {
             case Buttons.LEFT:
-                eng.currMI = hoveredOverMI;
-                modelES.stage.reset();
-                break;
-            case Buttons.MIDDLE:
-                break;
+                boolean ctrlPressed = keysPressed.contains(Keys.CONTROL_LEFT) || keysPressed.contains(Keys.CONTROL_RIGHT);
+                if (hoveredOverMI != null && hoveredOverMI != eng.currMI && ctrlPressed) {
+                    if (eng.selectedMIs.indexOf(hoveredOverMI, true) >= 0) {
+                        eng.selectedMIs.removeValue(hoveredOverMI, true);
+                    } else {
+                        eng.selectedMIs.add(hoveredOverMI);
+                    }
+                    return false;
+                } else if (hoveredOverMI != eng.currMI) {
+                    eng.currMI = hoveredOverMI;
+                    modelES.stage.reset();
+                    eng.selectedMIs.clear();
+                    return false;
+                } else {
+                    eng.selectedMIs.clear();
+                    return false;
+                }
+            case Buttons.MIDDLE: // fall through
             case Buttons.RIGHT:
-                break;
+                return true;
         }
+        return true;
     }
 
     public boolean checkPan(float x, float y, float deltaX, float deltaY, int touchDownButton, float overallDistance) {
