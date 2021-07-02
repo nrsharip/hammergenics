@@ -14,7 +14,7 @@
  * limitations under the License.
  ******************************************************************************/
 
-package com.hammergenics.screens.ai.steer;
+package com.hammergenics.screens.graphics.g3d;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ai.steer.Limiter;
@@ -41,6 +41,7 @@ import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
+import com.hammergenics.screens.ai.steer.SteeringBehaviorsVector3Enum;
 import com.hammergenics.screens.ai.utils.LocationAdapter;
 import com.hammergenics.screens.graphics.g3d.HGModel;
 import com.hammergenics.screens.graphics.g3d.PhysicalModelInstance;

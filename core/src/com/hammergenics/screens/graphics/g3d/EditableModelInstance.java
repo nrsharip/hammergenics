@@ -43,7 +43,6 @@ import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.hammergenics.screens.ModelEditScreen;
-import com.hammergenics.screens.ai.steer.SteerableModelInstance;
 import com.hammergenics.screens.graphics.g3d.model.AnimationInfo;
 import com.hammergenics.screens.graphics.glutils.HGImmediateModeRenderer20;
 import com.hammergenics.screens.stages.ui.attributes.AttributesManagerTable;

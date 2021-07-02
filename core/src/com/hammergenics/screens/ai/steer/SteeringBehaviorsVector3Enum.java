@@ -45,6 +45,7 @@ import com.badlogic.gdx.ai.steer.utils.paths.LinePath;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.hammergenics.HGEngine;
+import com.hammergenics.screens.graphics.g3d.SteerableModelInstance;
 
 /**
  * Add description here
