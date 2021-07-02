@@ -16,35 +16,17 @@
 
 package com.hammergenics.screens.graphics.g3d;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.ai.steer.Limiter;
 import com.badlogic.gdx.ai.steer.Steerable;
 import com.badlogic.gdx.ai.steer.SteeringAcceleration;
-import com.badlogic.gdx.ai.steer.SteeringBehavior;
 import com.badlogic.gdx.ai.steer.behaviors.Arrive;
-import com.badlogic.gdx.ai.steer.behaviors.BlendedSteering;
-import com.badlogic.gdx.ai.steer.behaviors.Face;
-import com.badlogic.gdx.ai.steer.behaviors.Flee;
-import com.badlogic.gdx.ai.steer.behaviors.FollowFlowField;
-import com.badlogic.gdx.ai.steer.behaviors.Hide;
-import com.badlogic.gdx.ai.steer.behaviors.LookWhereYouAreGoing;
-import com.badlogic.gdx.ai.steer.behaviors.MatchVelocity;
-import com.badlogic.gdx.ai.steer.behaviors.PrioritySteering;
-import com.badlogic.gdx.ai.steer.behaviors.RaycastObstacleAvoidance;
-import com.badlogic.gdx.ai.steer.behaviors.ReachOrientation;
-import com.badlogic.gdx.ai.steer.behaviors.Seek;
-import com.badlogic.gdx.ai.steer.behaviors.Wander;
 import com.badlogic.gdx.ai.utils.Location;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import com.hammergenics.screens.ai.steer.SteeringBehaviorsVector3Enum;
 import com.hammergenics.screens.ai.utils.LocationAdapter;
-import com.hammergenics.screens.graphics.g3d.HGModel;
-import com.hammergenics.screens.graphics.g3d.PhysicalModelInstance;
 
 /**
  * Add description here
@@ -137,7 +119,7 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
 
     // see https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#the-steering-system-api
     public void update (float delta) {
-        SteeringAcceleration<Vector3> out = new SteeringAcceleration<Vector3>(new Vector3()).setZero();
+        SteeringAcceleration<Vector3> out = new SteeringAcceleration<>(new Vector3()).setZero();
         // Calculate steering acceleration
         Arrive<Vector3> arrive = (Arrive<Vector3>) SteeringBehaviorsVector3Enum.ARRIVE.getInstance();
         arrive.setOwner(this);
