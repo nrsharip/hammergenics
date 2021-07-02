@@ -192,6 +192,9 @@ public class ModelEditScreen extends ScreenAdapter {
         modelBatch.end();
 
         immediateModeRenderer.begin(perspectiveCamera.combined, GL20.GL_LINES);
+        if (stage.showSelectionScaleCheckBox.isChecked()) {
+            if (eng.currMI != null) { eng.currMI.addSelectionBoxToRenderer(immediateModeRenderer, Color.RED); }
+        }
         if (stage.nodesCheckBox.isChecked()) { eng.editableMIs.forEach(hgMI -> hgMI.addNodesToRenderer(immediateModeRenderer)); }
         if (stage.meshPartsCheckBox.isChecked()) { eng.editableMIs.forEach(hgMI -> hgMI.addMeshPartsToRenderer(immediateModeRenderer)); }
         if (stage.bonesCheckBox.isChecked()) { eng.editableMIs.forEach(hgMI ->

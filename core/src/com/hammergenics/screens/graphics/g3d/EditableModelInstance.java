@@ -603,6 +603,16 @@ public class EditableModelInstance extends SteerableModelInstance implements Dis
         }
     }
 
+    public void addSelectionBoxToRenderer(HGImmediateModeRenderer20 imr, Color clr) {
+        BoundingBox bb = getBB(true);
+        Vector3 bottomBoxCenter = bb.getCenter(new Vector3()).sub(0f, bb.getHeight()/2f, 0f);
+        float half = getMaxDimension()/2f;
+        imr.line(bottomBoxCenter.cpy().sub(half, 0f, half), bottomBoxCenter.cpy().sub(half, 0f, -half), clr, clr);
+        imr.line(bottomBoxCenter.cpy().sub(half, 0f, -half), bottomBoxCenter.cpy().sub(-half, 0f, -half), clr, clr);
+        imr.line(bottomBoxCenter.cpy().sub(-half, 0f, -half), bottomBoxCenter.cpy().sub(-half, 0f, half), clr, clr);
+        imr.line(bottomBoxCenter.cpy().sub(-half, 0f, half), bottomBoxCenter.cpy().sub(half, 0f, half), clr, clr);
+    }
+
     public void animApplyKeyTime() { animApplyKeyTime(currKeyTime); }
 
     public void animApplyKeyTime(float keytime) {

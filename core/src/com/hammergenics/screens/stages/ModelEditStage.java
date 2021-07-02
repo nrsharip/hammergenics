@@ -97,6 +97,7 @@ public class ModelEditStage extends Stage {
     public CheckBox gridXZCheckBox;
     public CheckBox gridYCheckBox;
     public CheckBox lightsCheckBox;
+    public CheckBox showSelectionScaleCheckBox;
     public CheckBox origScaleCheckBox;
     public CheckBox bbCheckBox;
     public CheckBox nodesCheckBox;
@@ -230,6 +231,9 @@ public class ModelEditStage extends Stage {
 
         lightsCheckBox = new CheckBox("lights", skin);
         lightsCheckBox.setChecked(true);
+
+        showSelectionScaleCheckBox = new CheckBox("selection", skin);
+        showSelectionScaleCheckBox.setChecked(false);
 
         origScaleCheckBox = new CheckBox("orig scale", skin);
         origScaleCheckBox.setChecked(false);
@@ -580,6 +584,7 @@ public class ModelEditStage extends Stage {
         lowerPanel.add(gridXZCheckBox).pad(3f);
         lowerPanel.add(gridYCheckBox).pad(3f);
         lowerPanel.add(lightsCheckBox).pad(3f);
+        lowerPanel.add(showSelectionScaleCheckBox).pad(3f);
         lowerPanel.add(origScaleCheckBox).pad(3f);
         // TODO: fix BB checkbox
         //lowerPanel.add(bbCheckBox).pad(3f);
