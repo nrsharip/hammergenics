@@ -17,6 +17,7 @@
 package com.hammergenics.screens.graphics.g3d;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.ai.steer.Steerable;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.VertexAttribute;
@@ -42,6 +43,7 @@ import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.hammergenics.screens.ModelEditScreen;
+import com.hammergenics.screens.ai.steer.SteerableModelInstance;
 import com.hammergenics.screens.graphics.g3d.model.AnimationInfo;
 import com.hammergenics.screens.graphics.glutils.HGImmediateModeRenderer20;
 import com.hammergenics.screens.stages.ui.attributes.AttributesManagerTable;
@@ -61,7 +63,7 @@ import static com.hammergenics.utils.HGUtils.aux_colors;
  *
  * @author nrsharip
  */
-public class EditableModelInstance extends PhysicalModelInstance implements Disposable {
+public class EditableModelInstance extends SteerableModelInstance implements Disposable, Steerable<Vector3> {
     // Nodes related
     public final ArrayMap<Node, Array<NodePart>> n2np = new ArrayMap<>(Node.class, Array.class);
     public final ArrayMap<Node, BoundingBox> n2bb = new ArrayMap<>(Node.class, BoundingBox.class);
@@ -318,7 +320,7 @@ public class EditableModelInstance extends PhysicalModelInstance implements Disp
             Vector3 scale = Vector3.Zero.cpy();
             scale.add(maxD * getMaxScale()).scl(1f/30f);
 
-            bbCornerHgMI.transform.setToTranslationAndScaling(translate, scale);
+            bbCornerHgMI.setToTranslationAndScaling(translate, scale);
         }
     }
 

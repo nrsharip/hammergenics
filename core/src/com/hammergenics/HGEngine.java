@@ -86,6 +86,7 @@ import java.util.Arrays;
 import static com.hammergenics.screens.graphics.g3d.utils.Models.createGridModel;
 import static com.hammergenics.screens.graphics.g3d.utils.Models.createLightsModel;
 import static com.hammergenics.screens.graphics.g3d.utils.Models.createTestBox;
+import static com.hammergenics.screens.graphics.g3d.utils.Models.createTestSphere;
 
 /**
  * Add description here
@@ -119,7 +120,9 @@ public class HGEngine implements Disposable {
     // Auxiliary models:
     public HGModel gridHgModel = null;
     public HGModel lightsHgModel = null;
-    public HGModel boxHgModel = null;
+    public static final HGModel boxHgModel = new HGModel(createTestBox(GL20.GL_TRIANGLES));
+    public static final HGModel sphereHgModel = new HGModel(createTestSphere(GL20.GL_TRIANGLES, 40));
+
     public HGModelInstance gridXZHgModelInstance = null; // XZ plane: lines (yellow)
     public HGModelInstance gridYHgModelInstance = null;  // Y axis: vertical lines (red)
     public HGModelInstance gridOHgModelInstance = null;  // origin: sphere (red)
@@ -212,7 +215,6 @@ public class HGEngine implements Disposable {
         // Creating the Aux Models beforehand:
         gridHgModel = new HGModel(createGridModel());
         lightsHgModel = new HGModel(createLightsModel());
-        boxHgModel = new HGModel(createTestBox(GL20.GL_TRIANGLES));
 
         gridXZHgModelInstance = new HGModelInstance(gridHgModel, "XZ");
         gridYHgModelInstance = new HGModelInstance(gridHgModel, "Y");
@@ -593,7 +595,7 @@ public class HGEngine implements Disposable {
             // 2. Add half of the scaled height to the current position so bounding box's bottom matches XZ plane
             position = new Vector3(cell.x * 1.1f * unitSize, 0f, cell.y * 1.1f * unitSize)
                     .add(0, factor * mi.getBB().getHeight()/2, 0);
-            mi.moveAndScaleTo(position, Vector3.Zero.cpy().add(factor));
+            mi.setToTranslationAndScaling(position, Vector3.Zero.cpy().add(factor));
             //Gdx.app.debug("spiral", "transform:\n" + mi.transform);
             resetRigidBody(mi, FLAG_OBJECT, FLAG_ALL);
 
@@ -617,12 +619,12 @@ public class HGEngine implements Disposable {
         if (gridHgModel == null || gridXZHgModelInstance == null || gridYHgModelInstance == null
                 || gridOHgModelInstance == null) { return; }
 
-        gridXZHgModelInstance.transform.setToScaling(Vector3.Zero.cpy().add(overallSize/4f));
-        gridYHgModelInstance.transform.setToScaling(Vector3.Zero.cpy().add(overallSize/4f));
-        gridOHgModelInstance.transform.setToScaling(Vector3.Zero.cpy().add(unitSize/4f));
+        gridXZHgModelInstance.setToScaling(Vector3.Zero.cpy().add(overallSize/4f));
+        gridYHgModelInstance.setToScaling(Vector3.Zero.cpy().add(overallSize/4f));
+        gridOHgModelInstance.setToScaling(Vector3.Zero.cpy().add(unitSize/4f));
 
         float height = unitSize/10f;
-        groundPhysModelInstance.transform.setToTranslationAndScaling(
+        groundPhysModelInstance.setToTranslationAndScaling(
                 Vector3.Y.cpy().scl(-height/2f), new Vector3(15*overallSize, height, 15*overallSize));
         resetRigidBody(groundPhysModelInstance, FLAG_GROUND, FLAG_ALL);
     }
@@ -702,10 +704,10 @@ public class HGEngine implements Disposable {
     private HGModelInstance createDLModelInstance(DirectionalLight dl, Vector3 passThrough, float distance) {
         HGModelInstance mi = new HGModelInstance(lightsHgModel, "directional");
         // from the center moving backwards to the direction of light
-        mi.transform.setToTranslationAndScaling(
+        mi.setToTranslationAndScaling(
                 passThrough.cpy().sub(dl.direction.cpy().nor().scl(distance)), Vector3.Zero.cpy().add(distance/10));
         // rotating the arrow from X vector (1,0,0) to the direction vector
-        mi.transform.rotate(Vector3.X, dl.direction.cpy().nor());
+        mi.rotate(Vector3.X, dl.direction.cpy().nor());
         mi.getMaterial("base", true).set(
                 ColorAttribute.createDiffuse(dl.color), ColorAttribute.createEmissive(dl.color)
         );
@@ -726,7 +728,7 @@ public class HGEngine implements Disposable {
         // directional light part over
 
         HGModelInstance mi = new HGModelInstance(lightsHgModel, "point");
-        mi.transform.setToTranslationAndScaling(pl.position, Vector3.Zero.cpy().add(distance/10));
+        mi.setToTranslationAndScaling(pl.position, Vector3.Zero.cpy().add(distance/10));
         mi.getMaterial("base", true).set(
                 dlAttribute, ColorAttribute.createDiffuse(pl.color), ColorAttribute.createEmissive(pl.color)
         );

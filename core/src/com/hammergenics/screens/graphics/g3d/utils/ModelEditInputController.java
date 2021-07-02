@@ -299,7 +299,7 @@ public class ModelEditInputController extends SpectatorInputController {
                     int sign = coordDelta.dot(coordDir) > 0 ? 1 : -1;
                     float scale = 1 + sign * 0.04f ;
 
-                    hoveredOverMI.transform.scale(scale, scale, scale);
+                    hoveredOverMI.scale(scale, scale, scale);
                     hoveredOverMI.bbHgModelInstanceReset();
                     hoveredOverMI.bbCornersReset();
                     eng.resetRigidBody(hoveredOverMI, HGEngine.FLAG_OBJECT, HGEngine.FLAG_ALL);
@@ -402,14 +402,14 @@ public class ModelEditInputController extends SpectatorInputController {
                     modelES.stage.reset();
 
                     // removing the rotation and scale components from the transform
-                    hoveredOverMI.transform.setToTranslation(miTranslation);
+                    hoveredOverMI.setToTranslation(miTranslation);
                     // rotating as per the gesture
-                    hoveredOverMI.transform.rotate(cam.up.cpy().nor(), fracX * 360f);
-                    hoveredOverMI.transform.rotate(cam.direction.cpy().crs(cam.up).nor(), fracY * 360f);
+                    hoveredOverMI.rotate(cam.up.cpy().nor(), fracX * 360f);
+                    hoveredOverMI.rotate(cam.direction.cpy().crs(cam.up).nor(), fracY * 360f);
                     // restoring the original rotation
-                    hoveredOverMI.transform.rotate(miRot);
+                    hoveredOverMI.rotate(miRot);
                     // restoring the original scale
-                    hoveredOverMI.transform.scale(miScale.x, miScale.y, miScale.z);
+                    hoveredOverMI.scale(miScale.x, miScale.y, miScale.z);
 
                     hoveredOverMI.bbHgModelInstanceReset();
                     hoveredOverMI.bbCornersReset();
@@ -423,14 +423,14 @@ public class ModelEditInputController extends SpectatorInputController {
                     draggedMI = hoveredOverMI;
 
                     // removing the rotation and scale components from the transform
-                    draggedMI.transform.setToTranslation(miTranslation);
+                    draggedMI.setToTranslation(miTranslation);
                     // translating as per the gesture
                     Vector3 tmpV = Vector3.Y.cpy().scl(4 * -fracY * overallDistance);
-                    draggedMI.transform.translate(tmpV);
+                    draggedMI.translate(tmpV);
                     // restoring the original rotation
-                    draggedMI.transform.rotate(miRot);
+                    draggedMI.rotate(miRot);
                     // restoring the original scale
-                    draggedMI.transform.scale(miScale.x, miScale.y, miScale.z);
+                    draggedMI.scale(miScale.x, miScale.y, miScale.z);
 
                     draggedMI.bbHgModelInstanceReset();
                     draggedMI.bbCornersReset();
@@ -443,17 +443,17 @@ public class ModelEditInputController extends SpectatorInputController {
                     draggedMI = hoveredOverMI;
 
                     // removing the rotation and scale components from the transform
-                    draggedMI.transform.setToTranslation(miTranslation);
+                    draggedMI.setToTranslation(miTranslation);
                     // translating as per the gesture
                     Vector3 tmpV = cam.direction.cpy().crs(cam.up).nor().scl(4 * fracX * overallDistance);
-                    draggedMI.transform.translate(tmpV);
+                    draggedMI.translate(tmpV);
                     tmpV.set(cam.up).y = 0;
                     tmpV.nor().scl(4 * -fracY * overallDistance);
-                    draggedMI.transform.translate(tmpV);
+                    draggedMI.translate(tmpV);
                     // restoring the original rotation
-                    draggedMI.transform.rotate(miRot);
+                    draggedMI.rotate(miRot);
                     // restoring the original scale
-                    draggedMI.transform.scale(miScale.x, miScale.y, miScale.z);
+                    draggedMI.scale(miScale.x, miScale.y, miScale.z);
 
                     draggedMI.bbHgModelInstanceReset();
                     draggedMI.bbCornersReset();

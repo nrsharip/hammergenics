@@ -106,15 +106,21 @@ public class HGModelInstance extends ModelInstance implements Disposable {
     //              trn() - adds the (x,y,z) translation to M03 M13 M23
     //        translate() - adds to M03 M13 M23 M33 (see implementation)
 
-    public void moveBy(Vector3 vector) { transform.trn(vector); }
-    public void moveBy(float x, float y, float z) { transform.trn(x, y, z); }
-    public void moveTo(Vector3 vector) { transform.setToTranslation(vector); }
-    public void moveTo(float x, float y, float z) { transform.setToTranslation(x, y, z); }
-    public void moveAndScaleTo(Vector3 vector, Vector3 factor) { transform.setToTranslationAndScaling(vector, factor); }
-    public void scaleBy(float factor) { transform.scl(factor, factor, factor); }
-    public void scaleBy(Vector3 factor) { transform.scl(factor); }
-    public void scaleTo(float factor) { transform.setToScaling(factor, factor, factor); }
-    public void scaleTo(Vector3 factor) { transform.setToScaling(factor); }
+    public void trn(Vector3 vector) { transform.trn(vector); }
+    public void trn(float x, float y, float z) { transform.trn(x, y, z); }
+    public void translate(Vector3 translation) { transform.translate(translation); }
+    public void setToTranslation(Vector3 vector) { transform.setToTranslation(vector); }
+    public void setToTranslation(float x, float y, float z) { transform.setToTranslation(x, y, z); }
+    public void setToTranslationAndScaling(Vector3 translation, Vector3 scaling) { transform.setToTranslationAndScaling(translation, scaling); }
+    public void setToTranslationAndScaling(float x, float y, float z, float sX, float sY, float sZ) { transform.setToTranslationAndScaling(x, y, z, sX, sY, sZ); }
+    public void scl(float factor) { transform.scl(factor, factor, factor); }
+    public void scl(Vector3 factor) { transform.scl(factor); }
+    public void scale(float scaleX, float scaleY, float scaleZ) { transform.scale(scaleX, scaleY, scaleZ); }
+    public void setToScaling(float factor) { transform.setToScaling(factor, factor, factor); }
+    public void setToScaling(Vector3 factor) { transform.setToScaling(factor); }
+    public void rotate(Vector3 axis, float degrees) { transform.rotate(axis, degrees); }
+    public void rotate(Quaternion rotation) { transform.rotate(rotation); }
+    public void rotate(final Vector3 v1, final Vector3 v2) { transform.rotate(v1, v2); }
 
     public float getMaxScale() { Vector3 s = transform.getScale(new Vector3()); return Math.max(Math.max(s.x, s.y), s.z); }
     // see Matrix4 set(...) for the entire map of translation rotation and scale

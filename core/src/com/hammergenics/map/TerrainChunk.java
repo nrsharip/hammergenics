@@ -71,7 +71,7 @@ public class TerrainChunk {
         noiseHgModel = new HGModel(createGridModel(gridNoise));
         noisePhysModelInstance = new HGModelInstance(noiseHgModel, "grid");
 
-        noisePhysModelInstance.transform.setToTranslationAndScaling(
+        noisePhysModelInstance.setToTranslationAndScaling(
                 gridNoise.getX0() * scale, 0, gridNoise.getZ0() * scale,
                 scale, scale, scale
         );
@@ -131,7 +131,7 @@ public class TerrainChunk {
                         translation.sub(tmp.dims.cpy().scl(1/2f));
                         translation.add(gridNoise.getX0(), 0, gridNoise.getZ0());
                         scaling.set(scale, scale, scale);
-                        tmp.transform.setToTranslationAndScaling(translation.scl(scaling), scaling);
+                        tmp.setToTranslationAndScaling(translation.scl(scaling), scaling);
                         terrain.add(tmp);
                         continue;
                     } else if (index2plane.get(0b000110).normal.isOnLine(Vector3.Y)) {
@@ -176,8 +176,8 @@ public class TerrainChunk {
                         translation.sub(tmp.dims.cpy().scl(1, factor, 1).scl(1/2f));
                         translation.add(gridNoise.getX0(), 0, gridNoise.getZ0());
                         scaling.set(scale, factor * scale, scale);
-                        tmp.transform.setToTranslationAndScaling(translation.scl(scale), scaling);
-                        tmp.transform.rotate(rotation);
+                        tmp.setToTranslationAndScaling(translation.scl(scale), scaling);
+                        tmp.rotate(rotation);
                         terrain.add(tmp);
                         continue;
                     }
@@ -230,8 +230,8 @@ public class TerrainChunk {
                         translation.sub(tmp.dims.cpy().scl(1, factor, 1).scl(1/2f));
                         translation.add(gridNoise.getX0(), 0, gridNoise.getZ0());
                         scaling.set(scale, factor * scale, scale);
-                        tmp.transform.setToTranslationAndScaling(translation.scl(scale), scaling);
-                        tmp.transform.rotate(rotation);
+                        tmp.setToTranslationAndScaling(translation.scl(scale), scaling);
+                        tmp.rotate(rotation);
                         terrain.add(tmp);
                         continue;
                     }
@@ -254,8 +254,8 @@ public class TerrainChunk {
                         translation.sub(tmp.dims.cpy().scl(1, factor, 1).scl(1/2f));
                         translation.add(gridNoise.getX0(), 0, gridNoise.getZ0());
                         scaling.set(scale, factor * scale, scale);
-                        tmp.transform.setToTranslationAndScaling(translation.scl(scale), scaling);
-                        tmp.transform.rotate(rotation);
+                        tmp.setToTranslationAndScaling(translation.scl(scale), scaling);
+                        tmp.rotate(rotation);
                         terrain.add(tmp);
                         continue;
                     }
@@ -274,12 +274,12 @@ public class TerrainChunk {
     public void trnNoisePhysModelInstance(float x, float y, float z) {
         if (noisePhysModelInstance == null) { return; }
 
-        noisePhysModelInstance.transform.trn(x, y, z);
+        noisePhysModelInstance.trn(x, y, z);
     }
 
     public void trnTerrain(float x, float y, float z) {
         if (terrain.size == 0) { return; }
 
-        for (HGModelInstance mi: terrain) { mi.transform.trn(x, y, z); }
+        for (HGModelInstance mi: terrain) { mi.trn(x, y, z); }
     }
 }

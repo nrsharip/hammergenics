@@ -45,7 +45,6 @@ import com.hammergenics.screens.stages.ui.attributes.AttributesManagerTable;
 import com.hammergenics.utils.HGUtils;
 
 import static com.hammergenics.HGEngine.filterModels;
-import static com.hammergenics.screens.graphics.g3d.utils.Models.createTestSphere;
 
 /**
  * Add description here
@@ -95,10 +94,7 @@ public class ModelEditScreen extends ScreenAdapter {
         inputMultiplexer.addProcessor(meic);
         Gdx.input.setInputProcessor(inputMultiplexer);
 
-        //eng.addModelInstance(createTestBox(GL20.GL_POINTS));
-        //eng.addModelInstance(createTestBox(GL20.GL_LINES));
-        //eng.addModelInstance(createTestBox(GL20.GL_TRIANGLES));
-        stage.addModelInstance(createTestSphere(GL20.GL_TRIANGLES, 40));
+        stage.addModelInstance(eng.sphereHgModel);
         stage.afterCurrentModelInstanceChanged();
     }
 
@@ -131,6 +127,8 @@ public class ModelEditScreen extends ScreenAdapter {
         // https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glClear.xml
         // (https://stackoverflow.com/questions/34164309/gl-color-buffer-bit-regenerating-which-memory)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+
+        if (stage.aiCheckBox.isChecked()) { eng.editableMIs.forEach(mi -> mi.update(delta)); }
 
         if (stage.dynamicsCheckBox.isChecked()) {
             // see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part2/
@@ -233,7 +231,6 @@ public class ModelEditScreen extends ScreenAdapter {
     public void dispose() {
         super.dispose();
         if (stage != null) { stage.dispose(); }
-        if (eng != null) { eng.dispose(); }
     }
 
     /**

@@ -115,8 +115,8 @@ public class PhysicalModelInstance extends HGModelInstance implements Disposable
         translate.set(0, -getBB(false).getCenterY(), 0);
         transform.getScale(scl);
         rigidBody.getWorldTransform(transform);
-        transform.translate(translate.scl(scl));
-        transform.scale(scl.x, scl.y, scl.z);
+        translate(translate.scl(scl));
+        scale(scl.x, scl.y, scl.z);
     }
 
     public void addRBShapeToRenderer(HGImmediateModeRenderer20 imr) {

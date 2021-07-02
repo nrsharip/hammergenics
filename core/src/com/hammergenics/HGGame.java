@@ -119,6 +119,10 @@ public class HGGame extends Game {
         // you'll need to call the dispose() method when no longer needed.
         modelBatch.dispose();
 
+        HGEngine.boxHgModel.dispose();
+        HGEngine.sphereHgModel.dispose();
+        if (engine != null) { engine.dispose(); }
+
         // Note that the dispose() method of the GameScreen class is not called automatically, see the Screen API.
         // It is your responsibility to take care of that.
         // You can call this method from the dispose() method of the Game class,

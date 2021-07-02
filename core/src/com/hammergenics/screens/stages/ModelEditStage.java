@@ -108,6 +108,7 @@ public class ModelEditStage extends Stage {
     public CheckBox dynamicsCheckBox;
     public CheckBox rbCheckBox;
     public CheckBox groundCheckBox;
+    public CheckBox aiCheckBox;
     public SelectBox<FileHandle> folderSelectBox;
     public SelectBox<FileHandle> modelSelectBox;
     public SelectBox<String> nodeSelectBox;
@@ -277,6 +278,9 @@ public class ModelEditStage extends Stage {
 
         groundCheckBox = new CheckBox("ground", skin);
         groundCheckBox.setChecked(false);
+
+        aiCheckBox = new CheckBox("ai", skin);
+        aiCheckBox.setChecked(false);
 
         // TEXT BUTTONS:
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textbutton
@@ -588,6 +592,7 @@ public class ModelEditStage extends Stage {
         lowerPanel.add(dynamicsCheckBox).pad(3f);
         lowerPanel.add(rbCheckBox).pad(3f);
         lowerPanel.add(groundCheckBox).pad(3f);
+        lowerPanel.add(aiCheckBox).pad(3f);
         lowerPanel.add(saveCurrModelTextButton).pad(3f);
         lowerPanel.add(deleteCurrModelTextButton).pad(3f);
         lowerPanel.add(clearModelsTextButton).pad(3f);
