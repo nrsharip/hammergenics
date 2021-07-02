@@ -41,7 +41,7 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     // the bounding radius of this Steerable
     public float boundingRadius = 1f;
     // tag/untag this Steerable. This is a generic flag utilized in a variety of ways
-    boolean tagged = false;
+    public boolean tagged = false;
 
     // Returns the threshold below which the linear speed can be considered zero. It must be a small positive value near to zero.
     // Usually it is used to avoid updating the orientation when the velocity vector has a negligible length.

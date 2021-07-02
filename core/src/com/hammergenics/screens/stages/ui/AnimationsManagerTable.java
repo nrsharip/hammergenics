@@ -334,7 +334,9 @@ public class AnimationsManagerTable extends HGTable {
         }
     }
 
-    public void setAnimation(EditableModelInstance mi, Animation anim) {
+    public void setAnimation(EditableModelInstance mi) {
+        Animation anim = null;
+        if (mi != null) { anim = mi.selectedAnimation; }
         if (mi != null && anim != null) {
             AnimationInfo info = mi.anim2info.get(anim);
             if (info != null) { setKeyFrameSlider(0f, anim.duration, info.minStep, mi.currKeyTime); }
@@ -355,7 +357,7 @@ public class AnimationsManagerTable extends HGTable {
         this.dbgModelInstance = mi;
 
         setAnimSelectBox(mi);
-        if (mi != null) { setAnimation(mi, mi.selectedAnimation); }
+        setAnimation(mi);
         updateActors();
     }
 

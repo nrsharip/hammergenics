@@ -128,7 +128,12 @@ public class ModelEditScreen extends ScreenAdapter {
         // (https://stackoverflow.com/questions/34164309/gl-color-buffer-bit-regenerating-which-memory)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
-        if (stage.aiCheckBox.isChecked()) { eng.editableMIs.forEach(mi -> mi.update(delta)); }
+        if (stage.aiCheckBox.isChecked()) {
+            eng.editableMIs.forEach(mi -> mi.update(delta));
+            if (stage.aiManagerTable.dbgModelInstance != null) {
+                stage.aiManagerTable.updateSteerable();
+            }
+        }
 
         if (stage.dynamicsCheckBox.isChecked()) {
             // see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part2/

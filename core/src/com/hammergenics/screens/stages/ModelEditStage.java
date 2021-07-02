@@ -47,6 +47,7 @@ import com.hammergenics.HGGame;
 import com.hammergenics.config.Config;
 import com.hammergenics.screens.ModelEditScreen;
 import com.hammergenics.screens.graphics.g3d.HGModel;
+import com.hammergenics.screens.stages.ui.AIManagerTable;
 import com.hammergenics.screens.stages.ui.AggregatedAttributesManagerTable;
 import com.hammergenics.screens.stages.ui.AnimationsManagerTable;
 import com.hammergenics.screens.stages.ui.MapGenerationTable;
@@ -87,6 +88,7 @@ public class ModelEditStage extends Stage {
     public AggregatedAttributesManagerTable aggrAttrTable;
     public AnimationsManagerTable animationsManagerTable;
     public MapGenerationTable mapGenerationTable;
+    public AIManagerTable aiManagerTable;
 
     // 2D Stage Widgets:
     public Label miLabel;  // Model Instance Info
@@ -116,6 +118,7 @@ public class ModelEditStage extends Stage {
     public TextButton attrTextButton = null;
     public TextButton animTextButton = null;
     public TextButton mapTextButton = null;
+    public TextButton aiTextButton = null;
     public TextButton clearModelsTextButton = null;
     public TextButton deleteCurrModelTextButton = null;
     public TextButton saveCurrModelTextButton = null;
@@ -134,6 +137,7 @@ public class ModelEditStage extends Stage {
         aggrAttrTable = new AggregatedAttributesManagerTable(modelES, this);
         animationsManagerTable = new AnimationsManagerTable(modelES, this);
         mapGenerationTable = new MapGenerationTable(modelES, this);
+        aiManagerTable = new AIManagerTable(modelES, this);
     }
 
     /**
@@ -339,6 +343,26 @@ public class ModelEditStage extends Stage {
                     pressButton(mapTextButton);
                 } else {
                     unpressButton(mapTextButton);
+                }
+                resetTables();
+                return super.touchDown(event, x, y, pointer, button); // false
+                // If true is returned, this listener will have touch focus, so it will receive all
+                // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
+                // Also when true is returned, the event is handled
+            }
+        });
+
+        aiTextButton = new TextButton("AI", skin);
+        unpressButton(aiTextButton);
+        aiTextButton.addListener(new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                editCell.clearActor();
+                if (!isPressed(aiTextButton)) {
+                    unpressAllButtons();
+                    pressButton(aiTextButton);
+                } else {
+                    unpressButton(aiTextButton);
                 }
                 resetTables();
                 return super.touchDown(event, x, y, pointer, button); // false
@@ -565,6 +589,8 @@ public class ModelEditStage extends Stage {
         leftPanel.row();
         leftPanel.add(mapTextButton).fillX();
         leftPanel.row();
+        leftPanel.add(aiTextButton).fillX();
+        leftPanel.row();
 
         rootTable.add(leftPanel).padTop(10f).top().left();
 
@@ -612,9 +638,11 @@ public class ModelEditStage extends Stage {
         unpressButton(attrTextButton);
         unpressButton(animTextButton);
         unpressButton(mapTextButton);
+        unpressButton(aiTextButton);
     }
     public boolean isAnyButtonPressed() {
-        return isPressed(attrTextButton) || isPressed(animTextButton) || isPressed(mapTextButton);
+        return isPressed(attrTextButton) || isPressed(animTextButton) || isPressed(mapTextButton)
+                || isPressed(aiTextButton);
     }
     public void unpressButton(TextButton btn) { btn.getColor().set(COLOR_UNPRESSED); }
     public void pressButton(TextButton btn) { btn.getColor().set(COLOR_PRESSED); }
@@ -663,6 +691,11 @@ public class ModelEditStage extends Stage {
         if (isPressed(mapTextButton)) {
             //mapGenerationTable.setDbgModelInstance(modelES.eng.currMI);
             mapGenerationTable.resetActors();
+        }
+
+        if (isPressed(aiTextButton)) {
+            aiManagerTable.setDbgModelInstance(modelES.eng.currMI);
+            aiManagerTable.resetActors();
         }
 
         if (!isAnyButtonPressed()) {
