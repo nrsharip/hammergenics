@@ -72,6 +72,7 @@ import com.hammergenics.screens.graphics.g3d.EditableModelInstance;
 import com.hammergenics.screens.graphics.g3d.HGModel;
 import com.hammergenics.screens.graphics.g3d.HGModelInstance;
 import com.hammergenics.screens.graphics.g3d.PhysicalModelInstance;
+import com.hammergenics.screens.graphics.g3d.PhysicalModelInstance.ShapesEnum;
 import com.hammergenics.screens.graphics.g3d.saver.G3dModelSaver;
 import com.hammergenics.screens.physics.bullet.collision.HGContactListener;
 import com.hammergenics.screens.utils.AttributesMap;
@@ -219,7 +220,7 @@ public class HGEngine implements Disposable {
         gridXZHgModelInstance = new HGModelInstance(gridHgModel, "XZ");
         gridYHgModelInstance = new HGModelInstance(gridHgModel, "Y");
         gridOHgModelInstance = new HGModelInstance(gridHgModel, "origin");
-        groundPhysModelInstance = new PhysicalModelInstance(boxHgModel, 0f, "box");
+        groundPhysModelInstance = new PhysicalModelInstance(boxHgModel, 0f, ShapesEnum.BOX, "box");
     }
 
     @Override
@@ -312,6 +313,7 @@ public class HGEngine implements Disposable {
 
             tc.applyTerrainParts(scale);
             tc.trnTerrain(0f, -mid * tc.gridNoise.yScale * scale, 0f);
+            for(PhysicalModelInstance mi: tc.terrain) { resetRigidBody(mi, ShapesEnum.BOX, FLAG_GROUND, FLAG_ALL); }
         }
     }
 
@@ -475,7 +477,7 @@ public class HGEngine implements Disposable {
         }
 
         if (nodeId == null) {
-            currMI = new EditableModelInstance(hgModel, hgModel.afh, 10f);
+            currMI = new EditableModelInstance(hgModel, hgModel.afh, 10f, ShapesEnum.BOX);
         } else {
             // TODO: maybe it's good to add a Tree for Node traversal
             // https://libgdx.badlogicgames.com/ci/nightlies/docs/api/com/badlogic/gdx/scenes/scene2d/ui/Tree.html
@@ -508,7 +510,7 @@ public class HGEngine implements Disposable {
                 }
             }
             Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),"nodeId: " + nodeId + " nodeIndex: " + nodeIndex);
-            currMI = new EditableModelInstance(hgModel, hgModel.afh, 10f, nodeId);
+            currMI = new EditableModelInstance(hgModel, hgModel.afh, 10f, ShapesEnum.BOX, nodeId);
             // for some reasons getting this exception in case nodeId == null:
             // (should be done like (String[])null maybe...)
             // Exception in thread "LWJGL Application" java.lang.NullPointerException
@@ -597,7 +599,7 @@ public class HGEngine implements Disposable {
                     .add(0, factor * mi.getBB().getHeight()/2, 0);
             mi.setToTranslationAndScaling(position, Vector3.Zero.cpy().add(factor));
             //Gdx.app.debug("spiral", "transform:\n" + mi.transform);
-            resetRigidBody(mi, FLAG_OBJECT, FLAG_ALL);
+            resetRigidBody(mi, ShapesEnum.BOX, FLAG_OBJECT, FLAG_ALL);
 
             // spiral loop around (0, 0, 0)
             HGUtils.spiralGetNext(cell);
@@ -626,7 +628,7 @@ public class HGEngine implements Disposable {
         float height = unitSize/10f;
         groundPhysModelInstance.setToTranslationAndScaling(
                 Vector3.Y.cpy().scl(-height/2f), new Vector3(15*overallSize, height, 15*overallSize));
-        resetRigidBody(groundPhysModelInstance, FLAG_GROUND, FLAG_ALL);
+        resetRigidBody(groundPhysModelInstance, ShapesEnum.BOX, FLAG_GROUND, FLAG_ALL);
     }
 
     public void addRigidBody(PhysicalModelInstance mi, int group, int mask) {
@@ -645,9 +647,9 @@ public class HGEngine implements Disposable {
         dynamicsWorld.removeRigidBody(mi.rigidBody);
     }
 
-    public void resetRigidBody(PhysicalModelInstance mi, int group, int mask) {
+    public void resetRigidBody(PhysicalModelInstance mi, ShapesEnum shapeType, int group, int mask) {
         if (mi.rigidBody != null) { removeRigidBody(mi); }
-        mi.createRigidBody();
+        mi.createRigidBody(shapeType);
         addRigidBody(mi, group, mask);
     }
 

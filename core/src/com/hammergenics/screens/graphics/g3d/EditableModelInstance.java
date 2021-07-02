@@ -87,14 +87,13 @@ public class EditableModelInstance extends SteerableModelInstance implements Dis
     public int auxMeshCounter;
     public Node hoveredOverNode = null;
 
-    public EditableModelInstance(Model model, float mass) { this(new HGModel(model), null, mass, (String[])null); }
-    public EditableModelInstance(Model model, float mass, String... rootNodeIds) { this(new HGModel(model), null, mass, rootNodeIds); }
-    public EditableModelInstance(HGModel hgModel, float mass) { this(hgModel, null, mass, (String[])null); }
-    public EditableModelInstance(HGModel hgModel, float mass, String... rootNodeIds) { this(hgModel, null, mass, rootNodeIds); }
-    public EditableModelInstance(HGModel hgModel, FileHandle assetFL, float mass) { this(hgModel, assetFL, mass, (String[])null); }
-
-    public EditableModelInstance(HGModel hgModel, FileHandle assetFL, float mass, String... rootNodeIds) {
-        super(hgModel, assetFL, mass, rootNodeIds);
+    public EditableModelInstance(Model model, float mass, ShapesEnum shape) { this(new HGModel(model), null, mass, shape, (String[])null); }
+    public EditableModelInstance(Model model, float mass, ShapesEnum shape, String... rootNodeIds) { this(new HGModel(model), null, mass, shape, rootNodeIds); }
+    public EditableModelInstance(HGModel hgModel, float mass, ShapesEnum shape) { this(hgModel, null, mass, shape, (String[])null); }
+    public EditableModelInstance(HGModel hgModel, float mass, ShapesEnum shape, String... rootNodeIds) { this(hgModel, null, mass, shape, rootNodeIds); }
+    public EditableModelInstance(HGModel hgModel, FileHandle assetFL, float mass, ShapesEnum shape) { this(hgModel, assetFL, mass, shape, (String[])null); }
+    public EditableModelInstance(HGModel hgModel, FileHandle assetFL, float mass, ShapesEnum shape, String... rootNodeIds) {
+        super(hgModel, assetFL, mass, shape, rootNodeIds);
         createBBModel();
 
         checkNodeParts();

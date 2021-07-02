@@ -45,6 +45,7 @@ import com.badlogic.gdx.ai.steer.utils.paths.LinePath;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.hammergenics.HGEngine;
+import com.hammergenics.screens.graphics.g3d.PhysicalModelInstance.ShapesEnum;
 import com.hammergenics.screens.graphics.g3d.SteerableModelInstance;
 
 /**
@@ -243,9 +244,9 @@ public enum SteeringBehaviorsVector3Enum {
     public static final Path<Vector3, LinePath.LinePathParam> stubPath;
 
     static {
-        stubOwner = new SteerableModelInstance(HGEngine.boxHgModel, 0f);
-        stubAgent1 = new SteerableModelInstance(HGEngine.boxHgModel, 0f);
-        stubAgent2 = new SteerableModelInstance(HGEngine.boxHgModel, 0f);
+        stubOwner = new SteerableModelInstance(HGEngine.boxHgModel, 0f, ShapesEnum.BOX);
+        stubAgent1 = new SteerableModelInstance(HGEngine.boxHgModel, 0f, ShapesEnum.BOX);
+        stubAgent2 = new SteerableModelInstance(HGEngine.boxHgModel, 0f, ShapesEnum.BOX);
         Array<Steerable<Vector3>> agents = new Array<>(Steerable.class);
         agents.add(stubAgent1);
         agents.add(stubAgent2);

@@ -38,7 +38,7 @@ import com.hammergenics.HGEngine;
 import com.hammergenics.screens.ModelEditScreen;
 import com.hammergenics.screens.graphics.g3d.EditableModelInstance;
 import com.hammergenics.screens.graphics.g3d.HGModelInstance;
-import com.hammergenics.screens.graphics.g3d.PhysicalModelInstance;
+import com.hammergenics.screens.graphics.g3d.PhysicalModelInstance.ShapesEnum;
 import com.hammergenics.screens.graphics.g3d.model.AnimationInfo;
 import com.hammergenics.screens.utils.AttributesMap;
 
@@ -302,7 +302,7 @@ public class ModelEditInputController extends SpectatorInputController {
                     hoveredOverMI.scale(scale, scale, scale);
                     hoveredOverMI.bbHgModelInstanceReset();
                     hoveredOverMI.bbCornersReset();
-                    eng.resetRigidBody(hoveredOverMI, HGEngine.FLAG_OBJECT, HGEngine.FLAG_ALL);
+                    eng.resetRigidBody(hoveredOverMI, ShapesEnum.BOX, HGEngine.FLAG_OBJECT, HGEngine.FLAG_ALL);
 //                    Gdx.app.debug(getClass().getSimpleName(), ""
 //                            + " coordCenter: " + coordCenter + " coordCorner: " + coordCorner
 //                            + " coordHlfDiag: " + coordHlfDiag + " coordDir: " + coordDir
@@ -413,7 +413,7 @@ public class ModelEditInputController extends SpectatorInputController {
 
                     hoveredOverMI.bbHgModelInstanceReset();
                     hoveredOverMI.bbCornersReset();
-                    eng.resetRigidBody(hoveredOverMI, HGEngine.FLAG_OBJECT, HGEngine.FLAG_ALL);
+                    eng.resetRigidBody(hoveredOverMI, ShapesEnum.BOX, HGEngine.FLAG_OBJECT, HGEngine.FLAG_ALL);
                     return false;
                 } else if ((keysPressed.contains(Keys.CONTROL_LEFT) || keysPressed.contains(Keys.CONTROL_RIGHT))
                         && hoveredOverMI != null) {
@@ -434,7 +434,7 @@ public class ModelEditInputController extends SpectatorInputController {
 
                     draggedMI.bbHgModelInstanceReset();
                     draggedMI.bbCornersReset();
-                    eng.resetRigidBody(draggedMI, HGEngine.FLAG_OBJECT, HGEngine.FLAG_ALL);
+                    eng.resetRigidBody(draggedMI, ShapesEnum.BOX, HGEngine.FLAG_OBJECT, HGEngine.FLAG_ALL);
                     return false;
                 } else if (hoveredOverMI != null) {
                     // we hold the left button pressed on the model instance itself - applying hor translation
@@ -457,7 +457,7 @@ public class ModelEditInputController extends SpectatorInputController {
 
                     draggedMI.bbHgModelInstanceReset();
                     draggedMI.bbCornersReset();
-                    eng.resetRigidBody(draggedMI, HGEngine.FLAG_OBJECT, HGEngine.FLAG_ALL);
+                    eng.resetRigidBody(draggedMI, ShapesEnum.BOX, HGEngine.FLAG_OBJECT, HGEngine.FLAG_ALL);
                     return false;
                 }
                 return true;

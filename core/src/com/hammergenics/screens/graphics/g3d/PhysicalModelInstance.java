@@ -23,6 +23,7 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
+import com.badlogic.gdx.physics.bullet.collision.btBvhTriangleMeshShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
@@ -39,18 +40,19 @@ public class PhysicalModelInstance extends HGModelInstance implements Disposable
     public int rbHashCode = -1;
     public btRigidBody.btRigidBodyConstructionInfo constructionInfo;
     public btCollisionShape shape;
+    public ShapesEnum shapeType;
     public Vector3 localInertia = Vector3.Zero.cpy();
     public float mass;
 
-    public PhysicalModelInstance(Model model, float mass) { this(new HGModel(model), null, mass, (String[])null); }
-    public PhysicalModelInstance(Model model, float mass, String... rootNodeIds) { this(new HGModel(model), null, mass, rootNodeIds); }
-    public PhysicalModelInstance(HGModel hgModel, float mass) { this(hgModel, null, mass, (String[])null); }
-    public PhysicalModelInstance(HGModel hgModel, float mass, String... rootNodeIds) { this(hgModel, null, mass, rootNodeIds); }
-    public PhysicalModelInstance(HGModel hgModel, FileHandle assetFL, float mass) { this(hgModel, assetFL, mass, (String[])null); }
-    public PhysicalModelInstance(HGModel hgModel, FileHandle assetFL, float mass, String... rootNodeIds) {
+    public PhysicalModelInstance(Model model, float mass, ShapesEnum shape) { this(new HGModel(model), null, mass, shape, (String[])null); }
+    public PhysicalModelInstance(Model model, float mass, ShapesEnum shape, String... rootNodeIds) { this(new HGModel(model), null, mass, shape, rootNodeIds); }
+    public PhysicalModelInstance(HGModel hgModel, float mass, ShapesEnum shape) { this(hgModel, null, mass, shape, (String[])null); }
+    public PhysicalModelInstance(HGModel hgModel, float mass, ShapesEnum shape, String... rootNodeIds) { this(hgModel, null, mass, shape, rootNodeIds); }
+    public PhysicalModelInstance(HGModel hgModel, FileHandle assetFL, float mass, ShapesEnum shape) { this(hgModel, assetFL, mass, shape, (String[])null); }
+    public PhysicalModelInstance(HGModel hgModel, FileHandle assetFL, float mass, ShapesEnum shapeType, String... rootNodeIds) {
         super(hgModel, assetFL, rootNodeIds);
         this.mass = mass;
-        createRigidBody();
+        createRigidBody(shapeType);
     }
 
     @Override
@@ -65,10 +67,17 @@ public class PhysicalModelInstance extends HGModelInstance implements Disposable
         // Because of this, you have to manually dispose the object when you no longer need it.
         if (rigidBody != null) { rigidBody.dispose(); }
         if (constructionInfo != null) { constructionInfo.dispose(); }
-        if (shape != null) { shape.dispose(); }
+        if (shape != null) {
+            shape.release();
+            shape.dispose();
+        }
     }
 
-    public int createRigidBody() {
+    public enum ShapesEnum {
+        BOX, MESHPARTS
+    }
+
+    public int createRigidBody(ShapesEnum shapeType) {
         if (rigidBody != null) { rigidBody.dispose(); }
         if (constructionInfo != null) { constructionInfo.dispose(); }
         if (shape != null) { shape.dispose(); }
@@ -79,8 +88,12 @@ public class PhysicalModelInstance extends HGModelInstance implements Disposable
 
         Vector3 dims = getBB(false).getDimensions(new Vector3()).scl(scl);
         Vector3 trn = new Vector3(0, getBB(false).getCenterY(), 0).scl(scl);
+        switch (shapeType) {
+            case BOX: shape = new btBoxShape(dims.scl(0.5f)); break; // scl(0.5f) so we get half-extents
+            case MESHPARTS: shape = btBvhTriangleMeshShape.obtain(hgModel.obj.meshParts);
+            default: return -1;
+        }
 
-        shape = new btBoxShape(dims.scl(0.5f)); // scl(0.5f) so we get half-extents
         shape.calculateLocalInertia(mass, localInertia);
         constructionInfo = new btRigidBody.btRigidBodyConstructionInfo(mass, null, shape, localInertia);
 

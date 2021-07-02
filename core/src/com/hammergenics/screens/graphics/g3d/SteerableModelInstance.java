@@ -60,14 +60,13 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     // Behaviors related:
     public Location<Vector3> target = new LocationAdapter<>(new Vector3(10f, 10f, 10f));
 
-    public SteerableModelInstance(Model model, float mass) { this(new HGModel(model), null, mass, (String[])null); }
-    public SteerableModelInstance(Model model, float mass, String... rootNodeIds) { this(new HGModel(model), null, mass, rootNodeIds); }
-    public SteerableModelInstance(HGModel hgModel, float mass) { this(hgModel, null, mass, (String[])null); }
-    public SteerableModelInstance(HGModel hgModel, float mass, String... rootNodeIds) { this(hgModel, null, mass, rootNodeIds); }
-    public SteerableModelInstance(HGModel hgModel, FileHandle assetFL, float mass) { this(hgModel, assetFL, mass, (String[])null); }
-
-    public SteerableModelInstance(HGModel hgModel, FileHandle assetFL, float mass, String... rootNodeIds) {
-        super(hgModel, assetFL, mass, rootNodeIds);
+    public SteerableModelInstance(Model model, float mass, ShapesEnum shape) { this(new HGModel(model), null, mass, shape, (String[])null); }
+    public SteerableModelInstance(Model model, float mass, ShapesEnum shape, String... rootNodeIds) { this(new HGModel(model), null, mass, shape, rootNodeIds); }
+    public SteerableModelInstance(HGModel hgModel, float mass, ShapesEnum shape) { this(hgModel, null, mass, shape, (String[])null); }
+    public SteerableModelInstance(HGModel hgModel, float mass, ShapesEnum shape, String... rootNodeIds) { this(hgModel, null, mass, shape, rootNodeIds); }
+    public SteerableModelInstance(HGModel hgModel, FileHandle assetFL, float mass, ShapesEnum shape) { this(hgModel, assetFL, mass, shape, (String[])null); }
+    public SteerableModelInstance(HGModel hgModel, FileHandle assetFL, float mass, ShapesEnum shape, String... rootNodeIds) {
+        super(hgModel, assetFL, mass, shape, rootNodeIds);
     }
 
     @Override public Vector3 getLinearVelocity() { return linearVelocity; }
