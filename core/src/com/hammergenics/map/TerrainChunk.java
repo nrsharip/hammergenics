@@ -60,7 +60,7 @@ public class TerrainChunk {
         gridNoise.fill(0f);
 
         yLinesHGModelInstance = new HGModelInstance(gridHgModel, "Y");
-        resetNoiseModelInstance(1f);
+        resetNoiseModelInstances(1f);
     }
 
     public HGGrid getGridNoise() { return gridNoise; }
@@ -75,7 +75,7 @@ public class TerrainChunk {
         gridNoise.roundToStep(step);
     }
     
-    public void resetNoiseModelInstance(float scale) {
+    public void resetNoiseModelInstances(float scale) {
         // models
         if (noiseLinesHgModel != null) { noiseLinesHgModel.dispose(); }
         if (noiseTrianglesHgModel != null) { noiseTrianglesHgModel.dispose(); }
@@ -83,8 +83,8 @@ public class TerrainChunk {
         if (noiseLinesHGModelInstance != null) { noiseLinesHGModelInstance.dispose(); }
         if (noiseTrianglesPhysModelInstance != null) { noiseTrianglesPhysModelInstance.dispose(); }
 
-        noiseLinesHgModel = new HGModel(createGridModel(gridNoise, GL20.GL_LINES, Color.YELLOW));
-        noiseTrianglesHgModel = new HGModel(createGridModel(gridNoise, GL20.GL_TRIANGLES, Color.GRAY));
+        noiseLinesHgModel = new HGModel(createGridModel(gridNoise, GL20.GL_LINES, scale, Color.YELLOW));
+        noiseTrianglesHgModel = new HGModel(createGridModel(gridNoise, GL20.GL_TRIANGLES, scale, Color.GRAY));
         //com.badlogic.gdx.utils.GdxRuntimeException: Mesh must be indexed and triangulated
         //        at com.badlogic.gdx.physics.bullet.collision.btIndexedMesh.set(btIndexedMesh.java:165)
         //        at com.badlogic.gdx.physics.bullet.collision.btIndexedMesh.<init>(btIndexedMesh.java:126)
@@ -105,7 +105,8 @@ public class TerrainChunk {
                 noiseTrianglesHgModel, 0f, ShapesEnum.MESH, "grid");
         noiseTrianglesPhysModelInstance.setToTranslationAndScaling(
                 gridNoise.getX0() * scale, 0, gridNoise.getZ0() * scale,
-                scale, scale, scale
+                1f, 1f, 1f // scaling is handled in createGridModel for GL_TRIANGLES
+                           // since it is meant for rigid body which has no notion of scaling
         );
 
         float halfCellsWidth = (gridNoise.getWidth(true))/2f;

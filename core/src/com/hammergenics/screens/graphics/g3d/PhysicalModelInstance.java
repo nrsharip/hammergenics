@@ -58,20 +58,20 @@ public class PhysicalModelInstance extends HGModelInstance implements Disposable
 
     @Override
     public void dispose() {
-        super.dispose();
-
         // IMPORTANT: see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/
         // Every time you construct a bullet class in java, the wrapper will also construct the same class
         // in the native (C++) library. But while in java the garbage collector takes care of memory management and will
         // free an object when you don’t use it anymore, in C++ you’re responsible for freeing the memory yourself.
         // You’re probably already familiar with this cconcept, because the same goes for a texture, model, model batch, shader etc.
         // Because of this, you have to manually dispose the object when you no longer need it.
-        if (rigidBody != null) { rigidBody.dispose(); }
-        if (constructionInfo != null) { constructionInfo.dispose(); }
+        if (rigidBody != null) { rigidBody.dispose(); rigidBody = null; }
+        if (constructionInfo != null) { constructionInfo.dispose(); constructionInfo = null; }
         if (shape != null) {
             shape.release();
             shape.dispose();
+            shape = null;
         }
+        super.dispose();
     }
 
     public enum ShapesEnum {

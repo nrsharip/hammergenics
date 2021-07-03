@@ -78,7 +78,7 @@ public class Models {
         return mb.end();
     }
 
-    public static Model createGridModel(HGGrid grid, int primType, Color clr) {
+    public static Model createGridModel(HGGrid grid, int primType, float scale, Color clr) {
         ModelBuilder mb;
         MeshPartBuilder mpb;
 
@@ -89,35 +89,34 @@ public class Models {
         mpb = mb.part("grid", primType, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
                 new Material(ColorAttribute.createDiffuse(clr)));
 
-        createGridMeshPart(grid, mpb);
+        createGridMeshPart(grid, mpb, scale);
 
         return mb.end();
     }
 
-    public static void createGridMeshPart(HGGrid grid, MeshPartBuilder mpb) {
+    public static void createGridMeshPart(HGGrid grid, MeshPartBuilder mpb, float scale) {
         int width = grid.getWidth();
         int height = grid.getHeight();
 
         if (mpb.getPrimitiveType() == GL20.GL_LINES) {
-            float y1, y2;
+            Vector3 p1 = new Vector3();
+            Vector3 p2 = new Vector3();
             // drawing lines along X - axis
             for (int z = 0; z < height; z++) {
                 for (int x = 0; x < width - 1; x++) {
-                    y1 = grid.get(x, z);
-                    y2 = grid.get(x + 1, z);
-                    y1 *= grid.yScale; y2 *= grid.yScale;
+                    p1.set(x    , grid.get(x    , z), z).scl(1f, grid.yScale, 1f);
+                    p2.set(x + 1, grid.get(x + 1, z), z).scl(1f, grid.yScale, 1f);
                     //Gdx.app.debug("grid", "" + " x: " + x + " z: " + z + " y1: " + y1 + " y2: " + y2);
-                    mpb.line(x, y1, z, x + 1, y2, z);
+                    mpb.line(p1, p2);
                 }
             }
 
             // drawing lines along Z - axis
             for (int x = 0; x < width; x++) {
                 for (int z = 0; z < height - 1; z++) {
-                    y1 = grid.get(x, z);
-                    y2 = grid.get(x, z + 1);
-                    y1 *= grid.yScale; y2 *= grid.yScale;
-                    mpb.line(x, y1, z, x, y2, z + 1);
+                    p1.set(x, grid.get(x, z    ), z    ).scl(1f, grid.yScale, 1f);
+                    p2.set(x, grid.get(x, z + 1), z + 1).scl(1f, grid.yScale, 1f);
+                    mpb.line(p1, p2);
                 }
             }
         } else if (mpb.getPrimitiveType() == GL20.GL_TRIANGLES) {
@@ -137,10 +136,10 @@ public class Models {
             Vector3 p11 = new Vector3();
             for (int z = 1; z < height; z++) {
                 for (int x = 1; x < width; x++) {
-                    p00.set(x - 1, grid.get(x - 1, z - 1), z - 1).scl(1f, grid.yScale, 1f);
-                    p01.set(x - 1, grid.get(x - 1, z    ), z    ).scl(1f, grid.yScale, 1f);
-                    p10.set(x    , grid.get(x    , z - 1), z - 1).scl(1f, grid.yScale, 1f);
-                    p11.set(x    , grid.get(x    , z    ), z    ).scl(1f, grid.yScale, 1f);
+                    p00.set(x - 1, grid.get(x - 1, z - 1), z - 1).scl(scale, grid.yScale * scale, scale);
+                    p01.set(x - 1, grid.get(x - 1, z    ), z    ).scl(scale, grid.yScale * scale, scale);
+                    p10.set(x    , grid.get(x    , z - 1), z - 1).scl(scale, grid.yScale * scale, scale);
+                    p11.set(x    , grid.get(x    , z    ), z    ).scl(scale, grid.yScale * scale, scale);
                     mpb.triangle(p00, p01, p11);
                     mpb.triangle(p00, p11, p10);
                 }

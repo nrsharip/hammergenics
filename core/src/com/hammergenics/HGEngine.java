@@ -224,11 +224,9 @@ public class HGEngine implements Disposable {
 
     @Override
     public void dispose() {
-        assetManager.dispose();
-        for (EditableModelInstance mi: editableMIs) {
-            if (mi.rigidBody != null) { dynamicsWorld.removeRigidBody(mi.rigidBody); }
-            mi.dispose();
-        }
+        for (PhysicalModelInstance mi: mi2rb.keys()) { removeRigidBody(mi); }
+
+        for (EditableModelInstance mi: editableMIs) { mi.dispose(); }
 
         // IMPORTANT: see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/
         // Every time you construct a bullet class in java, the wrapper will also construct the same class
@@ -242,6 +240,7 @@ public class HGEngine implements Disposable {
         broadPhase.dispose();
         collisionConfig.dispose();
         dispatcher.dispose();
+        assetManager.dispose();
     }
 
     // see: https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Debugging#loading-the-correct-dll
@@ -349,13 +348,15 @@ public class HGEngine implements Disposable {
                 .average().orElse(0f);
 
         for (TerrainChunk tc: chunks) {
-            tc.resetNoiseModelInstance(scale);
+            removeRigidBody(tc.noiseTrianglesPhysModelInstance);
+            tc.resetNoiseModelInstances(scale);
 
             tc.trnNoiseLinesHgModelInstance(0f, -mid * tc.gridNoise.yScale * scale, 0f);
             tc.trnNoiseTrianglesPhysModelInstance(0f, -mid * tc.gridNoise.yScale * scale, 0f);
 
             resetRigidBody(tc.noiseTrianglesPhysModelInstance, ShapesEnum.MESH, FLAG_GROUND, FLAG_ALL);
 
+            for(PhysicalModelInstance mi: tc.terrain) { removeRigidBody(mi); }
             tc.applyTerrainParts(scale);
             tc.trnTerrain(0f, -mid * tc.gridNoise.yScale * scale, 0f);
             for(PhysicalModelInstance mi: tc.terrain) { resetRigidBody(mi, ShapesEnum.BOX, FLAG_GROUND, FLAG_ALL); }
@@ -674,20 +675,31 @@ public class HGEngine implements Disposable {
                     "ERROR: while adding the rigid body to dynamics world");
             return;
         }
-
-        mi2rb.put(mi, mi.rigidBody);
-        rb2mi.put(mi.rigidBody, mi);
-        hc2rb.put(mi.rbHashCode, mi.rigidBody);
-        rb2hc.put(mi.rigidBody, mi.rbHashCode);
-        dynamicsWorld.addRigidBody(mi.rigidBody, group, mask);
+        if (!mi2rb.containsKey(mi)) {
+            mi2rb.put(mi, mi.rigidBody);
+            rb2mi.put(mi.rigidBody, mi);
+            hc2rb.put(mi.rbHashCode, mi.rigidBody);
+            rb2hc.put(mi.rigidBody, mi.rbHashCode);
+            dynamicsWorld.addRigidBody(mi.rigidBody, group, mask);
+            //Gdx.app.debug("add rb", (mi.hgModel.afh != null ? mi.hgModel.afh.name() : mi.nodes.get(0).id)
+            //        + " size: " + mi2rb.size + " num: " + dynamicsWorld.getNumCollisionObjects()
+            //        + " hc: " + mi.rbHashCode + " transform:\n" + mi.rigidBody.getWorldTransform()
+            //);
+        }
     }
 
     public void removeRigidBody(PhysicalModelInstance mi) {
-        mi2rb.removeKey(mi);
-        rb2mi.removeKey(mi.rigidBody);
-        hc2rb.removeKey(mi.rbHashCode);
-        rb2hc.removeKey(mi.rigidBody);
-        dynamicsWorld.removeRigidBody(mi.rigidBody);
+        if (mi2rb.containsKey(mi)) {
+            mi2rb.removeKey(mi);
+            rb2mi.removeKey(mi.rigidBody);
+            hc2rb.removeKey(mi.rbHashCode);
+            rb2hc.removeKey(mi.rigidBody);
+            dynamicsWorld.removeRigidBody(mi.rigidBody);
+            //Gdx.app.debug("rem rb", (mi.hgModel.afh != null ? mi.hgModel.afh.name() : mi.nodes.get(0).id)
+            //        + " size: " + mi2rb.size + " num: " + dynamicsWorld.getNumCollisionObjects()
+            //        + " hc: " + mi.rbHashCode + " transform:\n" + mi.rigidBody.getWorldTransform()
+            //);
+        }
     }
 
     public void resetRigidBody(PhysicalModelInstance mi, ShapesEnum shapeType, int group, int mask) {
@@ -858,14 +870,14 @@ public class HGEngine implements Disposable {
 
     public void removeEditableModelInstance(EditableModelInstance mi) {
         if (mi == null) { return; }
-        if (mi.rigidBody != null) { dynamicsWorld.removeRigidBody(mi.rigidBody); }
+        if (mi.rigidBody != null) { removeRigidBody(mi); }
         editableMIs.removeValue(mi, true);
         mi.dispose();
     }
 
     public void clearModelInstances() {
         editableMIs.forEach(mi -> {
-            if (mi.rigidBody != null) { dynamicsWorld.removeRigidBody(mi.rigidBody); }
+            if (mi.rigidBody != null) { removeRigidBody(mi); }
             mi.dispose();
         });
         editableMIs.clear();
