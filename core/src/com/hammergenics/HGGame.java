@@ -21,6 +21,7 @@ import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
+import com.badlogic.gdx.graphics.g3d.ModelCache;
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import com.badlogic.gdx.graphics.g3d.utils.DefaultShaderProvider;
 import com.badlogic.gdx.utils.Array;
@@ -40,6 +41,7 @@ import static com.hammergenics.HGEngine.filterModels;
 public class HGGame extends Game {
     public HGEngine engine;
     public ModelBatch modelBatch;
+    public ModelCache modelCache;
 
     /**
      *
@@ -96,9 +98,11 @@ public class HGGame extends Game {
         // https://github.com/libgdx/libgdx/wiki/ModelBatch
         // You'd typically create a ModelBatch in the create() method.
         modelBatch = new ModelBatch(new DefaultShaderProvider(config));
-        //modelBatch = new ModelBatch();
 
-        this.setScreen(new ModelEditScreen(this, engine, modelBatch));
+        // see: https://github.com/libgdx/libgdx/wiki/ModelCache#using-modelcache
+        modelCache = new ModelCache();
+
+        this.setScreen(new ModelEditScreen(this, engine, modelBatch, modelCache));
     }
 
     /**
@@ -118,6 +122,11 @@ public class HGGame extends Game {
         // Because it contains native resources (like the shaders it uses),
         // you'll need to call the dispose() method when no longer needed.
         modelBatch.dispose();
+
+        // https://github.com/libgdx/libgdx/wiki/ModelCache#using-modelcache
+        // ModelCache owns several native resources.
+        // Therefore you should dispose() the cache when no longer needed.
+        modelCache.dispose();
 
         HGEngine.boxHgModel.dispose();
         HGEngine.sphereHgModel.dispose();

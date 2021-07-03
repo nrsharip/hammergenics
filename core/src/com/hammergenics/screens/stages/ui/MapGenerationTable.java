@@ -224,8 +224,7 @@ public class MapGenerationTable extends HGTable {
 
     public void init() {
         noiseStageTables.addAll(
-                new NoiseStageTable(stage, 32, 0.6f),
-                new NoiseStageTable(stage, 16, 0.2f),
+                new NoiseStageTable(stage, 16, 0.8f),
                 new NoiseStageTable(stage, 8, 0.1f),
                 new NoiseStageTable(stage, 4, 0.1f),
                 new NoiseStageTable(stage, 1, 0.05f)

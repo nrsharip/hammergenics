@@ -25,6 +25,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
+import com.badlogic.gdx.graphics.g3d.ModelCache;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
@@ -54,6 +55,7 @@ import static com.hammergenics.HGEngine.filterModels;
 public class ModelEditScreen extends ScreenAdapter {
     public final HGGame game;
     private final ModelBatch modelBatch;
+    private final ModelCache modelCache;
 
     public final PerspectiveCamera perspectiveCamera;
     private final ModelEditInputController meic;
@@ -71,10 +73,11 @@ public class ModelEditScreen extends ScreenAdapter {
     /**
      * @param game
      */
-    public ModelEditScreen(HGGame game, HGEngine engine, ModelBatch mb) {
+    public ModelEditScreen(HGGame game, HGEngine engine, ModelBatch mb, ModelCache mc) {
         this.game = game;
         this.eng = engine;
         this.modelBatch = mb; // https://github.com/libgdx/libgdx/wiki/ModelBatch
+        this.modelCache = mc; // https://github.com/libgdx/libgdx/wiki/ModelBatch
 
         immediateModeRenderer = new HGImmediateModeRenderer20(10*Short.MAX_VALUE, false, true, 0);
 
@@ -148,6 +151,15 @@ public class ModelEditScreen extends ScreenAdapter {
             eng.editableMIs.forEach(EditableModelInstance::syncWithRBTransform);
         }
 
+        // https://github.com/libgdx/libgdx/wiki/ModelCache#using-modelcache
+        modelCache.begin();
+        if (stage.isPressed(stage.mapTextButton) && eng.chunks.size > 0) {
+            if (stage.mapGenerationTable.previewTerrain.isChecked()) {
+                for (TerrainChunk tc: eng.chunks) { modelCache.add(tc.terrain); }
+            }
+        }
+        modelCache.end();
+
         // https://github.com/libgdx/libgdx/wiki/ModelBatch
         // The Camera you supply is hold by reference, meaning that it must not be changed in between
         // the begin and end calls. If you need to switch camera in between the begin and end calls,
@@ -168,15 +180,12 @@ public class ModelEditScreen extends ScreenAdapter {
         if (eng.editableMIs.size > 0 && environment != null) { modelBatch.render(eng.editableMIs, environment); }
         if (eng.auxMIs.size > 0) { modelBatch.render(eng.auxMIs); }
 
+        modelBatch.render(modelCache, environment);
+
         if (stage.isPressed(stage.mapTextButton) && eng.chunks.size > 0) {
             if (stage.mapGenerationTable.previewNoiseGrid.isChecked()) {
                 for (TerrainChunk tc: eng.chunks) {
                     if (tc.noisePhysModelInstance != null) { modelBatch.render(tc.noisePhysModelInstance, environment); }
-                }
-            }
-            if (stage.mapGenerationTable.previewTerrain.isChecked()) {
-                for (TerrainChunk tc: eng.chunks) {
-                    modelBatch.render(tc.terrain, environment);
                 }
             }
         } else {
