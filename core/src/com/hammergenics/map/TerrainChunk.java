@@ -31,6 +31,7 @@ import com.hammergenics.screens.graphics.g3d.PhysicalModelInstance.ShapesEnum;
 import java.math.BigDecimal;
 import java.util.Comparator;
 
+import static com.hammergenics.HGEngine.boxHgModel;
 import static com.hammergenics.HGEngine.gridHgModel;
 import static com.hammergenics.map.TerrainPartsEnum.TRRN_CORN_INN;
 import static com.hammergenics.map.TerrainPartsEnum.TRRN_CORN_OUT;
@@ -49,6 +50,7 @@ public class TerrainChunk {
     public HGModel noiseHgModel = null;
     public HGModelInstance noiseLinesHGModelInstance = null;
     public HGModelInstance yLinesHGModelInstance;
+    public PhysicalModelInstance groundPhysModelInstance = null;
     public Array<PhysicalModelInstance> terrain = new Array<>(true, 16, PhysicalModelInstance.class);
 
     public TerrainChunk(int size, int x0, int z0) {
@@ -56,6 +58,7 @@ public class TerrainChunk {
         gridNoise.fill(0f);
 
         yLinesHGModelInstance = new HGModelInstance(gridHgModel, "Y");
+        groundPhysModelInstance = new PhysicalModelInstance(boxHgModel, 0f, ShapesEnum.BOX, "box");
         resetNoiseModelInstance(1f);
     }
 
@@ -82,11 +85,22 @@ public class TerrainChunk {
                 scale, scale, scale
         );
 
+        float halfCellsWidth = (gridNoise.getWidth(true))/2f;
+        float halfCellsHeight = (gridNoise.getHeight(true))/2f;
+
         yLinesHGModelInstance.setToTranslationAndScaling(
-                (gridNoise.getX0() + (gridNoise.getWidth(true))/2f) * scale,
+                (gridNoise.getX0() + halfCellsWidth) * scale,
                 0,
-                (gridNoise.getZ0() + (gridNoise.getHeight(true))/2f) * scale,
+                (gridNoise.getZ0() + halfCellsHeight) * scale,
                 scale, scale, scale
+        );
+
+        float height = scale/10f;
+        groundPhysModelInstance.setToTranslationAndScaling(
+                (gridNoise.getX0() + halfCellsWidth) * scale,
+                -height/2f,
+                (gridNoise.getZ0() + halfCellsHeight) * scale,
+                2 * halfCellsWidth * scale, height, 2 * halfCellsHeight * scale
         );
     }
 

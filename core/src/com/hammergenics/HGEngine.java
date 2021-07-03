@@ -132,7 +132,6 @@ public class HGEngine implements Disposable {
     public static final HGModel sphereHgModel = new HGModel(createTestSphere(GL20.GL_TRIANGLES, 40));
 
     public HGModelInstance gridOHgModelInstance = null;  // origin: sphere (red)
-    public PhysicalModelInstance groundPhysModelInstance = null;  // origin: sphere (red)
     public Array<HGModelInstance> dlArrayHgModelInstance = new Array<>(ModelInstance.class); // directional lights
     public Array<HGModelInstance> plArrayHgModelInstance = new Array<>(ModelInstance.class); // point lights
     public Array<HGModelInstance> bbArrayHgModelInstance = new Array<>(ModelInstance.class); // bounding boxes
@@ -189,12 +188,7 @@ public class HGEngine implements Disposable {
     // Map generation related:
     // taking size + 1 to have the actual [SIZE x SIZE] cells grid
     // which will take [SIZE + 1 x SIZE + 1] vertex grid to define
-    public Array<TerrainChunk> chunks = new Array<>(new TerrainChunk[]{
-            new TerrainChunk(MAP_SIZE + 1, MAP_CENTER - MAP_SIZE, MAP_CENTER - MAP_SIZE),
-            new TerrainChunk(MAP_SIZE + 1, MAP_CENTER - MAP_SIZE, MAP_CENTER           ),
-            new TerrainChunk(MAP_SIZE + 1, MAP_CENTER           , MAP_CENTER - MAP_SIZE),
-            new TerrainChunk(MAP_SIZE + 1, MAP_CENTER           , MAP_CENTER           )
-    });
+    public final Array<TerrainChunk> chunks;
     public HGGrid gridCellular = new HGGrid(512);
     public HGGrid gridDungeon = new HGGrid(512); // This algorithm likes odd-sized maps, although it works either way.
 
@@ -209,6 +203,19 @@ public class HGEngine implements Disposable {
 
         initBullet();
 
+        // Chunks should be populated after bullet is initialized (TerrainChunk has physical models)
+        chunks = new Array<>(new TerrainChunk[]{
+                new TerrainChunk(MAP_SIZE + 1, MAP_CENTER - MAP_SIZE, MAP_CENTER - MAP_SIZE),
+                new TerrainChunk(MAP_SIZE + 1, MAP_CENTER - MAP_SIZE, MAP_CENTER           ),
+                new TerrainChunk(MAP_SIZE + 1, MAP_CENTER           , MAP_CENTER - MAP_SIZE),
+                new TerrainChunk(MAP_SIZE + 1, MAP_CENTER           , MAP_CENTER           )
+        });
+        for (TerrainChunk tc: chunks) {
+            if (tc.groundPhysModelInstance != null) {
+                resetRigidBody(tc.groundPhysModelInstance, ShapesEnum.BOX, FLAG_GROUND, FLAG_ALL);
+            }
+        }
+
         // see public BitmapFont ()
         // Gdx.files.classpath("com/badlogic/gdx/utils/arial-15.fnt"), Gdx.files.classpath("com/badlogic/gdx/utils/arial-15.png")
 
@@ -216,7 +223,6 @@ public class HGEngine implements Disposable {
         assetManager.finishLoading();
 
         gridOHgModelInstance = new HGModelInstance(gridHgModel, "origin");
-        groundPhysModelInstance = new PhysicalModelInstance(boxHgModel, 0f, ShapesEnum.BOX, "box");
     }
 
     @Override
@@ -615,11 +621,6 @@ public class HGEngine implements Disposable {
         if (gridOHgModelInstance == null) { return; }
 
         gridOHgModelInstance.setToScaling(Vector3.Zero.cpy().add(unitSize/4f));
-
-        float height = unitSize/10f;
-        groundPhysModelInstance.setToTranslationAndScaling(
-                Vector3.Y.cpy().scl(-height/2f), new Vector3(15*overallSize, height, 15*overallSize));
-        resetRigidBody(groundPhysModelInstance, ShapesEnum.BOX, FLAG_GROUND, FLAG_ALL);
     }
 
     public void addRigidBody(PhysicalModelInstance mi, int group, int mask) {

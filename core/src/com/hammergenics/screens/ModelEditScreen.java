@@ -193,7 +193,11 @@ public class ModelEditScreen extends ScreenAdapter {
                 if (tc.yLinesHGModelInstance != null) { modelBatch.render(tc.yLinesHGModelInstance); }
             }
         }
-        if (eng.groundPhysModelInstance != null && stage.groundCheckBox.isChecked()) { modelBatch.render(eng.groundPhysModelInstance, environment); }
+        if (stage.groundCheckBox.isChecked()) {
+            for (TerrainChunk tc: eng.chunks) {
+                if (tc.groundPhysModelInstance != null) { modelBatch.render(tc.groundPhysModelInstance, environment); }
+            }
+        }
         if (eng.dlArrayHgModelInstance != null && stage.lightsCheckBox.isChecked()) { modelBatch.render(eng.dlArrayHgModelInstance, environment); }
         if (eng.plArrayHgModelInstance != null && stage.lightsCheckBox.isChecked()) { modelBatch.render(eng.plArrayHgModelInstance, environment); }
         if (eng.bbArrayHgModelInstance != null && stage.bbCheckBox.isChecked()) { modelBatch.render(eng.bbArrayHgModelInstance, environment); }
