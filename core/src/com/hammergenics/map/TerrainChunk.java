@@ -53,7 +53,7 @@ public class TerrainChunk {
     public HGModelInstance noiseLinesHGModelInstance = null;
     public PhysicalModelInstance noiseTrianglesPhysModelInstance = null;
     public HGModelInstance yLinesHGModelInstance;
-    public Array<PhysicalModelInstance> terrain = new Array<>(true, 16, PhysicalModelInstance.class);
+    public Array<HGModelInstance> terrain = new Array<>(true, 16, HGModelInstance.class);
 
     public TerrainChunk(int size, int x0, int z0) {
         gridNoise = new HGGrid(size, x0, z0);
@@ -167,7 +167,7 @@ public class TerrainChunk {
                     // all 4 points are on the same plane, possible options:
                     // 1. plane is parallel to XZ - we're dealing with the flat surface - TRRN_FLAT
                     if (TRRN_FLAT.ready && index2plane.get(0b000110).normal.isOnLine(Vector3.Y)) {
-                        PhysicalModelInstance tmp = new PhysicalModelInstance(TRRN_FLAT.model, 0f, ShapesEnum.MESH);
+                        HGModelInstance tmp = new HGModelInstance(TRRN_FLAT.model);
 
                         translation.set(points.get(0b11));
                         translation.scl(1f, gridNoise.yScale, 1f);
@@ -202,7 +202,7 @@ public class TerrainChunk {
                             index = HGModelInstance.getNext2dIndex(index);
                         }
 
-                        PhysicalModelInstance tmp = new PhysicalModelInstance(TRRN_SIDE.model, 0f, ShapesEnum.MESH);
+                        HGModelInstance tmp = new HGModelInstance(TRRN_SIDE.model);
 
                         float factor = gridNoise.yScale * gridNoise.step/tmp.dims.y;
 
@@ -256,7 +256,7 @@ public class TerrainChunk {
                     // we have the following options:
                     // 1. The protrusive point is below P - TRRN_CORN_INN
                     if (TRRN_CORN_INN.ready && side.equals(Plane.PlaneSide.Back)) {
-                        PhysicalModelInstance tmp = new PhysicalModelInstance(TRRN_CORN_INN.model, 0f, ShapesEnum.MESH);
+                        HGModelInstance tmp = new HGModelInstance(TRRN_CORN_INN.model);
 
                         float factor = gridNoise.yScale * gridNoise.step/tmp.dims.y;
 
@@ -280,7 +280,7 @@ public class TerrainChunk {
                     }
                     // 2. The protrusive point is above P - TRRN_CORN_OUT
                     if (TRRN_CORN_OUT.ready && side.equals(Plane.PlaneSide.Front)) {
-                        PhysicalModelInstance tmp = new PhysicalModelInstance(TRRN_CORN_OUT.model, 0f, ShapesEnum.MESH);
+                        HGModelInstance tmp = new HGModelInstance(TRRN_CORN_OUT.model);
 
                         float factor = gridNoise.yScale * gridNoise.step/tmp.dims.y;
 

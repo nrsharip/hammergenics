@@ -356,10 +356,8 @@ public class HGEngine implements Disposable {
 
             resetRigidBody(tc.noiseTrianglesPhysModelInstance, ShapesEnum.MESH, FLAG_GROUND, FLAG_ALL);
 
-            for(PhysicalModelInstance mi: tc.terrain) { removeRigidBody(mi); }
             tc.applyTerrainParts(scale);
             tc.trnTerrain(0f, -mid * tc.gridNoise.yScale * scale, 0f);
-            for(PhysicalModelInstance mi: tc.terrain) { resetRigidBody(mi, ShapesEnum.BOX, FLAG_GROUND, FLAG_ALL); }
         }
     }
 
