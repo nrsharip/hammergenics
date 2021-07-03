@@ -104,8 +104,8 @@ public class Models {
             // drawing lines along X - axis
             for (int z = 0; z < height; z++) {
                 for (int x = 0; x < width - 1; x++) {
-                    p1.set(x    , grid.get(x    , z), z).scl(1f, grid.yScale, 1f);
-                    p2.set(x + 1, grid.get(x + 1, z), z).scl(1f, grid.yScale, 1f);
+                    p1.set(x    , grid.get(x    , z), z);
+                    p2.set(x + 1, grid.get(x + 1, z), z);
                     //Gdx.app.debug("grid", "" + " x: " + x + " z: " + z + " y1: " + y1 + " y2: " + y2);
                     mpb.line(p1, p2);
                 }
@@ -114,8 +114,8 @@ public class Models {
             // drawing lines along Z - axis
             for (int x = 0; x < width; x++) {
                 for (int z = 0; z < height - 1; z++) {
-                    p1.set(x, grid.get(x, z    ), z    ).scl(1f, grid.yScale, 1f);
-                    p2.set(x, grid.get(x, z + 1), z + 1).scl(1f, grid.yScale, 1f);
+                    p1.set(x, grid.get(x, z    ), z    );
+                    p2.set(x, grid.get(x, z + 1), z + 1);
                     mpb.line(p1, p2);
                 }
             }

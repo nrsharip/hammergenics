@@ -98,7 +98,7 @@ public class TerrainChunk {
         noiseLinesHGModelInstance = new HGModelInstance(noiseLinesHgModel, "grid");
         noiseLinesHGModelInstance.setToTranslationAndScaling(
                 gridNoise.getX0() * scale, 0, gridNoise.getZ0() * scale,
-                scale, scale, scale
+                scale, gridNoise.yScale * scale, scale
         );
 
         noiseTrianglesPhysModelInstance = new PhysicalModelInstance(

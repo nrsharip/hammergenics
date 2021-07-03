@@ -88,7 +88,8 @@ public class PhysicalModelInstance extends HGModelInstance implements Disposable
         Vector3 scl = transform.getScale(new Vector3());
 
         Vector3 dims = getBB(false).getDimensions(new Vector3()).scl(scl);
-        Vector3 trn = new Vector3(0, getBB(false).getCenterY(), 0).scl(scl);
+        // models are assumed to be centered to origin (see HGModel::centerToOrigin),
+        // otherwise an offset to the model's bounding box center should be taken into account
         switch (shapeType) {
             case BOX:
                 shape = new btBoxShape(dims.scl(0.5f));
@@ -118,7 +119,6 @@ public class PhysicalModelInstance extends HGModelInstance implements Disposable
         rigidBody.setWorldTransform(new Matrix4()
                 .setToTranslation(translation)
                 .rotate(rotate.nor())
-                .trn(trn)
         );
         rigidBody.setUserValue(rbHashCode);
 
