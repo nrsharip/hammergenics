@@ -78,7 +78,7 @@ public class Models {
         return mb.end();
     }
 
-    public static Model createGridModel(HGGrid grid, int primType) {
+    public static Model createGridModel(HGGrid grid, int primType, Color clr) {
         ModelBuilder mb;
         MeshPartBuilder mpb;
 
@@ -87,7 +87,7 @@ public class Models {
 
         mb.node().id = "grid";
         mpb = mb.part("grid", primType, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
-                new Material(ColorAttribute.createDiffuse(Color.YELLOW)));
+                new Material(ColorAttribute.createDiffuse(clr)));
 
         createGridMeshPart(grid, mpb);
 

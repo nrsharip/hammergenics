@@ -16,6 +16,7 @@
 
 package com.hammergenics.screens.graphics.g3d;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Model;
@@ -74,7 +75,7 @@ public class PhysicalModelInstance extends HGModelInstance implements Disposable
     }
 
     public enum ShapesEnum {
-        BOX, MESHPARTS
+        BOX, MESH
     }
 
     public int createRigidBody(ShapesEnum shapeType) {
@@ -89,12 +90,21 @@ public class PhysicalModelInstance extends HGModelInstance implements Disposable
         Vector3 dims = getBB(false).getDimensions(new Vector3()).scl(scl);
         Vector3 trn = new Vector3(0, getBB(false).getCenterY(), 0).scl(scl);
         switch (shapeType) {
-            case BOX: shape = new btBoxShape(dims.scl(0.5f)); break; // scl(0.5f) so we get half-extents
-            case MESHPARTS: shape = btBvhTriangleMeshShape.obtain(hgModel.obj.meshParts);
-            default: return -1;
+            case BOX:
+                shape = new btBoxShape(dims.scl(0.5f));
+                shape.calculateLocalInertia(mass, localInertia);
+                break; // scl(0.5f) so we get half-extents
+            case MESH:
+                shape = btBvhTriangleMeshShape.obtain(hgModel.obj.meshParts);
+                // libgdx\extensions\gdx-bullet\jni\src\bullet\bulletcollision\collisionshapes\bttrianglemeshshape.cpp:184
+                // btTriangleMeshShape::calculateLocalInertia
+                //	 //moving concave objects not supported
+                //	 btAssert(0);
+                break;
+            default:
+                Gdx.app.error(getClass().getSimpleName(), "ERROR: unknown shape type: " + shapeType.name());
+                return -1;
         }
-
-        shape.calculateLocalInertia(mass, localInertia);
         constructionInfo = new btRigidBody.btRigidBodyConstructionInfo(mass, null, shape, localInertia);
 
         rigidBody = new btRigidBody(constructionInfo);

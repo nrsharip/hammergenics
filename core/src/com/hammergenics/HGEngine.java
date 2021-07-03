@@ -16,6 +16,7 @@
 
 package com.hammergenics;
 
+import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.assets.loaders.TextureLoader;
@@ -55,6 +56,7 @@ import com.badlogic.gdx.physics.bullet.dynamics.btDiscreteDynamicsWorld;
 import com.badlogic.gdx.physics.bullet.dynamics.btDynamicsWorld;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.physics.bullet.dynamics.btSequentialImpulseConstraintSolver;
+import com.badlogic.gdx.physics.bullet.linearmath.LinearMath;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Disposable;
@@ -210,15 +212,6 @@ public class HGEngine implements Disposable {
                 new TerrainChunk(MAP_SIZE + 1, MAP_CENTER           , MAP_CENTER - MAP_SIZE),
                 new TerrainChunk(MAP_SIZE + 1, MAP_CENTER           , MAP_CENTER           )
         });
-        for (TerrainChunk tc: chunks) {
-            if (tc.groundPhysModelInstance != null) {
-                resetRigidBody(tc.groundPhysModelInstance, ShapesEnum.BOX, FLAG_GROUND, FLAG_ALL);
-            }
-            // TODO: investigate the crash (set GL_TRIANGLES for TerrainChunk.noiseHgModel)
-            //if (tc.noiseLinesHGModelInstance != null) {
-            //    resetRigidBody(tc.noiseLinesHGModelInstance, ShapesEnum.MESHPARTS, FLAG_GROUND, FLAG_ALL);
-            //}
-        }
 
         // see public BitmapFont ()
         // Gdx.files.classpath("com/badlogic/gdx/utils/arial-15.fnt"), Gdx.files.classpath("com/badlogic/gdx/utils/arial-15.png")
@@ -251,8 +244,52 @@ public class HGEngine implements Disposable {
         dispatcher.dispose();
     }
 
+    // see: https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Debugging#loading-the-correct-dll
+    // Set this to the path of the lib to use it on desktop instead of the default lib.
+    private final static String customDesktopLib =
+            "E:\\...\\extensions\\gdx-bullet\\jni\\vs\\gdxBullet\\x64\\Debug\\gdxBullet.dll";
+    private final static boolean debugBullet = false;
     public void initBullet() {
-        Bullet.init();
+        // see: https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Debugging#getting-the-sources
+        //   sources: libgdx-024282e47e9b5d8ec25373d3e1e5ddfe55122596.zip:
+        //      https://github.com/libgdx/libgdx/releases/tag/gdx-parent-1.10.0
+        //      https://github.com/libgdx/libgdx/tree/024282e47e9b5d8ec25373d3e1e5ddfe55122596
+        // see: https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Debugging#getting-the-compileride
+        // see: https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Debugging#building-the-debug-dll
+        //
+        //   ISSUE:
+        //      1>...\Platforms\Win32\PlatformToolsets\v141\Toolset.targets(34,5):
+        //      error MSB8036: The Windows SDK version 8.1 was not found.
+        //      Install the required version of Windows SDK or change the SDK version in the project property pages or by right-clicking the solution and selecting "Retarget solution".
+        //      SOLUTION: right-click VS solution -> Retarget Projects -> select the SDK
+        //   ISSUE:
+        //      1>------ Build started: Project: gdxBullet, Configuration: Debug x64 ------
+        //      1>softbody_wrap.cpp
+        //      1>...\gdx-bullet\jni\swig-src\softbody\softbody_wrap.cpp(179): fatal error C1083: Cannot open include file: 'jni.h': No such file or directory
+        //      ...
+        //      SOLUTION: right-click VS solution -> Properties -> Configuration: Debug, Platform: All Platforms -> C/C++ -> General -> Additional Include Directories
+        //                add the following directory: <path to JDK>/include
+        //   ISSUE:
+        //      1>------ Build started: Project: gdxBullet, Configuration: Debug Win32 ------
+        //      1>softbody_wrap.cpp
+        //      1>...\include\jni.h(45): fatal error C1083: Cannot open include file: 'jni_md.h': No such file or directory
+        //      ...
+        //      SOLUTION: right-click VS solution -> Properties -> Configuration: Debug, Platform: All Platforms -> C/C++ -> General -> Additional Include Directories
+        //                add the following directory: <path to JDK>/include/win32
+
+        // see: https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Debugging#loading-the-correct-dll
+        // Need to initialize bullet before using it.
+        if (Gdx.app.getType() == Application.ApplicationType.Desktop && debugBullet) {
+            System.load(customDesktopLib);
+        } else {
+            Bullet.init();
+        }
+        Gdx.app.log("Bullet", "Version = " + LinearMath.btGetVersion());
+        // Release (gradle: libgdx-1.10.0):
+        // [Bullet] Version = 287
+        // Debug (https://github.com/libgdx/libgdx/tree/024282e47e9b5d8ec25373d3e1e5ddfe55122596):
+        // [Bullet] Version = 287
+        // see: https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Debugging#debugging
 
         collisionConfig = new btDefaultCollisionConfiguration();
         dispatcher = new btCollisionDispatcher(collisionConfig);
@@ -313,7 +350,11 @@ public class HGEngine implements Disposable {
 
         for (TerrainChunk tc: chunks) {
             tc.resetNoiseModelInstance(scale);
-            tc.trnNoisePhysModelInstance(0f, -mid * tc.gridNoise.yScale * scale, 0f);
+
+            tc.trnNoiseLinesHgModelInstance(0f, -mid * tc.gridNoise.yScale * scale, 0f);
+            tc.trnNoiseTrianglesPhysModelInstance(0f, -mid * tc.gridNoise.yScale * scale, 0f);
+
+            resetRigidBody(tc.noiseTrianglesPhysModelInstance, ShapesEnum.MESH, FLAG_GROUND, FLAG_ALL);
 
             tc.applyTerrainParts(scale);
             tc.trnTerrain(0f, -mid * tc.gridNoise.yScale * scale, 0f);
@@ -628,6 +669,12 @@ public class HGEngine implements Disposable {
     }
 
     public void addRigidBody(PhysicalModelInstance mi, int group, int mask) {
+        if (mi == null || mi.rigidBody == null || btRigidBody.getCPtr(mi.rigidBody) == 0) {
+            Gdx.app.error(Thread.currentThread().getStackTrace()[1].getMethodName(),
+                    "ERROR: while adding the rigid body to dynamics world");
+            return;
+        }
+
         mi2rb.put(mi, mi.rigidBody);
         rb2mi.put(mi.rigidBody, mi);
         hc2rb.put(mi.rbHashCode, mi.rigidBody);
@@ -648,7 +695,6 @@ public class HGEngine implements Disposable {
         mi.createRigidBody(shapeType);
         addRigidBody(mi, group, mask);
     }
-
 
     public void resetBBModelInstances() {
         if (bbArrayHgModelInstance != null) { bbArrayHgModelInstance.clear(); } else { return; }

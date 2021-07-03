@@ -195,7 +195,7 @@ public class ModelEditScreen extends ScreenAdapter {
         }
         if (stage.groundCheckBox.isChecked()) {
             for (TerrainChunk tc: eng.chunks) {
-                if (tc.groundPhysModelInstance != null) { modelBatch.render(tc.groundPhysModelInstance, environment); }
+                if (tc.noiseTrianglesPhysModelInstance != null) { modelBatch.render(tc.noiseTrianglesPhysModelInstance, environment); }
             }
         }
         if (eng.dlArrayHgModelInstance != null && stage.lightsCheckBox.isChecked()) { modelBatch.render(eng.dlArrayHgModelInstance, environment); }

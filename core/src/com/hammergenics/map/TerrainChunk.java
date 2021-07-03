@@ -16,6 +16,7 @@
 
 package com.hammergenics.map;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.math.Plane;
 import com.badlogic.gdx.math.Quaternion;
@@ -32,7 +33,6 @@ import com.hammergenics.screens.graphics.g3d.PhysicalModelInstance.ShapesEnum;
 import java.math.BigDecimal;
 import java.util.Comparator;
 
-import static com.hammergenics.HGEngine.boxHgModel;
 import static com.hammergenics.HGEngine.gridHgModel;
 import static com.hammergenics.map.TerrainPartsEnum.TRRN_CORN_INN;
 import static com.hammergenics.map.TerrainPartsEnum.TRRN_CORN_OUT;
@@ -48,10 +48,11 @@ import static java.math.BigDecimal.ROUND_HALF_UP;
  */
 public class TerrainChunk {
     public HGGrid gridNoise;
-    public HGModel noiseHgModel = null;
-    public PhysicalModelInstance noiseLinesHGModelInstance = null;
+    public HGModel noiseLinesHgModel = null;
+    public HGModel noiseTrianglesHgModel = null;
+    public HGModelInstance noiseLinesHGModelInstance = null;
+    public PhysicalModelInstance noiseTrianglesPhysModelInstance = null;
     public HGModelInstance yLinesHGModelInstance;
-    public PhysicalModelInstance groundPhysModelInstance = null;
     public Array<PhysicalModelInstance> terrain = new Array<>(true, 16, PhysicalModelInstance.class);
 
     public TerrainChunk(int size, int x0, int z0) {
@@ -59,7 +60,6 @@ public class TerrainChunk {
         gridNoise.fill(0f);
 
         yLinesHGModelInstance = new HGModelInstance(gridHgModel, "Y");
-        groundPhysModelInstance = new PhysicalModelInstance(boxHgModel, 0f, ShapesEnum.BOX, "box");
         resetNoiseModelInstance(1f);
     }
 
@@ -76,9 +76,15 @@ public class TerrainChunk {
     }
     
     public void resetNoiseModelInstance(float scale) {
-        if (noiseHgModel != null) { noiseHgModel.dispose(); }
+        // models
+        if (noiseLinesHgModel != null) { noiseLinesHgModel.dispose(); }
+        if (noiseTrianglesHgModel != null) { noiseTrianglesHgModel.dispose(); }
+        // instances
         if (noiseLinesHGModelInstance != null) { noiseLinesHGModelInstance.dispose(); }
-        noiseHgModel = new HGModel(createGridModel(gridNoise, GL20.GL_LINES));
+        if (noiseTrianglesPhysModelInstance != null) { noiseTrianglesPhysModelInstance.dispose(); }
+
+        noiseLinesHgModel = new HGModel(createGridModel(gridNoise, GL20.GL_LINES, Color.YELLOW));
+        noiseTrianglesHgModel = new HGModel(createGridModel(gridNoise, GL20.GL_TRIANGLES, Color.GRAY));
         //com.badlogic.gdx.utils.GdxRuntimeException: Mesh must be indexed and triangulated
         //        at com.badlogic.gdx.physics.bullet.collision.btIndexedMesh.set(btIndexedMesh.java:165)
         //        at com.badlogic.gdx.physics.bullet.collision.btIndexedMesh.<init>(btIndexedMesh.java:126)
@@ -89,9 +95,15 @@ public class TerrainChunk {
         //        at com.badlogic.gdx.physics.bullet.collision.btTriangleIndexVertexArray.obtain(btTriangleIndexVertexArray.java:103)
         //        at com.badlogic.gdx.physics.bullet.collision.btBvhTriangleMeshShape.obtain(btBvhTriangleMeshShape.java:83)
         //btBvhTriangleMeshShape.obtain(hgModel.obj.meshParts);
-        noiseLinesHGModelInstance = new PhysicalModelInstance(noiseHgModel, 0f, ShapesEnum.BOX, "grid");
-
+        noiseLinesHGModelInstance = new HGModelInstance(noiseLinesHgModel, "grid");
         noiseLinesHGModelInstance.setToTranslationAndScaling(
+                gridNoise.getX0() * scale, 0, gridNoise.getZ0() * scale,
+                scale, scale, scale
+        );
+
+        noiseTrianglesPhysModelInstance = new PhysicalModelInstance(
+                noiseTrianglesHgModel, 0f, ShapesEnum.MESH, "grid");
+        noiseTrianglesPhysModelInstance.setToTranslationAndScaling(
                 gridNoise.getX0() * scale, 0, gridNoise.getZ0() * scale,
                 scale, scale, scale
         );
@@ -104,14 +116,6 @@ public class TerrainChunk {
                 0,
                 (gridNoise.getZ0() + halfCellsHeight) * scale,
                 scale, scale, scale
-        );
-
-        float height = scale/10f;
-        groundPhysModelInstance.setToTranslationAndScaling(
-                (gridNoise.getX0() + halfCellsWidth) * scale,
-                -height/2f,
-                (gridNoise.getZ0() + halfCellsHeight) * scale,
-                2 * halfCellsWidth * scale, height, 2 * halfCellsHeight * scale
         );
     }
 
@@ -162,7 +166,7 @@ public class TerrainChunk {
                     // all 4 points are on the same plane, possible options:
                     // 1. plane is parallel to XZ - we're dealing with the flat surface - TRRN_FLAT
                     if (TRRN_FLAT.ready && index2plane.get(0b000110).normal.isOnLine(Vector3.Y)) {
-                        PhysicalModelInstance tmp = new PhysicalModelInstance(TRRN_FLAT.model, 0f, ShapesEnum.MESHPARTS);
+                        PhysicalModelInstance tmp = new PhysicalModelInstance(TRRN_FLAT.model, 0f, ShapesEnum.MESH);
 
                         translation.set(points.get(0b11));
                         translation.scl(1f, gridNoise.yScale, 1f);
@@ -197,7 +201,7 @@ public class TerrainChunk {
                             index = HGModelInstance.getNext2dIndex(index);
                         }
 
-                        PhysicalModelInstance tmp = new PhysicalModelInstance(TRRN_SIDE.model, 0f, ShapesEnum.MESHPARTS);
+                        PhysicalModelInstance tmp = new PhysicalModelInstance(TRRN_SIDE.model, 0f, ShapesEnum.MESH);
 
                         float factor = gridNoise.yScale * gridNoise.step/tmp.dims.y;
 
@@ -251,7 +255,7 @@ public class TerrainChunk {
                     // we have the following options:
                     // 1. The protrusive point is below P - TRRN_CORN_INN
                     if (TRRN_CORN_INN.ready && side.equals(Plane.PlaneSide.Back)) {
-                        PhysicalModelInstance tmp = new PhysicalModelInstance(TRRN_CORN_INN.model, 0f, ShapesEnum.MESHPARTS);
+                        PhysicalModelInstance tmp = new PhysicalModelInstance(TRRN_CORN_INN.model, 0f, ShapesEnum.MESH);
 
                         float factor = gridNoise.yScale * gridNoise.step/tmp.dims.y;
 
@@ -275,7 +279,7 @@ public class TerrainChunk {
                     }
                     // 2. The protrusive point is above P - TRRN_CORN_OUT
                     if (TRRN_CORN_OUT.ready && side.equals(Plane.PlaneSide.Front)) {
-                        PhysicalModelInstance tmp = new PhysicalModelInstance(TRRN_CORN_OUT.model, 0f, ShapesEnum.MESHPARTS);
+                        PhysicalModelInstance tmp = new PhysicalModelInstance(TRRN_CORN_OUT.model, 0f, ShapesEnum.MESH);
 
                         float factor = gridNoise.yScale * gridNoise.step/tmp.dims.y;
 
@@ -305,14 +309,21 @@ public class TerrainChunk {
     public void clearTerrain() { terrain.clear(); }
 
     public void trn(float x, float y, float z) {
-        trnNoisePhysModelInstance(x, y, z);
+        trnNoiseLinesHgModelInstance(x, y, z);
+        trnNoiseTrianglesPhysModelInstance(x, y, z);
         trnTerrain(x, y, z);
     }
 
-    public void trnNoisePhysModelInstance(float x, float y, float z) {
+    public void trnNoiseLinesHgModelInstance(float x, float y, float z) {
         if (noiseLinesHGModelInstance == null) { return; }
 
         noiseLinesHGModelInstance.trn(x, y, z);
+    }
+
+    public void trnNoiseTrianglesPhysModelInstance(float x, float y, float z) {
+        if (noiseTrianglesPhysModelInstance == null) { return; }
+
+        noiseTrianglesPhysModelInstance.trn(x, y, z);
     }
 
     public void trnTerrain(float x, float y, float z) {
