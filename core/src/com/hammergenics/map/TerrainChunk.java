@@ -47,15 +47,15 @@ import static java.math.BigDecimal.ROUND_HALF_UP;
 public class TerrainChunk {
     public HGGrid gridNoise;
     public HGModel noiseHgModel = null;
-    public HGModelInstance noisePhysModelInstance = null;
-    public HGModelInstance yModelInstance;
+    public HGModelInstance noiseLinesHGModelInstance = null;
+    public HGModelInstance yLinesHGModelInstance;
     public Array<PhysicalModelInstance> terrain = new Array<>(true, 16, PhysicalModelInstance.class);
 
     public TerrainChunk(int size, int x0, int z0) {
         gridNoise = new HGGrid(size, x0, z0);
         gridNoise.fill(0f);
 
-        yModelInstance = new HGModelInstance(gridHgModel, "Y");
+        yLinesHGModelInstance = new HGModelInstance(gridHgModel, "Y");
         resetNoiseModelInstance(1f);
     }
 
@@ -73,16 +73,16 @@ public class TerrainChunk {
     
     public void resetNoiseModelInstance(float scale) {
         if (noiseHgModel != null) { noiseHgModel.dispose(); }
-        if (noisePhysModelInstance != null) { noisePhysModelInstance.dispose(); }
+        if (noiseLinesHGModelInstance != null) { noiseLinesHGModelInstance.dispose(); }
         noiseHgModel = new HGModel(createGridModel(gridNoise));
-        noisePhysModelInstance = new HGModelInstance(noiseHgModel, "grid");
+        noiseLinesHGModelInstance = new HGModelInstance(noiseHgModel, "grid");
 
-        noisePhysModelInstance.setToTranslationAndScaling(
+        noiseLinesHGModelInstance.setToTranslationAndScaling(
                 gridNoise.getX0() * scale, 0, gridNoise.getZ0() * scale,
                 scale, scale, scale
         );
 
-        yModelInstance.setToTranslationAndScaling(
+        yLinesHGModelInstance.setToTranslationAndScaling(
                 (gridNoise.getX0() + (gridNoise.getWidth(true))/2f) * scale,
                 0,
                 (gridNoise.getZ0() + (gridNoise.getHeight(true))/2f) * scale,
@@ -285,9 +285,9 @@ public class TerrainChunk {
     }
 
     public void trnNoisePhysModelInstance(float x, float y, float z) {
-        if (noisePhysModelInstance == null) { return; }
+        if (noiseLinesHGModelInstance == null) { return; }
 
-        noisePhysModelInstance.trn(x, y, z);
+        noiseLinesHGModelInstance.trn(x, y, z);
     }
 
     public void trnTerrain(float x, float y, float z) {

@@ -184,13 +184,13 @@ public class ModelEditScreen extends ScreenAdapter {
 
         if (stage.mapGenerationTable.previewNoiseGrid.isChecked()) {
             for (TerrainChunk tc: eng.chunks) {
-                if (tc.noisePhysModelInstance != null) { modelBatch.render(tc.noisePhysModelInstance, environment); }
+                if (tc.noiseLinesHGModelInstance != null) { modelBatch.render(tc.noiseLinesHGModelInstance); }
             }
         }
         if (stage.gridOriginCheckBox.isChecked()) { modelBatch.render(eng.gridOHgModelInstance); }
         if (stage.gridYCheckBox.isChecked()) {
             for (TerrainChunk tc: eng.chunks) {
-                if (tc.noisePhysModelInstance != null) { modelBatch.render(tc.yModelInstance, environment); }
+                if (tc.yLinesHGModelInstance != null) { modelBatch.render(tc.yLinesHGModelInstance); }
             }
         }
         if (eng.groundPhysModelInstance != null && stage.groundCheckBox.isChecked()) { modelBatch.render(eng.groundPhysModelInstance, environment); }
