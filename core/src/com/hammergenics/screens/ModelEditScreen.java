@@ -182,23 +182,21 @@ public class ModelEditScreen extends ScreenAdapter {
 
         modelBatch.render(modelCache, environment);
 
-        if (stage.isPressed(stage.mapTextButton) && eng.chunks.size > 0) {
-            if (stage.mapGenerationTable.previewNoiseGrid.isChecked()) {
-                for (TerrainChunk tc: eng.chunks) {
-                    if (tc.noisePhysModelInstance != null) { modelBatch.render(tc.noisePhysModelInstance, environment); }
-                }
+        if (stage.mapGenerationTable.previewNoiseGrid.isChecked()) {
+            for (TerrainChunk tc: eng.chunks) {
+                if (tc.noisePhysModelInstance != null) { modelBatch.render(tc.noisePhysModelInstance, environment); }
             }
-        } else {
-            if (eng.gridXZHgModelInstance != null && stage.gridXZCheckBox.isChecked()) {
-                modelBatch.render(eng.gridXZHgModelInstance);
-                modelBatch.render(eng.gridOHgModelInstance);
-            }
-            if (eng.gridYHgModelInstance != null && stage.gridYCheckBox.isChecked()) { modelBatch.render(eng.gridYHgModelInstance); }
-            if (eng.groundPhysModelInstance != null && stage.groundCheckBox.isChecked()) { modelBatch.render(eng.groundPhysModelInstance, environment); }
-            if (eng.dlArrayHgModelInstance != null && stage.lightsCheckBox.isChecked()) { modelBatch.render(eng.dlArrayHgModelInstance, environment); }
-            if (eng.plArrayHgModelInstance != null && stage.lightsCheckBox.isChecked()) { modelBatch.render(eng.plArrayHgModelInstance, environment); }
-            if (eng.bbArrayHgModelInstance != null && stage.bbCheckBox.isChecked()) { modelBatch.render(eng.bbArrayHgModelInstance, environment); }
         }
+        if (stage.gridOriginCheckBox.isChecked()) { modelBatch.render(eng.gridOHgModelInstance); }
+        if (stage.gridYCheckBox.isChecked()) {
+            for (TerrainChunk tc: eng.chunks) {
+                if (tc.noisePhysModelInstance != null) { modelBatch.render(tc.yModelInstance, environment); }
+            }
+        }
+        if (eng.groundPhysModelInstance != null && stage.groundCheckBox.isChecked()) { modelBatch.render(eng.groundPhysModelInstance, environment); }
+        if (eng.dlArrayHgModelInstance != null && stage.lightsCheckBox.isChecked()) { modelBatch.render(eng.dlArrayHgModelInstance, environment); }
+        if (eng.plArrayHgModelInstance != null && stage.lightsCheckBox.isChecked()) { modelBatch.render(eng.plArrayHgModelInstance, environment); }
+        if (eng.bbArrayHgModelInstance != null && stage.bbCheckBox.isChecked()) { modelBatch.render(eng.bbArrayHgModelInstance, environment); }
 
         // https://github.com/libgdx/libgdx/wiki/ModelBatch
         // The actual rendering is performed at the call to end();.

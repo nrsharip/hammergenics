@@ -128,6 +128,8 @@ public class HGGame extends Game {
         // Therefore you should dispose() the cache when no longer needed.
         modelCache.dispose();
 
+        HGEngine.gridHgModel.dispose();
+        HGEngine.lightsHgModel.dispose();
         HGEngine.boxHgModel.dispose();
         HGEngine.sphereHgModel.dispose();
         if (engine != null) { engine.dispose(); }

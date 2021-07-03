@@ -38,10 +38,9 @@ public class Models {
     // see: https://libgdx.badlogicgames.com/ci/nightlies/dist/docs/api/com/badlogic/gdx/graphics/g3d/utils/ModelBuilder.html
     // see for primitive types: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glBegin.xml
     // see also com.badlogic.gdx.graphics.g3d.utils.shapebuilders
-    public static Model createGridModel() {
+    public static Model createGridModel(int units) {
         ModelBuilder mb;
         MeshPartBuilder mpb;
-        int units = 30;
 
         mb = new ModelBuilder();
         mb.begin();

@@ -95,6 +95,12 @@ import static com.hammergenics.screens.graphics.g3d.utils.Models.createTestSpher
  * @author nrsharip
  */
 public class HGEngine implements Disposable {
+    // Map generation related:
+    // Integer.MAX_VALUE = 0x7fffffff = 2,147,483,647
+    // Integer.MAX_VALUE / 512 = 4,194,303
+    public final static int MAP_CENTER = Integer.MAX_VALUE / 512;
+    public final static int MAP_SIZE = 64; // amount of cells on one side of the grid
+
     public ArrayMap<FileHandle, Array<FileHandle>> folder2models;
     public static final FileFilter filterBitmapFonts = file -> file.isDirectory()
             || file.getName().toLowerCase().endsWith(".fnt"); // BitmapFont
@@ -118,14 +124,13 @@ public class HGEngine implements Disposable {
 
     public ArrayMap<FileHandle, HGModel> hgModels = new ArrayMap<>(FileHandle.class, HGModel.class);
     public Array<Texture> textures = new Array<>();
-    // Auxiliary models:
-    public HGModel gridHgModel = null;
-    public HGModel lightsHgModel = null;
+
+    // Creating the Aux Models beforehand:
+    public static final HGModel gridHgModel = new HGModel(createGridModel(MAP_SIZE/2));
+    public static final HGModel lightsHgModel = new HGModel(createLightsModel());
     public static final HGModel boxHgModel = new HGModel(createTestBox(GL20.GL_TRIANGLES));
     public static final HGModel sphereHgModel = new HGModel(createTestSphere(GL20.GL_TRIANGLES, 40));
 
-    public HGModelInstance gridXZHgModelInstance = null; // XZ plane: lines (yellow)
-    public HGModelInstance gridYHgModelInstance = null;  // Y axis: vertical lines (red)
     public HGModelInstance gridOHgModelInstance = null;  // origin: sphere (red)
     public PhysicalModelInstance groundPhysModelInstance = null;  // origin: sphere (red)
     public Array<HGModelInstance> dlArrayHgModelInstance = new Array<>(ModelInstance.class); // directional lights
@@ -182,11 +187,6 @@ public class HGEngine implements Disposable {
     public btDispatcher dispatcher;
 
     // Map generation related:
-    // Integer.MAX_VALUE = 0x7fffffff = 2,147,483,647
-    // Integer.MAX_VALUE / 512 = 4,194,303
-    public final static int MAP_CENTER = Integer.MAX_VALUE / 512;
-    public final static int MAP_SIZE = 64; // amount of cells on one side of the grid
-
     // taking size + 1 to have the actual [SIZE x SIZE] cells grid
     // which will take [SIZE + 1 x SIZE + 1] vertex grid to define
     public Array<TerrainChunk> chunks = new Array<>(new TerrainChunk[]{
@@ -214,12 +214,7 @@ public class HGEngine implements Disposable {
 
         assetManager.load(Config.ASSET_FILE_NAME_FONT, BitmapFont.class, null);
         assetManager.finishLoading();
-        // Creating the Aux Models beforehand:
-        gridHgModel = new HGModel(createGridModel());
-        lightsHgModel = new HGModel(createLightsModel());
 
-        gridXZHgModelInstance = new HGModelInstance(gridHgModel, "XZ");
-        gridYHgModelInstance = new HGModelInstance(gridHgModel, "Y");
         gridOHgModelInstance = new HGModelInstance(gridHgModel, "origin");
         groundPhysModelInstance = new PhysicalModelInstance(boxHgModel, 0f, ShapesEnum.BOX, "box");
     }
@@ -227,8 +222,6 @@ public class HGEngine implements Disposable {
     @Override
     public void dispose() {
         assetManager.dispose();
-        if (gridHgModel != null) { gridHgModel.dispose(); }
-        if (lightsHgModel != null) { lightsHgModel.dispose(); }
         for (EditableModelInstance mi: editableMIs) {
             if (mi.rigidBody != null) { dynamicsWorld.removeRigidBody(mi.rigidBody); }
             mi.dispose();
@@ -619,11 +612,8 @@ public class HGEngine implements Disposable {
      * @return
      */
     public void resetGridModelInstances() {
-        if (gridHgModel == null || gridXZHgModelInstance == null || gridYHgModelInstance == null
-                || gridOHgModelInstance == null) { return; }
+        if (gridOHgModelInstance == null) { return; }
 
-        gridXZHgModelInstance.setToScaling(Vector3.Zero.cpy().add(overallSize/4f));
-        gridYHgModelInstance.setToScaling(Vector3.Zero.cpy().add(overallSize/4f));
         gridOHgModelInstance.setToScaling(Vector3.Zero.cpy().add(unitSize/4f));
 
         float height = unitSize/10f;

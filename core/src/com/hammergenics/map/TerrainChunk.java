@@ -31,6 +31,7 @@ import com.hammergenics.screens.graphics.g3d.PhysicalModelInstance.ShapesEnum;
 import java.math.BigDecimal;
 import java.util.Comparator;
 
+import static com.hammergenics.HGEngine.gridHgModel;
 import static com.hammergenics.map.TerrainPartsEnum.TRRN_CORN_INN;
 import static com.hammergenics.map.TerrainPartsEnum.TRRN_CORN_OUT;
 import static com.hammergenics.map.TerrainPartsEnum.TRRN_FLAT;
@@ -47,11 +48,14 @@ public class TerrainChunk {
     public HGGrid gridNoise;
     public HGModel noiseHgModel = null;
     public HGModelInstance noisePhysModelInstance = null;
+    public HGModelInstance yModelInstance;
     public Array<PhysicalModelInstance> terrain = new Array<>(true, 16, PhysicalModelInstance.class);
 
     public TerrainChunk(int size, int x0, int z0) {
         gridNoise = new HGGrid(size, x0, z0);
         gridNoise.fill(0f);
+
+        yModelInstance = new HGModelInstance(gridHgModel, "Y");
         resetNoiseModelInstance(1f);
     }
 
@@ -75,6 +79,13 @@ public class TerrainChunk {
 
         noisePhysModelInstance.setToTranslationAndScaling(
                 gridNoise.getX0() * scale, 0, gridNoise.getZ0() * scale,
+                scale, scale, scale
+        );
+
+        yModelInstance.setToTranslationAndScaling(
+                (gridNoise.getX0() + (gridNoise.getWidth(true))/2f) * scale,
+                0,
+                (gridNoise.getZ0() + (gridNoise.getHeight(true))/2f) * scale,
                 scale, scale, scale
         );
     }

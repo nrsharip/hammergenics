@@ -96,7 +96,7 @@ public class ModelEditStage extends Stage {
     public Label fpsLabel; // FPS Info
     public Image textureImage;
     public CheckBox debugStageCheckBox;
-    public CheckBox gridXZCheckBox;
+    public CheckBox gridOriginCheckBox;
     public CheckBox gridYCheckBox;
     public CheckBox lightsCheckBox;
     public CheckBox showSelectionScaleCheckBox;
@@ -226,8 +226,8 @@ public class ModelEditStage extends Stage {
         });
 
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#checkbox
-        gridXZCheckBox = new CheckBox("XZ", skin);
-        gridXZCheckBox.setChecked(true);
+        gridOriginCheckBox = new CheckBox("origin", skin);
+        gridOriginCheckBox.setChecked(true);
 
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#checkbox
         gridYCheckBox = new CheckBox("Y", skin);
@@ -607,7 +607,7 @@ public class ModelEditStage extends Stage {
         Table lowerPanel = new Table();
         lowerPanel.add(fpsLabel).minWidth(70f).pad(3f);
         lowerPanel.add(debugStageCheckBox).pad(3f);
-        lowerPanel.add(gridXZCheckBox).pad(3f);
+        lowerPanel.add(gridOriginCheckBox).pad(3f);
         lowerPanel.add(gridYCheckBox).pad(3f);
         lowerPanel.add(lightsCheckBox).pad(3f);
         lowerPanel.add(showSelectionScaleCheckBox).pad(3f);

@@ -73,6 +73,14 @@ public class HGGrid extends Grid {
     @Override
     public int toY(int index) { return super.toY(index) + z0; }
 
+    @Override
+    public int getWidth() { return getWidth(false); }
+    public int getWidth(boolean cells) { return cells ? super.getWidth() - 1 : super.getWidth(); }
+
+    @Override
+    public int getHeight() { return getHeight(false); }
+    public int getHeight(boolean cells) { return cells ? super.getHeight() - 1 : super.getHeight(); }
+
     public int getX0() { return getX0(true); }
     public int getX0(boolean adjCenter) { return adjCenter ? x0 - MAP_CENTER : x0; }
     public int getZ0() { return getZ0(true); }
