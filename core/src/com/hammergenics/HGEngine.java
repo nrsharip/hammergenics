@@ -354,7 +354,7 @@ public class HGEngine implements Disposable {
             tc.trnNoiseLinesHgModelInstance(0f, -mid * tc.gridNoise.yScale * scale, 0f);
             tc.trnNoiseTrianglesPhysModelInstance(0f, -mid * tc.gridNoise.yScale * scale, 0f);
 
-            resetRigidBody(tc.noiseTrianglesPhysModelInstance, ShapesEnum.MESH, FLAG_GROUND, FLAG_ALL);
+            resetRigidBody(tc.noiseTrianglesPhysModelInstance, FLAG_GROUND, FLAG_ALL);
 
             tc.applyTerrainParts(scale);
             tc.trnTerrain(0f, -mid * tc.gridNoise.yScale * scale, 0f);
@@ -643,7 +643,7 @@ public class HGEngine implements Disposable {
                     .add(0, factor * mi.getBB().getHeight()/2, 0);
             mi.setToTranslationAndScaling(position, Vector3.Zero.cpy().add(factor));
             //Gdx.app.debug("spiral", "transform:\n" + mi.transform);
-            resetRigidBody(mi, ShapesEnum.BOX, FLAG_OBJECT, FLAG_ALL);
+            resetRigidBody(mi, FLAG_OBJECT, FLAG_ALL);
 
             // spiral loop around (0, 0, 0)
             HGUtils.spiralGetNext(cell);
@@ -700,9 +700,9 @@ public class HGEngine implements Disposable {
         }
     }
 
-    public void resetRigidBody(PhysicalModelInstance mi, ShapesEnum shapeType, int group, int mask) {
+    public void resetRigidBody(PhysicalModelInstance mi, int group, int mask) {
         if (mi.rigidBody != null) { removeRigidBody(mi); }
-        mi.createRigidBody(shapeType);
+        mi.createRigidBody();
         addRigidBody(mi, group, mask);
     }
 

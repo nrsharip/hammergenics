@@ -53,7 +53,8 @@ public class PhysicalModelInstance extends HGModelInstance implements Disposable
     public PhysicalModelInstance(HGModel hgModel, FileHandle assetFL, float mass, ShapesEnum shapeType, String... rootNodeIds) {
         super(hgModel, assetFL, rootNodeIds);
         this.mass = mass;
-        createRigidBody(shapeType);
+        this.shapeType = shapeType;
+        createRigidBody();
     }
 
     @Override
@@ -78,7 +79,7 @@ public class PhysicalModelInstance extends HGModelInstance implements Disposable
         BOX, MESH
     }
 
-    public int createRigidBody(ShapesEnum shapeType) {
+    public int createRigidBody() {
         if (rigidBody != null) { rigidBody.dispose(); }
         if (constructionInfo != null) { constructionInfo.dispose(); }
         if (shape != null) { shape.dispose(); }
