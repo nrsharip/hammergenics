@@ -16,6 +16,7 @@
 
 package com.hammergenics.map;
 
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.math.Plane;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
@@ -48,7 +49,7 @@ import static java.math.BigDecimal.ROUND_HALF_UP;
 public class TerrainChunk {
     public HGGrid gridNoise;
     public HGModel noiseHgModel = null;
-    public HGModelInstance noiseLinesHGModelInstance = null;
+    public PhysicalModelInstance noiseLinesHGModelInstance = null;
     public HGModelInstance yLinesHGModelInstance;
     public PhysicalModelInstance groundPhysModelInstance = null;
     public Array<PhysicalModelInstance> terrain = new Array<>(true, 16, PhysicalModelInstance.class);
@@ -77,8 +78,18 @@ public class TerrainChunk {
     public void resetNoiseModelInstance(float scale) {
         if (noiseHgModel != null) { noiseHgModel.dispose(); }
         if (noiseLinesHGModelInstance != null) { noiseLinesHGModelInstance.dispose(); }
-        noiseHgModel = new HGModel(createGridModel(gridNoise));
-        noiseLinesHGModelInstance = new HGModelInstance(noiseHgModel, "grid");
+        noiseHgModel = new HGModel(createGridModel(gridNoise, GL20.GL_LINES));
+        //com.badlogic.gdx.utils.GdxRuntimeException: Mesh must be indexed and triangulated
+        //        at com.badlogic.gdx.physics.bullet.collision.btIndexedMesh.set(btIndexedMesh.java:165)
+        //        at com.badlogic.gdx.physics.bullet.collision.btIndexedMesh.<init>(btIndexedMesh.java:126)
+        //        at com.badlogic.gdx.physics.bullet.collision.btIndexedMesh.obtain(btIndexedMesh.java:84)
+        //        at com.badlogic.gdx.physics.bullet.collision.btTriangleIndexVertexArray.addMeshPart(btTriangleIndexVertexArray.java:136)
+        //        at com.badlogic.gdx.physics.bullet.collision.btTriangleIndexVertexArray.addMeshParts(btTriangleIndexVertexArray.java:156)
+        //        at com.badlogic.gdx.physics.bullet.collision.btTriangleIndexVertexArray.<init>(btTriangleIndexVertexArray.java:119)
+        //        at com.badlogic.gdx.physics.bullet.collision.btTriangleIndexVertexArray.obtain(btTriangleIndexVertexArray.java:103)
+        //        at com.badlogic.gdx.physics.bullet.collision.btBvhTriangleMeshShape.obtain(btBvhTriangleMeshShape.java:83)
+        //btBvhTriangleMeshShape.obtain(hgModel.obj.meshParts);
+        noiseLinesHGModelInstance = new PhysicalModelInstance(noiseHgModel, 0f, ShapesEnum.BOX, "grid");
 
         noiseLinesHGModelInstance.setToTranslationAndScaling(
                 gridNoise.getX0() * scale, 0, gridNoise.getZ0() * scale,

@@ -214,6 +214,10 @@ public class HGEngine implements Disposable {
             if (tc.groundPhysModelInstance != null) {
                 resetRigidBody(tc.groundPhysModelInstance, ShapesEnum.BOX, FLAG_GROUND, FLAG_ALL);
             }
+            // TODO: investigate the crash (set GL_TRIANGLES for TerrainChunk.noiseHgModel)
+            //if (tc.noiseLinesHGModelInstance != null) {
+            //    resetRigidBody(tc.noiseLinesHGModelInstance, ShapesEnum.MESHPARTS, FLAG_GROUND, FLAG_ALL);
+            //}
         }
 
         // see public BitmapFont ()

@@ -27,6 +27,7 @@ import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.ArrowShapeBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.BoxShapeBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.SphereShapeBuilder;
+import com.badlogic.gdx.math.Vector3;
 import com.hammergenics.map.HGGrid;
 
 /**
@@ -77,7 +78,7 @@ public class Models {
         return mb.end();
     }
 
-    public static Model createGridModel(HGGrid grid) {
+    public static Model createGridModel(HGGrid grid, int primType) {
         ModelBuilder mb;
         MeshPartBuilder mpb;
 
@@ -85,35 +86,66 @@ public class Models {
         mb.begin();
 
         mb.node().id = "grid";
-        mpb = mb.part("grid", GL20.GL_LINES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
+        mpb = mb.part("grid", primType, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
                 new Material(ColorAttribute.createDiffuse(Color.YELLOW)));
 
+        createGridMeshPart(grid, mpb);
+
+        return mb.end();
+    }
+
+    public static void createGridMeshPart(HGGrid grid, MeshPartBuilder mpb) {
         int width = grid.getWidth();
         int height = grid.getHeight();
 
-        float y1, y2;
-        // drawing lines along X - axis
-        for (int z = 0; z < height; z++) {
-            for (int x = 0; x < width - 1; x++) {
-                y1 = grid.get(x, z);
-                y2 = grid.get(x + 1, z);
-                y1 *= grid.yScale; y2 *= grid.yScale;
-                //Gdx.app.debug("grid", "" + " x: " + x + " z: " + z + " y1: " + y1 + " y2: " + y2);
-                mpb.line(x, y1, z, x + 1, y2, z);
+        if (mpb.getPrimitiveType() == GL20.GL_LINES) {
+            float y1, y2;
+            // drawing lines along X - axis
+            for (int z = 0; z < height; z++) {
+                for (int x = 0; x < width - 1; x++) {
+                    y1 = grid.get(x, z);
+                    y2 = grid.get(x + 1, z);
+                    y1 *= grid.yScale; y2 *= grid.yScale;
+                    //Gdx.app.debug("grid", "" + " x: " + x + " z: " + z + " y1: " + y1 + " y2: " + y2);
+                    mpb.line(x, y1, z, x + 1, y2, z);
+                }
+            }
+
+            // drawing lines along Z - axis
+            for (int x = 0; x < width; x++) {
+                for (int z = 0; z < height - 1; z++) {
+                    y1 = grid.get(x, z);
+                    y2 = grid.get(x, z + 1);
+                    y1 *= grid.yScale; y2 *= grid.yScale;
+                    mpb.line(x, y1, z, x, y2, z + 1);
+                }
+            }
+        } else if (mpb.getPrimitiveType() == GL20.GL_TRIANGLES) {
+            //com.badlogic.gdx.utils.GdxRuntimeException: Mesh must be indexed and triangulated
+            //        at com.badlogic.gdx.physics.bullet.collision.btIndexedMesh.set(btIndexedMesh.java:165)
+            //        at com.badlogic.gdx.physics.bullet.collision.btIndexedMesh.<init>(btIndexedMesh.java:126)
+            //        at com.badlogic.gdx.physics.bullet.collision.btIndexedMesh.obtain(btIndexedMesh.java:84)
+            //        at com.badlogic.gdx.physics.bullet.collision.btTriangleIndexVertexArray.addMeshPart(btTriangleIndexVertexArray.java:136)
+            //        at com.badlogic.gdx.physics.bullet.collision.btTriangleIndexVertexArray.addMeshParts(btTriangleIndexVertexArray.java:156)
+            //        at com.badlogic.gdx.physics.bullet.collision.btTriangleIndexVertexArray.<init>(btTriangleIndexVertexArray.java:119)
+            //        at com.badlogic.gdx.physics.bullet.collision.btTriangleIndexVertexArray.obtain(btTriangleIndexVertexArray.java:103)
+            //        at com.badlogic.gdx.physics.bullet.collision.btBvhTriangleMeshShape.obtain(btBvhTriangleMeshShape.java:83)
+            //btBvhTriangleMeshShape.obtain(hgModel.obj.meshParts);
+            Vector3 p00 = new Vector3();
+            Vector3 p01 = new Vector3();
+            Vector3 p10 = new Vector3();
+            Vector3 p11 = new Vector3();
+            for (int z = 1; z < height; z++) {
+                for (int x = 1; x < width; x++) {
+                    p00.set(x - 1, grid.get(x - 1, z - 1), z - 1).scl(1f, grid.yScale, 1f);
+                    p01.set(x - 1, grid.get(x - 1, z    ), z    ).scl(1f, grid.yScale, 1f);
+                    p10.set(x    , grid.get(x    , z - 1), z - 1).scl(1f, grid.yScale, 1f);
+                    p11.set(x    , grid.get(x    , z    ), z    ).scl(1f, grid.yScale, 1f);
+                    mpb.triangle(p00, p01, p11);
+                    mpb.triangle(p00, p11, p10);
+                }
             }
         }
-
-        // drawing lines along Z - axis
-        for (int x = 0; x < width; x++) {
-            for (int z = 0; z < height - 1; z++) {
-                y1 = grid.get(x, z);
-                y2 = grid.get(x, z + 1);
-                y1 *= grid.yScale; y2 *= grid.yScale;
-                mpb.line(x, y1, z, x, y2, z + 1);
-            }
-        }
-
-        return mb.end();
     }
 
     public static Model createLightsModel() {
