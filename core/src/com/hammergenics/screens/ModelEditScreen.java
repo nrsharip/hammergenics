@@ -191,15 +191,13 @@ public class ModelEditScreen extends ScreenAdapter {
         visibleTerrainParts = 0;
         // https://github.com/libgdx/libgdx/wiki/ModelCache#using-modelcache
         modelCache.begin();
-        if (stage.isPressed(stage.mapTextButton) && eng.chunks.size > 0) {
-            if (stage.mapGenerationTable.previewTerrain.isChecked()) {
-                for (TerrainChunk tc: eng.chunks) {
-                    for (HGModelInstance tp: tc.terrain) {
-                        // see: https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
-                        if (isVisible(perspectiveCamera, tp)) {
-                            modelCache.add(tp);
-                            visibleTerrainParts++;
-                        }
+        if (stage.mapGenerationTable.previewTerrain.isChecked() && eng.chunks.size > 0) {
+            for (TerrainChunk tc: eng.chunks) {
+                for (HGModelInstance tp: tc.terrain) {
+                    // see: https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
+                    if (isVisible(perspectiveCamera, tp)) {
+                        modelCache.add(tp);
+                        visibleTerrainParts++;
                     }
                 }
             }
