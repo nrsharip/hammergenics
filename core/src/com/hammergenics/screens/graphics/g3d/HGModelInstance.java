@@ -51,6 +51,7 @@ public class HGModelInstance extends ModelInstance implements Disposable {
     public Vector3 center = new Vector3();
     public Vector3 dims = new Vector3();
     public final float maxD;
+    public final float radius;
     public AnimationController animationController = null;
     public AnimationController.AnimationDesc animationDesc = null;
 
@@ -59,6 +60,9 @@ public class HGModelInstance extends ModelInstance implements Disposable {
     public HGModelInstance (final HGModel hgModel) { this(hgModel, null, (String[])null); }
     public HGModelInstance (final HGModel hgModel, final String... rootNodeIds) { this(hgModel, null, rootNodeIds); }
     public HGModelInstance (final HGModel hgModel, final FileHandle assetFL) { this(hgModel, assetFL, (String[])null); }
+
+    private static final Vector3 tmpV1 = new Vector3();
+    private static final Vector3 tmpV2 = new Vector3();
 
     public HGModelInstance (final HGModel hgModel, final FileHandle assetFL, final String... rootNodeIds) {
         super(hgModel.obj, rootNodeIds);
@@ -69,9 +73,11 @@ public class HGModelInstance extends ModelInstance implements Disposable {
         animationController = new AnimationController(this);
 
         calculateBoundingBox(bb);
-        bb.getCenter(center);
+        bb.getCenter(center); // should be Vector3.Zero after HGModel::centerToOrigin
         bb.getDimensions(dims);
         maxD = Math.max(Math.max(dims.x, dims.y), dims.z);
+        // see: https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
+        radius = dims.len() / 2f;
     }
 
     @Override
@@ -122,7 +128,10 @@ public class HGModelInstance extends ModelInstance implements Disposable {
     public void rotate(Quaternion rotation) { transform.rotate(rotation); }
     public void rotate(final Vector3 v1, final Vector3 v2) { transform.rotate(v1, v2); }
 
-    public float getMaxScale() { Vector3 s = transform.getScale(new Vector3()); return Math.max(Math.max(s.x, s.y), s.z); }
+    public float getMaxScale() {
+        transform.getScale(tmpV1);
+        return Math.max(Math.max(tmpV1.x, tmpV1.y), tmpV1.z);
+    }
     // see Matrix4 set(...) for the entire map of translation rotation and scale
     public BoundingBox getBB() { return getBB(true); }
     public BoundingBox getBB(boolean applyTrans) {

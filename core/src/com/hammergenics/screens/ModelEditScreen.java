@@ -20,6 +20,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
@@ -40,6 +41,7 @@ import com.hammergenics.HGEngine;
 import com.hammergenics.HGGame;
 import com.hammergenics.map.TerrainChunk;
 import com.hammergenics.screens.graphics.g3d.EditableModelInstance;
+import com.hammergenics.screens.graphics.g3d.HGModelInstance;
 import com.hammergenics.screens.graphics.g3d.utils.ModelEditInputController;
 import com.hammergenics.screens.graphics.glutils.HGImmediateModeRenderer20;
 import com.hammergenics.screens.stages.ModelEditStage;
@@ -72,6 +74,11 @@ public class ModelEditScreen extends ScreenAdapter {
     public ModelEditStage stage;
 
     private float clock1s;
+    private int visibleEditables = 0;
+    private int visibleTerrainParts = 0;
+    private final StringBuilder renderStringBuilder = new StringBuilder();
+    private static final Vector3 tmpV1 = new Vector3();
+    private static final Vector3 tmpV2 = new Vector3();
 
     /**
      * @param game
@@ -181,11 +188,20 @@ public class ModelEditScreen extends ScreenAdapter {
             eng.editableMIs.forEach(EditableModelInstance::syncWithRBTransform);
         }
 
+        visibleTerrainParts = 0;
         // https://github.com/libgdx/libgdx/wiki/ModelCache#using-modelcache
         modelCache.begin();
         if (stage.isPressed(stage.mapTextButton) && eng.chunks.size > 0) {
             if (stage.mapGenerationTable.previewTerrain.isChecked()) {
-                for (TerrainChunk tc: eng.chunks) { modelCache.add(tc.terrain); }
+                for (TerrainChunk tc: eng.chunks) {
+                    for (HGModelInstance tp: tc.terrain) {
+                        // see: https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
+                        if (isVisible(perspectiveCamera, tp)) {
+                            modelCache.add(tp);
+                            visibleTerrainParts++;
+                        }
+                    }
+                }
             }
         }
         modelCache.end();
@@ -205,9 +221,16 @@ public class ModelEditScreen extends ScreenAdapter {
         // * the shape (the mesh part) in which
         // * context (the environment and material).
 
-        // for future reference:
-        // * Enable caching as soon as multiple instances are rendered: https://github.com/libgdx/libgdx/wiki/ModelCache
-        if (eng.editableMIs.size > 0 && environment != null) { modelBatch.render(eng.editableMIs, environment); }
+        visibleEditables = 0;
+        if (eng.editableMIs.size > 0 && environment != null) {
+            for (HGModelInstance mi: eng.editableMIs) {
+                // see: https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
+                if (isVisible(perspectiveCamera, mi)) {
+                    modelBatch.render(mi, environment);
+                    visibleEditables++;
+                }
+            }
+        }
         if (eng.auxMIs.size > 0) { modelBatch.render(eng.auxMIs); }
 
         modelBatch.render(modelCache, environment);
@@ -225,7 +248,9 @@ public class ModelEditScreen extends ScreenAdapter {
         }
         if (stage.physManagerTable.groundCheckBox.isChecked()) {
             for (TerrainChunk tc: eng.chunks) {
-                if (tc.noiseTrianglesPhysModelInstance != null) { modelBatch.render(tc.noiseTrianglesPhysModelInstance, environment); }
+                if (tc.noiseTrianglesPhysModelInstance != null) {
+                    modelBatch.render(tc.noiseTrianglesPhysModelInstance, environment);
+                }
             }
         }
         if (eng.dlArrayHgModelInstance != null && stage.lightsCheckBox.isChecked()) { modelBatch.render(eng.dlArrayHgModelInstance, environment); }
@@ -295,7 +320,14 @@ public class ModelEditScreen extends ScreenAdapter {
         if (clock1s > 1) { // every second
             // updating FPS
             int fps = Gdx.graphics.getFramesPerSecond();
-            stage.fpsLabel.setText("FPS: " + fps);
+            // https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
+            // Note that using a StringBuilder is highly recommended against string concatenation in your render method.
+            // The StringBuilder will create less garbage, causing almost no hick-ups due to garbage collection.
+            renderStringBuilder.setLength(0);
+            renderStringBuilder.append("FPS: ").append(fps);
+            renderStringBuilder.append(" TP: ").append(visibleTerrainParts);
+            renderStringBuilder.append(" E: ").append(visibleEditables);
+            stage.fpsLabel.setText(renderStringBuilder);
 
             // check if there're changes made in the root directory
             // the map should be ordered: see resetFolderSelectBoxItems
@@ -309,6 +341,12 @@ public class ModelEditScreen extends ScreenAdapter {
 
             clock1s = 0;
         }
+    }
+
+    // see: https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
+    public boolean isVisible(final Camera cam, final HGModelInstance instance) {
+        instance.transform.getTranslation(tmpV1);
+        return cam.frustum.sphereInFrustum(tmpV1, instance.getMaxScale() * instance.radius);
     }
 
     public void reset() {
