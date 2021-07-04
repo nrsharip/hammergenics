@@ -131,14 +131,14 @@ public class ModelEditScreen extends ScreenAdapter {
         // (https://stackoverflow.com/questions/34164309/gl-color-buffer-bit-regenerating-which-memory)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
-        if (stage.aiCheckBox.isChecked()) {
+        if (stage.aiManagerTable.steerCheckBox.isChecked()) {
             eng.editableMIs.forEach(mi -> mi.update(delta));
             if (stage.aiManagerTable.dbgModelInstance != null) {
                 stage.aiManagerTable.updateSteerable();
             }
         }
 
-        if (stage.dynamicsCheckBox.isChecked()) {
+        if (stage.physManagerTable.dynamicsCheckBox.isChecked()) {
             // see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part2/
             // The discrete dynamics world uses a fixed time step.
             // This basically means that it will always use the same delta value to perform calculations.
@@ -193,7 +193,7 @@ public class ModelEditScreen extends ScreenAdapter {
                 if (tc.yLinesHGModelInstance != null) { modelBatch.render(tc.yLinesHGModelInstance); }
             }
         }
-        if (stage.groundCheckBox.isChecked()) {
+        if (stage.physManagerTable.groundCheckBox.isChecked()) {
             for (TerrainChunk tc: eng.chunks) {
                 if (tc.noiseTrianglesPhysModelInstance != null) { modelBatch.render(tc.noiseTrianglesPhysModelInstance, environment); }
             }
@@ -216,7 +216,7 @@ public class ModelEditScreen extends ScreenAdapter {
         if (stage.meshPartsCheckBox.isChecked()) { eng.editableMIs.forEach(hgMI -> hgMI.addMeshPartsToRenderer(immediateModeRenderer)); }
         if (stage.bonesCheckBox.isChecked()) { eng.editableMIs.forEach(hgMI ->
                 hgMI.addBonesToRenderer(immediateModeRenderer, stage.invertCheckBox.isChecked())); }
-        if (stage.rbCheckBox.isChecked()) { eng.editableMIs.forEach(mi -> mi.addRBShapeToRenderer(immediateModeRenderer)); }
+        if (stage.physManagerTable.rbCheckBox.isChecked()) { eng.editableMIs.forEach(mi -> mi.addRBShapeToRenderer(immediateModeRenderer)); }
         if (stage.verticesCheckBox.isChecked()) { eng.editableMIs.forEach(mi -> mi.addVerticesToRenderer(immediateModeRenderer)); }
         if (stage.closestCheckBox.isChecked()) { eng.editableMIs.forEach(mi -> mi.addClosestVerticesToRenderer(immediateModeRenderer)); }
         immediateModeRenderer.end();

@@ -117,10 +117,8 @@ public class PhysicalModelInstance extends HGModelInstance implements Disposable
         // only contains a position and rotation. Any other transformation, like for example scaling, is not supported.
         // In practice this means that you should never apply scaling directly to objects when using the bullet wrapper.
         // There are other ways to scale objects, but in general I would recommend to try to avoid scaling.
-        rigidBody.setWorldTransform(new Matrix4()
-                .setToTranslation(translation)
-                .rotate(rotate.nor())
-        );
+        Matrix4 tmp = new Matrix4().setToTranslation(translation).rotate(rotate.nor());
+        rigidBody.setWorldTransform(tmp);
         rigidBody.setUserValue(rbHashCode);
 
         // see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/

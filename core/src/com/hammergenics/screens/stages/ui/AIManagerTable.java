@@ -34,6 +34,8 @@ public class AIManagerTable extends HGTable {
     public ModelEditStage stage;
     public EditableModelInstance dbgModelInstance;
 
+    public CheckBox steerCheckBox;
+
     public TextField lvxTF = null; // linear velocity
     public TextField lvyTF = null; // linear velocity
     public TextField lvzTF = null; // linear velocity
@@ -59,12 +61,14 @@ public class AIManagerTable extends HGTable {
 
         init();
 
-        Table lvLblTable = new Table();
-        lvLblTable.add(new Label("x", stage.skin)).expandX().center();
-        lvLblTable.add(new Label("y", stage.skin)).expandX().center();
-        lvLblTable.add(new Label("z", stage.skin)).expandX().center();
+        add(steerCheckBox).right(); add().expandX().fillX(); row();
 
-        add().right(); add(lvLblTable).expandX().fillX(); row();
+        Table lvLblTable1 = new Table();
+        lvLblTable1.add(new Label("x", stage.skin)).expandX().center();
+        lvLblTable1.add(new Label("y", stage.skin)).expandX().center();
+        lvLblTable1.add(new Label("z", stage.skin)).expandX().center();
+
+        add().right(); add(lvLblTable1).expandX().fillX(); row();
 
         Table lvTable = new Table();
         lvTable.add(lvxTF).width(120).maxWidth(120).left();
@@ -82,7 +86,12 @@ public class AIManagerTable extends HGTable {
         add(new Label("maximum angular speed:", stage.skin)).right(); add(masTF).width(120).maxWidth(120).left(); row();
         add(new Label("maximum angular acceleration:", stage.skin)).right(); add(maaTF).width(120).maxWidth(120).left(); row();
 
-        add().right(); add(lvLblTable).expandX().fillX(); row();
+        Table lvLblTable2 = new Table();
+        lvLblTable2.add(new Label("x", stage.skin)).expandX().center();
+        lvLblTable2.add(new Label("y", stage.skin)).expandX().center();
+        lvLblTable2.add(new Label("z", stage.skin)).expandX().center();
+
+        add().right(); add(lvLblTable2).expandX().fillX(); row();
 
         Table pTable = new Table();
         pTable.add(pxTF).width(120).maxWidth(120).left();
@@ -94,6 +103,9 @@ public class AIManagerTable extends HGTable {
     }
 
     private void init() {
+        steerCheckBox = new CheckBox("enable steering", stage.skin);
+        steerCheckBox.setChecked(false);
+
         lvxTF = new TextField("", stage.skin); // linear velocity
         lvyTF = new TextField("", stage.skin); // linear velocity
         lvzTF = new TextField("", stage.skin); // linear velocity

@@ -51,6 +51,7 @@ import com.hammergenics.screens.stages.ui.AIManagerTable;
 import com.hammergenics.screens.stages.ui.AggregatedAttributesManagerTable;
 import com.hammergenics.screens.stages.ui.AnimationsManagerTable;
 import com.hammergenics.screens.stages.ui.MapGenerationTable;
+import com.hammergenics.screens.stages.ui.PhysicsManagerTable;
 import com.hammergenics.screens.stages.ui.attributes.AttributesManagerTable;
 import com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable;
 import com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable.EventType;
@@ -89,6 +90,7 @@ public class ModelEditStage extends Stage {
     public AnimationsManagerTable animationsManagerTable;
     public MapGenerationTable mapGenerationTable;
     public AIManagerTable aiManagerTable;
+    public PhysicsManagerTable physManagerTable;
 
     // 2D Stage Widgets:
     public Label miLabel;  // Model Instance Info
@@ -108,10 +110,6 @@ public class ModelEditStage extends Stage {
     public CheckBox meshPartsCheckBox;
     public CheckBox verticesCheckBox;
     public CheckBox closestCheckBox;
-    public CheckBox dynamicsCheckBox;
-    public CheckBox rbCheckBox;
-    public CheckBox groundCheckBox;
-    public CheckBox aiCheckBox;
     public SelectBox<FileHandle> folderSelectBox;
     public SelectBox<FileHandle> modelSelectBox;
     public SelectBox<String> nodeSelectBox;
@@ -119,6 +117,7 @@ public class ModelEditStage extends Stage {
     public TextButton animTextButton = null;
     public TextButton mapTextButton = null;
     public TextButton aiTextButton = null;
+    public TextButton physTextButton = null;
     public TextButton clearModelsTextButton = null;
     public TextButton deleteCurrModelTextButton = null;
     public TextButton saveCurrModelTextButton = null;
@@ -138,6 +137,7 @@ public class ModelEditStage extends Stage {
         animationsManagerTable = new AnimationsManagerTable(modelES, this);
         mapGenerationTable = new MapGenerationTable(modelES, this);
         aiManagerTable = new AIManagerTable(modelES, this);
+        physManagerTable = new PhysicsManagerTable(modelES, this);
     }
 
     /**
@@ -272,24 +272,6 @@ public class ModelEditStage extends Stage {
         closestCheckBox = new CheckBox("closest to corners)", skin);
         closestCheckBox.setChecked(false);
 
-        dynamicsCheckBox = new CheckBox("dynamics", skin);
-        dynamicsCheckBox.setChecked(false);
-        dynamicsCheckBox.addListener(new ChangeListener() {
-            @Override
-            public void changed (ChangeEvent event, Actor actor) {
-                if (!dynamicsCheckBox.isChecked()) modelES.eng.arrangeInSpiral(origScaleCheckBox.isChecked());
-            }
-        });
-
-        rbCheckBox = new CheckBox("rigid body", skin);
-        rbCheckBox.setChecked(false);
-
-        groundCheckBox = new CheckBox("ground", skin);
-        groundCheckBox.setChecked(false);
-
-        aiCheckBox = new CheckBox("ai", skin);
-        aiCheckBox.setChecked(false);
-
         // TEXT BUTTONS:
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textbutton
         attrTextButton = new TextButton("ATTR", skin);
@@ -363,6 +345,26 @@ public class ModelEditStage extends Stage {
                     pressButton(aiTextButton);
                 } else {
                     unpressButton(aiTextButton);
+                }
+                resetTables();
+                return super.touchDown(event, x, y, pointer, button); // false
+                // If true is returned, this listener will have touch focus, so it will receive all
+                // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
+                // Also when true is returned, the event is handled
+            }
+        });
+
+        physTextButton = new TextButton("PHYS", skin);
+        unpressButton(physTextButton);
+        physTextButton.addListener(new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                editCell.clearActor();
+                if (!isPressed(physTextButton)) {
+                    unpressAllButtons();
+                    pressButton(physTextButton);
+                } else {
+                    unpressButton(physTextButton);
                 }
                 resetTables();
                 return super.touchDown(event, x, y, pointer, button); // false
@@ -589,6 +591,8 @@ public class ModelEditStage extends Stage {
         leftPanel.row();
         leftPanel.add(mapTextButton).fillX();
         leftPanel.row();
+        leftPanel.add(physTextButton).fillX();
+        leftPanel.row();
         leftPanel.add(aiTextButton).fillX();
         leftPanel.row();
 
@@ -620,10 +624,6 @@ public class ModelEditStage extends Stage {
         lowerPanel.add(meshPartsCheckBox).pad(3f);
         lowerPanel.add(verticesCheckBox);
         lowerPanel.add(closestCheckBox).pad(3f);
-        lowerPanel.add(dynamicsCheckBox).pad(3f);
-        lowerPanel.add(rbCheckBox).pad(3f);
-        lowerPanel.add(groundCheckBox).pad(3f);
-        lowerPanel.add(aiCheckBox).pad(3f);
         lowerPanel.add(saveCurrModelTextButton).pad(3f);
         lowerPanel.add(deleteCurrModelTextButton).pad(3f);
         lowerPanel.add(clearModelsTextButton).pad(3f);
@@ -639,10 +639,11 @@ public class ModelEditStage extends Stage {
         unpressButton(animTextButton);
         unpressButton(mapTextButton);
         unpressButton(aiTextButton);
+        unpressButton(physTextButton);
     }
     public boolean isAnyButtonPressed() {
         return isPressed(attrTextButton) || isPressed(animTextButton) || isPressed(mapTextButton)
-                || isPressed(aiTextButton);
+                || isPressed(aiTextButton) || isPressed(physTextButton);
     }
     public void unpressButton(TextButton btn) { btn.getColor().set(COLOR_UNPRESSED); }
     public void pressButton(TextButton btn) { btn.getColor().set(COLOR_PRESSED); }
@@ -696,6 +697,11 @@ public class ModelEditStage extends Stage {
         if (isPressed(aiTextButton)) {
             aiManagerTable.setDbgModelInstance(modelES.eng.currMI);
             aiManagerTable.resetActors();
+        }
+
+        if (isPressed(physTextButton)) {
+            physManagerTable.setDbgModelInstance(modelES.eng.currMI);
+            physManagerTable.resetActors();
         }
 
         if (!isAnyButtonPressed()) {
