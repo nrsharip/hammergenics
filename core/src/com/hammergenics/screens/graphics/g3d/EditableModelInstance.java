@@ -87,6 +87,17 @@ public class EditableModelInstance extends SteerableModelInstance implements Dis
     public int auxMeshCounter;
     public Node hoveredOverNode = null;
 
+    // see: https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part2/#using-motion-states
+    public static class EditableBtMotionState extends HGbtMotionState {
+        @Override
+        public void setWorldTransform(Matrix4 worldTrans) {
+            super.setWorldTransform(worldTrans);
+            ((EditableModelInstance)mi).bbHgModelInstanceReset();
+            ((EditableModelInstance)mi).bbCornersReset();
+        }
+        public EditableBtMotionState(EditableModelInstance mi) { super(mi); }
+    }
+
     public EditableModelInstance(Model model, float mass, ShapesEnum shape) { this(new HGModel(model), null, mass, shape, (String[])null); }
     public EditableModelInstance(Model model, float mass, ShapesEnum shape, String... rootNodeIds) { this(new HGModel(model), null, mass, shape, rootNodeIds); }
     public EditableModelInstance(HGModel hgModel, float mass, ShapesEnum shape) { this(hgModel, null, mass, shape, (String[])null); }
@@ -100,13 +111,8 @@ public class EditableModelInstance extends SteerableModelInstance implements Dis
         createNodePartModels();
         checkMaterials();
         checkAnimations();
-    }
 
-    @Override
-    public void syncWithRBTransform() {
-        super.syncWithRBTransform();
-        bbHgModelInstanceReset();
-        bbCornersReset();
+        setMotionState(new EditableBtMotionState(this));
     }
 
     @Override

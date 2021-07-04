@@ -778,7 +778,6 @@ public class HGEngine implements Disposable {
                     .add(0, factor * mi.getBB().getHeight()/2, 0);
             mi.setToTranslationAndScaling(position, Vector3.Zero.cpy().add(factor));
             //Gdx.app.debug("spiral", "transform:\n" + mi.transform);
-            resetRigidBody(mi, FLAG_OBJECT, FLAG_ALL);
 
             // spiral loop around (0, 0, 0)
             HGUtils.spiralGetNext(cell);
@@ -837,7 +836,7 @@ public class HGEngine implements Disposable {
 
     public void resetRigidBody(PhysicalModelInstance mi, int group, int mask) {
         if (mi.rigidBody != null) { removeRigidBody(mi); }
-        mi.createRigidBody();
+        //mi.createRigidBody();
         addRigidBody(mi, group, mask);
     }
 
