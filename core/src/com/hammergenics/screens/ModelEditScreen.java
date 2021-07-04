@@ -32,6 +32,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.SpotLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.physics.bullet.DebugDrawer;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
@@ -45,6 +46,7 @@ import com.hammergenics.screens.stages.ModelEditStage;
 import com.hammergenics.screens.stages.ui.attributes.AttributesManagerTable;
 import com.hammergenics.utils.HGUtils;
 
+import static com.badlogic.gdx.physics.bullet.linearmath.btIDebugDraw.DebugDrawModes.DBG_NoDebug;
 import static com.hammergenics.HGEngine.filterModels;
 
 /**
@@ -63,6 +65,7 @@ public class ModelEditScreen extends ScreenAdapter {
 
     public HGEngine eng;
 
+    public DebugDrawer btDebugDrawer;
     public HGImmediateModeRenderer20 immediateModeRenderer;
 
     // 2D Stage - this is where all the widgets (buttons, checkboxes, labels etc.) are located
@@ -80,6 +83,33 @@ public class ModelEditScreen extends ScreenAdapter {
         this.modelCache = mc; // https://github.com/libgdx/libgdx/wiki/ModelBatch
 
         immediateModeRenderer = new HGImmediateModeRenderer20(10*Short.MAX_VALUE, false, true, 0);
+
+        btDebugDrawer = new DebugDrawer();
+
+        // btIDebugDraw.h
+        // enum DebugDrawModes
+        // {
+        //     DBG_NoDebug=0,
+        //     DBG_DrawWireframe = 1,
+        //     DBG_DrawAabb=2,
+        //     DBG_DrawFeaturesText=4,
+        //     DBG_DrawContactPoints=8,
+        //     DBG_NoDeactivation=16,
+        //     DBG_NoHelpText = 32,
+        //     DBG_DrawText=64,
+        //     DBG_ProfileTimings = 128,
+        //     DBG_EnableSatComparison = 256,
+        //     DBG_DisableBulletLCP = 512,
+        //     DBG_EnableCCD = 1024,
+        //     DBG_DrawConstraints = (1 << 11),
+        //     DBG_DrawConstraintLimits = (1 << 12),
+        //     DBG_FastWireframe = (1<<13),
+        //     DBG_DrawNormals = (1<<14),
+        //     DBG_DrawFrames = (1<<15),
+        //     DBG_MAX_DEBUG_DRAW_MODE
+        // };
+        btDebugDrawer.setDebugMode(DBG_NoDebug);
+        eng.dynamicsWorld.setDebugDrawer(btDebugDrawer);
 
         // Camera related
         perspectiveCamera = new PerspectiveCamera(70f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -220,6 +250,10 @@ public class ModelEditScreen extends ScreenAdapter {
         if (stage.verticesCheckBox.isChecked()) { eng.editableMIs.forEach(mi -> mi.addVerticesToRenderer(immediateModeRenderer)); }
         if (stage.closestCheckBox.isChecked()) { eng.editableMIs.forEach(mi -> mi.addClosestVerticesToRenderer(immediateModeRenderer)); }
         immediateModeRenderer.end();
+
+        btDebugDrawer.begin(perspectiveCamera);
+        eng.dynamicsWorld.debugDrawWorld();
+        btDebugDrawer.end();
 
         checkTimerEvents(delta);
 

@@ -42,6 +42,7 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.physics.bullet.linearmath.btIDebugDraw;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.ObjectMap;
@@ -69,16 +70,19 @@ public class HGUtils {
                                                             // - take special care
     public static final ArrayMap<String, Color> color_s2c;
     public static final Array<Color> aux_colors;
+    public static final ArrayMap<String, Integer> btDbgModes;
 
     static {
         gl20_s2i = new ArrayMap<>(String.class, Integer.class);
         gl20_i2s = new ArrayMap<>(Integer.class, String.class);
         color_s2c = new ArrayMap<>(String.class, Color.class);
         aux_colors = new Array<>(true, 16, Color.class);
+        btDbgModes = new ArrayMap<>(true, 16, String.class, Integer.class);
 
         scanGL20();
         scanColor();
         addAuxColors();
+        scanBtDbgModes();
 
         if (gl20_s2i.size == 0 || gl20_i2s.size == 0) {
             Gdx.app.error(HGUtils.class.getSimpleName(),"ERROR: no GL20 constants retrieved");
@@ -128,12 +132,59 @@ public class HGUtils {
             try {
                 Color color = (Color) field.get(null); // null is allowed for static fields...
                 color_s2c.put(field.getName(), color);
-
-//                Gdx.app.debug(getClass().getSimpleName(),
-//                        "Retrieved color: " + clazz.getSimpleName() + "." + field.getName());
             } catch (IllegalAccessException | IllegalArgumentException | NullPointerException e) {
                 Gdx.app.error(getTag(),
                         "EXCEPTION while reading the field contents of the class: " + Color.class.getName() + "\n" +
+                                Arrays.stream(e.getStackTrace())
+                                        .map(element -> String.valueOf(element) + "\n")
+                                        .reduce("", String::concat));
+            }
+        }
+    }
+
+    public static void scanBtDbgModes() {
+        Field[] modeFields = scanPublicStaticFinalFields(btIDebugDraw.DebugDrawModes.class, Integer.TYPE);
+
+        if (modeFields.length == 0) {
+            Gdx.app.error(getTag(), "ERROR: no modes found in: " + btIDebugDraw.DebugDrawModes.class.getName());
+            return;
+        }
+
+        for (Field field: modeFields) {
+            try {
+                Integer mode = (Integer) field.get(null); // null is allowed for static fields...
+                btDbgModes.put(field.getName(), mode);
+
+                // btIDebugDraw.h
+                // enum DebugDrawModes
+                // {
+                //     DBG_NoDebug=0,
+                //     DBG_DrawWireframe = 1,
+                //     DBG_DrawAabb=2,
+                //     DBG_DrawFeaturesText=4,
+                //     DBG_DrawContactPoints=8,
+                //     DBG_NoDeactivation=16,
+                //     DBG_NoHelpText = 32,
+                //     DBG_DrawText=64,
+                //     DBG_ProfileTimings = 128,
+                //     DBG_EnableSatComparison = 256,
+                //     DBG_DisableBulletLCP = 512,
+                //     DBG_EnableCCD = 1024,
+                //     DBG_DrawConstraints = (1 << 11),
+                //     DBG_DrawConstraintLimits = (1 << 12),
+                //     DBG_FastWireframe = (1<<13),
+                //     DBG_DrawNormals = (1<<14),
+                //     DBG_DrawFrames = (1<<15),
+                //     DBG_MAX_DEBUG_DRAW_MODE
+                // };
+
+                //Gdx.app.debug(HGUtils.class.getSimpleName(), ""
+                //        + " retrieved field: " + btIDebugDraw.DebugDrawModes.class.getSimpleName() + "." + field.getName()
+                //        + " value: " + mode
+                //);
+            } catch (IllegalAccessException | IllegalArgumentException | NullPointerException e) {
+                Gdx.app.error(getTag(),
+                        "EXCEPTION while reading the field contents of the class: " + btIDebugDraw.DebugDrawModes.class.getName() + "\n" +
                                 Arrays.stream(e.getStackTrace())
                                         .map(element -> String.valueOf(element) + "\n")
                                         .reduce("", String::concat));

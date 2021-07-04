@@ -17,13 +17,19 @@
 package com.hammergenics.screens.stages.ui;
 
 
+import com.badlogic.gdx.physics.bullet.dynamics.btDynamicsWorld;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.SelectBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.hammergenics.HGEngine;
 import com.hammergenics.screens.ModelEditScreen;
 import com.hammergenics.screens.graphics.g3d.EditableModelInstance;
 import com.hammergenics.screens.stages.ModelEditStage;
+
+import static com.hammergenics.utils.HGUtils.btDbgModes;
 
 /**
  * Add description here
@@ -33,25 +39,35 @@ import com.hammergenics.screens.stages.ModelEditStage;
 public class PhysicsManagerTable extends HGTable {
     public ModelEditScreen modelES;
     public ModelEditStage stage;
+    public HGEngine eng;
+    public btDynamicsWorld dw;
     public EditableModelInstance dbgModelInstance;
 
     public CheckBox dynamicsCheckBox;
     public CheckBox rbCheckBox;
     public CheckBox groundCheckBox;
 
+    public SelectBox<String> btDebugModeSelectBox = null;
+
     public PhysicsManagerTable(ModelEditScreen modelES, ModelEditStage stage) {
         super(stage.skin);
         this.modelES = modelES;
+        this.eng = modelES.eng;
+        this.dw = modelES.eng.dynamicsWorld;
         this.stage = stage;
 
         init();
 
         Table row01 = new Table();
-        row01.add(dynamicsCheckBox).pad(3f);
-        row01.add(rbCheckBox).pad(3f);
-        row01.add(groundCheckBox).pad(3f);
+        row01.add(dynamicsCheckBox).expandX();
+        row01.add(rbCheckBox).expandX();
+        row01.add(groundCheckBox).expandX();
+        add(row01).center().expandX().fillX().row();
 
-        add(row01).center().expandX().fillX();
+        Table row02 = new Table();
+        row02.add(new Label("bullet debug mode:", stage.skin)).padRight(5f).right();
+        row02.add(btDebugModeSelectBox).expandX().fillX().center();
+        add(row02).center().expandX().fillX().row();
     }
 
     private void init() {
@@ -69,6 +85,39 @@ public class PhysicsManagerTable extends HGTable {
 
         groundCheckBox = new CheckBox("ground", stage.skin);
         groundCheckBox.setChecked(false);
+
+        btDebugModeSelectBox = new SelectBox<>(stage.skin);
+        btDebugModeSelectBox.clearItems();
+        btDebugModeSelectBox.setItems(btDbgModes.keys().toArray());
+        btDebugModeSelectBox.setSelectedIndex(btDbgModes.indexOfValue(dw.getDebugDrawer().getDebugMode(), false));
+        btDebugModeSelectBox.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                // btIDebugDraw.h
+                // enum DebugDrawModes
+                // {
+                //     DBG_NoDebug=0,
+                //     DBG_DrawWireframe = 1,
+                //     DBG_DrawAabb=2,
+                //     DBG_DrawFeaturesText=4,
+                //     DBG_DrawContactPoints=8,
+                //     DBG_NoDeactivation=16,
+                //     DBG_NoHelpText = 32,
+                //     DBG_DrawText=64,
+                //     DBG_ProfileTimings = 128,
+                //     DBG_EnableSatComparison = 256,
+                //     DBG_DisableBulletLCP = 512,
+                //     DBG_EnableCCD = 1024,
+                //     DBG_DrawConstraints = (1 << 11),
+                //     DBG_DrawConstraintLimits = (1 << 12),
+                //     DBG_FastWireframe = (1<<13),
+                //     DBG_DrawNormals = (1<<14),
+                //     DBG_DrawFrames = (1<<15),
+                //     DBG_MAX_DEBUG_DRAW_MODE
+                // };
+                dw.getDebugDrawer().setDebugMode(btDbgModes.get(btDebugModeSelectBox.getSelected()));
+            }
+        });
     }
 
     public void setDbgModelInstance(EditableModelInstance mi) {
