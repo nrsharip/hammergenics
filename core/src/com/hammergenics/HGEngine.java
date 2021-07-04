@@ -489,7 +489,7 @@ public class HGEngine implements Disposable {
             tc.trnNoiseLinesHgModelInstance(0f, -mid * tc.gridNoise.yScale * scale, 0f);
             tc.trnNoiseTrianglesPhysModelInstance(0f, -mid * tc.gridNoise.yScale * scale, 0f);
 
-            resetRigidBody(tc.noiseTrianglesPhysModelInstance, FLAG_GROUND, FLAG_ALL);
+            addRigidBody(tc.noiseTrianglesPhysModelInstance, FLAG_GROUND, FLAG_ALL);
 
             tc.applyTerrainParts(scale);
             tc.trnTerrain(0f, -mid * tc.gridNoise.yScale * scale, 0f);
@@ -832,12 +832,6 @@ public class HGEngine implements Disposable {
             //        + " hc: " + mi.rbHashCode + " transform:\n" + mi.rigidBody.getWorldTransform()
             //);
         }
-    }
-
-    public void resetRigidBody(PhysicalModelInstance mi, int group, int mask) {
-        if (mi.rigidBody != null) { removeRigidBody(mi); }
-        //mi.createRigidBody();
-        addRigidBody(mi, group, mask);
     }
 
     public void resetBBModelInstances() {
