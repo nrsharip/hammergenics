@@ -67,18 +67,14 @@ public class PhysicalModelInstance extends HGModelInstance implements Disposable
         public void getWorldTransform(Matrix4 worldTrans) {
             transform.getTranslation(translation);
             transform.getRotation(rotation, true).nor();
-
             tmpM4.setToTranslation(translation).rotate(rotation.nor());
-
             worldTrans.set(tmpM4);
         }
 
         @Override
         public void setWorldTransform(Matrix4 worldTrans) {
-            translation.set(0, -mi.getBB(false).getCenterY(), 0);
             transform.getScale(scale);
             transform.set(worldTrans);
-            mi.translate(translation.scl(scale));
             mi.scale(scale.x, scale.y, scale.z);
         }
 
