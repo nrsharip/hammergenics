@@ -52,10 +52,18 @@ import com.badlogic.gdx.physics.bullet.collision.btDbvtBroadphase;
 import com.badlogic.gdx.physics.bullet.collision.btDefaultCollisionConfiguration;
 import com.badlogic.gdx.physics.bullet.collision.btDispatcher;
 import com.badlogic.gdx.physics.bullet.dynamics.btConstraintSolver;
+import com.badlogic.gdx.physics.bullet.dynamics.btConstraintSolverType;
+import com.badlogic.gdx.physics.bullet.dynamics.btDantzigSolver;
 import com.badlogic.gdx.physics.bullet.dynamics.btDiscreteDynamicsWorld;
 import com.badlogic.gdx.physics.bullet.dynamics.btDynamicsWorld;
+import com.badlogic.gdx.physics.bullet.dynamics.btLemkeSolver;
+import com.badlogic.gdx.physics.bullet.dynamics.btMLCPSolver;
+import com.badlogic.gdx.physics.bullet.dynamics.btMLCPSolverInterface;
+import com.badlogic.gdx.physics.bullet.dynamics.btMultiBodyConstraintSolver;
+import com.badlogic.gdx.physics.bullet.dynamics.btNNCGConstraintSolver;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.physics.bullet.dynamics.btSequentialImpulseConstraintSolver;
+import com.badlogic.gdx.physics.bullet.dynamics.btSolveProjectedGaussSeidel;
 import com.badlogic.gdx.physics.bullet.linearmath.LinearMath;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
@@ -86,6 +94,13 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 
+import static com.hammergenics.HGEngine.btConstraintSolversEnum.BT_MLCP_SOLVER;
+import static com.hammergenics.HGEngine.btConstraintSolversEnum.BT_MULTIBODY_SOLVER;
+import static com.hammergenics.HGEngine.btConstraintSolversEnum.BT_NNCG_SOLVER;
+import static com.hammergenics.HGEngine.btConstraintSolversEnum.BT_SEQUENTIAL_IMPULSE_SOLVER;
+import static com.hammergenics.HGEngine.btMLCPSolversEnum.BT_DANTZIG;
+import static com.hammergenics.HGEngine.btMLCPSolversEnum.BT_GAUSS_SEIDEL;
+import static com.hammergenics.HGEngine.btMLCPSolversEnum.BT_LEMKE;
 import static com.hammergenics.screens.graphics.g3d.utils.Models.createGridModel;
 import static com.hammergenics.screens.graphics.g3d.utils.Models.createLightsModel;
 import static com.hammergenics.screens.graphics.g3d.utils.Models.createTestBox;
@@ -167,9 +182,110 @@ public class HGEngine implements Disposable {
     // the wrapper takes care of that when you construct the ContactListener.
     public ContactListener contactListener;
     public btDynamicsWorld dynamicsWorld;
-    // simply said: constraints can be used to attach objects to each other
-    public btConstraintSolver constraintSolver;
 
+    // CONSTRAINT SOLVERS:
+    // https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part2/
+    // simply said: constraints can be used to attach objects to each other
+    //
+    // "Exploring MLCP solvers and Featherstone" by Erwin Coumans:
+    // http://goo.gl/84N71q (https://www.gdcvault.com/play/1020076/Physics-for-Game-Programmers-Exploring)
+    // "Normal and Friction Stabilization Techniques for Interactive Rigid Body Constraint-based
+    // Contact Force Computations" by Morten Silcowitz, Sarah Niebe, Kenny Erleben
+    // https://diglib.eg.org/bitstream/handle/10.2312/PE.vriphys.vriphys10.089-095/089-095.pdf
+    // https://github.com/bulletphysics/bullet3/blob/master/src/BulletDynamics/ConstraintSolver/btConstraintSolver.h#L32
+    // enum btConstraintSolverType
+    // {
+    //     BT_SEQUENTIAL_IMPULSE_SOLVER = 1,
+    //     BT_MLCP_SOLVER = 2,
+    //     BT_NNCG_SOLVER = 4,
+    //     BT_MULTIBODY_SOLVER = 8,
+    //     BT_BLOCK_SOLVER = 16,
+    // };
+    public enum btConstraintSolversEnum implements Disposable {
+        // https://github.com/bulletphysics/bullet3/blob/master/src/BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.h
+        BT_SEQUENTIAL_IMPULSE_SOLVER(btConstraintSolverType.BT_SEQUENTIAL_IMPULSE_SOLVER, "Sequential Impulse", "SI"),
+        // https://github.com/bulletphysics/bullet3/blob/master/src/BulletDynamics/MLCPSolvers/btMLCPSolver.h
+        BT_MLCP_SOLVER(btConstraintSolverType.BT_MLCP_SOLVER, "Mixed Linear Complementarity Problem", "MLCP"),
+        // https://github.com/bulletphysics/bullet3/blob/master/src/BulletDynamics/ConstraintSolver/btNNCGConstraintSolver.h
+        BT_NNCG_SOLVER(btConstraintSolverType.BT_NNCG_SOLVER, "Nonlinear Nonsmooth Conjugate Gradient", "NNCG"),
+        // https://github.com/bulletphysics/bullet3/blob/master/src/BulletDynamics/Featherstone/btMultiBodyConstraintSolver.h
+        BT_MULTIBODY_SOLVER(8, "Multi-Body", "MB");
+        // https://github.com/bulletphysics/bullet3/blob/master/src/BulletDynamics/Dynamics/btDiscreteDynamicsWorldMt.h#L24
+        // TODO: look into multi-threaded solvers' pooling
+
+        public final int type;
+        public final String fullName;
+        public final String abbreviation;
+        public btConstraintSolver instance = null;
+
+        btConstraintSolversEnum(int type, String fullName, String abbreviation) {
+            this.type = type;
+            this.fullName = fullName;
+            this.abbreviation = abbreviation;
+        }
+
+        public btConstraintSolver getInstance() { return instance; }
+        public void setInstance(btConstraintSolver instance) {
+            if (this.instance == null) { this.instance = instance; }
+        }
+
+        public static btConstraintSolversEnum findByType(int type) {
+            for (btConstraintSolversEnum cs: btConstraintSolversEnum.values()) {
+                if (cs.type == type) { return cs; }
+            }
+            Gdx.app.error("bullet", "ERROR: undefined constraint solver type " + type);
+            return null;
+        }
+
+        @Override
+        public String toString() { return toString(false); }
+        public String toString(boolean abbr) { return abbr ? abbreviation : fullName; }
+
+        @Override
+        public void dispose() { if (instance != null) { instance.dispose(); } }
+    }
+
+    public enum btMLCPSolversEnum implements Disposable {
+        // https://github.com/bulletphysics/bullet3/blob/master/src/BulletDynamics/MLCPSolvers/btDantzigLCP.cpp
+        BT_DANTZIG("Dantzig"),
+        // https://github.com/bulletphysics/bullet3/blob/master/src/BulletDynamics/MLCPSolvers/btLemkeAlgorithm.h
+        BT_LEMKE("Lemke"),
+        // https://github.com/bulletphysics/bullet3/blob/master/src/BulletDynamics/MLCPSolvers/btSolveProjectedGaussSeidel.h#L22
+        // This solver is mainly for debug/learning purposes: it is functionally equivalent to the
+        // btSequentialImpulseConstraintSolver solver, but much slower (it builds the full LCP matrix)
+        BT_GAUSS_SEIDEL("Gauss–Seidel");
+
+        private boolean isApplied = false;
+        public final String fullName;
+        public btMLCPSolverInterface instance = null;
+
+        btMLCPSolversEnum(String fullName) { this.fullName = fullName; }
+
+        public btMLCPSolverInterface apply() {
+            unsetAll();
+            isApplied = true;
+            return instance;
+        }
+        public void setInstance(btMLCPSolverInterface instance) {
+            if (this.instance == null) { this.instance = instance; }
+        }
+
+        @Override public String toString() { return fullName; }
+        @Override public void dispose() { if (instance != null) { instance.dispose(); } }
+
+        private static void unsetAll() {
+            for (btMLCPSolversEnum solver: btMLCPSolversEnum.values()) { solver.isApplied = false; }
+        }
+
+        public static btMLCPSolversEnum current() {
+            for (btMLCPSolversEnum solver: btMLCPSolversEnum.values()) {
+                if (solver.isApplied) { return solver; }
+            }
+            return null;
+        }
+    }
+
+    // BROAD PHASE:
     // IMPORTANT: see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/
     // Ideally we’d first check if the two objects are near each other, for example using a bounding box or bounding sphere.
     // And only if they are near each other, we’d use the more accurate specialized collision algorithm.
@@ -205,6 +321,18 @@ public class HGEngine implements Disposable {
 
         initBullet();
 
+        BT_DANTZIG.setInstance(new btDantzigSolver());
+        BT_LEMKE.setInstance(new btLemkeSolver());
+        BT_GAUSS_SEIDEL.setInstance(new btSolveProjectedGaussSeidel());
+
+        BT_SEQUENTIAL_IMPULSE_SOLVER.setInstance(new btSequentialImpulseConstraintSolver());
+        BT_MLCP_SOLVER.setInstance(new btMLCPSolver(BT_DANTZIG.apply()));
+        BT_NNCG_SOLVER.setInstance(new btNNCGConstraintSolver());
+        BT_MULTIBODY_SOLVER.setInstance(new btMultiBodyConstraintSolver());
+
+        dynamicsWorld.setGravity(Vector3.Y.cpy().scl(-10f));
+        dynamicsWorld.setConstraintSolver(BT_SEQUENTIAL_IMPULSE_SOLVER.getInstance());
+
         // Chunks should be populated after bullet is initialized (TerrainChunk has physical models)
         chunks = new Array<>(new TerrainChunk[]{
                 new TerrainChunk(MAP_SIZE + 1, MAP_CENTER - MAP_SIZE, MAP_CENTER - MAP_SIZE),
@@ -235,7 +363,16 @@ public class HGEngine implements Disposable {
         // You’re probably already familiar with this cconcept, because the same goes for a texture, model, model batch, shader etc.
         // Because of this, you have to manually dispose the object when you no longer need it.
         dynamicsWorld.dispose();
-        constraintSolver.dispose();
+
+        BT_SEQUENTIAL_IMPULSE_SOLVER.dispose();
+        BT_MLCP_SOLVER.dispose();
+        BT_NNCG_SOLVER.dispose();
+        BT_MULTIBODY_SOLVER.dispose();
+
+        BT_DANTZIG.dispose();
+        BT_LEMKE.dispose();
+        BT_GAUSS_SEIDEL.dispose();
+
         contactListener.dispose();
         broadPhase.dispose();
         collisionConfig.dispose();
@@ -283,7 +420,7 @@ public class HGEngine implements Disposable {
         } else {
             Bullet.init();
         }
-        Gdx.app.log("Bullet", "Version = " + LinearMath.btGetVersion());
+        Gdx.app.log("bullet", "version: " + LinearMath.btGetVersion() + " debug: " + debugBullet);
         // Release (gradle: libgdx-1.10.0):
         // [Bullet] Version = 287
         // Debug (https://github.com/libgdx/libgdx/tree/024282e47e9b5d8ec25373d3e1e5ddfe55122596):
@@ -298,9 +435,7 @@ public class HGEngine implements Disposable {
         // which is a Dynamic Bounding Volume Tree implementation.
         // In most scenario’s this implementation should suffice.
         broadPhase = new btDbvtBroadphase();
-        constraintSolver = new btSequentialImpulseConstraintSolver();
-        dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadPhase, constraintSolver, collisionConfig);
-        dynamicsWorld.setGravity(Vector3.Y.cpy().scl(-10f));
+        dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadPhase, null, collisionConfig);
         contactListener = new HGContactListener(this);
     }
 

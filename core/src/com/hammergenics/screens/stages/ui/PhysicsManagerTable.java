@@ -18,6 +18,7 @@ package com.hammergenics.screens.stages.ui;
 
 
 import com.badlogic.gdx.physics.bullet.dynamics.btDynamicsWorld;
+import com.badlogic.gdx.physics.bullet.dynamics.btMLCPSolver;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -25,10 +26,13 @@ import com.badlogic.gdx.scenes.scene2d.ui.SelectBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.hammergenics.HGEngine;
+import com.hammergenics.HGEngine.btConstraintSolversEnum;
+import com.hammergenics.HGEngine.btMLCPSolversEnum;
 import com.hammergenics.screens.ModelEditScreen;
 import com.hammergenics.screens.graphics.g3d.EditableModelInstance;
 import com.hammergenics.screens.stages.ModelEditStage;
 
+import static com.hammergenics.HGEngine.btConstraintSolversEnum.BT_MLCP_SOLVER;
 import static com.hammergenics.utils.HGUtils.btDbgModes;
 
 /**
@@ -48,6 +52,8 @@ public class PhysicsManagerTable extends HGTable {
     public CheckBox groundCheckBox;
 
     public SelectBox<String> btDebugModeSelectBox = null;
+    public SelectBox<btConstraintSolversEnum> constraintSolverSelectBox = null;
+    public SelectBox<btMLCPSolversEnum> mlcpAlgorithmSelectBox = null;
 
     public PhysicsManagerTable(ModelEditScreen modelES, ModelEditStage stage) {
         super(stage.skin);
@@ -62,12 +68,19 @@ public class PhysicsManagerTable extends HGTable {
         row01.add(dynamicsCheckBox).expandX();
         row01.add(rbCheckBox).expandX();
         row01.add(groundCheckBox).expandX();
-        add(row01).center().expandX().fillX().row();
+        add(row01).colspan(2).center().expandX().fillX().row();
 
-        Table row02 = new Table();
-        row02.add(new Label("bullet debug mode:", stage.skin)).padRight(5f).right();
-        row02.add(btDebugModeSelectBox).expandX().fillX().center();
-        add(row02).center().expandX().fillX().row();
+        add(new Label("bullet debug mode:", stage.skin)).padRight(5f).right();
+        add(btDebugModeSelectBox).expandX().fillX().center();
+        row();
+
+        add(new Label("constraint solver:", stage.skin)).padRight(5f).right();
+        add(constraintSolverSelectBox).expandX().fillX().center();
+        row();
+
+        add(new Label("algorithm (for MLCP only):", stage.skin)).padRight(5f).right();
+        add(mlcpAlgorithmSelectBox).expandX().fillX().center();
+        row();
     }
 
     private void init() {
@@ -116,6 +129,32 @@ public class PhysicsManagerTable extends HGTable {
                 //     DBG_MAX_DEBUG_DRAW_MODE
                 // };
                 dw.getDebugDrawer().setDebugMode(btDbgModes.get(btDebugModeSelectBox.getSelected()));
+            }
+        });
+
+        constraintSolverSelectBox = new SelectBox<>(stage.skin);
+        constraintSolverSelectBox.clearItems();
+        constraintSolverSelectBox.setItems(btConstraintSolversEnum.values());
+        constraintSolverSelectBox.setSelected(btConstraintSolversEnum.findByType(dw.getConstraintSolver().getSolverType()));
+        constraintSolverSelectBox.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                // see getConstraintSolver():
+                //    long cPtr = DynamicsJNI.btDynamicsWorld_getConstraintSolver(swigCPtr, this);
+                //    return (cPtr == 0) ? null : new btConstraintSolver(cPtr, false);
+                // Gdx.app.debug("test", dw.getConstraintSolver().className);
+                dw.setConstraintSolver(constraintSolverSelectBox.getSelected().getInstance());
+            }
+        });
+
+        mlcpAlgorithmSelectBox = new SelectBox<>(stage.skin);
+        mlcpAlgorithmSelectBox.clearItems();
+        mlcpAlgorithmSelectBox.setItems(btMLCPSolversEnum.values());
+        mlcpAlgorithmSelectBox.setSelected(btMLCPSolversEnum.current());
+        mlcpAlgorithmSelectBox.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                ((btMLCPSolver)BT_MLCP_SOLVER.getInstance()).setMLCPSolver(mlcpAlgorithmSelectBox.getSelected().apply());
             }
         });
     }
