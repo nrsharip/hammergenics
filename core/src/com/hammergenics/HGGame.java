@@ -20,15 +20,19 @@ import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelCache;
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import com.badlogic.gdx.graphics.g3d.utils.DefaultShaderProvider;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.hammergenics.screens.ModelEditScreen;
 import com.hammergenics.utils.HGUtils;
 import com.kotcrab.vis.ui.VisUI;
+import com.kotcrab.vis.ui.widget.VisCheckBox;
+import com.kotcrab.vis.ui.widget.VisTextButton;
 
 import java.nio.charset.Charset;
 
@@ -105,7 +109,9 @@ public class HGGame extends Game {
 
         // https://github.com/kotcrab/vis-ui#usage
         VisUI.load();
-
+        VisUI.getSkin().get(Label.LabelStyle.class).fontColor = Color.BLACK.cpy();
+        VisUI.getSkin().get(VisCheckBox.VisCheckBoxStyle.class).fontColor = Color.BLACK.cpy();
+        VisUI.getSkin().get(VisTextButton.VisTextButtonStyle.class).fontColor = Color.WHITE.cpy();
         this.setScreen(new ModelEditScreen(this, engine, modelBatch, modelCache));
     }
 

@@ -7,7 +7,7 @@ import com.hammergenics.HGGame;
 public class DesktopLauncher {
 	public static void main (String[] arg) {
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
-		config.title = "Hammergenics";
+		config.title = "HammerGenics";
 		new LwjglApplication(new HGGame(), config);
 	}
 }
