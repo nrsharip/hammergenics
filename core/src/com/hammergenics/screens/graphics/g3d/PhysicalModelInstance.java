@@ -116,6 +116,37 @@ public class PhysicalModelInstance extends HGModelInstance implements Disposable
         super.dispose();
     }
 
+    @Override public void trn(Vector3 vector) { super.trn(vector); syncRBWithTransform(); }
+    @Override public void trn(float x, float y, float z) { super.trn(x, y, z); syncRBWithTransform(); }
+    @Override public void translate(Vector3 translation) { super.translate(translation); syncRBWithTransform(); }
+    @Override public void setToTranslation(Vector3 vector) { super.setToTranslation(vector); syncRBWithTransform(); }
+    @Override public void setToTranslation(float x, float y, float z) { super.setToTranslation(x, y, z); syncRBWithTransform(); }
+    @Override public void setToTranslationAndScaling(Vector3 translation, Vector3 scaling) { super.setToTranslationAndScaling(translation, scaling); syncRBWithTransform(true); }
+    @Override public void setToTranslationAndScaling(float x, float y, float z, float sX, float sY, float sZ) { super.setToTranslationAndScaling(x, y, z, sX, sY, sZ); syncRBWithTransform(true);}
+    @Override public void scl(float factor) { super.scl(factor); syncRBWithTransform(true); }
+    @Override public void scl(Vector3 factor) { super.scl(factor); syncRBWithTransform(true); }
+    @Override public void scale(float scaleX, float scaleY, float scaleZ) { super.scale(scaleX, scaleY, scaleZ); syncRBWithTransform(true); }
+    @Override public void setToScaling(float factor) { super.setToScaling(factor); syncRBWithTransform(true); }
+    @Override public void setToScaling(Vector3 factor) { super.setToScaling(factor); syncRBWithTransform(true); }
+    @Override public void rotate(Vector3 axis, float degrees) { super.rotate(axis, degrees); syncRBWithTransform(); }
+    @Override public void rotate(Quaternion rotation) { super.rotate(rotation); syncRBWithTransform(); }
+    @Override public void rotate(Vector3 v1, Vector3 v2) { super.rotate(v1, v2); syncRBWithTransform(); }
+
+    public void syncRBWithTransform() { syncRBWithTransform(false); }
+    public void syncRBWithTransform(boolean resetShape) {
+        transform.getTranslation(translation);
+        transform.getRotation(rotation, true).nor();
+        tmpM4.setToTranslation(translation).rotate(rotation.nor());
+
+        if (resetShape) {
+            transform.getScale(scale);
+            resetRigidBodyShape(scale);
+            rigidBody.setCollisionShape(collisionShape);
+        }
+
+        rigidBody.proceedToTransform(tmpM4);
+    }
+
     public enum ShapesEnum {
         BOX, MESH
     }
@@ -182,37 +213,6 @@ public class PhysicalModelInstance extends HGModelInstance implements Disposable
                 Gdx.app.error(getClass().getSimpleName(), "ERROR: unknown shape type: " + shapeType.name());
                 return;
         }
-    }
-
-    @Override public void trn(Vector3 vector) { super.trn(vector); syncRBWithTransform(); }
-    @Override public void trn(float x, float y, float z) { super.trn(x, y, z); syncRBWithTransform(); }
-    @Override public void translate(Vector3 translation) { super.translate(translation); syncRBWithTransform(); }
-    @Override public void setToTranslation(Vector3 vector) { super.setToTranslation(vector); syncRBWithTransform(); }
-    @Override public void setToTranslation(float x, float y, float z) { super.setToTranslation(x, y, z); syncRBWithTransform(); }
-    @Override public void setToTranslationAndScaling(Vector3 translation, Vector3 scaling) { super.setToTranslationAndScaling(translation, scaling); syncRBWithTransform(true); }
-    @Override public void setToTranslationAndScaling(float x, float y, float z, float sX, float sY, float sZ) { super.setToTranslationAndScaling(x, y, z, sX, sY, sZ); syncRBWithTransform(true);}
-    @Override public void scl(float factor) { super.scl(factor); syncRBWithTransform(true); }
-    @Override public void scl(Vector3 factor) { super.scl(factor); syncRBWithTransform(true); }
-    @Override public void scale(float scaleX, float scaleY, float scaleZ) { super.scale(scaleX, scaleY, scaleZ); syncRBWithTransform(true); }
-    @Override public void setToScaling(float factor) { super.setToScaling(factor); syncRBWithTransform(true); }
-    @Override public void setToScaling(Vector3 factor) { super.setToScaling(factor); syncRBWithTransform(true); }
-    @Override public void rotate(Vector3 axis, float degrees) { super.rotate(axis, degrees); syncRBWithTransform(); }
-    @Override public void rotate(Quaternion rotation) { super.rotate(rotation); syncRBWithTransform(); }
-    @Override public void rotate(Vector3 v1, Vector3 v2) { super.rotate(v1, v2); syncRBWithTransform(); }
-
-    public void syncRBWithTransform() { syncRBWithTransform(false); }
-    public void syncRBWithTransform(boolean resetShape) {
-        transform.getTranslation(translation);
-        transform.getRotation(rotation, true).nor();
-        tmpM4.setToTranslation(translation).rotate(rotation.nor());
-
-        if (resetShape) {
-            transform.getScale(scale);
-            resetRigidBodyShape(scale);
-            rigidBody.setCollisionShape(collisionShape);
-        }
-
-        rigidBody.proceedToTransform(tmpM4);
     }
 
     public void addRBShapeToRenderer(HGImmediateModeRenderer20 imr) {
