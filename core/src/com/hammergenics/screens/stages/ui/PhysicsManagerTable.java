@@ -20,6 +20,7 @@ package com.hammergenics.screens.stages.ui;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.dynamics.btDynamicsWorld;
 import com.badlogic.gdx.physics.bullet.dynamics.btMLCPSolver;
+import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -32,6 +33,7 @@ import com.hammergenics.HGEngine.btConstraintSolversEnum;
 import com.hammergenics.HGEngine.btMLCPSolversEnum;
 import com.hammergenics.screens.ModelEditScreen;
 import com.hammergenics.screens.graphics.g3d.EditableModelInstance;
+import com.hammergenics.screens.physics.bullet.dynamics.btRigidBodyProxy;
 import com.hammergenics.screens.stages.ModelEditStage;
 
 import static com.hammergenics.HGEngine.btConstraintSolversEnum.BT_MLCP_SOLVER;
@@ -49,6 +51,9 @@ public class PhysicsManagerTable extends HGTable {
     public btDynamicsWorld dw;
     public EditableModelInstance dbgModelInstance;
 
+    public btRigidBody rb;
+    public btRigidBodyProxy rbp;
+
     public Label dwTypeLabel;
 
     public CheckBox dynamicsCheckBox;
@@ -64,6 +69,10 @@ public class PhysicsManagerTable extends HGTable {
     public TextField dwGravityZTF = null; // dw gravity
 
     public Vector3 dwGravity = new Vector3();
+
+    public TextField rbCompXTF = null; // Center Of Mass Position
+    public TextField rbCompYTF = null; // Center Of Mass Position
+    public TextField rbCompZTF = null; // Center Of Mass Position
 
     public PhysicsManagerTable(ModelEditScreen modelES, ModelEditStage stage) {
         super(stage.skin);
@@ -96,18 +105,35 @@ public class PhysicsManagerTable extends HGTable {
         add(mlcpAlgorithmSelectBox).expandX().fillX().center();
         row();
 
-        Table gLblTable1 = new Table();
-        gLblTable1.add(new Label("x", stage.skin)).expandX().center();
-        gLblTable1.add(new Label("y", stage.skin)).expandX().center();
-        gLblTable1.add(new Label("z", stage.skin)).expandX().center();
+        Table lblTable1 = new Table();
+        lblTable1.add(new Label("x", stage.skin)).expandX().center();
+        lblTable1.add(new Label("y", stage.skin)).expandX().center();
+        lblTable1.add(new Label("z", stage.skin)).expandX().center();
 
-        add().right(); add(gLblTable1).expandX().fillX(); row();
+        add().right(); add(lblTable1).expandX().fillX();
+        row();
 
-        Table gTable = new Table();
-        gTable.add(dwGravityXTF).width(120).maxWidth(120).left();
-        gTable.add(dwGravityYTF).width(120).maxWidth(120).left();
-        gTable.add(dwGravityZTF).width(120).maxWidth(120).left();
-        add(new Label("gravity:", stage.skin)).right(); add(gTable).left(); row();
+        Table dwGravityTable = new Table();
+        dwGravityTable.add(dwGravityXTF).width(120).maxWidth(120).left();
+        dwGravityTable.add(dwGravityYTF).width(120).maxWidth(120).left();
+        dwGravityTable.add(dwGravityZTF).width(120).maxWidth(120).left();
+        add(new Label("gravity:", stage.skin)).padRight(5f).right(); add(dwGravityTable).left();
+        row();
+
+        Table lblTable2 = new Table();
+        lblTable2.add(new Label("x", stage.skin)).expandX().center();
+        lblTable2.add(new Label("y", stage.skin)).expandX().center();
+        lblTable2.add(new Label("z", stage.skin)).expandX().center();
+
+        add().right(); add(lblTable2).expandX().fillX();
+        row();
+
+        Table rbCompTable = new Table();
+        rbCompTable.add(rbCompXTF).width(120).maxWidth(120).left();
+        rbCompTable.add(rbCompYTF).width(120).maxWidth(120).left();
+        rbCompTable.add(rbCompZTF).width(120).maxWidth(120).left();
+        add(new Label("center of mass position:", stage.skin)).padRight(5f).right(); add(rbCompTable).left();
+        row();
 
         updateDynamicsWorld();
     }
@@ -192,6 +218,10 @@ public class PhysicsManagerTable extends HGTable {
         dwGravityXTF = new TextField("", stage.skin); // dw gravity
         dwGravityYTF = new TextField("", stage.skin); // dw gravity
         dwGravityZTF = new TextField("", stage.skin); // dw gravity
+
+        rbCompXTF = new TextField("", stage.skin); // Center Of Mass Position
+        rbCompYTF = new TextField("", stage.skin); // Center Of Mass Position
+        rbCompZTF = new TextField("", stage.skin); // Center Of Mass Position
     }
 
     public void updateDynamicsWorld() {
@@ -206,10 +236,25 @@ public class PhysicsManagerTable extends HGTable {
 
     public void updateRigidBody() {
         EditableModelInstance mi = dbgModelInstance;
-        if (mi != null) {
 
+        rb = null;
+        rbp = null;
+        if (mi != null && mi.rigidBody != null) {
+            rb = mi.rigidBody;
+            if (mi.rigidBodyProxy == null) {
+                mi.rigidBodyProxy = new btRigidBodyProxy(mi.rigidBody);
+            }
+            rbp = mi.rigidBodyProxy;
+            rbp.setInstance(rb); // reassuring that rigid body is legitimate
+            rbp.update();
+
+            rbCompXTF.setText(Float.toString(rbp.rbCenterOfMassPosition.x));
+            rbCompYTF.setText(Float.toString(rbp.rbCenterOfMassPosition.y));
+            rbCompZTF.setText(Float.toString(rbp.rbCenterOfMassPosition.z));
         } else {
-
+            rbCompXTF.setText("");
+            rbCompYTF.setText("");
+            rbCompZTF.setText("");
         }
     }
 

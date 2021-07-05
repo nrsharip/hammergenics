@@ -185,6 +185,9 @@ public class ModelEditScreen extends ScreenAdapter {
             // The maximum number of times that this will be done (the maximum number of sub-steps) is specified
             // by the second argument.
             eng.dynamicsWorld.stepSimulation(delta, 5, 1f/60f);
+            if (stage.physManagerTable.dbgModelInstance != null) {
+                stage.physManagerTable.updateRigidBody();
+            }
         }
 
         visibleTerrainParts = 0;

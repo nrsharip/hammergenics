@@ -31,6 +31,7 @@ import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.physics.bullet.linearmath.btMotionState;
 import com.badlogic.gdx.utils.Disposable;
 import com.hammergenics.screens.graphics.glutils.HGImmediateModeRenderer20;
+import com.hammergenics.screens.physics.bullet.dynamics.btRigidBodyProxy;
 
 /**
  * Add description here
@@ -39,6 +40,7 @@ import com.hammergenics.screens.graphics.glutils.HGImmediateModeRenderer20;
  */
 public class PhysicalModelInstance extends HGModelInstance implements Disposable {
     public btRigidBody rigidBody;
+    public btRigidBodyProxy rigidBodyProxy = null;
     public btRigidBody.btRigidBodyConstructionInfo rigidBodyConstructionInfo;
     public btCollisionShape collisionShape;
     public btMotionState motionState;
