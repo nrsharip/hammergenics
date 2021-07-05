@@ -18,23 +18,21 @@ package com.hammergenics.screens.stages.ui.attributes;
 
 import com.badlogic.gdx.graphics.g3d.Attribute;
 import com.badlogic.gdx.graphics.g3d.Attributes;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.hammergenics.screens.ModelEditScreen;
-import com.hammergenics.screens.stages.ui.HGTable;
+import com.kotcrab.vis.ui.widget.VisTable;
 
 /**
  * Add description here
  *
  * @author nrsharip
  */
-public abstract class BaseAttributeTable<T extends Attribute> extends HGTable {
+public abstract class BaseAttributeTable<T extends Attribute> extends VisTable {
     public Attributes container;
     public Class<T> attributeClass;
     protected EventListener listener = null;
     protected ModelEditScreen modelES;
 
-    public BaseAttributeTable(Skin skin, Attributes container, ModelEditScreen modelES, Class<T> aClass) {
-        super(skin);
+    public BaseAttributeTable(Attributes container, ModelEditScreen modelES, Class<T> aClass) {
         this.modelES = modelES;
         this.attributeClass = aClass;
         this.container = container;

@@ -22,11 +22,6 @@ import com.badlogic.gdx.physics.bullet.dynamics.btDynamicsWorld;
 import com.badlogic.gdx.physics.bullet.dynamics.btMLCPSolver;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.SelectBox;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.hammergenics.HGEngine;
 import com.hammergenics.HGEngine.btConstraintSolversEnum;
@@ -35,6 +30,11 @@ import com.hammergenics.screens.ModelEditScreen;
 import com.hammergenics.screens.graphics.g3d.EditableModelInstance;
 import com.hammergenics.screens.physics.bullet.dynamics.btRigidBodyProxy;
 import com.hammergenics.screens.stages.ModelEditStage;
+import com.kotcrab.vis.ui.widget.VisCheckBox;
+import com.kotcrab.vis.ui.widget.VisLabel;
+import com.kotcrab.vis.ui.widget.VisSelectBox;
+import com.kotcrab.vis.ui.widget.VisTable;
+import com.kotcrab.vis.ui.widget.VisTextField;
 
 import static com.hammergenics.HGEngine.btConstraintSolversEnum.BT_MLCP_SOLVER;
 import static com.hammergenics.utils.HGUtils.btDbgModes;
@@ -44,7 +44,7 @@ import static com.hammergenics.utils.HGUtils.btDbgModes;
  *
  * @author nrsharip
  */
-public class PhysicsManagerTable extends HGTable {
+public class PhysicsManagerTable extends VisTable {
     public ModelEditScreen modelES;
     public ModelEditStage stage;
     public HGEngine eng;
@@ -54,28 +54,27 @@ public class PhysicsManagerTable extends HGTable {
     public btRigidBody rb;
     public btRigidBodyProxy rbp;
 
-    public Label dwTypeLabel;
+    public VisLabel dwTypeLabel;
 
-    public CheckBox dynamicsCheckBox;
-    public CheckBox rbCheckBox;
-    public CheckBox groundCheckBox;
+    public VisCheckBox dynamicsCheckBox;
+    public VisCheckBox rbCheckBox;
+    public VisCheckBox groundCheckBox;
 
-    public SelectBox<String> btDebugModeSelectBox = null;
-    public SelectBox<btConstraintSolversEnum> constraintSolverSelectBox = null;
-    public SelectBox<btMLCPSolversEnum> mlcpAlgorithmSelectBox = null;
+    public VisSelectBox<String> btDebugModeSelectBox = null;
+    public VisSelectBox<btConstraintSolversEnum> constraintSolverSelectBox = null;
+    public VisSelectBox<btMLCPSolversEnum> mlcpAlgorithmSelectBox = null;
 
-    public TextField dwGravityXTF = null; // dw gravity
-    public TextField dwGravityYTF = null; // dw gravity
-    public TextField dwGravityZTF = null; // dw gravity
+    public VisTextField dwGravityXTF = null; // dw gravity
+    public VisTextField dwGravityYTF = null; // dw gravity
+    public VisTextField dwGravityZTF = null; // dw gravity
 
     public Vector3 dwGravity = new Vector3();
 
-    public TextField rbCompXTF = null; // Center Of Mass Position
-    public TextField rbCompYTF = null; // Center Of Mass Position
-    public TextField rbCompZTF = null; // Center Of Mass Position
+    public VisTextField rbCompXTF = null; // Center Of Mass Position
+    public VisTextField rbCompYTF = null; // Center Of Mass Position
+    public VisTextField rbCompZTF = null; // Center Of Mass Position
 
     public PhysicsManagerTable(ModelEditScreen modelES, ModelEditStage stage) {
-        super(stage.skin);
         this.modelES = modelES;
         this.eng = modelES.eng;
         this.dw = modelES.eng.dynamicsWorld;
@@ -86,62 +85,62 @@ public class PhysicsManagerTable extends HGTable {
         add(dwTypeLabel).colspan(2).center().expandX();
         row();
 
-        Table row01 = new Table();
+        VisTable row01 = new VisTable();
         row01.add(dynamicsCheckBox).expandX();
         row01.add(rbCheckBox).expandX();
         row01.add(groundCheckBox).expandX();
         add(row01).colspan(2).center().expandX().fillX();
         row();
 
-        add(new Label("bullet debug mode:", stage.skin)).padRight(5f).right();
+        add(new VisLabel("bullet debug mode:")).padRight(5f).right();
         add(btDebugModeSelectBox).expandX().fillX().center();
         row();
 
-        add(new Label("constraint solver:", stage.skin)).padRight(5f).right();
+        add(new VisLabel("constraint solver:")).padRight(5f).right();
         add(constraintSolverSelectBox).expandX().fillX().center();
         row();
 
-        add(new Label("algorithm (for MLCP only):", stage.skin)).padRight(5f).right();
+        add(new VisLabel("algorithm (for MLCP only):")).padRight(5f).right();
         add(mlcpAlgorithmSelectBox).expandX().fillX().center();
         row();
 
-        Table lblTable1 = new Table();
-        lblTable1.add(new Label("x", stage.skin)).expandX().center();
-        lblTable1.add(new Label("y", stage.skin)).expandX().center();
-        lblTable1.add(new Label("z", stage.skin)).expandX().center();
+        VisTable lblTable1 = new VisTable();
+        lblTable1.add(new VisLabel("x")).expandX().center();
+        lblTable1.add(new VisLabel("y")).expandX().center();
+        lblTable1.add(new VisLabel("z")).expandX().center();
 
         add().right(); add(lblTable1).expandX().fillX();
         row();
 
-        Table dwGravityTable = new Table();
+        VisTable dwGravityTable = new VisTable();
         dwGravityTable.add(dwGravityXTF).width(120).maxWidth(120).left();
         dwGravityTable.add(dwGravityYTF).width(120).maxWidth(120).left();
         dwGravityTable.add(dwGravityZTF).width(120).maxWidth(120).left();
-        add(new Label("gravity:", stage.skin)).padRight(5f).right(); add(dwGravityTable).left();
+        add(new VisLabel("gravity:")).padRight(5f).right(); add(dwGravityTable).left();
         row();
 
-        Table lblTable2 = new Table();
-        lblTable2.add(new Label("x", stage.skin)).expandX().center();
-        lblTable2.add(new Label("y", stage.skin)).expandX().center();
-        lblTable2.add(new Label("z", stage.skin)).expandX().center();
+        VisTable lblTable2 = new VisTable();
+        lblTable2.add(new VisLabel("x")).expandX().center();
+        lblTable2.add(new VisLabel("y")).expandX().center();
+        lblTable2.add(new VisLabel("z")).expandX().center();
 
         add().right(); add(lblTable2).expandX().fillX();
         row();
 
-        Table rbCompTable = new Table();
+        VisTable rbCompTable = new VisTable();
         rbCompTable.add(rbCompXTF).width(120).maxWidth(120).left();
         rbCompTable.add(rbCompYTF).width(120).maxWidth(120).left();
         rbCompTable.add(rbCompZTF).width(120).maxWidth(120).left();
-        add(new Label("center of mass position:", stage.skin)).padRight(5f).right(); add(rbCompTable).left();
+        add(new VisLabel("center of mass position:")).padRight(5f).right(); add(rbCompTable).left();
         row();
 
         updateDynamicsWorld();
     }
 
     private void init() {
-        dwTypeLabel = new Label("", stage.skin);
+        dwTypeLabel = new VisLabel("");
 
-        dynamicsCheckBox = new CheckBox("enable dynamics", stage.skin);
+        dynamicsCheckBox = new VisCheckBox("enable dynamics");
         dynamicsCheckBox.setChecked(false);
         dynamicsCheckBox.addListener(new ChangeListener() {
             @Override
@@ -150,13 +149,13 @@ public class PhysicsManagerTable extends HGTable {
             }
         });
 
-        rbCheckBox = new CheckBox("rigid body", stage.skin);
+        rbCheckBox = new VisCheckBox("rigid body");
         rbCheckBox.setChecked(false);
 
-        groundCheckBox = new CheckBox("ground", stage.skin);
+        groundCheckBox = new VisCheckBox("ground");
         groundCheckBox.setChecked(false);
 
-        btDebugModeSelectBox = new SelectBox<>(stage.skin);
+        btDebugModeSelectBox = new VisSelectBox<>();
         btDebugModeSelectBox.clearItems();
         btDebugModeSelectBox.setItems(btDbgModes.keys().toArray());
         btDebugModeSelectBox.setSelectedIndex(btDbgModes.indexOfValue(dw.getDebugDrawer().getDebugMode(), false));
@@ -189,7 +188,7 @@ public class PhysicsManagerTable extends HGTable {
             }
         });
 
-        constraintSolverSelectBox = new SelectBox<>(stage.skin);
+        constraintSolverSelectBox = new VisSelectBox<>();
         constraintSolverSelectBox.clearItems();
         constraintSolverSelectBox.setItems(btConstraintSolversEnum.values());
         constraintSolverSelectBox.setSelected(btConstraintSolversEnum.findByType(dw.getConstraintSolver().getSolverType()));
@@ -204,7 +203,7 @@ public class PhysicsManagerTable extends HGTable {
             }
         });
 
-        mlcpAlgorithmSelectBox = new SelectBox<>(stage.skin);
+        mlcpAlgorithmSelectBox = new VisSelectBox<>();
         mlcpAlgorithmSelectBox.clearItems();
         mlcpAlgorithmSelectBox.setItems(btMLCPSolversEnum.values());
         mlcpAlgorithmSelectBox.setSelected(btMLCPSolversEnum.current());
@@ -215,13 +214,13 @@ public class PhysicsManagerTable extends HGTable {
             }
         });
 
-        dwGravityXTF = new TextField("", stage.skin); // dw gravity
-        dwGravityYTF = new TextField("", stage.skin); // dw gravity
-        dwGravityZTF = new TextField("", stage.skin); // dw gravity
+        dwGravityXTF = new VisTextField(""); // dw gravity
+        dwGravityYTF = new VisTextField(""); // dw gravity
+        dwGravityZTF = new VisTextField(""); // dw gravity
 
-        rbCompXTF = new TextField("", stage.skin); // Center Of Mass Position
-        rbCompYTF = new TextField("", stage.skin); // Center Of Mass Position
-        rbCompZTF = new TextField("", stage.skin); // Center Of Mass Position
+        rbCompXTF = new VisTextField(""); // Center Of Mass Position
+        rbCompYTF = new VisTextField(""); // Center Of Mass Position
+        rbCompZTF = new VisTextField(""); // Center Of Mass Position
     }
 
     public void updateDynamicsWorld() {

@@ -20,10 +20,9 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g3d.Attribute;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.hammergenics.screens.ModelEditScreen;
+import com.kotcrab.vis.ui.widget.VisCheckBox;
 
 /**
  * Add description here
@@ -34,14 +33,14 @@ public abstract class AttributeTable<T extends Attribute> extends BaseAttributeT
     protected long currentType = 0;
     protected String currentTypeAlias = null;
 
-    protected CheckBox enabledCheckBox = null;
+    protected VisCheckBox enabledCheckBox = null;
 
     protected ChangeListener checkBoxListener;
 
-    public AttributeTable(Skin skin, Attributes container, ModelEditScreen modelES, Class<T> aClass) {
-        super(skin, container, modelES, aClass);
+    public AttributeTable(Attributes container, ModelEditScreen modelES, Class<T> aClass) {
+        super(container, modelES, aClass);
 
-        enabledCheckBox = new CheckBox("enabled", skin);
+        enabledCheckBox = new VisCheckBox("enabled");
 
         checkBoxListener = new ChangeListener() {
             @Override

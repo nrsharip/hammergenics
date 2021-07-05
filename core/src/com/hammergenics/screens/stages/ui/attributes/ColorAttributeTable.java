@@ -20,14 +20,12 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.SelectBox;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.hammergenics.screens.ModelEditScreen;
+import com.kotcrab.vis.ui.widget.VisLabel;
+import com.kotcrab.vis.ui.widget.VisSelectBox;
+import com.kotcrab.vis.ui.widget.VisTextField;
 
-import static com.badlogic.gdx.scenes.scene2d.ui.TextField.TextFieldListener;
 import static com.hammergenics.utils.HGUtils.color_s2c;
 
 /**
@@ -42,27 +40,27 @@ public class ColorAttributeTable extends AttributeTable<ColorAttribute> {
     public static final String ACTOR_A = "a_TextField";
 
     // r, g, b, a;
-    private TextField rTF = null;
-    private TextField gTF = null;
-    private TextField bTF = null;
-    private TextField aTF = null;
-    private SelectBox<String> colorSB = null;
+    private VisTextField rTF = null;
+    private VisTextField gTF = null;
+    private VisTextField bTF = null;
+    private VisTextField aTF = null;
+    private VisSelectBox<String> colorSB = null;
 
-    private TextFieldListener paramTextFieldListener;
+    private VisTextField.TextFieldListener paramTextFieldListener;
     private ChangeListener colorSelectBoxListener;
 
     private Color color = new Color().set(Color.GRAY);
 
-    public ColorAttributeTable(Skin skin, Attributes container, ModelEditScreen modelES) {
-        super(skin, container, modelES, ColorAttribute.class);
+    public ColorAttributeTable(Attributes container, ModelEditScreen modelES) {
+        super(container, modelES, ColorAttribute.class);
 
         createListeners();
 
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textfield
-        rTF = new TextField("150", skin); rTF.setName(ACTOR_R);
-        gTF = new TextField("150", skin); gTF.setName(ACTOR_G);
-        bTF = new TextField("150", skin); bTF.setName(ACTOR_B);
-        aTF = new TextField("150", skin); aTF.setName(ACTOR_A);
+        rTF = new VisTextField("150"); rTF.setName(ACTOR_R);
+        gTF = new VisTextField("150"); gTF.setName(ACTOR_G);
+        bTF = new VisTextField("150"); bTF.setName(ACTOR_B);
+        aTF = new VisTextField("150"); aTF.setName(ACTOR_A);
 
         rTF.setTextFieldListener(paramTextFieldListener);
         gTF.setTextFieldListener(paramTextFieldListener);
@@ -72,7 +70,7 @@ public class ColorAttributeTable extends AttributeTable<ColorAttribute> {
         //Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "Color: \n" + itemsColor.toString("\n"));
 
         // Select Box: Color
-        colorSB = new SelectBox<>(skin);
+        colorSB = new VisSelectBox<>();
         colorSB.clearItems();
         if (color_s2c != null && color_s2c.size > 0) {
             colorSB.setItems(color_s2c.keys().toArray());
@@ -87,15 +85,15 @@ public class ColorAttributeTable extends AttributeTable<ColorAttribute> {
         colorSB.addListener(colorSelectBoxListener);
 
         add(enabledCheckBox).expandX().left().padLeft(5f).padRight(5f);
-        add(new Label("r:", skin)).right();
+        add(new VisLabel("r:")).right();
         add(rTF).width(40).maxWidth(40);
-        add(new Label("g:", skin)).right();
+        add(new VisLabel("g:")).right();
         add(gTF).width(40).maxWidth(40);
-        add(new Label("b:", skin)).right();
+        add(new VisLabel("b:")).right();
         add(bTF).width(40).maxWidth(40);
-        add(new Label("a:", skin)).right();
+        add(new VisLabel("a:")).right();
         add(aTF).width(40).maxWidth(40);
-        add(new Label("color:", skin)).right();
+        add(new VisLabel("color:")).right();
         add(colorSB).fillX();
         add().expandX();
     }
@@ -115,9 +113,9 @@ public class ColorAttributeTable extends AttributeTable<ColorAttribute> {
     }
 
     private void createListeners() {
-        paramTextFieldListener = new TextFieldListener() {
+        paramTextFieldListener = new VisTextField.TextFieldListener() {
             @Override
-            public void keyTyped(TextField textField, char c) {
+            public void keyTyped(VisTextField textField, char c) {
                 try {
                     float value = Float.parseFloat(textField.getText());
 

@@ -18,9 +18,8 @@ package com.hammergenics.screens.stages.ui.attributes;
 
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.hammergenics.screens.ModelEditScreen;
+import com.kotcrab.vis.ui.widget.VisLabel;
 
 /**
  * Add description here
@@ -29,16 +28,15 @@ import com.hammergenics.screens.ModelEditScreen;
  */
 public class ColorAttributesTable extends AttributesTable<ColorAttribute, ColorAttributeTable> {
     /**
-     * @param skin
      * @param container
      * @param modelES
      */
-    public ColorAttributesTable(Skin skin, Attributes container, ModelEditScreen modelES) {
-        super(skin, container, modelES, ColorAttribute.class);
+    public ColorAttributesTable(Attributes container, ModelEditScreen modelES) {
+        super(container, modelES, ColorAttribute.class);
 
         // START - Candidate for move to AttributesTable
         t2a.forEach((entry) -> {
-            ColorAttributeTable table = new ColorAttributeTable(skin, container, modelES);
+            ColorAttributeTable table = new ColorAttributeTable(container, modelES);
             t2Table.put(entry.key, table);   // type to table
             a2Table.put(entry.value, table); // alias to table
         });
@@ -46,7 +44,7 @@ public class ColorAttributesTable extends AttributesTable<ColorAttribute, ColorA
         resetAttributes();
 
         a2Table.forEach((entry) -> {
-            add(new Label(entry.key + ":", skin)).right();
+            add(new VisLabel(entry.key + ":")).right();
             add(entry.value).left();
             add().expandX();
             row();

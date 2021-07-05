@@ -19,11 +19,10 @@ package com.hammergenics.screens.stages.ui.attributes;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.SelectBox;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.hammergenics.screens.ModelEditScreen;
+import com.kotcrab.vis.ui.widget.VisLabel;
+import com.kotcrab.vis.ui.widget.VisSelectBox;
 
 /**
  * Add description here
@@ -33,17 +32,16 @@ import com.hammergenics.screens.ModelEditScreen;
 public class TextureAttributesTable extends AttributesTable<TextureAttribute, TextureAttributeTable> {
     // Texture Attribute related
     // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textfield
-    private SelectBox<String> textureAttributeSelectBox;
+    private VisSelectBox<String> textureAttributeSelectBox;
     private TextureAttributeTable currentTextureAttributeTable;
 
     /**
-     * @param skin
      * @param container
      */
-    public TextureAttributesTable(Skin skin, Attributes container, ModelEditScreen modelES) {
-        super(skin, container, modelES, TextureAttribute.class);
+    public TextureAttributesTable(Attributes container, ModelEditScreen modelES) {
+        super(container, modelES, TextureAttribute.class);
 
-        textureAttributeSelectBox = new SelectBox<String>(uiSkin);
+        textureAttributeSelectBox = new VisSelectBox<String>();
         textureAttributeSelectBox.clearItems();
         textureAttributeSelectBox.setItems(t2a.values().toArray());
         textureAttributeSelectBox.addListener(new ChangeListener() {
@@ -54,11 +52,11 @@ public class TextureAttributesTable extends AttributesTable<TextureAttribute, Te
             }
         });
 
-        add(new Label("Texture Type: ", skin)).right();
+        add(new VisLabel("Texture Type: ")).right();
         add(textureAttributeSelectBox).left();
         add().expandX();
         row();
-        add(currentTextureAttributeTable = new TextureAttributeTable(skin, container, modelES)).colspan(3).fillX();
+        add(currentTextureAttributeTable = new TextureAttributeTable(container, modelES)).colspan(3).fillX();
     }
 
     /**

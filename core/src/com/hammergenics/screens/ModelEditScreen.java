@@ -325,8 +325,8 @@ public class ModelEditScreen extends ScreenAdapter {
             // The StringBuilder will create less garbage, causing almost no hick-ups due to garbage collection.
             renderStringBuilder.setLength(0);
             renderStringBuilder.append("FPS: ").append(fps);
-            renderStringBuilder.append(" TP: ").append(visibleTerrainParts);
             renderStringBuilder.append(" E: ").append(visibleEditables);
+            renderStringBuilder.append(" TP: ").append(visibleTerrainParts);
             renderStringBuilder.append(" DW.NC: ").append(eng.dynamicsWorld.getNumConstraints());
             stage.fpsLabel.setText(renderStringBuilder);
 
@@ -371,7 +371,7 @@ public class ModelEditScreen extends ScreenAdapter {
         eng.resetChunks(eng.unitSize);
         eng.resetDynamicsWorld(eng.unitSize);
 
-        stage.envAttrTable = new AttributesManagerTable(stage.skin, environment, this);
+        stage.envAttrTable = new AttributesManagerTable(environment, this);
         stage.envAttrTable.setListener(stage.eventListener);
     }
 

@@ -19,9 +19,8 @@ package com.hammergenics.screens.stages.ui.attributes;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.attributes.SpotLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.SpotLight;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.hammergenics.screens.ModelEditScreen;
+import com.kotcrab.vis.ui.widget.VisLabel;
 
 /**
  * Add description here
@@ -31,12 +30,12 @@ import com.hammergenics.screens.ModelEditScreen;
 public class SpotLightsAttributesTable
         extends AttributesTable<SpotLightsAttribute, BaseLightsAttributeTable<SpotLightsAttribute, SpotLight>> {
 
-    public SpotLightsAttributesTable(Skin skin, Attributes container, ModelEditScreen modelES) {
-        super(skin, container, modelES, SpotLightsAttribute.class);
+    public SpotLightsAttributesTable(Attributes container, ModelEditScreen modelES) {
+        super(container, modelES, SpotLightsAttribute.class);
 
         // START - Candidate for move to AttributesTable
         t2a.forEach((entry) -> {
-            SpotLightsAttributeTable table = new SpotLightsAttributeTable(skin, container, modelES);
+            SpotLightsAttributeTable table = new SpotLightsAttributeTable(container, modelES);
             t2Table.put(entry.key, table);   // type to table
             a2Table.put(entry.value, table); // alias to table
         });
@@ -44,7 +43,7 @@ public class SpotLightsAttributesTable
         resetAttributes();
 
         a2Table.forEach((entry) -> {
-            add(new Label(entry.key + ":", skin)).right();
+            add(new VisLabel(entry.key + ":")).right();
             add(entry.value).left();
             add().expandX();
             row();

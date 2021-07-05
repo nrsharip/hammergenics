@@ -26,12 +26,6 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
-import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.SelectBox;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
@@ -45,6 +39,12 @@ import com.hammergenics.map.TerrainPartsEnum;
 import com.hammergenics.screens.ModelEditScreen;
 import com.hammergenics.screens.graphics.g3d.EditableModelInstance;
 import com.hammergenics.screens.stages.ModelEditStage;
+import com.kotcrab.vis.ui.widget.VisCheckBox;
+import com.kotcrab.vis.ui.widget.VisLabel;
+import com.kotcrab.vis.ui.widget.VisSelectBox;
+import com.kotcrab.vis.ui.widget.VisTable;
+import com.kotcrab.vis.ui.widget.VisTextButton;
+import com.kotcrab.vis.ui.widget.VisTextField;
 
 import java.util.Arrays;
 
@@ -58,41 +58,40 @@ import static com.hammergenics.map.TerrainPartsEnum.TRRN_SIDE;
  *
  * @author nrsharip
  */
-public class MapGenerationTable extends HGTable {
+public class MapGenerationTable extends VisTable {
     public ModelEditScreen modelES;
     public ModelEditStage stage;
     public HGEngine eng;
     public EditableModelInstance dbgModelInstance;
 
-    public TextButton genNoiseTextButton = null;
-    public TextButton genCellTextButton = null;
-    public TextButton genDungTextButton = null;
+    public VisTextButton genNoiseTextButton = null;
+    public VisTextButton genCellTextButton = null;
+    public VisTextButton genDungTextButton = null;
 
     public Texture textureNoise;
     public Texture textureCellular;
     public Texture textureDungeon;
 
     public Array<NoiseStageTable> noiseStageTables = new Array<>(true, 16, NoiseStageTable.class);
-    public TextButton roundStepNoiseTextButton = null;
+    public VisTextButton roundStepNoiseTextButton = null;
 
-    public CheckBox previewNoiseGrid = null;
+    public VisCheckBox previewNoiseGrid = null;
     // TODO: preview image should be more general option on the stage level
-    public CheckBox previewNoiseImage = null;
-    public CheckBox previewTerrain = null;
+    public VisCheckBox previewNoiseImage = null;
+    public VisCheckBox previewTerrain = null;
 
-    public TextField noiseYScaleTF;
-    public TextField noiseStepTF;
+    public VisTextField noiseYScaleTF;
+    public VisTextField noiseStepTF;
 
     public float noiseYScale = 20f;
     public float noiseStep = 0.05f;
 
-    public TextButton applyTerrainTextButton = null;
-    public TextButton clearTerrainTextButton = null;
-    public ArrayMap<TerrainPartsEnum, SelectBox<FileHandle>> trrnSelectBoxes =
-            new ArrayMap<>(true, 16, TerrainPartsEnum.class, SelectBox.class);
+    public VisTextButton applyTerrainTextButton = null;
+    public VisTextButton clearTerrainTextButton = null;
+    public ArrayMap<TerrainPartsEnum, VisSelectBox<FileHandle>> trrnSelectBoxes =
+            new ArrayMap<>(true, 16, TerrainPartsEnum.class, VisSelectBox.class);
 
     public MapGenerationTable(ModelEditScreen modelES, ModelEditStage stage) {
-        super(stage.skin);
         this.modelES = modelES;
         this.eng = modelES.eng;
         this.stage = stage;
@@ -104,45 +103,45 @@ public class MapGenerationTable extends HGTable {
             row();
         }
 
-        Table noiseGridTable = new Table();
-        noiseGridTable.add(new Label("yScale:", stage.skin)).right();
+        VisTable noiseGridTable = new VisTable();
+        noiseGridTable.add(new VisLabel("yScale:")).right();
         noiseGridTable.add(noiseYScaleTF).width(60).maxWidth(60).padRight(5f);
         noiseGridTable.add(genNoiseTextButton).center().expandX().fillX();
 
-        noiseGridTable.add(new Label("step:", stage.skin)).right();
+        noiseGridTable.add(new VisLabel("step:")).right();
         noiseGridTable.add(noiseStepTF).width(60).maxWidth(60).padRight(5f);
         noiseGridTable.add(roundStepNoiseTextButton).center().expandX().fillX();
 
         add(noiseGridTable).center().expandX().fillX();
         row();
 
-        Table previewCheckBoxes = new Table();
+        VisTable previewCheckBoxes = new VisTable();
         previewCheckBoxes.add(previewNoiseGrid).center().expandX().fillX();
         previewCheckBoxes.add(previewNoiseImage).center().expandX().fillX();
 
         add(previewCheckBoxes).center().expandX().fillX();
         row();
 
-        Table genGridTable = new Table();
+        VisTable genGridTable = new VisTable();
         genGridTable.add(genCellTextButton).center().expandX().fillX();
         genGridTable.add(genDungTextButton).center().expandX().fillX();
 
         add(genGridTable).center().expandX().fillX();
         row();
 
-        Table trrnPartTable = new Table();
-        for (ObjectMap.Entry<TerrainPartsEnum, SelectBox<FileHandle>> entry: trrnSelectBoxes) {
+        VisTable trrnPartTable = new VisTable();
+        for (ObjectMap.Entry<TerrainPartsEnum, VisSelectBox<FileHandle>> entry: trrnSelectBoxes) {
             TerrainPartsEnum part = entry.key;
-            SelectBox<FileHandle> sb = entry.value;
+            VisSelectBox<FileHandle> sb = entry.value;
 
-            trrnPartTable.add(new Label(part.description + ":", stage.skin)).right();
+            trrnPartTable.add(new VisLabel(part.description + ":")).right();
             trrnPartTable.add(sb).center().expandX().fillX();
             trrnPartTable.row();
         }
         add(trrnPartTable).center().expandX().fillX();
         row();
 
-        Table trrnTable = new Table();
+        VisTable trrnTable = new VisTable();
         trrnTable.add(applyTerrainTextButton).center().expandX().fillX();
         trrnTable.add(previewTerrain).center().expandX().fillX();
         trrnTable.add(clearTerrainTextButton).center().expandX().fillX();
@@ -150,25 +149,24 @@ public class MapGenerationTable extends HGTable {
         row();
     }
 
-    public static class NoiseStageTable extends HGTable {
+    public static class NoiseStageTable extends VisTable {
         public ModelEditStage stage;
 
         public NoiseStageInfo stageInfo = new NoiseStageInfo();
 
-        public CheckBox enabledCB;
-        public CheckBox applySeedCB;
-        public TextField radiusTF;
-        public TextField modifierTF;
+        public VisCheckBox enabledCB;
+        public VisCheckBox applySeedCB;
+        public VisTextField radiusTF;
+        public VisTextField modifierTF;
 
-        public TextField noiseGridSeedTF;
+        public VisTextField noiseGridSeedTF;
 
         public NoiseStageTable(ModelEditStage stage, int radius, float modifier) {
-            super(stage.skin);
             this.stage = stage;
             this.stageInfo.radius = radius;
             this.stageInfo.modifier = modifier;
 
-            radiusTF = new TextField(Integer.toString(radius), stage.skin);
+            radiusTF = new VisTextField(Integer.toString(radius));
             radiusTF.setTextFieldListener((textField, c) -> {
                 try {
                     int value = Integer.parseInt(textField.getText());
@@ -179,7 +177,7 @@ public class MapGenerationTable extends HGTable {
                     textField.getColor().set(Color.PINK);
                 }
             });
-            modifierTF = new TextField(Float.toString(modifier), stage.skin);
+            modifierTF = new VisTextField(Float.toString(modifier));
             modifierTF.setTextFieldListener((textField, c) -> {
                 try {
                     float value = Float.parseFloat(textField.getText());
@@ -191,13 +189,13 @@ public class MapGenerationTable extends HGTable {
                 }
             });
 
-            enabledCB = new CheckBox("enabled", stage.skin);
+            enabledCB = new VisCheckBox("enabled");
             enabledCB.setChecked(true);
 
-            applySeedCB = new CheckBox("apply seed", stage.skin);
+            applySeedCB = new VisCheckBox("apply seed");
             applySeedCB.setChecked(false);
 
-            noiseGridSeedTF = new TextField(Integer.toString(stageInfo.seed), stage.skin);
+            noiseGridSeedTF = new VisTextField(Integer.toString(stageInfo.seed));
             noiseGridSeedTF.setTextFieldListener((textField, c) -> {
                 try {
                     int value = Integer.parseInt(textField.getText());
@@ -212,11 +210,11 @@ public class MapGenerationTable extends HGTable {
             });
 
             add(enabledCB).padRight(5f);
-            add(new Label("radius:", stage.skin)).right();
+            add(new VisLabel("radius:")).right();
             add(radiusTF).width(40).maxWidth(40).padRight(5f);
-            add(new Label("modifier:", stage.skin)).right();
+            add(new VisLabel("modifier:")).right();
             add(modifierTF).width(40).maxWidth(40).padRight(5f);
-            add(new Label("seed:", stage.skin)).right();
+            add(new VisLabel("seed:")).right();
             add(noiseGridSeedTF).width(200).maxWidth(200).padRight(5f);
             add(applySeedCB).padRight(5f);
         }
@@ -230,7 +228,7 @@ public class MapGenerationTable extends HGTable {
                 new NoiseStageTable(stage, 1, 0.05f)
         );
 
-        genNoiseTextButton = new TextButton("gen noise grid", stage.skin);
+        genNoiseTextButton = new VisTextButton("gen noise grid");
         stage.unpressButton(genNoiseTextButton);
         genNoiseTextButton.addListener(new InputListener() {
             @Override
@@ -261,7 +259,7 @@ public class MapGenerationTable extends HGTable {
             }
         });
 
-        roundStepNoiseTextButton = new TextButton("round: step", stage.skin);
+        roundStepNoiseTextButton = new VisTextButton("round: step");
         stage.unpressButton(roundStepNoiseTextButton);
         roundStepNoiseTextButton.addListener(new InputListener() {
             @Override
@@ -278,7 +276,7 @@ public class MapGenerationTable extends HGTable {
             }
         });
 
-        genCellTextButton = new TextButton("gen cellular grid", stage.skin);
+        genCellTextButton = new VisTextButton("gen cellular grid");
         stage.unpressButton(genCellTextButton);
         genCellTextButton.addListener(new InputListener() {
             @Override
@@ -292,7 +290,7 @@ public class MapGenerationTable extends HGTable {
             }
         });
 
-        genDungTextButton = new TextButton("gen dungeon grid", stage.skin);
+        genDungTextButton = new VisTextButton("gen dungeon grid");
         stage.unpressButton(genDungTextButton);
         genDungTextButton.addListener(new InputListener() {
             @Override
@@ -306,16 +304,16 @@ public class MapGenerationTable extends HGTable {
             }
         });
 
-        applyTerrainTextButton = new TextButton("apply terrain parts", stage.skin);
+        applyTerrainTextButton = new VisTextButton("apply terrain parts");
         stage.unpressButton(applyTerrainTextButton);
         applyTerrainTextButton.addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 ArrayMap<TerrainPartsEnum, FileHandle> tp2fh =
                         new ArrayMap<>(true, 16, TerrainPartsEnum.class, FileHandle.class);
-                for (ObjectMap.Entry<TerrainPartsEnum, SelectBox<FileHandle>> entry: trrnSelectBoxes) {
+                for (ObjectMap.Entry<TerrainPartsEnum, VisSelectBox<FileHandle>> entry: trrnSelectBoxes) {
                     TerrainPartsEnum part = entry.key;
-                    SelectBox<FileHandle> sb = entry.value;
+                    VisSelectBox<FileHandle> sb = entry.value;
 
                     if (sb.getItems().size == 0 || sb.getSelectedIndex() == 0) { continue; }
                     tp2fh.put(part, sb.getSelected());
@@ -330,7 +328,7 @@ public class MapGenerationTable extends HGTable {
             }
         });
 
-        clearTerrainTextButton = new TextButton("clear terrain", stage.skin);
+        clearTerrainTextButton = new VisTextButton("clear terrain");
         stage.unpressButton(clearTerrainTextButton);
         clearTerrainTextButton.addListener(new InputListener() {
             @Override
@@ -344,7 +342,7 @@ public class MapGenerationTable extends HGTable {
             }
         });
 
-        noiseYScaleTF = new TextField(Float.toString(noiseYScale), stage.skin);
+        noiseYScaleTF = new VisTextField(Float.toString(noiseYScale));
         noiseYScaleTF.setTextFieldListener((textField, c) -> {
             try {
                 float value = Float.parseFloat(textField.getText());
@@ -356,7 +354,7 @@ public class MapGenerationTable extends HGTable {
             }
         });
 
-        noiseStepTF = new TextField(Float.toString(noiseStep), stage.skin);
+        noiseStepTF = new VisTextField(Float.toString(noiseStep));
         noiseStepTF.setTextFieldListener((textField, c) -> {
             try {
                 float value = Float.parseFloat(textField.getText());
@@ -368,11 +366,11 @@ public class MapGenerationTable extends HGTable {
             }
         });
 
-        previewNoiseGrid = new CheckBox("preview noise grid", stage.skin);
+        previewNoiseGrid = new VisCheckBox("preview noise grid");
         previewNoiseGrid.setChecked(true);
 
         // TODO: preview image should be more general option on the stage level
-        previewNoiseImage = new CheckBox("preview noise image", stage.skin);
+        previewNoiseImage = new VisCheckBox("preview noise image");
         previewNoiseImage.setChecked(true);
         previewNoiseImage.addListener(new ChangeListener() {
             @Override
@@ -385,13 +383,13 @@ public class MapGenerationTable extends HGTable {
             }
         });
 
-        previewTerrain = new CheckBox("preview terrain", stage.skin);
+        previewTerrain = new VisCheckBox("preview terrain");
         previewTerrain.setChecked(true);
 
-        trrnSelectBoxes.put(TRRN_FLAT, new SelectBox<>(stage.skin));
-        trrnSelectBoxes.put(TRRN_SIDE, new SelectBox<>(stage.skin));
-        trrnSelectBoxes.put(TRRN_CORN_INN, new SelectBox<>(stage.skin));
-        trrnSelectBoxes.put(TRRN_CORN_OUT, new SelectBox<>(stage.skin));
+        trrnSelectBoxes.put(TRRN_FLAT, new VisSelectBox<>());
+        trrnSelectBoxes.put(TRRN_SIDE, new VisSelectBox<>());
+        trrnSelectBoxes.put(TRRN_CORN_INN, new VisSelectBox<>());
+        trrnSelectBoxes.put(TRRN_CORN_OUT, new VisSelectBox<>());
 
         trrnSelectBoxes.get(TRRN_FLAT).setName(TRRN_FLAT.name());
         trrnSelectBoxes.get(TRRN_SIDE).setName(TRRN_SIDE.name());
@@ -448,8 +446,8 @@ public class MapGenerationTable extends HGTable {
 
     public void updateTrrnSelectBoxes() {
         if (stage.folderSelectBox.getSelectedIndex() == 0) {
-            for (ObjectMap.Entry<TerrainPartsEnum, SelectBox<FileHandle>> entry: trrnSelectBoxes) {
-                SelectBox<FileHandle> sb = entry.value;
+            for (ObjectMap.Entry<TerrainPartsEnum, VisSelectBox<FileHandle>> entry: trrnSelectBoxes) {
+                VisSelectBox<FileHandle> sb = entry.value;
 
                 sb.getSelection().setProgrammaticChangeEvents(false);
                 sb.clearItems();
@@ -468,9 +466,9 @@ public class MapGenerationTable extends HGTable {
         System.arraycopy(array1, 0, array2, 1, array1.length);
         array2[0] = Gdx.files.local("Select Model");
 
-        for (ObjectMap.Entry<TerrainPartsEnum, SelectBox<FileHandle>> entry: trrnSelectBoxes) {
+        for (ObjectMap.Entry<TerrainPartsEnum, VisSelectBox<FileHandle>> entry: trrnSelectBoxes) {
             TerrainPartsEnum part = entry.key;
-            SelectBox<FileHandle> sb = entry.value;
+            VisSelectBox<FileHandle> sb = entry.value;
 
             sb.getSelection().setProgrammaticChangeEvents(false);
             sb.clearItems();

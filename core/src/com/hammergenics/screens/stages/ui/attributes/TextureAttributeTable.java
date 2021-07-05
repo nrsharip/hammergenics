@@ -25,16 +25,17 @@ import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.glutils.FileTextureData;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
 import com.hammergenics.screens.ModelEditScreen;
 import com.hammergenics.utils.HGUtils;
+import com.kotcrab.vis.ui.widget.VisLabel;
+import com.kotcrab.vis.ui.widget.VisSelectBox;
+import com.kotcrab.vis.ui.widget.VisTextField;
 
 import java.util.Arrays;
 
-import static com.badlogic.gdx.scenes.scene2d.ui.TextField.TextFieldListener;
 import static com.hammergenics.HGEngine.filterTextures;
 
 /**
@@ -52,36 +53,36 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
     private static final String ACTOR_UWRAP = "textureUWrap";
     private static final String ACTOR_VWRAP = "textureVWrap";
 
-    private TextField offsetUTF = null;
-    private TextField offsetVTF = null;
-    private TextField scaleUTF = null;
-    private TextField scaleVTF = null;
-    private SelectBox<String> minFilterSB = null;
-    private SelectBox<String> magFilterSB = null;
-    private SelectBox<String> uWrapSB = null;
-    private SelectBox<String> vWrapSB = null;
+    private VisTextField offsetUTF = null;
+    private VisTextField offsetVTF = null;
+    private VisTextField scaleUTF = null;
+    private VisTextField scaleVTF = null;
+    private VisSelectBox<String> minFilterSB = null;
+    private VisSelectBox<String> magFilterSB = null;
+    private VisSelectBox<String> uWrapSB = null;
+    private VisSelectBox<String> vWrapSB = null;
     // TODO: one more parameter is currently missing: uvIndex (see TextureAttribute)
-    private SelectBox<String> textureSelectBox = null;
+    private VisSelectBox<String> textureSelectBox = null;
 
     private Array<String> itemsTextureFilter;
     private Array<String> itemsTextureWrap;
 
-    private TextFieldListener paramTextFieldListener;
+    private VisTextField.TextFieldListener paramTextFieldListener;
     private ChangeListener paramSelectBoxListener;
     private ChangeListener textureSelectBoxListener;
 
     private Texture texture;
 
-    public TextureAttributeTable(Skin skin, Attributes container, ModelEditScreen modelES) {
-        super(skin, container, modelES, TextureAttribute.class);
+    public TextureAttributeTable(Attributes container, ModelEditScreen modelES) {
+        super(container, modelES, TextureAttribute.class);
 
         createListeners();
 
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textfield
-        offsetUTF = new TextField("0", skin); offsetUTF.setName(ACTOR_OFFSETU);
-        offsetVTF = new TextField("0", skin); offsetVTF.setName(ACTOR_OFFSETV);
-        scaleUTF = new TextField("1", skin); scaleUTF.setName(ACTOR_SCALEU);
-        scaleVTF = new TextField("1", skin); scaleVTF.setName(ACTOR_SCALEV);
+        offsetUTF = new VisTextField("0"); offsetUTF.setName(ACTOR_OFFSETU);
+        offsetVTF = new VisTextField("0"); offsetVTF.setName(ACTOR_OFFSETV);
+        scaleUTF = new VisTextField("1"); scaleUTF.setName(ACTOR_SCALEU);
+        scaleVTF = new VisTextField("1"); scaleVTF.setName(ACTOR_SCALEV);
 
         offsetUTF.setTextFieldListener(paramTextFieldListener);
         offsetVTF.setTextFieldListener(paramTextFieldListener);
@@ -98,11 +99,11 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
 //        Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
 //                "TextureWrap: \n" + itemsTextureWrap.toString("\n"));
 
-        minFilterSB = new SelectBox<>(skin);
+        minFilterSB = new VisSelectBox<>();
         minFilterSB.setName(ACTOR_MINFILTER);
         minFilterSB.clearItems();
 
-        magFilterSB = new SelectBox<>(skin);
+        magFilterSB = new VisSelectBox<>();
         magFilterSB.setName(ACTOR_MAGFILTER);
         magFilterSB.clearItems();
 
@@ -111,11 +112,11 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
             magFilterSB.setItems(itemsTextureFilter);
         }
 
-        uWrapSB = new SelectBox<>(skin);
+        uWrapSB = new VisSelectBox<>();
         uWrapSB.setName(ACTOR_UWRAP);
         uWrapSB.clearItems();
 
-        vWrapSB = new SelectBox<>(skin);
+        vWrapSB = new VisSelectBox<>();
         vWrapSB.setName(ACTOR_VWRAP);
         vWrapSB.clearItems();
 
@@ -125,7 +126,7 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
         }
 
         // Select Box: Textures
-        textureSelectBox = new SelectBox<>(skin);
+        textureSelectBox = new VisSelectBox<>();
         Array<String> itemsTexture = new Array<>();
         itemsTexture.add("No Texture Selected");
 
@@ -157,30 +158,30 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
         textureSelectBox.addListener(textureSelectBoxListener);
 
         add(enabledCheckBox);
-        add(new Label("offsetU:", skin)).right();
+        add(new VisLabel("offsetU:")).right();
         add(offsetUTF).width(40).maxWidth(40);
-        add(new Label("minFilter:", skin)).right();
+        add(new VisLabel("minFilter:")).right();
         add(minFilterSB).fillX();
         row();
 
         add();
-        add(new Label("offsetV:", skin)).right();
+        add(new VisLabel("offsetV:")).right();
         add(offsetVTF).width(40).maxWidth(40);
-        add(new Label("magFilter:", skin)).right();
+        add(new VisLabel("magFilter:")).right();
         add(magFilterSB).fillX();
         row();
 
         add();
-        add(new Label("scaleU:", skin)).right();
+        add(new VisLabel("scaleU:")).right();
         add(scaleUTF).width(40).maxWidth(40);
-        add(new Label("uWrap:", skin)).right();
+        add(new VisLabel("uWrap:")).right();
         add(uWrapSB).fillX();
         row();
 
         add();
-        add(new Label("scaleV:", skin)).right();
+        add(new VisLabel("scaleV:")).right();
         add(scaleVTF).width(40).maxWidth(40);
-        add(new Label("vWrap:", skin)).right();
+        add(new VisLabel("vWrap:")).right();
         add(vWrapSB).fillX();
         row();
 
@@ -242,9 +243,9 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
     }
 
     private void createListeners() {
-        paramTextFieldListener = new TextFieldListener() {
+        paramTextFieldListener = new VisTextField.TextFieldListener() {
             @Override
-            public void keyTyped(TextField textField, char c) {
+            public void keyTyped(VisTextField textField, char c) {
                 try {
                     float value = Float.parseFloat(textField.getText());
 

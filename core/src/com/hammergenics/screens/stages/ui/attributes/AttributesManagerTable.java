@@ -17,16 +17,15 @@
 package com.hammergenics.screens.stages.ui.attributes;
 
 import com.badlogic.gdx.graphics.g3d.Attributes;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.hammergenics.screens.ModelEditScreen;
-import com.hammergenics.screens.stages.ui.HGTable;
+import com.kotcrab.vis.ui.widget.VisTable;
 
 /**
  * Add description here
  *
  * @author nrsharip
  */
-public class AttributesManagerTable extends HGTable {
+public class AttributesManagerTable extends VisTable {
     public Attributes container;
     protected BaseAttributeTable.EventListener listener = null;
     protected ModelEditScreen modelES;
@@ -38,17 +37,16 @@ public class AttributesManagerTable extends HGTable {
     public PointLightsAttributesTable plAttrTable;
     public SpotLightsAttributesTable slAttrTable;
 
-    public AttributesManagerTable(Skin skin, Attributes container, ModelEditScreen modelES) {
-        super(skin);
+    public AttributesManagerTable(Attributes container, ModelEditScreen modelES) {
         this.container = container;
         this.modelES = modelES;
 
-        textureAttrTable = new TextureAttributesTable(skin, container, modelES);
-        colorAttrTable = new ColorAttributesTable(skin, container, modelES);
-        blendingAttrTable = new BlendingAttributesTable(skin, container, modelES);
-        dlAttrTable = new DirectionalLightsAttributesTable(skin, container, modelES);
-        plAttrTable = new PointLightsAttributesTable(skin, container, modelES);
-        slAttrTable = new SpotLightsAttributesTable(skin, container, modelES);
+        textureAttrTable = new TextureAttributesTable(container, modelES);
+        colorAttrTable = new ColorAttributesTable(container, modelES);
+        blendingAttrTable = new BlendingAttributesTable(container, modelES);
+        dlAttrTable = new DirectionalLightsAttributesTable(container, modelES);
+        plAttrTable = new PointLightsAttributesTable(container, modelES);
+        slAttrTable = new SpotLightsAttributesTable(container, modelES);
 
         textureAttrTable.resetAttributes();
         colorAttrTable.resetAttributes();

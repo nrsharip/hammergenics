@@ -73,7 +73,6 @@ import com.badlogic.gdx.utils.JsonValue;
 import com.badlogic.gdx.utils.Logger;
 import com.badlogic.gdx.utils.Sort;
 import com.badlogic.gdx.utils.UBJsonWriter;
-import com.hammergenics.config.Config;
 import com.hammergenics.map.HGGrid;
 import com.hammergenics.map.HGGrid.NoiseStageInfo;
 import com.hammergenics.map.TerrainChunk;
@@ -386,9 +385,6 @@ public class HGEngine implements Disposable {
 
         // see public BitmapFont ()
         // Gdx.files.classpath("com/badlogic/gdx/utils/arial-15.fnt"), Gdx.files.classpath("com/badlogic/gdx/utils/arial-15.png")
-
-        assetManager.load(Config.ASSET_FILE_NAME_FONT, BitmapFont.class, null);
-        assetManager.finishLoading();
 
         gridOHgModelInstance = new HGModelInstance(gridHgModel, "origin");
     }

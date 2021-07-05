@@ -37,7 +37,6 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Disposable;
@@ -226,10 +225,10 @@ public class EditableModelInstance extends SteerableModelInstance implements Dis
         }
     }
 
-    public void createMtlAttributeTables(Skin skin, BaseAttributeTable.EventListener eventListener, ModelEditScreen modelES) {
+    public void createMtlAttributeTables(BaseAttributeTable.EventListener eventListener, ModelEditScreen modelES) {
         if (mtl2atable.size > 0) { return; } // tables already created
         for (Material mtl:materials) {
-            AttributesManagerTable mtlAttrTable = new AttributesManagerTable(skin, mtl, modelES);
+            AttributesManagerTable mtlAttrTable = new AttributesManagerTable(mtl, modelES);
             mtlAttrTable.setListener(eventListener);
 
             mtl2atable.put(mtl, mtlAttrTable);
@@ -237,11 +236,11 @@ public class EditableModelInstance extends SteerableModelInstance implements Dis
         }
     }
 
-    public void createMtlAttributeTable(Skin skin, String mtlId, BaseAttributeTable.EventListener eventListener, ModelEditScreen modelES) {
+    public void createMtlAttributeTable(String mtlId, BaseAttributeTable.EventListener eventListener, ModelEditScreen modelES) {
         if (mtlid2atable.containsKey(mtlId)) { return; } // table already created
         Material mtl = getMaterial(mtlId);
         if (mtl != null) {
-            AttributesManagerTable mtlAttrTable = new AttributesManagerTable(skin, mtl, modelES);
+            AttributesManagerTable mtlAttrTable = new AttributesManagerTable(mtl, modelES);
             mtlAttrTable.setListener(eventListener);
 
             mtl2atable.put(mtl, mtlAttrTable);

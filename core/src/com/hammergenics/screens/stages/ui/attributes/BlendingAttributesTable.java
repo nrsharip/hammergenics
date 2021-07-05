@@ -18,9 +18,8 @@ package com.hammergenics.screens.stages.ui.attributes;
 
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.hammergenics.screens.ModelEditScreen;
+import com.kotcrab.vis.ui.widget.VisLabel;
 
 /**
  * Add description here
@@ -28,12 +27,12 @@ import com.hammergenics.screens.ModelEditScreen;
  * @author nrsharip
  */
 public class BlendingAttributesTable extends AttributesTable<BlendingAttribute, BlendingAttributeTable> {
-    public BlendingAttributesTable(Skin skin, Attributes container, ModelEditScreen modelES) {
-        super(skin, container, modelES, BlendingAttribute.class);
+    public BlendingAttributesTable(Attributes container, ModelEditScreen modelES) {
+        super(container, modelES, BlendingAttribute.class);
 
         // START - Candidate for move to AttributesTable
         t2a.forEach((entry) -> {
-            BlendingAttributeTable table = new BlendingAttributeTable(skin, container, modelES);
+            BlendingAttributeTable table = new BlendingAttributeTable(container, modelES);
             t2Table.put(entry.key, table);   // type to table
             a2Table.put(entry.value, table); // alias to table
         });
@@ -41,7 +40,7 @@ public class BlendingAttributesTable extends AttributesTable<BlendingAttribute, 
         resetAttributes();
 
         a2Table.forEach((entry) -> {
-            add(new Label(entry.key + ":", skin)).right();
+            add(new VisLabel(entry.key + ":")).right();
             add(entry.value).left();
             add().expandX();
             row();

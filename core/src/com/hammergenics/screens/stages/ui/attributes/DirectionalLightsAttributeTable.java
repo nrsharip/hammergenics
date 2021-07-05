@@ -23,8 +23,11 @@ import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
-import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.hammergenics.screens.ModelEditScreen;
+import com.kotcrab.vis.ui.widget.VisLabel;
+import com.kotcrab.vis.ui.widget.VisTable;
+import com.kotcrab.vis.ui.widget.VisTextButton;
+import com.kotcrab.vis.ui.widget.VisTextField;
 
 /**
  * Add description here
@@ -37,36 +40,36 @@ public class DirectionalLightsAttributeTable extends BaseLightsAttributeTable<Di
     public static final String ACTOR_Z = "z_TextField";
 
     // direction: x, y, z
-    protected TextField xTF = null;
-    protected TextField yTF = null;
-    protected TextField zTF = null;
-    protected TextButton setTB = null;
+    protected VisTextField xTF = null;
+    protected VisTextField yTF = null;
+    protected VisTextField zTF = null;
+    protected VisTextButton setTB = null;
 
-    private TextField.TextFieldListener xyzTextFieldListener;
+    private VisTextField.TextFieldListener xyzTextFieldListener;
     private InputListener setInputListener;
 
-    public DirectionalLightsAttributeTable(Skin skin, Attributes container, ModelEditScreen modelES) {
-        super(skin, container, modelES, DirectionalLightsAttribute.class, DirectionalLight.class);
+    public DirectionalLightsAttributeTable(Attributes container, ModelEditScreen modelES) {
+        super(container, modelES, DirectionalLightsAttribute.class, DirectionalLight.class);
 
         createListeners();
 
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textfield
-        xTF = new TextField("0", skin); xTF.setName(ACTOR_X);
-        yTF = new TextField("0", skin); yTF.setName(ACTOR_Y);
-        zTF = new TextField("-1", skin); zTF.setName(ACTOR_Z);
-        setTB = new TextButton("SET", skin);
+        xTF = new VisTextField("0"); xTF.setName(ACTOR_X);
+        yTF = new VisTextField("0"); yTF.setName(ACTOR_Y);
+        zTF = new VisTextField("-1"); zTF.setName(ACTOR_Z);
+        setTB = new VisTextButton("SET");
 
         xTF.setTextFieldListener(xyzTextFieldListener);
         yTF.setTextFieldListener(xyzTextFieldListener);
         zTF.setTextFieldListener(xyzTextFieldListener);
         setTB.addListener(setInputListener);
 
-        Table line = new Table();
-        line.add(new Label("dir x:", skin)).right();
+        VisTable line = new VisTable();
+        line.add(new VisLabel("dir x:")).right();
         line.add(xTF).width(100).maxWidth(100);
-        line.add(new Label("dir y:", skin)).right();
+        line.add(new VisLabel("dir y:")).right();
         line.add(yTF).width(100).maxWidth(100);
-        line.add(new Label("dir z:", skin)).right();
+        line.add(new VisLabel("dir z:")).right();
         line.add(zTF).width(100).maxWidth(100);
         line.add(setTB).padLeft(10f);
         line.add().expandX();
@@ -74,9 +77,9 @@ public class DirectionalLightsAttributeTable extends BaseLightsAttributeTable<Di
     }
 
     private void createListeners() {
-        xyzTextFieldListener = new TextField.TextFieldListener() {
+        xyzTextFieldListener = new VisTextField.TextFieldListener() {
             @Override
-            public void keyTyped(TextField textField, char c) {
+            public void keyTyped(VisTextField textField, char c) {
                 try {
                     Float.parseFloat(textField.getText());
                     textField.getColor().set(Color.WHITE);

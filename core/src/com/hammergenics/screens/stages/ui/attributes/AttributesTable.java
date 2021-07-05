@@ -19,7 +19,6 @@ package com.hammergenics.screens.stages.ui.attributes;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g3d.Attribute;
 import com.badlogic.gdx.graphics.g3d.Attributes;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.hammergenics.screens.ModelEditScreen;
 import com.hammergenics.utils.HGUtils;
@@ -52,11 +51,10 @@ public abstract class AttributesTable<T extends Attribute, Q extends AttributeTa
     public ArrayMap<String, Long> a2t;
 
     /**
-     * @param skin
      * @param container
      */
-    public AttributesTable(Skin skin, Attributes container, ModelEditScreen modelES, Class<T> aClass) {
-        super(skin, container, modelES, aClass);
+    public AttributesTable(Attributes container, ModelEditScreen modelES, Class<T> aClass) {
+        super(container, modelES, aClass);
 
         t2a = new ArrayMap<>();
         a2t = new ArrayMap<>();

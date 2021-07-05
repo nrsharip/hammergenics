@@ -24,13 +24,6 @@ import com.badlogic.gdx.graphics.g3d.model.NodeAnimation;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
-import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.SelectBox;
-import com.badlogic.gdx.scenes.scene2d.ui.Slider;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.FloatArray;
@@ -39,36 +32,42 @@ import com.hammergenics.screens.ModelEditScreen;
 import com.hammergenics.screens.graphics.g3d.EditableModelInstance;
 import com.hammergenics.screens.graphics.g3d.model.AnimationInfo;
 import com.hammergenics.screens.stages.ModelEditStage;
+import com.kotcrab.vis.ui.widget.VisCheckBox;
+import com.kotcrab.vis.ui.widget.VisLabel;
+import com.kotcrab.vis.ui.widget.VisSelectBox;
+import com.kotcrab.vis.ui.widget.VisSlider;
+import com.kotcrab.vis.ui.widget.VisTable;
+import com.kotcrab.vis.ui.widget.VisTextButton;
+import com.kotcrab.vis.ui.widget.VisTextField;
 
 /**
  * Add description here
  *
  * @author nrsharip
  */
-public class AnimationsManagerTable extends HGTable {
+public class AnimationsManagerTable extends VisTable {
     public ModelEditScreen modelES;
     public ModelEditStage stage;
     public EditableModelInstance dbgModelInstance;
 
-    public Label animInfoLabel;
-    public SelectBox<String> animationSelectBox = null;
-    public CheckBox animLoopCheckBox = null;
-    public Slider keyFrameSlider = null;
-    public TextField animIdTextField = null;
-    public TextField keyTimeTextField = null;
-    public TextButton createAnimTextButton = null;
-    public TextButton deleteAnimTextButton = null;
-    public TextButton plsKeyFrameTextButton = null;
-    public TextButton mnsKeyFrameTextButton = null;
+    public VisLabel animInfoLabel;
+    public VisSelectBox<String> animationSelectBox = null;
+    public VisCheckBox animLoopCheckBox = null;
+    public VisSlider keyFrameSlider = null;
+    public VisTextField animIdTextField = null;
+    public VisTextField keyTimeTextField = null;
+    public VisTextButton createAnimTextButton = null;
+    public VisTextButton deleteAnimTextButton = null;
+    public VisTextButton plsKeyFrameTextButton = null;
+    public VisTextButton mnsKeyFrameTextButton = null;
 
     public AnimationsManagerTable(ModelEditScreen modelES, ModelEditStage stage) {
-        super(stage.skin);
         this.modelES = modelES;
         this.stage = stage;
 
         init();
 
-        add(new Label("Animation: ", stage.skin)).padLeft(5f).right();
+        add(new VisLabel("Animation: ")).padLeft(5f).right();
         add(animationSelectBox).padLeft(5f).left();
         add(animLoopCheckBox).padLeft(5f).left();
         add(deleteAnimTextButton).padLeft(5f).left();
@@ -78,7 +77,7 @@ public class AnimationsManagerTable extends HGTable {
         add(animIdTextField).center().colspan(5).fillX();
 
         row();
-        Table kfTable = new Table();
+        VisTable kfTable = new VisTable();
         kfTable.add(mnsKeyFrameTextButton).center();
         kfTable.add(plsKeyFrameTextButton).center();
         kfTable.add(keyFrameSlider).pad(5f).center().expandX().fillX();
@@ -88,11 +87,11 @@ public class AnimationsManagerTable extends HGTable {
 
     private void init() {
 
-        animInfoLabel = new Label("", stage.labelStyle);
+        animInfoLabel = new VisLabel("");
 
         // Select Box: Animations
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#selectbox
-        animationSelectBox = new SelectBox<>(stage.skin);
+        animationSelectBox = new VisSelectBox<>();
         animationSelectBox.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -126,7 +125,7 @@ public class AnimationsManagerTable extends HGTable {
             }
         });
 
-        animLoopCheckBox = new CheckBox("loop", stage.skin);
+        animLoopCheckBox = new VisCheckBox("loop");
         animLoopCheckBox.setChecked(true);
         animLoopCheckBox.addListener(new ChangeListener() {
             @Override
@@ -153,7 +152,7 @@ public class AnimationsManagerTable extends HGTable {
         });
 
         // SLIDERS:
-        keyFrameSlider = new Slider(0f, 1f, 10f, false, stage.skin);
+        keyFrameSlider = new VisSlider(0f, 1f, 10f, false);
         keyFrameSlider.addListener(new ChangeListener() {
             @Override
             public void changed (ChangeEvent event, Actor actor) {
@@ -166,10 +165,10 @@ public class AnimationsManagerTable extends HGTable {
             }
         });
 
-        animIdTextField = new TextField("", stage.skin);
-        animIdTextField.setTextFieldListener(new TextField.TextFieldListener() {
+        animIdTextField = new VisTextField("");
+        animIdTextField.setTextFieldListener(new VisTextField.TextFieldListener() {
             @Override
-            public void keyTyped(TextField textField, char c) {
+            public void keyTyped(VisTextField textField, char c) {
                 EditableModelInstance mi = modelES.eng.currMI;
                 if (mi == null || mi.selectedAnimation == null) { return; }
                 Animation anim = mi.selectedAnimation;
@@ -192,10 +191,10 @@ public class AnimationsManagerTable extends HGTable {
             }
         });
 
-        keyTimeTextField = new TextField("", stage.skin);
-        keyTimeTextField.setTextFieldListener(new TextField.TextFieldListener() {
+        keyTimeTextField = new VisTextField("");
+        keyTimeTextField.setTextFieldListener(new VisTextField.TextFieldListener() {
             @Override
-            public void keyTyped(TextField textField, char c) {
+            public void keyTyped(VisTextField textField, char c) {
                 try {
                     float value = Float.parseFloat(textField.getText());
 
@@ -210,7 +209,7 @@ public class AnimationsManagerTable extends HGTable {
             }
         });
 
-        deleteAnimTextButton = new TextButton("delete", stage.skin);
+        deleteAnimTextButton = new VisTextButton("delete");
         stage.unpressButton(deleteAnimTextButton);
         deleteAnimTextButton.addListener(new InputListener() {
             @Override
@@ -227,7 +226,7 @@ public class AnimationsManagerTable extends HGTable {
             }
         });
 
-        createAnimTextButton = new TextButton("new", stage.skin);
+        createAnimTextButton = new VisTextButton("new");
         stage.unpressButton(createAnimTextButton);
         createAnimTextButton.addListener(new InputListener() {
             @Override
@@ -244,7 +243,7 @@ public class AnimationsManagerTable extends HGTable {
             }
         });
 
-        plsKeyFrameTextButton = new TextButton("+", stage.skin);
+        plsKeyFrameTextButton = new VisTextButton("+");
         stage.unpressButton(plsKeyFrameTextButton);
         plsKeyFrameTextButton.addListener(new InputListener() {
             @Override
@@ -257,7 +256,7 @@ public class AnimationsManagerTable extends HGTable {
             }
         });
 
-        mnsKeyFrameTextButton = new TextButton("-", stage.skin);
+        mnsKeyFrameTextButton = new VisTextButton("-");
         stage.unpressButton(mnsKeyFrameTextButton);
         mnsKeyFrameTextButton.addListener(new InputListener() {
             @Override

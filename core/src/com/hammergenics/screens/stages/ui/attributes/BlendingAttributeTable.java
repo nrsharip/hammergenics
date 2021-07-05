@@ -21,11 +21,15 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.hammergenics.screens.ModelEditScreen;
+import com.kotcrab.vis.ui.widget.VisCheckBox;
+import com.kotcrab.vis.ui.widget.VisLabel;
+import com.kotcrab.vis.ui.widget.VisSelectBox;
+import com.kotcrab.vis.ui.widget.VisTable;
+import com.kotcrab.vis.ui.widget.VisTextField;
 
 import static com.hammergenics.utils.HGUtils.gl20_i2s;
 import static com.hammergenics.utils.HGUtils.gl20_s2i;
@@ -39,11 +43,11 @@ public class BlendingAttributeTable extends AttributeTable<BlendingAttribute> {
     private static final String ACTOR_SRC = "sourceFunction";
     private static final String ACTOR_DST = "destFunction";
 
-    private TextField opacityTF = null;
-    private SelectBox<String> srcFuncSB = null;
-    private SelectBox<String> dstFuncSB = null;
-    private CheckBox blendedCB = null;
-    private CheckBox mapSrc2DstCB = null;
+    private VisTextField opacityTF = null;
+    private VisSelectBox<String> srcFuncSB = null;
+    private VisSelectBox<String> dstFuncSB = null;
+    private VisCheckBox blendedCB = null;
+    private VisCheckBox mapSrc2DstCB = null;
 
     // boolean blended - Whether this material should be considered blended (default: true). This is used for sorting (back to front instead of front to back).
     // sourceFunction  - Specifies how the (incoming) red, green, blue, and alpha source blending factors are computed (default: GL_SRC_ALPHA)
@@ -53,12 +57,12 @@ public class BlendingAttributeTable extends AttributeTable<BlendingAttribute> {
     private ArrayMap<String, String> src2dst;
     private Array<String> itemsSB;
 
-    private TextField.TextFieldListener opacityTFListener = null;
+    private VisTextField.TextFieldListener opacityTFListener = null;
     private ChangeListener selectBoxListener = null;
     private ChangeListener blendedCBListener = null;
 
-    public BlendingAttributeTable(Skin skin, Attributes container, ModelEditScreen modelES) {
-        super(skin, container, modelES, BlendingAttribute.class);
+    public BlendingAttributeTable(Attributes container, ModelEditScreen modelES) {
+        super(container, modelES, BlendingAttribute.class);
 
         createListeners();
 
@@ -66,18 +70,18 @@ public class BlendingAttributeTable extends AttributeTable<BlendingAttribute> {
         setItemsSB(new Array<>(String.class));
         //Gdx.app.debug(getClass().getSimpleName(), "Retrieved function list: \n" + itemsSB.toString("\n"));
 
-        opacityTF = new TextField("1", skin);
+        opacityTF = new VisTextField("1");
 
-        blendedCB = new CheckBox("blended", skin);
+        blendedCB = new VisCheckBox("blended");
         blendedCB.setChecked(true);
 
-        mapSrc2DstCB = new CheckBox("match src with dst", skin);
+        mapSrc2DstCB = new VisCheckBox("match src with dst");
         mapSrc2DstCB.setChecked(true);
 
-        srcFuncSB = new SelectBox<>(skin);
+        srcFuncSB = new VisSelectBox<>();
         srcFuncSB.setName(ACTOR_SRC);
 
-        dstFuncSB = new SelectBox<>(skin);
+        dstFuncSB = new VisSelectBox<>();
         dstFuncSB.setName(ACTOR_DST);
 
         srcFuncSB.clearItems();
@@ -91,19 +95,19 @@ public class BlendingAttributeTable extends AttributeTable<BlendingAttribute> {
         srcFuncSB.addListener(selectBoxListener);
         dstFuncSB.addListener(selectBoxListener);
 
-        Table line1 = new Table();
-        Table line2 = new Table();
+        VisTable line1 = new VisTable();
+        VisTable line2 = new VisTable();
 
         line1.add(enabledCheckBox);
-        line1.add(new Label("opacity:", skin)).right();
+        line1.add(new VisLabel("opacity:")).right();
         line1.add(opacityTF).width(80).maxWidth(80).padRight(5f);
         line1.add(blendedCB).padRight(5f);
         line1.add(mapSrc2DstCB).padRight(5f);
         line1.add().expandX();
 
-        line2.add(new Label("src:", skin)).right();
+        line2.add(new VisLabel("src:")).right();
         line2.add(srcFuncSB);
-        line2.add(new Label("dst:", skin)).right();
+        line2.add(new VisLabel("dst:")).right();
         line2.add(dstFuncSB);
 
         add(line1).fillX();
@@ -124,9 +128,9 @@ public class BlendingAttributeTable extends AttributeTable<BlendingAttribute> {
             }
         };
 
-        opacityTFListener = new TextField.TextFieldListener() {
+        opacityTFListener = new VisTextField.TextFieldListener() {
             @Override
-            public void keyTyped(TextField textField, char c) {
+            public void keyTyped(VisTextField textField, char c) {
                 try {
                     float value = Float.parseFloat(textField.getText());
 

@@ -19,9 +19,8 @@ package com.hammergenics.screens.stages.ui.attributes;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.hammergenics.screens.ModelEditScreen;
+import com.kotcrab.vis.ui.widget.VisLabel;
 
 /**
  * Add description here
@@ -31,12 +30,12 @@ import com.hammergenics.screens.ModelEditScreen;
 public class DirectionalLightsAttributesTable
         extends AttributesTable<DirectionalLightsAttribute, BaseLightsAttributeTable<DirectionalLightsAttribute, DirectionalLight>> {
 
-    public DirectionalLightsAttributesTable(Skin skin, Attributes container, ModelEditScreen modelES) {
-        super(skin, container, modelES, DirectionalLightsAttribute.class);
+    public DirectionalLightsAttributesTable(Attributes container, ModelEditScreen modelES) {
+        super(container, modelES, DirectionalLightsAttribute.class);
 
         // START - Candidate for move to AttributesTable
         t2a.forEach((entry) -> {
-            DirectionalLightsAttributeTable table = new DirectionalLightsAttributeTable(skin, container, modelES);
+            DirectionalLightsAttributeTable table = new DirectionalLightsAttributeTable(container, modelES);
             t2Table.put(entry.key, table);   // type to table
             a2Table.put(entry.value, table); // alias to table
         });
@@ -44,7 +43,7 @@ public class DirectionalLightsAttributesTable
         resetAttributes();
 
         a2Table.forEach((entry) -> {
-            add(new Label(entry.key + ":", skin)).right();
+            add(new VisLabel(entry.key + ":")).right();
             add(entry.value).left();
             add().expandX();
             row();

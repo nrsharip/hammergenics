@@ -16,46 +16,45 @@
 
 package com.hammergenics.screens.stages.ui;
 
-import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.hammergenics.screens.ModelEditScreen;
 import com.hammergenics.screens.graphics.g3d.EditableModelInstance;
 import com.hammergenics.screens.stages.ModelEditStage;
+import com.kotcrab.vis.ui.widget.VisCheckBox;
+import com.kotcrab.vis.ui.widget.VisLabel;
+import com.kotcrab.vis.ui.widget.VisTable;
+import com.kotcrab.vis.ui.widget.VisTextField;
 
 /**
  * Add description here
  *
  * @author nrsharip
  */
-public class AIManagerTable extends HGTable {
+public class AIManagerTable extends VisTable {
     public ModelEditScreen modelES;
     public ModelEditStage stage;
     public EditableModelInstance dbgModelInstance;
 
-    public CheckBox steerCheckBox;
+    public VisCheckBox steerCheckBox;
 
-    public TextField lvxTF = null; // linear velocity
-    public TextField lvyTF = null; // linear velocity
-    public TextField lvzTF = null; // linear velocity
-    public TextField avTF = null; // angular velocity
-    public TextField brTF = null; // bounding radius
-    public CheckBox taggedCB = null; // tagged
+    public VisTextField lvxTF = null; // linear velocity
+    public VisTextField lvyTF = null; // linear velocity
+    public VisTextField lvzTF = null; // linear velocity
+    public VisTextField avTF = null; // angular velocity
+    public VisTextField brTF = null; // bounding radius
+    public VisCheckBox taggedCB = null; // tagged
 
-    public TextField zlstTF = null; // zero linear speed threshold
-    public TextField mlsTF = null; // the maximum linear speed
-    public TextField mlaTF = null; // the maximum linear acceleration
-    public TextField masTF = null; // the maximum angular speed
-    public TextField maaTF = null; // the maximum angular acceleration
+    public VisTextField zlstTF = null; // zero linear speed threshold
+    public VisTextField mlsTF = null; // the maximum linear speed
+    public VisTextField mlaTF = null; // the maximum linear acceleration
+    public VisTextField masTF = null; // the maximum angular speed
+    public VisTextField maaTF = null; // the maximum angular acceleration
 
-    public TextField pxTF = null; // position
-    public TextField pyTF = null; // position
-    public TextField pzTF = null; // position
-    public TextField oTF = null; // orientation
+    public VisTextField pxTF = null; // position
+    public VisTextField pyTF = null; // position
+    public VisTextField pzTF = null; // position
+    public VisTextField oTF = null; // orientation
 
     public AIManagerTable(ModelEditScreen modelES, ModelEditStage stage) {
-        super(stage.skin);
         this.modelES = modelES;
         this.stage = stage;
 
@@ -63,67 +62,67 @@ public class AIManagerTable extends HGTable {
 
         add(steerCheckBox).right(); add().expandX().fillX(); row();
 
-        Table lvLblTable1 = new Table();
-        lvLblTable1.add(new Label("x", stage.skin)).expandX().center();
-        lvLblTable1.add(new Label("y", stage.skin)).expandX().center();
-        lvLblTable1.add(new Label("z", stage.skin)).expandX().center();
+        VisTable lvLblTable1 = new VisTable();
+        lvLblTable1.add(new VisLabel("x")).expandX().center();
+        lvLblTable1.add(new VisLabel("y")).expandX().center();
+        lvLblTable1.add(new VisLabel("z")).expandX().center();
 
         add().right(); add(lvLblTable1).expandX().fillX(); row();
 
-        Table lvTable = new Table();
+        VisTable lvTable = new VisTable();
         lvTable.add(lvxTF).width(120).maxWidth(120).left();
         lvTable.add(lvyTF).width(120).maxWidth(120).left();
         lvTable.add(lvzTF).width(120).maxWidth(120).left();
 
-        add(new Label("linear velocity:", stage.skin)).right(); add(lvTable).left(); row();
-        add(new Label("angular velocity:", stage.skin)).right(); add(avTF).width(120).maxWidth(120).left(); row();
-        add(new Label("bounding radius:", stage.skin)).right(); add(brTF).width(120).maxWidth(120).left(); row();
+        add(new VisLabel("linear velocity:")).right(); add(lvTable).left(); row();
+        add(new VisLabel("angular velocity:")).right(); add(avTF).width(120).maxWidth(120).left(); row();
+        add(new VisLabel("bounding radius:")).right(); add(brTF).width(120).maxWidth(120).left(); row();
         add().expandX().fillX().right(); add(taggedCB).width(120).maxWidth(120).left(); row();
 
-        add(new Label("zero linear speed threshold:", stage.skin)).right(); add(zlstTF).width(120).maxWidth(120).left(); row();
-        add(new Label("maximum linear speed:", stage.skin)).right(); add(mlsTF).width(120).maxWidth(120).left(); row();
-        add(new Label("maximum linear acceleration:", stage.skin)).right(); add(mlaTF).width(120).maxWidth(120).left(); row();
-        add(new Label("maximum angular speed:", stage.skin)).right(); add(masTF).width(120).maxWidth(120).left(); row();
-        add(new Label("maximum angular acceleration:", stage.skin)).right(); add(maaTF).width(120).maxWidth(120).left(); row();
+        add(new VisLabel("zero linear speed threshold:")).right(); add(zlstTF).width(120).maxWidth(120).left(); row();
+        add(new VisLabel("maximum linear speed:")).right(); add(mlsTF).width(120).maxWidth(120).left(); row();
+        add(new VisLabel("maximum linear acceleration:")).right(); add(mlaTF).width(120).maxWidth(120).left(); row();
+        add(new VisLabel("maximum angular speed:")).right(); add(masTF).width(120).maxWidth(120).left(); row();
+        add(new VisLabel("maximum angular acceleration:")).right(); add(maaTF).width(120).maxWidth(120).left(); row();
 
-        Table lvLblTable2 = new Table();
-        lvLblTable2.add(new Label("x", stage.skin)).expandX().center();
-        lvLblTable2.add(new Label("y", stage.skin)).expandX().center();
-        lvLblTable2.add(new Label("z", stage.skin)).expandX().center();
+        VisTable lvLblTable2 = new VisTable();
+        lvLblTable2.add(new VisLabel("x")).expandX().center();
+        lvLblTable2.add(new VisLabel("y")).expandX().center();
+        lvLblTable2.add(new VisLabel("z")).expandX().center();
 
         add().right(); add(lvLblTable2).expandX().fillX(); row();
 
-        Table pTable = new Table();
+        VisTable pTable = new VisTable();
         pTable.add(pxTF).width(120).maxWidth(120).left();
         pTable.add(pyTF).width(120).maxWidth(120).left();
         pTable.add(pzTF).width(120).maxWidth(120).left();
 
-        add(new Label("position:", stage.skin)).right(); add(pTable).left(); row();
-        add(new Label("orientation:", stage.skin)).right(); add(oTF).width(120).maxWidth(120).left(); row();
+        add(new VisLabel("position:")).right(); add(pTable).left(); row();
+        add(new VisLabel("orientation:")).right(); add(oTF).width(120).maxWidth(120).left(); row();
     }
 
     private void init() {
-        steerCheckBox = new CheckBox("enable steering", stage.skin);
+        steerCheckBox = new VisCheckBox("enable steering");
         steerCheckBox.setChecked(false);
 
-        lvxTF = new TextField("", stage.skin); // linear velocity
-        lvyTF = new TextField("", stage.skin); // linear velocity
-        lvzTF = new TextField("", stage.skin); // linear velocity
+        lvxTF = new VisTextField(""); // linear velocity
+        lvyTF = new VisTextField(""); // linear velocity
+        lvzTF = new VisTextField(""); // linear velocity
 
-        avTF = new TextField("", stage.skin); // angular velocity
-        brTF = new TextField("", stage.skin); // bounding radius
-        taggedCB = new CheckBox("tagged", stage.skin); // tagged
+        avTF = new VisTextField(""); // angular velocity
+        brTF = new VisTextField(""); // bounding radius
+        taggedCB = new VisCheckBox("tagged"); // tagged
 
-        zlstTF = new TextField("", stage.skin); // zero linear speed threshold
-        mlsTF = new TextField("", stage.skin); // the maximum linear speed
-        mlaTF = new TextField("", stage.skin); // the maximum linear acceleration
-        masTF = new TextField("", stage.skin); // the maximum angular speed
-        maaTF = new TextField("", stage.skin); // the maximum angular acceleration
+        zlstTF = new VisTextField(""); // zero linear speed threshold
+        mlsTF = new VisTextField(""); // the maximum linear speed
+        mlaTF = new VisTextField(""); // the maximum linear acceleration
+        masTF = new VisTextField(""); // the maximum angular speed
+        maaTF = new VisTextField(""); // the maximum angular acceleration
 
-        pxTF = new TextField("", stage.skin); // position
-        pyTF = new TextField("", stage.skin); // position
-        pzTF = new TextField("", stage.skin); // position
-        oTF = new TextField("", stage.skin); // orientation
+        pxTF = new VisTextField(""); // position
+        pyTF = new VisTextField(""); // position
+        pzTF = new VisTextField(""); // position
+        oTF = new VisTextField(""); // orientation
     }
 
     public void updateSteerable() {

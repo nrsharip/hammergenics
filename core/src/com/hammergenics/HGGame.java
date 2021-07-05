@@ -28,6 +28,7 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.hammergenics.screens.ModelEditScreen;
 import com.hammergenics.utils.HGUtils;
+import com.kotcrab.vis.ui.VisUI;
 
 import java.nio.charset.Charset;
 
@@ -102,6 +103,9 @@ public class HGGame extends Game {
         // see: https://github.com/libgdx/libgdx/wiki/ModelCache#using-modelcache
         modelCache = new ModelCache();
 
+        // https://github.com/kotcrab/vis-ui#usage
+        VisUI.load();
+
         this.setScreen(new ModelEditScreen(this, engine, modelBatch, modelCache));
     }
 
@@ -118,6 +122,9 @@ public class HGGame extends Game {
      */
     @Override
     public void dispose() {
+        // https://github.com/kotcrab/vis-ui#usage
+        VisUI.dispose();
+
         // https://github.com/libgdx/libgdx/wiki/ModelBatch
         // Because it contains native resources (like the shaders it uses),
         // you'll need to call the dispose() method when no longer needed.

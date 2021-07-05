@@ -23,11 +23,10 @@ import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.PointLight;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.hammergenics.screens.ModelEditScreen;
+import com.kotcrab.vis.ui.widget.VisLabel;
+import com.kotcrab.vis.ui.widget.VisTable;
+import com.kotcrab.vis.ui.widget.VisTextField;
 
 /**
  * Add description here
@@ -41,47 +40,47 @@ public class PointLightsAttributeTable extends BaseLightsAttributeTable<PointLig
     public static final String ACTOR_I = "i_TextField";
 
     // position: x, y, z
-    protected TextField xTF = null;
-    protected TextField yTF = null;
-    protected TextField zTF = null;
+    protected VisTextField xTF = null;
+    protected VisTextField yTF = null;
+    protected VisTextField zTF = null;
     // intensity
-    protected TextField iTF = null;
+    protected VisTextField iTF = null;
 
-    private TextField.TextFieldListener xyziTextFieldListener;
+    private VisTextField.TextFieldListener xyziTextFieldListener;
 
-    public PointLightsAttributeTable(Skin skin, Attributes container, ModelEditScreen modelES) {
-        super(skin, container, modelES, PointLightsAttribute.class, PointLight.class);
+    public PointLightsAttributeTable(Attributes container, ModelEditScreen modelES) {
+        super(container, modelES, PointLightsAttribute.class, PointLight.class);
 
         createListeners();
 
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textfield
-        xTF = new TextField("100", skin); xTF.setName(ACTOR_X);
-        yTF = new TextField("100", skin); yTF.setName(ACTOR_Y);
-        zTF = new TextField("100", skin); zTF.setName(ACTOR_Z);
-        iTF = new TextField("5000", skin); iTF.setName(ACTOR_I);
+        xTF = new VisTextField("100"); xTF.setName(ACTOR_X);
+        yTF = new VisTextField("100"); yTF.setName(ACTOR_Y);
+        zTF = new VisTextField("100"); zTF.setName(ACTOR_Z);
+        iTF = new VisTextField("5000"); iTF.setName(ACTOR_I);
 
         xTF.setTextFieldListener(xyziTextFieldListener);
         yTF.setTextFieldListener(xyziTextFieldListener);
         zTF.setTextFieldListener(xyziTextFieldListener);
         iTF.setTextFieldListener(xyziTextFieldListener);
 
-        Table line = new Table();
-        line.add(new Label("x:", skin)).right();
+        VisTable line = new VisTable();
+        line.add(new VisLabel("x:")).right();
         line.add(xTF).width(100).maxWidth(100);
-        line.add(new Label("y:", skin)).right();
+        line.add(new VisLabel("y:")).right();
         line.add(yTF).width(100).maxWidth(100);
-        line.add(new Label("z:", skin)).right();
+        line.add(new VisLabel("z:")).right();
         line.add(zTF).width(100).maxWidth(100);
-        line.add(new Label("intensity:", skin)).right();
+        line.add(new VisLabel("intensity:")).right();
         line.add(iTF).width(100).maxWidth(100);
         line.add().expandX();
         add(line).fillX();
     }
 
     private void createListeners() {
-        xyziTextFieldListener = new TextField.TextFieldListener() {
+        xyziTextFieldListener = new VisTextField.TextFieldListener() {
             @Override
-            public void keyTyped(TextField textField, char c) {
+            public void keyTyped(VisTextField textField, char c) {
                 try {
                     float value = Float.parseFloat(textField.getText());
 

@@ -21,39 +21,38 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Cell;
-import com.badlogic.gdx.scenes.scene2d.ui.SelectBox;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.hammergenics.screens.ModelEditScreen;
 import com.hammergenics.screens.graphics.g3d.EditableModelInstance;
 import com.hammergenics.screens.stages.ModelEditStage;
 import com.hammergenics.utils.HGUtils;
+import com.kotcrab.vis.ui.widget.VisSelectBox;
+import com.kotcrab.vis.ui.widget.VisTable;
+import com.kotcrab.vis.ui.widget.VisTextButton;
 
 /**
  * Add description here
  *
  * @author nrsharip
  */
-public class AggregatedAttributesManagerTable extends HGTable {
+public class AggregatedAttributesManagerTable extends VisTable {
     public ModelEditScreen modelES;
     public ModelEditStage stage;
     public EditableModelInstance dbgModelInstance;
 
     public Cell<?> attrTableCell;
     
-    public TextButton mtlTextButton;
-    public TextButton envTextButton;
-    public SelectBox<String> mtlSelectBox;
+    public VisTextButton mtlTextButton;
+    public VisTextButton envTextButton;
+    public VisSelectBox<String> mtlSelectBox;
 
     public AggregatedAttributesManagerTable(ModelEditScreen modelES, ModelEditStage stage) {
-        super(stage.skin);
         this.modelES = modelES;
         this.stage = stage;
 
         init();
 
-        Table topPanel = new Table();
+        VisTable topPanel = new VisTable();
         topPanel.add(envTextButton).padRight(5f);
         topPanel.add(mtlTextButton).padRight(5f);
         topPanel.add(mtlSelectBox);
@@ -64,7 +63,7 @@ public class AggregatedAttributesManagerTable extends HGTable {
     }
 
     private void init() {
-        mtlTextButton = new TextButton("MTL", stage.skin);
+        mtlTextButton = new VisTextButton("MTL");
         stage.unpressButton(mtlTextButton);
         mtlTextButton.addListener(new InputListener() {
             @Override
@@ -74,7 +73,7 @@ public class AggregatedAttributesManagerTable extends HGTable {
             }
         });
 
-        envTextButton = new TextButton("ENV", stage.skin);
+        envTextButton = new VisTextButton("ENV");
         stage.unpressButton(envTextButton);
         envTextButton.addListener(new InputListener() {
             @Override
@@ -84,7 +83,7 @@ public class AggregatedAttributesManagerTable extends HGTable {
             }
         });
 
-        mtlSelectBox = new SelectBox<>(stage.skin);
+        mtlSelectBox = new VisSelectBox<>();
         mtlSelectBox.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -138,7 +137,7 @@ public class AggregatedAttributesManagerTable extends HGTable {
         }
 
         if (stage.isPressed(mtlTextButton) && dbgModelInstance != null) {
-            dbgModelInstance.createMtlAttributeTable(stage.skin, mtlSelectBox.getSelected(), stage.eventListener, modelES);
+            dbgModelInstance.createMtlAttributeTable(mtlSelectBox.getSelected(), stage.eventListener, modelES);
             attrTableCell.setActor(dbgModelInstance.mtlid2atable.get(mtlSelectBox.getSelected()));
 
             stage.miLabel.setText(HGUtils.getModelInstanceInfo(modelES.eng.currMI));

@@ -19,7 +19,6 @@ package com.hammergenics.screens.stages;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
@@ -30,13 +29,7 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Cell;
-import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.SelectBox;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
@@ -44,7 +37,6 @@ import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.hammergenics.HGGame;
-import com.hammergenics.config.Config;
 import com.hammergenics.screens.ModelEditScreen;
 import com.hammergenics.screens.graphics.g3d.HGModel;
 import com.hammergenics.screens.stages.ui.AIManagerTable;
@@ -56,6 +48,11 @@ import com.hammergenics.screens.stages.ui.attributes.AttributesManagerTable;
 import com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable;
 import com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable.EventType;
 import com.hammergenics.utils.HGUtils;
+import com.kotcrab.vis.ui.widget.VisCheckBox;
+import com.kotcrab.vis.ui.widget.VisLabel;
+import com.kotcrab.vis.ui.widget.VisSelectBox;
+import com.kotcrab.vis.ui.widget.VisTable;
+import com.kotcrab.vis.ui.widget.VisTextButton;
 
 import static com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable.EventType.ATTR_CHANGED;
 import static com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable.EventType.ATTR_DISABLED;
@@ -74,13 +71,8 @@ public class ModelEditStage extends Stage {
     public final HGGame game;
     public final ModelEditScreen modelES;
 
-    // 2D Stage Styling:
-    public Skin skin;
-    public BitmapFont labelBitmapFont;
-    public Label.LabelStyle labelStyle;
-
     // 2D Stage Layout:
-    public Table rootTable;
+    public VisTable rootTable;
     public Cell<?> infoTCell = null;
     public Cell<?> infoBCell = null;
     public Cell<?> editCell = null;
@@ -93,34 +85,34 @@ public class ModelEditStage extends Stage {
     public PhysicsManagerTable physManagerTable;
 
     // 2D Stage Widgets:
-    public Label miLabel;  // Model Instance Info
-    public Label envLabel; // Environment Info
-    public Label fpsLabel; // FPS Info
+    public VisLabel miLabel;  // Model Instance Info
+    public VisLabel envLabel; // Environment Info
+    public VisLabel fpsLabel; // FPS Info
     public Image textureImage;
-    public CheckBox debugStageCheckBox;
-    public CheckBox gridOriginCheckBox;
-    public CheckBox gridYCheckBox;
-    public CheckBox lightsCheckBox;
-    public CheckBox showSelectionScaleCheckBox;
-    public CheckBox origScaleCheckBox;
-    public CheckBox bbCheckBox;
-    public CheckBox nodesCheckBox;
-    public CheckBox bonesCheckBox;
-    public CheckBox invertCheckBox;
-    public CheckBox meshPartsCheckBox;
-    public CheckBox verticesCheckBox;
-    public CheckBox closestCheckBox;
-    public SelectBox<FileHandle> folderSelectBox;
-    public SelectBox<FileHandle> modelSelectBox;
-    public SelectBox<String> nodeSelectBox;
-    public TextButton attrTextButton = null;
-    public TextButton animTextButton = null;
-    public TextButton mapTextButton = null;
-    public TextButton aiTextButton = null;
-    public TextButton physTextButton = null;
-    public TextButton clearModelsTextButton = null;
-    public TextButton deleteCurrModelTextButton = null;
-    public TextButton saveCurrModelTextButton = null;
+    public VisCheckBox debugStageCheckBox;
+    public VisCheckBox gridOriginCheckBox;
+    public VisCheckBox gridYCheckBox;
+    public VisCheckBox lightsCheckBox;
+    public VisCheckBox showSelectionScaleCheckBox;
+    public VisCheckBox origScaleCheckBox;
+    public VisCheckBox bbCheckBox;
+    public VisCheckBox nodesCheckBox;
+    public VisCheckBox bonesCheckBox;
+    public VisCheckBox invertCheckBox;
+    public VisCheckBox meshPartsCheckBox;
+    public VisCheckBox verticesCheckBox;
+    public VisCheckBox closestCheckBox;
+    public VisSelectBox<FileHandle> folderSelectBox;
+    public VisSelectBox<FileHandle> modelSelectBox;
+    public VisSelectBox<String> nodeSelectBox;
+    public VisTextButton attrTextButton = null;
+    public VisTextButton animTextButton = null;
+    public VisTextButton mapTextButton = null;
+    public VisTextButton aiTextButton = null;
+    public VisTextButton physTextButton = null;
+    public VisTextButton clearModelsTextButton = null;
+    public VisTextButton deleteCurrModelTextButton = null;
+    public VisTextButton saveCurrModelTextButton = null;
 
     public BaseAttributeTable.EventListener eventListener;
 
@@ -129,7 +121,6 @@ public class ModelEditStage extends Stage {
         this.game = game;
         this.modelES = modelES;
 
-        setup2DStageStyling();
         setup2DStageWidgets();
         setup2DStageLayout();
 
@@ -155,15 +146,15 @@ public class ModelEditStage extends Stage {
 
         // LABELS:
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#label
-        fpsLabel = new Label("", labelStyle);
-        miLabel = new Label("", labelStyle);
-        envLabel = new Label("", labelStyle);
+        fpsLabel = new VisLabel("");
+        miLabel = new VisLabel("");
+        envLabel = new VisLabel("");
 
         // SELECT BOXES:
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#selectbox
 
         // Select Box: Models
-        folderSelectBox = new SelectBox<>(skin);
+        folderSelectBox = new VisSelectBox<>();
         resetFolderSelectBoxItems(game.engine.folder2models);
         folderSelectBox.addListener(new ChangeListener() {
             @Override
@@ -174,7 +165,7 @@ public class ModelEditStage extends Stage {
             }
         });
 
-        modelSelectBox = new SelectBox<>(skin);
+        modelSelectBox = new VisSelectBox<>();
         modelSelectBox.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {  // syncup: model select
@@ -193,7 +184,7 @@ public class ModelEditStage extends Stage {
 
         // Select Box: Nodes
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#selectbox
-        nodeSelectBox = new SelectBox<>(skin);
+        nodeSelectBox = new VisSelectBox<>();
         nodeSelectBox.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -213,7 +204,7 @@ public class ModelEditStage extends Stage {
 
         // CHECK BOXES:
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#checkbox
-        debugStageCheckBox = new CheckBox("debug stage", skin);
+        debugStageCheckBox = new VisCheckBox("debug stage");
         debugStageCheckBox.setChecked(false);
         debugStageCheckBox.addListener(new ChangeListener() {
             @Override
@@ -226,27 +217,27 @@ public class ModelEditStage extends Stage {
         });
 
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#checkbox
-        gridOriginCheckBox = new CheckBox("origin", skin);
+        gridOriginCheckBox = new VisCheckBox("origin");
         gridOriginCheckBox.setChecked(true);
 
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#checkbox
-        gridYCheckBox = new CheckBox("Y", skin);
+        gridYCheckBox = new VisCheckBox("Y");
         gridYCheckBox.setChecked(true);
 
-        lightsCheckBox = new CheckBox("lights", skin);
+        lightsCheckBox = new VisCheckBox("lights");
         lightsCheckBox.setChecked(true);
 
-        showSelectionScaleCheckBox = new CheckBox("selection", skin);
+        showSelectionScaleCheckBox = new VisCheckBox("selection");
         showSelectionScaleCheckBox.setChecked(false);
 
-        origScaleCheckBox = new CheckBox("orig scale", skin);
+        origScaleCheckBox = new VisCheckBox("orig scale");
         origScaleCheckBox.setChecked(false);
         origScaleCheckBox.addListener(new ChangeListener() {
             @Override
             public void changed (ChangeEvent event, Actor actor) { modelES.eng.arrangeInSpiral(origScaleCheckBox.isChecked()); }
         });
 
-        bbCheckBox = new CheckBox("BB", skin);
+        bbCheckBox = new VisCheckBox("BB");
         bbCheckBox.setChecked(false);
         // TODO: fix BB checkbox
         //bbCheckBox.addListener(new ChangeListener() {
@@ -254,27 +245,27 @@ public class ModelEditStage extends Stage {
         //    public void changed (ChangeEvent event, Actor actor) { modelES.eng.resetBBModelInstances(); }
         //});
 
-        nodesCheckBox = new CheckBox("nodes", skin);
+        nodesCheckBox = new VisCheckBox("nodes");
         nodesCheckBox.setChecked(false);
 
-        bonesCheckBox = new CheckBox("bones (", skin);
+        bonesCheckBox = new VisCheckBox("bones (");
         bonesCheckBox.setChecked(false);
 
-        invertCheckBox = new CheckBox("invert)", skin);
+        invertCheckBox = new VisCheckBox("invert)");
         invertCheckBox.setChecked(false);
 
-        meshPartsCheckBox = new CheckBox("mesh parts", skin);
+        meshPartsCheckBox = new VisCheckBox("mesh parts");
         meshPartsCheckBox.setChecked(false);
 
-        verticesCheckBox = new CheckBox("vertices (", skin);
+        verticesCheckBox = new VisCheckBox("vertices (");
         verticesCheckBox.setChecked(false);
 
-        closestCheckBox = new CheckBox("closest to corners)", skin);
+        closestCheckBox = new VisCheckBox("closest to corners)");
         closestCheckBox.setChecked(false);
 
         // TEXT BUTTONS:
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textbutton
-        attrTextButton = new TextButton("ATTR", skin);
+        attrTextButton = new VisTextButton("ATTR");
         unpressButton(attrTextButton);
         attrTextButton.addListener(new InputListener() {
             @Override
@@ -294,7 +285,7 @@ public class ModelEditStage extends Stage {
             }
         });
 
-        animTextButton = new TextButton("ANIM", skin);
+        animTextButton = new VisTextButton("ANIM");
         unpressButton(animTextButton);
         animTextButton.addListener(new InputListener() {
             @Override
@@ -314,7 +305,7 @@ public class ModelEditStage extends Stage {
             }
         });
 
-        mapTextButton = new TextButton("MAP", skin);
+        mapTextButton = new VisTextButton("MAP");
         unpressButton(mapTextButton);
         mapTextButton.addListener(new InputListener() {
             @Override
@@ -334,7 +325,7 @@ public class ModelEditStage extends Stage {
             }
         });
 
-        aiTextButton = new TextButton("AI", skin);
+        aiTextButton = new VisTextButton("AI");
         unpressButton(aiTextButton);
         aiTextButton.addListener(new InputListener() {
             @Override
@@ -354,7 +345,7 @@ public class ModelEditStage extends Stage {
             }
         });
 
-        physTextButton = new TextButton("PHYS", skin);
+        physTextButton = new VisTextButton("PHYS");
         unpressButton(physTextButton);
         physTextButton.addListener(new InputListener() {
             @Override
@@ -374,7 +365,7 @@ public class ModelEditStage extends Stage {
             }
         });
 
-        clearModelsTextButton = new TextButton("clear all", skin);
+        clearModelsTextButton = new VisTextButton("clear all");
         unpressButton(clearModelsTextButton);
         clearModelsTextButton.addListener(new InputListener() {
             @Override
@@ -385,7 +376,7 @@ public class ModelEditStage extends Stage {
             }
         });
 
-        deleteCurrModelTextButton = new TextButton("delete", skin);
+        deleteCurrModelTextButton = new VisTextButton("delete");
         unpressButton(deleteCurrModelTextButton);
         deleteCurrModelTextButton.addListener(new InputListener() {
             @Override
@@ -398,7 +389,7 @@ public class ModelEditStage extends Stage {
             }
         });
 
-        saveCurrModelTextButton = new TextButton("save", skin);
+        saveCurrModelTextButton = new VisTextButton("save");
         unpressButton(saveCurrModelTextButton);
         saveCurrModelTextButton.addListener(new InputListener() {
             @Override
@@ -534,48 +525,25 @@ public class ModelEditStage extends Stage {
     /**
      *
      */
-    public void setup2DStageStyling() {
-        // https://github.com/libgdx/libgdx/wiki/Managing-your-assets#loading-a-ttf-using-the-assethandler
-        labelBitmapFont = modelES.eng.assetManager.get(Config.ASSET_FILE_NAME_FONT, BitmapFont.class);
-        labelBitmapFont.getData().setScale(0.5f);
-        labelStyle = new Label.LabelStyle(labelBitmapFont, Color.BLACK);
-        // SKIN for 2D Stage Widgets
-        // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#skin
-        // Skin files from the libGDX tests can be used as a starting point.
-        // https://github.com/libgdx/libgdx/tree/master/tests/gdx-tests-android/assets/data
-        // You will need: uiskin.png, uiskin.atlas, uiskin.json, and default.fnt.
-        // This enables you to quickly get started using scene2d.ui and replace the skin assets later.
-        // https://github.com/libgdx/libgdx/wiki/Texture-packer#textureatlas
-        //TextureAtlas atlas;
-        //atlas = new TextureAtlas(Gdx.files.internal("skins/libgdx/uiskin.atlas"));
-        // https://github.com/libgdx/libgdx/wiki/Skin#resources
-        // https://github.com/libgdx/libgdx/wiki/Skin#skin-json
-        skin = new Skin(Gdx.files.internal(Config.ASSET_FILE_NAME_SKIN));
-        //skin.addRegions(atlas);
-    }
-
-    /**
-     *
-     */
     public void setup2DStageLayout() {
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#layout-widgets
         // Table, Container, Stack, ScrollPane, SplitPane, Tree, VerticalGroup, HorizontalGroup
 
         // ROOT TABLE:
         // https://github.com/libgdx/libgdx/wiki/Table#quickstart
-        rootTable = new Table();
+        rootTable = new VisTable();
         // https://github.com/libgdx/libgdx/wiki/Table#root-table
         rootTable.setFillParent(true);
         // https://github.com/libgdx/libgdx/wiki/Table#debugging
         rootTable.setDebug(false);
 
         // https://github.com/libgdx/libgdx/wiki/Table#adding-cells
-        Table upperPanel = new Table();
-        upperPanel.add(new Label("Folder: ", skin)).right();
+        VisTable upperPanel = new VisTable();
+        upperPanel.add(new VisLabel("Folder: ")).right();
         upperPanel.add(folderSelectBox).padLeft(5f).left();
-        upperPanel.add(new Label("Model: ", skin)).right();
+        upperPanel.add(new VisLabel("Model: ")).right();
         upperPanel.add(modelSelectBox).padLeft(5f).left();
-        upperPanel.add(new Label("Node: ", skin)).padLeft(5f).right();
+        upperPanel.add(new VisLabel("Node: ")).padLeft(5f).right();
         upperPanel.add(nodeSelectBox).padLeft(5f).left();
         upperPanel.add().expandX();
 
@@ -584,7 +552,7 @@ public class ModelEditStage extends Stage {
 
         rootTable.row();
 
-        Table leftPanel = new Table();
+        VisTable leftPanel = new VisTable();
         leftPanel.add(attrTextButton).fillX();
         leftPanel.row();
         leftPanel.add(animTextButton).fillX();
@@ -598,7 +566,7 @@ public class ModelEditStage extends Stage {
 
         rootTable.add(leftPanel).padTop(10f).top().left();
 
-        Table infoTable = new Table();
+        VisTable infoTable = new VisTable();
         infoTCell = infoTable.add().expand().top().left();
         infoTable.row();
         infoBCell = infoTable.add().expand().bottom().left().maxWidth(512).maxHeight(512);
@@ -608,7 +576,7 @@ public class ModelEditStage extends Stage {
 
         rootTable.row();
 
-        Table lowerPanel = new Table();
+        VisTable lowerPanel = new VisTable();
         lowerPanel.add(fpsLabel).minWidth(70f).pad(3f);
         lowerPanel.add(debugStageCheckBox).pad(3f);
         lowerPanel.add(gridOriginCheckBox).pad(3f);
@@ -645,16 +613,16 @@ public class ModelEditStage extends Stage {
         return isPressed(attrTextButton) || isPressed(animTextButton) || isPressed(mapTextButton)
                 || isPressed(aiTextButton) || isPressed(physTextButton);
     }
-    public void unpressButton(TextButton btn) { btn.getColor().set(COLOR_UNPRESSED); }
-    public void pressButton(TextButton btn) { btn.getColor().set(COLOR_PRESSED); }
-    public void disableButton(TextButton btn) {
+    public void unpressButton(VisTextButton btn) { btn.getColor().set(COLOR_UNPRESSED); }
+    public void pressButton(VisTextButton btn) { btn.getColor().set(COLOR_PRESSED); }
+    public void disableButton(VisTextButton btn) {
         btn.getColor().set(COLOR_DISABLED); btn.getLabel().getColor().set(COLOR_DISABLED);
     }
-    public void enableButton(TextButton btn) {
+    public void enableButton(VisTextButton btn) {
         btn.getColor().set(COLOR_UNPRESSED); btn.getLabel().getColor().set(Color.WHITE);
     }
-    public boolean isPressed(TextButton btn) { return btn.getColor().equals(COLOR_PRESSED); }
-    public boolean isDisabled(TextButton btn) { return btn.getColor().equals(COLOR_DISABLED); }
+    public boolean isPressed(VisTextButton btn) { return btn.getColor().equals(COLOR_PRESSED); }
+    public boolean isDisabled(VisTextButton btn) { return btn.getColor().equals(COLOR_DISABLED); }
 
     public void reset() {
         textureImage.setDrawable(null);

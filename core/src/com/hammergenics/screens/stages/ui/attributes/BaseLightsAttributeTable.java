@@ -24,10 +24,14 @@ import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.SpotLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.BaseLight;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Array;
 import com.hammergenics.screens.ModelEditScreen;
+import com.kotcrab.vis.ui.widget.VisLabel;
+import com.kotcrab.vis.ui.widget.VisSelectBox;
+import com.kotcrab.vis.ui.widget.VisTable;
+import com.kotcrab.vis.ui.widget.VisTextButton;
+import com.kotcrab.vis.ui.widget.VisTextField;
 
 import static com.hammergenics.screens.stages.ui.attributes.ColorAttributeTable.*;
 import static com.hammergenics.utils.HGUtils.color_s2c;
@@ -45,32 +49,32 @@ public abstract class BaseLightsAttributeTable<T extends Attribute, L extends Ba
     protected int index = -1;
 
     // r, g, b, a
-    protected TextField rTF = null;
-    protected TextField gTF = null;
-    protected TextField bTF = null;
-    protected TextField aTF = null;
+    protected VisTextField rTF = null;
+    protected VisTextField gTF = null;
+    protected VisTextField bTF = null;
+    protected VisTextField aTF = null;
     // color select box
-    protected SelectBox<String> colorSB = null;
+    protected VisSelectBox<String> colorSB = null;
     // + and - buttons
-    protected TextButton plsTextButton = null;
-    protected TextButton mnsTextButton = null;
+    protected VisTextButton plsTextButton = null;
+    protected VisTextButton mnsTextButton = null;
     // table to contain the indexed buttons (1, 2, 3 etc.)
-    protected Table indexedTBTable = new Table();
+    protected VisTable indexedTBTable = new VisTable();
 
-    private TextField.TextFieldListener rgbaTextFieldListener;
+    private VisTextField.TextFieldListener rgbaTextFieldListener;
     private ChangeListener colorSelectBoxListener;
 
-    public Array<TextButton> indexedTB = null;
+    public Array<VisTextButton> indexedTB = null;
     protected Array<L> lights;
 
     protected abstract L createLight();
 
-    public BaseLightsAttributeTable(Skin skin, Attributes container, ModelEditScreen modelES, Class<T> aClass, Class<L> lightClass) {
-        super(skin, container, modelES, aClass);
+    public BaseLightsAttributeTable(Attributes container, ModelEditScreen modelES, Class<T> aClass, Class<L> lightClass) {
+        super(container, modelES, aClass);
         this.lightClass = lightClass;
         lights = new Array<>(lightClass);
 
-        plsTextButton = new TextButton("+", skin);
+        plsTextButton = new VisTextButton("+");
         modelES.stage.unpressButton(plsTextButton);
         plsTextButton.addListener(new ChangeListener() {
             @Override
@@ -93,7 +97,7 @@ public abstract class BaseLightsAttributeTable<T extends Attribute, L extends Ba
             }
         });
 
-        mnsTextButton = new TextButton("-", skin);
+        mnsTextButton = new VisTextButton("-");
         mnsTextButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -127,10 +131,10 @@ public abstract class BaseLightsAttributeTable<T extends Attribute, L extends Ba
         createListeners();
 
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textfield
-        rTF = new TextField("150", skin); rTF.setName(ACTOR_R);
-        gTF = new TextField("150", skin); gTF.setName(ACTOR_G);
-        bTF = new TextField("150", skin); bTF.setName(ACTOR_B);
-        aTF = new TextField("150", skin); aTF.setName(ACTOR_A);
+        rTF =  new VisTextField("150"); rTF.setName(ACTOR_R);
+        gTF =  new VisTextField("150"); gTF.setName(ACTOR_G);
+        bTF =  new VisTextField("150"); bTF.setName(ACTOR_B);
+        aTF =  new VisTextField("150"); aTF.setName(ACTOR_A);
 
         rTF.setTextFieldListener(rgbaTextFieldListener);
         gTF.setTextFieldListener(rgbaTextFieldListener);
@@ -138,31 +142,31 @@ public abstract class BaseLightsAttributeTable<T extends Attribute, L extends Ba
         aTF.setTextFieldListener(rgbaTextFieldListener);
 
         // Select Box: Color
-        colorSB = new SelectBox<>(skin);
+        colorSB = new VisSelectBox<>();
         colorSB.clearItems();
         if (color_s2c != null && color_s2c.size > 0) { colorSB.setItems(color_s2c.keys().toArray()); }
         colorSB.addListener(colorSelectBoxListener);
 
         // Standard Color Layout:
-        Table line1 = new Table();
-        Table line2 = new Table();
+        VisTable line1 = new VisTable();
+        VisTable line2 = new VisTable();
 
         line1.add(enabledCheckBox);
-        line1.add(new Label("lights:", skin)).right();
+        line1.add(new VisLabel("lights:")).right();
         line1.add(mnsTextButton).width(20f).maxWidth(20f);
         line1.add(plsTextButton).width(20f).maxWidth(20f);
         line1.add(indexedTBTable);
         line1.add().expandX();
 
-        line2.add(new Label("r:", skin)).right();
+        line2.add(new VisLabel("r:")).right();
         line2.add(rTF).width(40).maxWidth(40);
-        line2.add(new Label("g:", skin)).right();
+        line2.add(new VisLabel("g:")).right();
         line2.add(gTF).width(40).maxWidth(40);
-        line2.add(new Label("b:", skin)).right();
+        line2.add(new VisLabel("b:")).right();
         line2.add(bTF).width(40).maxWidth(40);
-        line2.add(new Label("a:", skin)).right();
+        line2.add(new VisLabel("a:")).right();
         line2.add(aTF).width(40).maxWidth(40);
-        line2.add(new Label("color:", skin)).right();
+        line2.add(new VisLabel("color:")).right();
         line2.add(colorSB).fillX();
         line2.add().expandX();
 
@@ -173,9 +177,9 @@ public abstract class BaseLightsAttributeTable<T extends Attribute, L extends Ba
     }
 
     private void createListeners() {
-        rgbaTextFieldListener = new TextField.TextFieldListener() {
+        rgbaTextFieldListener =  new VisTextField.TextFieldListener() {
             @Override
-            public void keyTyped(TextField textField, char c) {
+            public void keyTyped(VisTextField textField, char c) {
                 try {
                     float value = Float.parseFloat(textField.getText());
 
@@ -275,7 +279,7 @@ public abstract class BaseLightsAttributeTable<T extends Attribute, L extends Ba
     protected abstract void postButtonRemove();
 
     private void addButton() {
-        TextButton button = new TextButton(String.valueOf(indexedTB.size + 1), this.uiSkin);
+        VisTextButton button = new VisTextButton(String.valueOf(indexedTB.size + 1));
         button.setName(ACTOR_BUTTON_PREFIX + String.valueOf(indexedTB.size));
         button.addListener(new ChangeListener() {
             @Override
@@ -319,7 +323,7 @@ public abstract class BaseLightsAttributeTable<T extends Attribute, L extends Ba
 
     @Override
     protected void resetWidgetsToDefaults() {
-        indexedTB = new Array<>(TextButton.class);
+        indexedTB = new Array<>(VisTextButton.class);
         indexedTBTable.reset();
         index = -1;
 
