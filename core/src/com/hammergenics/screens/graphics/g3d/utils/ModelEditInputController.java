@@ -320,8 +320,6 @@ public class ModelEditInputController extends SpectatorInputController {
                     float scale = 1 + sign * 0.04f ;
 
                     hoveredOverMI.scale(scale, scale, scale);
-                    hoveredOverMI.bbHgModelInstanceReset();
-                    hoveredOverMI.bbCornersReset();
 //                    Gdx.app.debug(getClass().getSimpleName(), ""
 //                            + " coordCenter: " + coordCenter + " coordCorner: " + coordCorner
 //                            + " coordHlfDiag: " + coordHlfDiag + " coordDir: " + coordDir
@@ -429,9 +427,6 @@ public class ModelEditInputController extends SpectatorInputController {
                     hoveredOverMI.rotate(miRot);
                     // restoring the original scale
                     hoveredOverMI.scale(miScale.x, miScale.y, miScale.z);
-
-                    hoveredOverMI.bbHgModelInstanceReset();
-                    hoveredOverMI.bbCornersReset();
                     return false;
                 } else if ((keysPressed.contains(Keys.CONTROL_LEFT) || keysPressed.contains(Keys.CONTROL_RIGHT))
                         && hoveredOverMI != null) {
@@ -449,9 +444,6 @@ public class ModelEditInputController extends SpectatorInputController {
                     draggedMI.rotate(miRot);
                     // restoring the original scale
                     draggedMI.scale(miScale.x, miScale.y, miScale.z);
-
-                    draggedMI.bbHgModelInstanceReset();
-                    draggedMI.bbCornersReset();
                     return false;
                 } else if (hoveredOverMI != null) {
                     // we hold the left button pressed on the model instance itself - applying hor translation
@@ -471,9 +463,6 @@ public class ModelEditInputController extends SpectatorInputController {
                     draggedMI.rotate(miRot);
                     // restoring the original scale
                     draggedMI.scale(miScale.x, miScale.y, miScale.z);
-
-                    draggedMI.bbHgModelInstanceReset();
-                    draggedMI.bbCornersReset();
                     return false;
                 }
                 return true;

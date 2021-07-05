@@ -126,6 +126,27 @@ public class EditableModelInstance extends SteerableModelInstance implements Dis
         //node2model.values().forEach(HGModel::dispose);
     }
 
+    @Override public void trn(Vector3 vector) { super.trn(vector); syncAuxWithTransform(); }
+    @Override public void trn(float x, float y, float z) { super.trn(x, y, z); syncAuxWithTransform(); }
+    @Override public void translate(Vector3 translation) { super.translate(translation); syncAuxWithTransform(); }
+    @Override public void setToTranslation(Vector3 vector) { super.setToTranslation(vector); syncAuxWithTransform(); }
+    @Override public void setToTranslation(float x, float y, float z) { super.setToTranslation(x, y, z); syncAuxWithTransform(); }
+    @Override public void setToTranslationAndScaling(Vector3 translation, Vector3 scaling) { super.setToTranslationAndScaling(translation, scaling); syncAuxWithTransform(); }
+    @Override public void setToTranslationAndScaling(float x, float y, float z, float sX, float sY, float sZ) { super.setToTranslationAndScaling(x, y, z, sX, sY, sZ); syncAuxWithTransform();}
+    @Override public void scl(float factor) { super.scl(factor); syncAuxWithTransform(); }
+    @Override public void scl(Vector3 factor) { super.scl(factor); syncAuxWithTransform(); }
+    @Override public void scale(float scaleX, float scaleY, float scaleZ) { super.scale(scaleX, scaleY, scaleZ); syncAuxWithTransform(); }
+    @Override public void setToScaling(float factor) { super.setToScaling(factor); syncAuxWithTransform(); }
+    @Override public void setToScaling(Vector3 factor) { super.setToScaling(factor); syncAuxWithTransform(); }
+    @Override public void rotate(Vector3 axis, float degrees) { super.rotate(axis, degrees); syncAuxWithTransform(); }
+    @Override public void rotate(Quaternion rotation) { super.rotate(rotation); syncAuxWithTransform(); }
+    @Override public void rotate(Vector3 v1, Vector3 v2) { super.rotate(v1, v2); syncAuxWithTransform(); }
+
+    public void syncAuxWithTransform() {
+        bbHgModelInstanceReset();
+        bbCornersReset();
+    }
+
     public void checkAnimations() {
         for (Animation anim:animations) { anim2info.put(anim, new AnimationInfo(this, anim)); }
     }
