@@ -330,8 +330,7 @@ public class HGEngine implements Disposable {
         BT_NNCG_SOLVER.setInstance(new btNNCGConstraintSolver());
         BT_MULTIBODY_SOLVER.setInstance(new btMultiBodyConstraintSolver());
 
-        dynamicsWorld.setGravity(Vector3.Y.cpy().scl(-10f));
-        dynamicsWorld.setConstraintSolver(BT_SEQUENTIAL_IMPULSE_SOLVER.getInstance());
+        resetDynamicsWorld(1f);
 
         // Chunks should be populated after bullet is initialized (TerrainChunk has physical models)
         chunks = new Array<>(new TerrainChunk[]{
@@ -494,6 +493,11 @@ public class HGEngine implements Disposable {
             tc.applyTerrainParts(scale);
             tc.trnTerrain(0f, -mid * tc.gridNoise.yScale * scale, 0f);
         }
+    }
+
+    public void resetDynamicsWorld(float scale) {
+        dynamicsWorld.setGravity(Vector3.Y.cpy().scl(-10f * scale));
+        dynamicsWorld.setConstraintSolver(BT_SEQUENTIAL_IMPULSE_SOLVER.getInstance());
     }
 
     public void queueAssets(FileHandle rootFileHandle) {
