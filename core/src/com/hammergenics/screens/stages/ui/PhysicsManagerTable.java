@@ -17,6 +17,7 @@
 package com.hammergenics.screens.stages.ui;
 
 
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.dynamics.btDynamicsWorld;
 import com.badlogic.gdx.physics.bullet.dynamics.btMLCPSolver;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -24,6 +25,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.SelectBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.hammergenics.HGEngine;
 import com.hammergenics.HGEngine.btConstraintSolversEnum;
@@ -47,6 +49,8 @@ public class PhysicsManagerTable extends HGTable {
     public btDynamicsWorld dw;
     public EditableModelInstance dbgModelInstance;
 
+    public Label dwTypeLabel;
+
     public CheckBox dynamicsCheckBox;
     public CheckBox rbCheckBox;
     public CheckBox groundCheckBox;
@@ -54,6 +58,12 @@ public class PhysicsManagerTable extends HGTable {
     public SelectBox<String> btDebugModeSelectBox = null;
     public SelectBox<btConstraintSolversEnum> constraintSolverSelectBox = null;
     public SelectBox<btMLCPSolversEnum> mlcpAlgorithmSelectBox = null;
+
+    public TextField dwGravityXTF = null; // dw gravity
+    public TextField dwGravityYTF = null; // dw gravity
+    public TextField dwGravityZTF = null; // dw gravity
+
+    public Vector3 dwGravity = new Vector3();
 
     public PhysicsManagerTable(ModelEditScreen modelES, ModelEditStage stage) {
         super(stage.skin);
@@ -64,11 +74,15 @@ public class PhysicsManagerTable extends HGTable {
 
         init();
 
+        add(dwTypeLabel).colspan(2).center().expandX();
+        row();
+
         Table row01 = new Table();
         row01.add(dynamicsCheckBox).expandX();
         row01.add(rbCheckBox).expandX();
         row01.add(groundCheckBox).expandX();
-        add(row01).colspan(2).center().expandX().fillX().row();
+        add(row01).colspan(2).center().expandX().fillX();
+        row();
 
         add(new Label("bullet debug mode:", stage.skin)).padRight(5f).right();
         add(btDebugModeSelectBox).expandX().fillX().center();
@@ -81,9 +95,26 @@ public class PhysicsManagerTable extends HGTable {
         add(new Label("algorithm (for MLCP only):", stage.skin)).padRight(5f).right();
         add(mlcpAlgorithmSelectBox).expandX().fillX().center();
         row();
+
+        Table gLblTable1 = new Table();
+        gLblTable1.add(new Label("x", stage.skin)).expandX().center();
+        gLblTable1.add(new Label("y", stage.skin)).expandX().center();
+        gLblTable1.add(new Label("z", stage.skin)).expandX().center();
+
+        add().right(); add(gLblTable1).expandX().fillX(); row();
+
+        Table gTable = new Table();
+        gTable.add(dwGravityXTF).width(120).maxWidth(120).left();
+        gTable.add(dwGravityYTF).width(120).maxWidth(120).left();
+        gTable.add(dwGravityZTF).width(120).maxWidth(120).left();
+        add(new Label("gravity:", stage.skin)).right(); add(gTable).left(); row();
+
+        updateDynamicsWorld();
     }
 
     private void init() {
+        dwTypeLabel = new Label("", stage.skin);
+
         dynamicsCheckBox = new CheckBox("enable dynamics", stage.skin);
         dynamicsCheckBox.setChecked(false);
         dynamicsCheckBox.addListener(new ChangeListener() {
@@ -157,10 +188,36 @@ public class PhysicsManagerTable extends HGTable {
                 ((btMLCPSolver)BT_MLCP_SOLVER.getInstance()).setMLCPSolver(mlcpAlgorithmSelectBox.getSelected().apply());
             }
         });
+
+        dwGravityXTF = new TextField("", stage.skin); // dw gravity
+        dwGravityYTF = new TextField("", stage.skin); // dw gravity
+        dwGravityZTF = new TextField("", stage.skin); // dw gravity
+    }
+
+    public void updateDynamicsWorld() {
+        String dwTypeName = HGEngine.btDynamicsWorldTypesEnum.findByType(dw.getWorldType()).toString();
+        dwTypeLabel.setText("Dynamics World Type: " + dwTypeName);
+
+        dwGravity = dw.getGravity();
+        dwGravityXTF.setText(Float.toString(dwGravity.x));
+        dwGravityYTF.setText(Float.toString(dwGravity.y));
+        dwGravityZTF.setText(Float.toString(dwGravity.z));
+    }
+
+    public void updateRigidBody() {
+        EditableModelInstance mi = dbgModelInstance;
+        if (mi != null) {
+
+        } else {
+
+        }
     }
 
     public void setDbgModelInstance(EditableModelInstance mi) {
         this.dbgModelInstance = mi;
+
+        updateDynamicsWorld();
+        updateRigidBody();
     }
 
     public void resetActors() {

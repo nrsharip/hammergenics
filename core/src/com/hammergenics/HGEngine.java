@@ -176,12 +176,50 @@ public class HGEngine implements Disposable {
     public final ArrayMap<Integer, btRigidBody> hc2rb = new ArrayMap<>(Integer.class, btRigidBody.class);
     public final ArrayMap<btRigidBody, Integer> rb2hc = new ArrayMap<>(btRigidBody.class, Integer.class);
 
-    // IMPORTANT: see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/
-    // Because it’s not possible in Java to use global callback methods, the wrapper adds the ContactListener class
-    // to take care of that. This is also the reason that we don’t have to inform bullet to use our ContactListener,
-    // the wrapper takes care of that when you construct the ContactListener.
-    public ContactListener contactListener;
     public btDynamicsWorld dynamicsWorld;
+    // https://github.com/bulletphysics/bullet3/blob/master/src/BulletDynamics/Dynamics/btDynamicsWorld.h#L30
+    // enum btDynamicsWorldType
+    // {
+    //     BT_SIMPLE_DYNAMICS_WORLD = 1,
+    //     BT_DISCRETE_DYNAMICS_WORLD = 2,
+    //     BT_CONTINUOUS_DYNAMICS_WORLD = 3,
+    //     BT_SOFT_RIGID_DYNAMICS_WORLD = 4,
+    //     BT_GPU_DYNAMICS_WORLD = 5,
+    //     BT_SOFT_MULTIBODY_DYNAMICS_WORLD = 6,
+    //     BT_DEFORMABLE_MULTIBODY_DYNAMICS_WORLD = 7
+    // };
+    // https://github.com/libgdx/libgdx/blob/024282e47e9b5d8ec25373d3e1e5ddfe55122596/extensions/gdx-bullet/jni/src/bullet/BulletDynamics/Dynamics/btDynamicsWorld.h#L31
+    // enum btDynamicsWorldType
+    // {
+    //     BT_SIMPLE_DYNAMICS_WORLD=1,
+    //     BT_DISCRETE_DYNAMICS_WORLD=2,
+    //     BT_CONTINUOUS_DYNAMICS_WORLD=3,
+    //     BT_SOFT_RIGID_DYNAMICS_WORLD=4,
+    //     BT_GPU_DYNAMICS_WORLD=5,
+    //     BT_SOFT_MULTIBODY_DYNAMICS_WORLD=6
+    // };
+    public enum btDynamicsWorldTypesEnum {
+        BT_SIMPLE_DYNAMICS_WORLD(1),
+        BT_DISCRETE_DYNAMICS_WORLD(2),
+        BT_CONTINUOUS_DYNAMICS_WORLD(3),
+        BT_SOFT_RIGID_DYNAMICS_WORLD(4),
+        BT_GPU_DYNAMICS_WORLD(5),
+        BT_SOFT_MULTIBODY_DYNAMICS_WORLD(6);
+
+        int type;
+        btDynamicsWorldTypesEnum(int type) { this.type = type; }
+
+        public static btDynamicsWorldTypesEnum findByType(int type) {
+            for (btDynamicsWorldTypesEnum dw: btDynamicsWorldTypesEnum.values()) {
+                if (dw.type == type) { return dw; }
+            }
+            Gdx.app.error("bullet", "ERROR: undefined dynamics world type " + type);
+            return null;
+        }
+
+        @Override
+        public String toString() { return this.name().replace("BT_", "").replace("_", " "); }
+    }
 
     // CONSTRAINT SOLVERS:
     // https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part2/
@@ -302,6 +340,12 @@ public class HGEngine implements Disposable {
     // Before we can start the actual collision detection we need a few helper classes.
     public btCollisionConfiguration collisionConfig;
     public btDispatcher dispatcher;
+
+    // IMPORTANT: see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/
+    // Because it’s not possible in Java to use global callback methods, the wrapper adds the ContactListener class
+    // to take care of that. This is also the reason that we don’t have to inform bullet to use our ContactListener,
+    // the wrapper takes care of that when you construct the ContactListener.
+    public ContactListener contactListener;
 
     // Map generation related:
     // taking size + 1 to have the actual [SIZE x SIZE] cells grid

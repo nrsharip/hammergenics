@@ -324,6 +324,7 @@ public class ModelEditScreen extends ScreenAdapter {
             renderStringBuilder.append("FPS: ").append(fps);
             renderStringBuilder.append(" TP: ").append(visibleTerrainParts);
             renderStringBuilder.append(" E: ").append(visibleEditables);
+            renderStringBuilder.append(" DW.NC: ").append(eng.dynamicsWorld.getNumConstraints());
             stage.fpsLabel.setText(renderStringBuilder);
 
             // check if there're changes made in the root directory
