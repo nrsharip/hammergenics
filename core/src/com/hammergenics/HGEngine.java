@@ -77,14 +77,14 @@ import com.hammergenics.map.HGGrid;
 import com.hammergenics.map.HGGrid.NoiseStageInfo;
 import com.hammergenics.map.TerrainChunk;
 import com.hammergenics.map.TerrainPartsEnum;
-import com.hammergenics.screens.graphics.g3d.EditableModelInstance;
-import com.hammergenics.screens.graphics.g3d.HGModel;
-import com.hammergenics.screens.graphics.g3d.HGModelInstance;
-import com.hammergenics.screens.graphics.g3d.PhysicalModelInstance;
-import com.hammergenics.screens.graphics.g3d.PhysicalModelInstance.ShapesEnum;
-import com.hammergenics.screens.graphics.g3d.saver.G3dModelSaver;
-import com.hammergenics.screens.physics.bullet.collision.HGContactListener;
-import com.hammergenics.screens.utils.AttributesMap;
+import com.hammergenics.core.graphics.g3d.EditableModelInstance;
+import com.hammergenics.core.graphics.g3d.HGModel;
+import com.hammergenics.core.graphics.g3d.HGModelInstance;
+import com.hammergenics.core.graphics.g3d.PhysicalModelInstance;
+import com.hammergenics.core.graphics.g3d.PhysicalModelInstance.ShapesEnum;
+import com.hammergenics.core.graphics.g3d.saver.G3dModelSaver;
+import com.hammergenics.physics.bullet.collision.HGContactListener;
+import com.hammergenics.core.utils.AttributesMap;
 import com.hammergenics.utils.HGUtils;
 
 import java.io.FileFilter;
@@ -100,10 +100,10 @@ import static com.hammergenics.HGEngine.btConstraintSolversEnum.BT_SEQUENTIAL_IM
 import static com.hammergenics.HGEngine.btMLCPSolversEnum.BT_DANTZIG;
 import static com.hammergenics.HGEngine.btMLCPSolversEnum.BT_GAUSS_SEIDEL;
 import static com.hammergenics.HGEngine.btMLCPSolversEnum.BT_LEMKE;
-import static com.hammergenics.screens.graphics.g3d.utils.Models.createGridModel;
-import static com.hammergenics.screens.graphics.g3d.utils.Models.createLightsModel;
-import static com.hammergenics.screens.graphics.g3d.utils.Models.createTestBox;
-import static com.hammergenics.screens.graphics.g3d.utils.Models.createTestSphere;
+import static com.hammergenics.core.graphics.g3d.utils.Models.createGridModel;
+import static com.hammergenics.core.graphics.g3d.utils.Models.createLightsModel;
+import static com.hammergenics.core.graphics.g3d.utils.Models.createTestBox;
+import static com.hammergenics.core.graphics.g3d.utils.Models.createTestSphere;
 
 /**
  * Add description here

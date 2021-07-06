@@ -47,7 +47,7 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.hammergenics.config.Conventions;
-import com.hammergenics.screens.graphics.g3d.HGModelInstance;
+import com.hammergenics.core.graphics.g3d.HGModelInstance;
 
 import java.io.FileFilter;
 import java.lang.reflect.Field;

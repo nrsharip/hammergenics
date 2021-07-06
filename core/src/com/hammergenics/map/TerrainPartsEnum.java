@@ -24,8 +24,8 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.utils.Sort;
-import com.hammergenics.screens.graphics.g3d.HGModel;
-import com.hammergenics.screens.graphics.g3d.HGModelInstance;
+import com.hammergenics.core.graphics.g3d.HGModel;
+import com.hammergenics.core.graphics.g3d.HGModelInstance;
 
 import java.util.Arrays;
 import java.util.Comparator;

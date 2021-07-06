@@ -25,10 +25,10 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.utils.Sort;
-import com.hammergenics.screens.graphics.g3d.HGModel;
-import com.hammergenics.screens.graphics.g3d.HGModelInstance;
-import com.hammergenics.screens.graphics.g3d.PhysicalModelInstance;
-import com.hammergenics.screens.graphics.g3d.PhysicalModelInstance.ShapesEnum;
+import com.hammergenics.core.graphics.g3d.HGModel;
+import com.hammergenics.core.graphics.g3d.HGModelInstance;
+import com.hammergenics.core.graphics.g3d.PhysicalModelInstance;
+import com.hammergenics.core.graphics.g3d.PhysicalModelInstance.ShapesEnum;
 
 import java.math.BigDecimal;
 import java.util.Comparator;
@@ -38,7 +38,7 @@ import static com.hammergenics.map.TerrainPartsEnum.TRRN_CORN_INN;
 import static com.hammergenics.map.TerrainPartsEnum.TRRN_CORN_OUT;
 import static com.hammergenics.map.TerrainPartsEnum.TRRN_FLAT;
 import static com.hammergenics.map.TerrainPartsEnum.TRRN_SIDE;
-import static com.hammergenics.screens.graphics.g3d.utils.Models.createGridModel;
+import static com.hammergenics.core.graphics.g3d.utils.Models.createGridModel;
 import static java.math.BigDecimal.ROUND_HALF_UP;
 
 /**
