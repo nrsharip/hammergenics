@@ -51,6 +51,11 @@ import com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable;
 import com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable.EventType;
 import com.hammergenics.utils.HGUtils;
 import com.kotcrab.vis.ui.VisUI;
+import com.kotcrab.vis.ui.util.dialog.Dialogs;
+import com.kotcrab.vis.ui.widget.Menu;
+import com.kotcrab.vis.ui.widget.MenuBar;
+import com.kotcrab.vis.ui.widget.MenuItem;
+import com.kotcrab.vis.ui.widget.PopupMenu;
 import com.kotcrab.vis.ui.widget.VisCheckBox;
 import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisSelectBox;
@@ -80,6 +85,7 @@ public class ModelEditStage extends Stage {
 
     // 2D Stage Layout:
     public VisTable rootTable;
+    public MenuBar menuBar;
     public Cell<?> infoTCell = null;
     public Cell<?> infoBCell = null;
     public Cell<?> editCell = null;
@@ -131,6 +137,7 @@ public class ModelEditStage extends Stage {
         this.modelES = modelES;
 
         initColorPicker();
+        initMenuBar();
 
         setup2DStageWidgets();
         setup2DStageLayout();
@@ -173,7 +180,7 @@ public class ModelEditStage extends Stage {
             actor = colorPicker.getPicker().getCells().first().getActor();
             if (actor instanceof VisTable) {
                 table = (VisTable) actor;
-                Gdx.app.debug("picker", "" + " r: " + table.getRows() + " c: " + table.getColumns() + " table:\n" + table);
+                //Gdx.app.debug("picker", "" + " r: " + table.getRows() + " c: " + table.getColumns() + " table:\n" + table);
                 for (Cell<?> cell1: table.getCells()) {
                     if (cell1.getActor() instanceof VisTable) {
                         for (Cell<?> cell2: ((VisTable)cell1.getActor()).getCells()) {
@@ -192,7 +199,7 @@ public class ModelEditStage extends Stage {
             actor = colorPicker.getPicker().getCells().peek().getActor();
             if (actor instanceof VisTable) {
                 table = (VisTable) actor;
-                Gdx.app.debug("picker", "" + " r: " + table.getRows() + " c: " + table.getColumns() + " table:\n" + table);
+                //Gdx.app.debug("picker", "" + " r: " + table.getRows() + " c: " + table.getColumns() + " table:\n" + table);
                 for (Cell<?> cell1: table.getCells()) {
                     if (cell1.getActor() instanceof VisTable) {
                         for (Cell<?> cell2: ((VisTable)cell1.getActor()).getCells()) {
@@ -204,6 +211,77 @@ public class ModelEditStage extends Stage {
                 }
             }
         }
+    }
+
+    // see: https://github.com/kotcrab/vis-ui/blob/master/ui/src/test/java/com/kotcrab/vis/ui/test/manual/TestLauncher.java
+    public void initMenuBar() {
+        menuBar = new MenuBar();
+        menuBar.setMenuListener(new MenuBar.MenuBarListener() {
+            @Override public void menuOpened (Menu menu) { }
+            @Override public void menuClosed (Menu menu) { }
+        });
+
+        Menu fileMenu = new Menu("File");
+        Menu editMenu = new Menu("Edit");
+        //Menu windowMenu = new Menu("Window");
+        Menu helpMenu = new Menu("Help");
+
+        MenuItem newMenuItem = new MenuItem("New").setShortcut("Ctrl + N");
+        MenuItem openMenuItem = new MenuItem("Open").setShortcut("Ctrl + O");
+        MenuItem addToProjectMenuItem = new MenuItem("Add to Project");
+        PopupMenu addToProjectPopupMenu = new PopupMenu();
+        addToProjectPopupMenu.addItem(new MenuItem("Folder", new ChangeListener() {
+            @Override public void changed (ChangeEvent event, Actor actor) {}
+        }));
+        addToProjectPopupMenu.addItem(new MenuItem("File", new ChangeListener() {
+            @Override public void changed (ChangeEvent event, Actor actor) {}
+        }));
+        addToProjectMenuItem.setSubMenu(addToProjectPopupMenu);
+
+        MenuItem saveMenuItem = new MenuItem("Save").setShortcut("Ctrl + S");
+        saveMenuItem.setDisabled(true);
+        MenuItem settingsMenuItem = new MenuItem("Settings...").setShortcut("Ctrl + Alt + S");
+        MenuItem exitMenuItem = new MenuItem("Exit").setShortcut("Alt + F4");
+
+        fileMenu.addItem(newMenuItem);
+        fileMenu.addItem(openMenuItem);
+        fileMenu.addItem(addToProjectMenuItem);
+        fileMenu.addSeparator();
+        fileMenu.addItem(saveMenuItem);
+        fileMenu.addSeparator();
+        fileMenu.addItem(settingsMenuItem);
+        fileMenu.addSeparator();
+        fileMenu.addItem(exitMenuItem);
+
+        MenuItem undoMenuItem = new MenuItem("Undo").setShortcut("Ctrl + Z");
+        MenuItem redoMenuItem = new MenuItem("Redo").setShortcut("Ctrl + Shift + Z");
+        MenuItem cutMenuItem = new MenuItem("Cut").setShortcut("Ctrl + X");
+        MenuItem copyMenuItem = new MenuItem("Copy").setShortcut("Ctrl + C");
+        MenuItem pasteMenuItem = new MenuItem("Paste").setShortcut("Ctrl + V");
+        MenuItem deleteMenuItem = new MenuItem("Delete").setShortcut("Delete");
+        MenuItem deleteAllMenuItem = new MenuItem("Delete All").setShortcut("Shift + Delete");
+
+        editMenu.addItem(undoMenuItem);
+        editMenu.addItem(redoMenuItem);
+        editMenu.addSeparator();
+        editMenu.addItem(cutMenuItem);
+        editMenu.addItem(copyMenuItem);
+        editMenu.addItem(pasteMenuItem);
+        editMenu.addItem(deleteMenuItem);
+        editMenu.addItem(deleteAllMenuItem);
+
+        final Stage stage = this;
+        helpMenu.addItem(new MenuItem("about", new ChangeListener() {
+            @Override
+            public void changed (ChangeEvent event, Actor actor) {
+                Dialogs.showOKDialog(stage, "about", "Project Info\nRelease Info\nBuild Info\nCopyright notice");
+            }
+        }));
+
+        menuBar.addMenu(fileMenu);
+        menuBar.addMenu(editMenu);
+        //menuBar.addMenu(windowMenu);
+        menuBar.addMenu(helpMenu);
     }
 
     /**
@@ -612,6 +690,8 @@ public class ModelEditStage extends Stage {
         // https://github.com/libgdx/libgdx/wiki/Table#debugging
         rootTable.setDebug(false);
 
+        rootTable.add(menuBar.getTable()).colspan(3).expandX().fillX().row();
+
         // https://github.com/libgdx/libgdx/wiki/Table#adding-cells
         VisTable upperPanel = new VisTable();
         upperPanel.add(new VisLabel("Folder: ")).right();
@@ -628,15 +708,15 @@ public class ModelEditStage extends Stage {
         rootTable.row();
 
         VisTable leftPanel = new VisTable();
-        leftPanel.add(attrTextButton).fillX();
+        leftPanel.add(attrTextButton).pad(1f).padLeft(0f).fillX();
         leftPanel.row();
-        leftPanel.add(animTextButton).fillX();
+        leftPanel.add(animTextButton).pad(1f).padLeft(0f).fillX();
         leftPanel.row();
-        leftPanel.add(mapTextButton).fillX();
+        leftPanel.add(mapTextButton).pad(1f).padLeft(0f).fillX();
         leftPanel.row();
-        leftPanel.add(physTextButton).fillX();
+        leftPanel.add(physTextButton).pad(1f).padLeft(0f).fillX();
         leftPanel.row();
-        leftPanel.add(aiTextButton).fillX();
+        leftPanel.add(aiTextButton).pad(1f).padLeft(0f).fillX();
         leftPanel.row();
 
         rootTable.add(leftPanel).padTop(10f).top().left();
