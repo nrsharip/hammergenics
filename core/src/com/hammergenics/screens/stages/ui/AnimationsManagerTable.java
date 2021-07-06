@@ -368,4 +368,8 @@ public class AnimationsManagerTable extends VisTable {
         stage.infoTCell.setActor(animInfoLabel);
         stage.editCell.setActor(this);
     }
+
+    public void applyLocale() {
+
+    }
 }

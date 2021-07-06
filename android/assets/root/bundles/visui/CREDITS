@@ -1,0 +1,19 @@
+The following files in this folder are part of VisUI package:
+ButtonBar.properties
+ColorPicker.properties
+Common.properties
+Dialogs.properties
+FileChooser.properties
+TabbedPane.properties
+
+link: https://github.com/kotcrab/vis-ui
+authors: https://github.com/kotcrab/vis-ui/blob/master/AUTHORS
+license: https://github.com/kotcrab/vis-ui/blob/master/LICENSE
+
+CHANGES made:
+1. Localized the base files for Russian language, the following files are added:
+ButtonBar_ru.properties
+ColorPicker_ru.properties
+Common_ru.properties
+Dialogs_ru.properties
+TabbedPane_ru.properties

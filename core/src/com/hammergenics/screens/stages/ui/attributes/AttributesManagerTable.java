@@ -80,4 +80,8 @@ public class AttributesManagerTable extends VisTable {
         plAttrTable.setListener(listener);
         slAttrTable.setListener(listener);
     }
+
+    public void applyLocale() {
+
+    }
 }

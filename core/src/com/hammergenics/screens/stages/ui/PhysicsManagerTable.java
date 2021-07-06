@@ -271,4 +271,8 @@ public class PhysicsManagerTable extends VisTable {
 
         stage.editCell.setActor(this);
     }
+
+    public void applyLocale() {
+
+    }
 }

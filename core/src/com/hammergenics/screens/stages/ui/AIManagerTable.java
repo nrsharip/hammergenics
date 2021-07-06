@@ -162,4 +162,8 @@ public class AIManagerTable extends VisTable {
 
         stage.editCell.setActor(this);
     }
+
+    public void applyLocale() {
+
+    }
 }

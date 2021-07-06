@@ -485,4 +485,8 @@ public class MapGenerationTable extends VisTable {
         stage.infoBCell.setActor(stage.textureImage);
         stage.editCell.setActor(this);
     }
+
+    public void applyLocale() {
+
+    }
 }

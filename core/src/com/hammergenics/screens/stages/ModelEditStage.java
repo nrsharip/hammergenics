@@ -31,6 +31,7 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Cell;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Align;
@@ -39,6 +40,7 @@ import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.hammergenics.HGGame;
+import com.hammergenics.HGGame.I18NBundlesEnum;
 import com.hammergenics.screens.ModelEditScreen;
 import com.hammergenics.screens.graphics.g3d.HGModel;
 import com.hammergenics.screens.stages.ui.AIManagerTable;
@@ -51,6 +53,7 @@ import com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable;
 import com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable.EventType;
 import com.hammergenics.utils.HGUtils;
 import com.kotcrab.vis.ui.VisUI;
+import com.kotcrab.vis.ui.i18n.BundleText;
 import com.kotcrab.vis.ui.util.dialog.Dialogs;
 import com.kotcrab.vis.ui.widget.Menu;
 import com.kotcrab.vis.ui.widget.MenuBar;
@@ -63,6 +66,14 @@ import com.kotcrab.vis.ui.widget.VisTable;
 import com.kotcrab.vis.ui.widget.VisTextButton;
 import com.kotcrab.vis.ui.widget.color.ColorPicker;
 
+import static com.hammergenics.screens.stages.ModelEditStage.TextButtonsTextEnum.AI;
+import static com.hammergenics.screens.stages.ModelEditStage.TextButtonsTextEnum.ANIMATIONS;
+import static com.hammergenics.screens.stages.ModelEditStage.TextButtonsTextEnum.ATTRIBUTES;
+import static com.hammergenics.screens.stages.ModelEditStage.TextButtonsTextEnum.CLEAR_MODELS;
+import static com.hammergenics.screens.stages.ModelEditStage.TextButtonsTextEnum.DELETE_CURRENT_MODEL;
+import static com.hammergenics.screens.stages.ModelEditStage.TextButtonsTextEnum.MAP;
+import static com.hammergenics.screens.stages.ModelEditStage.TextButtonsTextEnum.PHYSICS;
+import static com.hammergenics.screens.stages.ModelEditStage.TextButtonsTextEnum.SAVE_CURRENT_MODEL;
 import static com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable.EventType.ATTR_CHANGED;
 import static com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable.EventType.ATTR_DISABLED;
 import static com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable.EventType.ATTR_ENABLED;
@@ -136,11 +147,20 @@ public class ModelEditStage extends Stage {
         this.game = game;
         this.modelES = modelES;
 
+        lStyleFontWhite.fontColor = Color.WHITE.cpy();
+
         initColorPicker();
         initMenuBar();
 
         setup2DStageWidgets();
         setup2DStageLayout();
+
+        if (I18NBundlesEnum.applied != null) {
+            applyLocale(I18NBundlesEnum.applied);
+        } else {
+            Gdx.app.error(getClass().getSimpleName(), "ERROR: locales are not configured");
+            Gdx.app.exit();
+        }
 
         aggrAttrTable = new AggregatedAttributesManagerTable(modelES, this);
         animationsManagerTable = new AnimationsManagerTable(modelES, this);
@@ -160,12 +180,13 @@ public class ModelEditStage extends Stage {
     }
 
     public void initColorPicker() {
-        lStyleFontWhite.fontColor = Color.WHITE.cpy();
+        if (colorPicker != null) { colorPicker.dispose(); }
+
         // see: https://github.com/kotcrab/vis-ui/wiki/Color-Picker
         // Color picker is a heavy widget and should be reused whenever possible, picker unlike other
         // VisUI widgets must be disposed (by calling picker.dispose()) when no longer needed.
         //picker creation
-        colorPicker = new ColorPicker("Color Picker");
+        colorPicker = new ColorPicker();
 
         // making label font color white
         if (colorPicker.getPicker().getCells().size == 2) {
@@ -260,6 +281,7 @@ public class ModelEditStage extends Stage {
         MenuItem pasteMenuItem = new MenuItem("Paste").setShortcut("Ctrl + V");
         MenuItem deleteMenuItem = new MenuItem("Delete").setShortcut("Delete");
         MenuItem deleteAllMenuItem = new MenuItem("Delete All").setShortcut("Shift + Delete");
+        MenuItem selectAllMenuItem = new MenuItem("Select All").setShortcut("Ctrl + A");
 
         editMenu.addItem(undoMenuItem);
         editMenu.addItem(redoMenuItem);
@@ -269,6 +291,8 @@ public class ModelEditStage extends Stage {
         editMenu.addItem(pasteMenuItem);
         editMenu.addItem(deleteMenuItem);
         editMenu.addItem(deleteAllMenuItem);
+        editMenu.addSeparator();
+        editMenu.addItem(selectAllMenuItem);
 
         final Stage stage = this;
         helpMenu.addItem(new MenuItem("about", new ChangeListener() {
@@ -282,6 +306,72 @@ public class ModelEditStage extends Stage {
         menuBar.addMenu(editMenu);
         //menuBar.addMenu(windowMenu);
         menuBar.addMenu(helpMenu);
+
+        VisSelectBox<I18NBundlesEnum> languages = new VisSelectBox<I18NBundlesEnum>();
+        languages.setItems(I18NBundlesEnum.values());
+        if (I18NBundlesEnum.applied != null) {
+            languages.setSelected(I18NBundlesEnum.applied);
+        }
+        languages.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                languages.getSelected().apply(modelES.eng.assetManager);
+                // see https://github.com/kotcrab/vis-ui/wiki/VisUI-I18N
+                // Changing bundle will not affect already exiting dialogs and widgets.
+                applyLocale(languages.getSelected());
+            }
+        });
+
+        menuBar.getTable().add(languages).expandX().right();
+    }
+
+    public void applyLocale(I18NBundlesEnum language) {
+        initColorPicker();
+
+        if (envAttrTable != null) { envAttrTable.applyLocale(); }
+        if (aggrAttrTable != null) { aggrAttrTable.applyLocale(); }
+        if (animationsManagerTable != null) { animationsManagerTable.applyLocale(); }
+        if (mapGenerationTable != null) { mapGenerationTable.applyLocale(); }
+        if (aiManagerTable != null) { aiManagerTable.applyLocale(); }
+        if (physManagerTable != null) { physManagerTable.applyLocale(); }
+
+        TextButtonsTextEnum.setLanguage(language);
+    }
+
+    public enum TextButtonsTextEnum implements BundleText {
+        ATTRIBUTES("textButton.attributes"),
+        ANIMATIONS("textButton.animations"),
+        MAP("textButton.map"),
+        AI("textButton.ai"),
+        PHYSICS("textButton.physics"),
+        CLEAR_MODELS("textButton.clearAll"),
+        DELETE_CURRENT_MODEL("textButton.deleteCurrentModel"),
+        SAVE_CURRENT_MODEL("textButton.saveCurrentModel");
+
+        private final String property;
+        private TextButton instance = null;
+        private static I18NBundlesEnum language;
+
+        TextButtonsTextEnum(String property) { this.property = property; }
+
+        public static void setLanguage(I18NBundlesEnum lang) {
+            language = lang;
+
+            for (TextButtonsTextEnum tb: TextButtonsTextEnum.values()) {
+                if (tb.instance != null) { tb.instance.setText(tb.get()); }
+            }
+        }
+
+        public TextButton seize(TextButton btn) {
+            this.instance = btn;
+            btn.setText(get());
+            return btn;
+        }
+
+        @Override public String getName() { return property; }
+        @Override public String get() { return language != null ? language.modelEditStageBundle.get(property) : "ERR"; }
+        @Override public String format() { return language != null ? language.modelEditStageBundle.format(property) : "ERR"; }
+        @Override public String format(Object... arguments) { return language != null ? language.modelEditStageBundle.format(property, arguments) : "ERR"; }
     }
 
     /**
@@ -418,7 +508,7 @@ public class ModelEditStage extends Stage {
 
         // TEXT BUTTONS:
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textbutton
-        attrTextButton = new VisTextButton("ATTR");
+        attrTextButton = (VisTextButton)ATTRIBUTES.seize(new VisTextButton("ATTR"));
         unpressButton(attrTextButton);
         attrTextButton.addListener(new InputListener() {
             @Override
@@ -438,7 +528,7 @@ public class ModelEditStage extends Stage {
             }
         });
 
-        animTextButton = new VisTextButton("ANIM");
+        animTextButton = (VisTextButton)ANIMATIONS.seize(new VisTextButton("ANIM"));
         unpressButton(animTextButton);
         animTextButton.addListener(new InputListener() {
             @Override
@@ -458,7 +548,7 @@ public class ModelEditStage extends Stage {
             }
         });
 
-        mapTextButton = new VisTextButton("MAP");
+        mapTextButton = (VisTextButton)MAP.seize(new VisTextButton("MAP"));
         unpressButton(mapTextButton);
         mapTextButton.addListener(new InputListener() {
             @Override
@@ -478,7 +568,7 @@ public class ModelEditStage extends Stage {
             }
         });
 
-        aiTextButton = new VisTextButton("AI");
+        aiTextButton = (VisTextButton)AI.seize(new VisTextButton("AI"));
         unpressButton(aiTextButton);
         aiTextButton.addListener(new InputListener() {
             @Override
@@ -498,7 +588,7 @@ public class ModelEditStage extends Stage {
             }
         });
 
-        physTextButton = new VisTextButton("PHYS");
+        physTextButton = (VisTextButton)PHYSICS.seize(new VisTextButton("PHYS"));
         unpressButton(physTextButton);
         physTextButton.addListener(new InputListener() {
             @Override
@@ -518,7 +608,7 @@ public class ModelEditStage extends Stage {
             }
         });
 
-        clearModelsTextButton = new VisTextButton("clear all");
+        clearModelsTextButton = (VisTextButton)CLEAR_MODELS.seize(new VisTextButton("clear all"));
         unpressButton(clearModelsTextButton);
         clearModelsTextButton.addListener(new InputListener() {
             @Override
@@ -529,7 +619,7 @@ public class ModelEditStage extends Stage {
             }
         });
 
-        deleteCurrModelTextButton = new VisTextButton("delete");
+        deleteCurrModelTextButton = (VisTextButton)DELETE_CURRENT_MODEL.seize(new VisTextButton("delete"));
         unpressButton(deleteCurrModelTextButton);
         deleteCurrModelTextButton.addListener(new InputListener() {
             @Override
@@ -542,7 +632,7 @@ public class ModelEditStage extends Stage {
             }
         });
 
-        saveCurrModelTextButton = new VisTextButton("save");
+        saveCurrModelTextButton = (VisTextButton)SAVE_CURRENT_MODEL.seize(new VisTextButton("save"));
         unpressButton(saveCurrModelTextButton);
         saveCurrModelTextButton.addListener(new InputListener() {
             @Override

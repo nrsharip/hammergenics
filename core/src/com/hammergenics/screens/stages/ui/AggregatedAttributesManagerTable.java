@@ -150,4 +150,8 @@ public class AggregatedAttributesManagerTable extends VisTable {
 
         stage.editCell.setActor(this);
     }
+
+    public void applyLocale() {
+
+    }
 }
