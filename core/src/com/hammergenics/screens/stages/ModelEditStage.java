@@ -30,6 +30,7 @@ import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Cell;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Align;
@@ -55,6 +56,7 @@ import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisSelectBox;
 import com.kotcrab.vis.ui.widget.VisTable;
 import com.kotcrab.vis.ui.widget.VisTextButton;
+import com.kotcrab.vis.ui.widget.color.ColorPicker;
 
 import static com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable.EventType.ATTR_CHANGED;
 import static com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable.EventType.ATTR_DISABLED;
@@ -71,6 +73,7 @@ public class ModelEditStage extends Stage {
     // X2("com/kotcrab/vis/ui/skin/x2/uiskin.json", "x2");
     public final TextButtonStyle tbStyleDefault = VisUI.getSkin().get("default", TextButtonStyle.class);
     public final TextButtonStyle tbStyleBlue = VisUI.getSkin().get("blue", TextButtonStyle.class);
+    public final LabelStyle lStyleFontWhite = new LabelStyle(VisUI.getSkin().get("default", LabelStyle.class));
 
     public final HGGame game;
     public final ModelEditScreen modelES;
@@ -89,6 +92,8 @@ public class ModelEditStage extends Stage {
     public PhysicsManagerTable physManagerTable;
 
     // 2D Stage Widgets:
+    public ColorPicker colorPicker;
+
     public VisLabel miLabel;  // Model Instance Info
     public VisLabel envLabel; // Environment Info
     public VisLabel fpsLabel; // FPS Info
@@ -125,6 +130,8 @@ public class ModelEditStage extends Stage {
         this.game = game;
         this.modelES = modelES;
 
+        initColorPicker();
+
         setup2DStageWidgets();
         setup2DStageLayout();
 
@@ -133,6 +140,70 @@ public class ModelEditStage extends Stage {
         mapGenerationTable = new MapGenerationTable(modelES, this);
         aiManagerTable = new AIManagerTable(modelES, this);
         physManagerTable = new PhysicsManagerTable(modelES, this);
+    }
+
+    @Override
+    public void dispose() {
+        // see: https://github.com/kotcrab/vis-ui/wiki/Color-Picker
+        // Color picker is a heavy widget and should be reused whenever possible, picker unlike other
+        // VisUI widgets must be disposed (by calling picker.dispose()) when no longer needed.
+        //picker creation
+        colorPicker.dispose();
+        super.dispose();
+    }
+
+    public void initColorPicker() {
+        lStyleFontWhite.fontColor = Color.WHITE.cpy();
+        // see: https://github.com/kotcrab/vis-ui/wiki/Color-Picker
+        // Color picker is a heavy widget and should be reused whenever possible, picker unlike other
+        // VisUI widgets must be disposed (by calling picker.dispose()) when no longer needed.
+        //picker creation
+        colorPicker = new ColorPicker("Color Picker");
+
+        // making label font color white
+        if (colorPicker.getPicker().getCells().size == 2) {
+            // should only be two actors - VisTable mainTable, extendedTable
+            Actor actor;
+            VisTable table;
+            VisLabel label;
+            // 1.
+            // see ColorPicker.picker -> ExtendedColorPicker.createUI -> BasicColorPicker.createUI -> BasicColorPicker.createHexTable()
+            // see ColorPicker.picker -> ExtendedColorPicker.createUI -> BasicColorPicker.createUI -> rebuildMainTable()
+            // see ColorPicker.picker -> ExtendedColorPicker.createUI -> BasicColorPicker.createUI -> add(mainTable)
+            actor = colorPicker.getPicker().getCells().first().getActor();
+            if (actor instanceof VisTable) {
+                table = (VisTable) actor;
+                Gdx.app.debug("picker", "" + " r: " + table.getRows() + " c: " + table.getColumns() + " table:\n" + table);
+                for (Cell<?> cell1: table.getCells()) {
+                    if (cell1.getActor() instanceof VisTable) {
+                        for (Cell<?> cell2: ((VisTable)cell1.getActor()).getCells()) {
+                            if (cell2.getActor() instanceof VisLabel) {
+                                ((VisLabel)cell2.getActor()).setStyle(lStyleFontWhite);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 2.
+            // see ColorPicker.picker -> ExtendedColorPicker.createUI -> add(extendedTable)
+            // Cell Indices: hBar:0, sBar: 1, vBar: 2, rBar: 4, gBar: 5, bBar: 6, aBar: 8
+            // see ColorChannelWidget::new - add(new VisLabel(label)) - Label index is 0
+            actor = colorPicker.getPicker().getCells().peek().getActor();
+            if (actor instanceof VisTable) {
+                table = (VisTable) actor;
+                Gdx.app.debug("picker", "" + " r: " + table.getRows() + " c: " + table.getColumns() + " table:\n" + table);
+                for (Cell<?> cell1: table.getCells()) {
+                    if (cell1.getActor() instanceof VisTable) {
+                        for (Cell<?> cell2: ((VisTable)cell1.getActor()).getCells()) {
+                            if (cell2.getActor() instanceof VisLabel) {
+                                ((VisLabel)cell2.getActor()).setStyle(lStyleFontWhite);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**

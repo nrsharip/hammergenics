@@ -24,8 +24,11 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.hammergenics.screens.ModelEditScreen;
 import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisSelectBox;
+import com.kotcrab.vis.ui.widget.VisTextButton;
 import com.kotcrab.vis.ui.widget.VisTextField;
+import com.kotcrab.vis.ui.widget.color.ColorPickerListener;
 
+import static com.hammergenics.utils.HGUtils.color_c2s;
 import static com.hammergenics.utils.HGUtils.color_s2c;
 
 /**
@@ -45,11 +48,13 @@ public class ColorAttributeTable extends AttributeTable<ColorAttribute> {
     private VisTextField bTF = null;
     private VisTextField aTF = null;
     private VisSelectBox<String> colorSB = null;
+    private VisTextButton selectColorTB = null;
 
     private VisTextField.TextFieldListener paramTextFieldListener;
     private ChangeListener colorSelectBoxListener;
+    private ColorPickerListener colorPickerListener;
 
-    private Color color = new Color().set(Color.GRAY);
+    private Color color = new Color(Color.GRAY);
 
     public ColorAttributeTable(Attributes container, ModelEditScreen modelES) {
         super(container, modelES, ColorAttribute.class);
@@ -73,7 +78,12 @@ public class ColorAttributeTable extends AttributeTable<ColorAttribute> {
         colorSB = new VisSelectBox<>();
         colorSB.clearItems();
         if (color_s2c != null && color_s2c.size > 0) {
-            colorSB.setItems(color_s2c.keys().toArray());
+            String array1[] = color_s2c.keys().toArray().toArray();
+            String array2[] = new String[array1.length + 1];
+            System.arraycopy(array1, 0, array2, 1, array1.length);
+            array2[0] = "custom";
+
+            colorSB.setItems(array2);
         }
         //[switchModelInstance] before clear
         //[textureSelectBox.changed] -1
@@ -84,17 +94,29 @@ public class ColorAttributeTable extends AttributeTable<ColorAttribute> {
         //[switchModelInstance] after set
         colorSB.addListener(colorSelectBoxListener);
 
+        selectColorTB = new VisTextButton("select");
+        selectColorTB.addListener(new ChangeListener() {
+            @Override
+            public void changed (ChangeEvent event, Actor actor) {
+                modelES.stage.colorPicker.getPicker().setColor(color);
+                modelES.stage.colorPicker.setListener(colorPickerListener);
+                //displaying picker with fade in animation
+                getStage().addActor(modelES.stage.colorPicker.fadeIn());
+            }
+        });
+
         add(enabledCheckBox).expandX().left().padLeft(5f).padRight(5f);
         add(new VisLabel("r:")).right();
-        add(rTF).width(40).maxWidth(40);
+        add(rTF).pad(1f).width(40).maxWidth(40);
         add(new VisLabel("g:")).right();
-        add(gTF).width(40).maxWidth(40);
+        add(gTF).pad(1f).width(40).maxWidth(40);
         add(new VisLabel("b:")).right();
-        add(bTF).width(40).maxWidth(40);
+        add(bTF).pad(1f).width(40).maxWidth(40);
         add(new VisLabel("a:")).right();
-        add(aTF).width(40).maxWidth(40);
+        add(aTF).pad(1f).width(40).maxWidth(40);
         add(new VisLabel("color:")).right();
-        add(colorSB).fillX();
+        add(colorSB).pad(1f).fillX();
+        add(selectColorTB).fillX();
         add().expandX();
     }
 
@@ -112,46 +134,48 @@ public class ColorAttributeTable extends AttributeTable<ColorAttribute> {
         return null;
     }
 
+    @Override
+    public void setColor(Color color) {
+        if (container != null && currentType != 0) {
+            ColorAttribute attr = container.get(ColorAttribute.class, currentType);
+            if (attr != null) {
+                attr.color.set(color);
+                if (listener != null) { listener.onAttributeChange(container, currentType, currentTypeAlias); }
+            }
+        }
+        fetchFromColor(color);
+    }
+
     private void createListeners() {
+        colorPickerListener = new ColorPickerListener() {
+            @Override public void canceled(Color oldColor) { setColor(oldColor); }
+            @Override public void changed(Color newColor) { setColor(newColor); }
+            @Override public void reset(Color previousColor, Color newColor) { setColor(newColor); }
+            @Override public void finished(Color newColor) { setColor(newColor); }
+        };
+
         paramTextFieldListener = new VisTextField.TextFieldListener() {
             @Override
             public void keyTyped(VisTextField textField, char c) {
                 try {
                     float value = Float.parseFloat(textField.getText());
 
-                    if (value > 255 || value < 0) {
-                        textField.getColor().set(Color.PINK);
-                        return;
-                    }
+                    if (value > 255 || value < 0) { textField.getColor().set(Color.PINK); return; }
                     value = (value / 255); // since originally we translated from [0:1] to [0:255]
 
 //                    Gdx.app.debug("enabledCheckBox", textField.getName() + " = " + value
 //                            + " type = 0x" + Long.toHexString(currentType) + " alias = " + currentTypeAlias);
 
+                    if (enabledCheckBox != null && !enabledCheckBox.isChecked()) { enabledCheckBox.setChecked(true); }
                     if (container != null && currentType != 0) {
-                        ColorAttribute attr = null;
-                        attr = container.get(ColorAttribute.class, currentType);
-
+                        Color tmp = new Color(color);
                         switch (textField.getName()) {
-                            case ACTOR_R:
-                                if (attr != null) { attr.color.r = value; }
-                                color.r = value;
-                                break;
-                            case ACTOR_G:
-                                if (attr != null) { attr.color.g = value; }
-                                color.g = value;
-                                break;
-                            case ACTOR_B:
-                                if (attr != null) { attr.color.b = value; }
-                                color.b = value;
-                                break;
-                            case ACTOR_A:
-                                if (attr != null) { attr.color.a = value; }
-                                color.a = value;
-                                break;
+                            case ACTOR_R: tmp.r = value; break;
+                            case ACTOR_G: tmp.g = value; break;
+                            case ACTOR_B: tmp.b = value; break;
+                            case ACTOR_A: tmp.a = value; break;
                         }
-
-                        if (attr != null && listener != null) { listener.onAttributeChange(container, currentType, currentTypeAlias); }
+                        setColor(tmp);
                     }
                     textField.getColor().set(Color.WHITE);
                 } catch (NumberFormatException e) {
@@ -164,25 +188,13 @@ public class ColorAttributeTable extends AttributeTable<ColorAttribute> {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 if (container != null && currentType != 0) {
+                    if (colorSB.getSelectedIndex() == 0) { return; }
+
                     color.set(color_s2c.get(colorSB.getSelected()));
 
-                    // This most likely works with ChangeListener not TextFieldListener
-//                    rTF.setProgrammaticChangeEvents(true); // to have the events fired on programmatic setText()
-//                    gTF.setProgrammaticChangeEvents(true); // to have the events fired on programmatic setText()
-//                    bTF.setProgrammaticChangeEvents(true); // to have the events fired on programmatic setText()
-//                    aTF.setProgrammaticChangeEvents(true); // to have the events fired on programmatic setText()
-
                     if (enabledCheckBox != null && !enabledCheckBox.isChecked()) { enabledCheckBox.setChecked(true); }
-                    if (rTF != null) { rTF.setText(String.valueOf((int)(color.r * 255))); } // extending the range from [0:1] to [0:255]
-                    if (gTF != null) { gTF.setText(String.valueOf((int)(color.g * 255))); } // extending the range from [0:1] to [0:255]
-                    if (bTF != null) { bTF.setText(String.valueOf((int)(color.b * 255))); } // extending the range from [0:1] to [0:255]
-                    if (aTF != null) { aTF.setText(String.valueOf((int)(color.a * 255))); } // extending the range from [0:1] to [0:255]
 
-                    ColorAttribute attr = null;
-                    attr = container.get(ColorAttribute.class, currentType);
-                    if (attr != null) { attr.color.set(color); }
-
-                    if (listener != null) { listener.onAttributeChange(container, currentType, currentTypeAlias); }
+                    setColor(color);
                 }
             }
         };
@@ -196,20 +208,27 @@ public class ColorAttributeTable extends AttributeTable<ColorAttribute> {
     @Override
     protected void resetWidgetsToDefaults() {
         if (enabledCheckBox != null) { enabledCheckBox.setChecked(false); }
-        if (rTF != null) { rTF.setText(String.valueOf((int)(Color.GRAY.r * 255))); } // extending the range from [0:1] to [0:255]
-        if (gTF != null) { gTF.setText(String.valueOf((int)(Color.GRAY.g * 255))); } // extending the range from [0:1] to [0:255]
-        if (bTF != null) { bTF.setText(String.valueOf((int)(Color.GRAY.b * 255))); } // extending the range from [0:1] to [0:255]
-        if (aTF != null) { aTF.setText(String.valueOf((int)(Color.GRAY.a * 255))); } // extending the range from [0:1] to [0:255]
+        fetchFromColor(Color.GRAY);
     }
 
     @Override
     protected void fetchWidgetsFromAttribute(ColorAttribute attr) {
-        color.set(attr.color);
         if (enabledCheckBox != null) { enabledCheckBox.setChecked(true); }
-        if (rTF != null) { rTF.setText(String.valueOf((int)(attr.color.r * 255))); } // extending the range from [0:1] to [0:255]
-        if (gTF != null) { gTF.setText(String.valueOf((int)(attr.color.g * 255))); } // extending the range from [0:1] to [0:255]
-        if (bTF != null) { bTF.setText(String.valueOf((int)(attr.color.b * 255))); } // extending the range from [0:1] to [0:255]
-        if (aTF != null) { aTF.setText(String.valueOf((int)(attr.color.a * 255))); } // extending the range from [0:1] to [0:255]
+        fetchFromColor(attr.color);
+    }
+
+    protected void fetchFromColor(Color clr) {
+        color.set(clr);
+        if (rTF != null) { rTF.setText(String.valueOf((int)(clr.r * 255))); } // extending the range from [0:1] to [0:255]
+        if (gTF != null) { gTF.setText(String.valueOf((int)(clr.g * 255))); } // extending the range from [0:1] to [0:255]
+        if (bTF != null) { bTF.setText(String.valueOf((int)(clr.b * 255))); } // extending the range from [0:1] to [0:255]
+        if (aTF != null) { aTF.setText(String.valueOf((int)(clr.a * 255))); } // extending the range from [0:1] to [0:255]
+        if (colorSB != null) {
+            colorSB.getSelection().setProgrammaticChangeEvents(false);
+            String colorName = color_c2s.get(clr);
+            if (colorName != null) { colorSB.setSelected(colorName); } else { colorSB.setSelectedIndex(0); }
+            colorSB.getSelection().setProgrammaticChangeEvents(true);
+        }
     }
 
     @Override

@@ -69,6 +69,7 @@ public class HGUtils {
                                                             // (GL_NONE, GL_ZERO, GL_FALSE, GL_POINTS == 0..)
                                                             // - take special care
     public static final ArrayMap<String, Color> color_s2c;
+    public static final ArrayMap<Color, String> color_c2s;
     public static final Array<Color> aux_colors;
     public static final ArrayMap<String, Integer> btDbgModes;
 
@@ -76,6 +77,7 @@ public class HGUtils {
         gl20_s2i = new ArrayMap<>(String.class, Integer.class);
         gl20_i2s = new ArrayMap<>(Integer.class, String.class);
         color_s2c = new ArrayMap<>(String.class, Color.class);
+        color_c2s = new ArrayMap<>(Color.class, String.class);
         aux_colors = new Array<>(true, 16, Color.class);
         btDbgModes = new ArrayMap<>(true, 16, String.class, Integer.class);
 
@@ -132,6 +134,7 @@ public class HGUtils {
             try {
                 Color color = (Color) field.get(null); // null is allowed for static fields...
                 color_s2c.put(field.getName(), color);
+                color_c2s.put(color, field.getName());
             } catch (IllegalAccessException | IllegalArgumentException | NullPointerException e) {
                 Gdx.app.error(getTag(),
                         "EXCEPTION while reading the field contents of the class: " + Color.class.getName() + "\n" +
