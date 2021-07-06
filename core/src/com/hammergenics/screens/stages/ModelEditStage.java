@@ -30,6 +30,7 @@ import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Cell;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
@@ -48,6 +49,7 @@ import com.hammergenics.screens.stages.ui.attributes.AttributesManagerTable;
 import com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable;
 import com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable.EventType;
 import com.hammergenics.utils.HGUtils;
+import com.kotcrab.vis.ui.VisUI;
 import com.kotcrab.vis.ui.widget.VisCheckBox;
 import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisSelectBox;
@@ -64,9 +66,11 @@ import static com.hammergenics.screens.stages.ui.attributes.BaseAttributeTable.E
  * @author nrsharip
  */
 public class ModelEditStage extends Stage {
-    public static final Color COLOR_DISABLED = Color.GRAY;
-    public static final Color COLOR_PRESSED = Color.RED;
-    public static final Color COLOR_UNPRESSED = Color.LIGHT_GRAY;
+    // see VisUI.SkinScale:
+    // X1("com/kotcrab/vis/ui/skin/x1/uiskin.json", "default")
+    // X2("com/kotcrab/vis/ui/skin/x2/uiskin.json", "x2");
+    public final TextButtonStyle tbStyleDefault = VisUI.getSkin().get("default", TextButtonStyle.class);
+    public final TextButtonStyle tbStyleBlue = VisUI.getSkin().get("blue", TextButtonStyle.class);
 
     public final HGGame game;
     public final ModelEditScreen modelES;
@@ -613,16 +617,12 @@ public class ModelEditStage extends Stage {
         return isPressed(attrTextButton) || isPressed(animTextButton) || isPressed(mapTextButton)
                 || isPressed(aiTextButton) || isPressed(physTextButton);
     }
-    public void unpressButton(VisTextButton btn) { btn.getColor().set(COLOR_UNPRESSED); }
-    public void pressButton(VisTextButton btn) { btn.getColor().set(COLOR_PRESSED); }
-    public void disableButton(VisTextButton btn) {
-        btn.getColor().set(COLOR_DISABLED); btn.getLabel().getColor().set(COLOR_DISABLED);
-    }
-    public void enableButton(VisTextButton btn) {
-        btn.getColor().set(COLOR_UNPRESSED); btn.getLabel().getColor().set(Color.WHITE);
-    }
-    public boolean isPressed(VisTextButton btn) { return btn.getColor().equals(COLOR_PRESSED); }
-    public boolean isDisabled(VisTextButton btn) { return btn.getColor().equals(COLOR_DISABLED); }
+    public void unpressButton(VisTextButton btn) { btn.setStyle(tbStyleDefault); }
+    public void pressButton(VisTextButton btn) { btn.setStyle(tbStyleBlue); }
+    public void disableButton(VisTextButton btn) { btn.setDisabled(true); }
+    public void enableButton(VisTextButton btn) { btn.setDisabled(false); }
+    public boolean isPressed(VisTextButton btn) { return btn.getStyle().equals(tbStyleBlue); }
+    public boolean isDisabled(VisTextButton btn) { return btn.isDisabled(); }
 
     public void reset() {
         textureImage.setDrawable(null);
