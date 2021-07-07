@@ -11,7 +11,6 @@ android {
             assets.srcDirs = ['assets']
             jniLibs.srcDirs = ['libs']
         }
-
     }
     packagingOptions {
         exclude 'META-INF/robovm/ios/robovm.xml'
@@ -41,7 +40,7 @@ android {
 //Execution failed for task ':android:mergeDexDebug'.
 //> Could not resolve all files for configuration ':android:debugRuntimeClasspath'.
 //   > Failed to transform core.jar (project :core) to match attributes {artifactType=android-dex, dexing-enable-desugaring=false, dexing-is-debuggable=true, dexing-min-sdk=16, org.gradle.category=library, org.gradle.dependency.bundling=external, org.gradle.jvm.version=8, org.gradle.libraryelements=jar, org.gradle.usage=java-runtime}.
-//      > Execution failed for DexingNoClasspathTransform: E:\my_files\java\game\git\202105101519\hammergenics\core\build\libs\core-1.0.jar.
+//      > Execution failed for DexingNoClasspathTransform: E:\...\hammergenics\core\build\libs\core-1.0.jar.
 //         > Error while dexing.
 //           The dependency contains Java 8 bytecode. Please enable desugaring by adding the following to build.gradle
     compileOptions {

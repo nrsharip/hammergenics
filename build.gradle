@@ -1,6 +1,4 @@
 buildscript {
-
-
     repositories {
         mavenLocal()
         mavenCentral()
@@ -13,15 +11,17 @@ buildscript {
         classpath 'org.gretty:gretty:3.0.2'
         classpath 'com.android.tools.build:gradle:3.5.4'
         classpath 'com.mobidevelop.robovm:robovm-gradle-plugin:2.3.12'
-
-
     }
 }
 // https://libgdx.com/dev/import-and-running/#command-line
 allprojects {
     apply plugin: "eclipse"
 
+    // https://docs.gradle.org/6.7.1/dsl/org.gradle.api.Project.html#org.gradle.api.Project:version
+    // The version of this project. Gradle always uses the toString() value of the version.
+    // The version defaults to unspecified.
     version = '1.0'
+
     ext {
         appName = "hammergenics"
         gdxVersion = '1.10.0'
@@ -45,7 +45,6 @@ allprojects {
 project(":desktop") {
     apply plugin: "java-library"
 
-
     dependencies {
         implementation project(":core")
         api "com.badlogicgames.gdx:gdx-backend-lwjgl:$gdxVersion"
@@ -55,7 +54,6 @@ project(":desktop") {
         api "com.badlogicgames.gdx:gdx-tools:$gdxVersion"
         api "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-desktop"
         api "com.badlogicgames.gdx:gdx-bullet-platform:$gdxVersion:natives-desktop"
-
     }
 }
 
@@ -90,14 +88,12 @@ project(":android") {
         natives "com.badlogicgames.gdx:gdx-bullet-platform:$gdxVersion:natives-arm64-v8a"
         natives "com.badlogicgames.gdx:gdx-bullet-platform:$gdxVersion:natives-x86"
         natives "com.badlogicgames.gdx:gdx-bullet-platform:$gdxVersion:natives-x86_64"
-
     }
 }
 
 project(":ios") {
     apply plugin: "java-library"
     apply plugin: "robovm"
-
 
     dependencies {
         implementation project(":core")
@@ -109,7 +105,6 @@ project(":ios") {
         api "com.badlogicgames.gdx-controllers:gdx-controllers-ios:$gdxControllersVersion"
         api "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-ios"
         api "com.badlogicgames.gdx:gdx-bullet-platform:$gdxVersion:natives-ios"
-
     }
 }
 
@@ -118,7 +113,6 @@ project(":html") {
     apply plugin: "gwt"
     apply plugin: "war"
     apply plugin: "org.gretty"
-
 
     dependencies {
         implementation project(":core")
@@ -134,13 +128,21 @@ project(":html") {
         api "com.badlogicgames.ashley:ashley:$ashleyVersion:sources"
         api "com.badlogicgames.box2dlights:box2dlights:$box2DLightsVersion:sources"
         api "com.kotcrab.vis:vis-ui:1.5.0:sources"
-
     }
 }
 
 project(":core") {
     apply plugin: "java-library"
+    // https://docs.gradle.org/6.7.1/userguide/building_java_projects.html#sec:java_packaging
+    // You can use one of the publishing plugins to publish the JARs created by a Java project:
+    //   Maven Publish Plugin (https://docs.gradle.org/6.7.1/userguide/publishing_maven.html#publishing_maven)
+    //   Ivy Publish Plugin (https://docs.gradle.org/6.7.1/userguide/publishing_ivy.html#publishing_ivy)
+    apply plugin: "maven-publish" // https://docs.gradle.org/6.7.1/userguide/publishing_maven.html
+                                  // https://docs.gradle.org/6.7.1/userguide/publishing_setup.html
 
+    // https://docs.gradle.org/6.7.1/dsl/org.gradle.api.Project.html#org.gradle.api.Project:name
+    // https://docs.gradle.org/6.7.1/dsl/org.gradle.api.Project.html#org.gradle.api.Project:description
+    description = ''
 
     dependencies {
         api "com.badlogicgames.gdx:gdx:$gdxVersion"

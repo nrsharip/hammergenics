@@ -20,7 +20,7 @@ import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
-import com.badlogic.gdx.assets.loaders.I18NBundleLoader;
+import com.badlogic.gdx.assets.loaders.I18NBundleLoader.I18NBundleParameter;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
@@ -158,14 +158,15 @@ public class HGGame extends Game {
             // see https://github.com/libgdx/libgdx/wiki/Internationalization-and-Localization#creating-a-bundle
             // see I18NBundleLoader.loadAsync():
             // if (parameter == null) { locale = Locale.getDefault(); ... } else { locale = parameter.locale == null ? Locale.getDefault() : parameter.locale; ... }
-            I18NBundleLoader.I18NBundleParameter parameter = new I18NBundleLoader.I18NBundleParameter(Locale.getDefault());
+            // see I18NBundle.DEFAULT_ENCODING = "UTF-8"
+            I18NBundleParameter parameter = new I18NBundleParameter(Locale.getDefault(), "UTF-8");
 
-            if (am.contains(path1)) { am.unload(path1); } am.load(path1, I18NBundle.class);
-            if (am.contains(path2)) { am.unload(path2); } am.load(path2, I18NBundle.class);
-            if (am.contains(path3)) { am.unload(path3); } am.load(path3, I18NBundle.class);
-            if (am.contains(path4)) { am.unload(path4); } am.load(path4, I18NBundle.class);
-            if (am.contains(path5)) { am.unload(path5); } am.load(path5, I18NBundle.class);
-            if (am.contains(path6)) { am.unload(path6); } am.load(path6, I18NBundle.class);
+            if (am.contains(path1)) { am.unload(path1); } am.load(path1, I18NBundle.class, parameter);
+            if (am.contains(path2)) { am.unload(path2); } am.load(path2, I18NBundle.class, parameter);
+            if (am.contains(path3)) { am.unload(path3); } am.load(path3, I18NBundle.class, parameter);
+            if (am.contains(path4)) { am.unload(path4); } am.load(path4, I18NBundle.class, parameter);
+            if (am.contains(path5)) { am.unload(path5); } am.load(path5, I18NBundle.class, parameter);
+            if (am.contains(path6)) { am.unload(path6); } am.load(path6, I18NBundle.class, parameter);
             am.finishLoading();
 
             visUIButtonBarBundle = am.get(path1, I18NBundle.class);

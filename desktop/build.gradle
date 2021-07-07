@@ -1,48 +1,301 @@
-sourceCompatibility = 1.8
+// https://docs.gradle.org/6.7.1/userguide/java_plugin.html#sec:java-extension
+// The Java plugin adds the java extension to the project.
+// This allows to configure a number of Java related properties inside a dedicated DSL block.
+// https://docs.gradle.org/6.7.1/dsl/org.gradle.api.plugins.JavaPluginExtension.html
+// (see current to see the major changes):
+// https://docs.gradle.org/6.7.1/dsl/org.gradle.api.plugins.JavaPluginExtension.html
+// https://docs.gradle.org/6.7.1/dsl/org.gradle.api.plugins.JavaPluginExtension.html#N11112
+//   disableAutoTargetJvm() - If this method is called, Gradle will not automatically try to fetch dependencies which
+//                            have a JVM version compatible with the target compatibility of this module.
+//   registerFeature(name, configureAction) - Registers a feature.
+//   withJavadocJar() [incubating] - Adds a task javadocJar that will package the output
+//                                   of the javadoc task in a JAR with classifier javadoc.
+//   withSourcesJar() [incubating] - Adds a task sourcesJar that will package the Java sources of the
+//                                   main SourceSet in a JAR with classifier sources.
+// [incubating] - https://docs.gradle.org/6.7.1/userguide/feature_lifecycle.html#sec:incubating_state
+// https://docs.gradle.org/6.7.1/dsl/org.gradle.api.plugins.JavaPluginExtension.html#N110F4
+//   sourceCompatibility - The source compatibility used for compiling Java sources.
+//   targetCompatibility - The target compatibility used for compiling Java sources.
+sourceCompatibility = JavaVersion.VERSION_1_8 // https://docs.gradle.org/6.7.1/javadoc/org/gradle/api/JavaVersion.html
+
+// https://docs.gradle.org/6.7.1/userguide/java_plugin.html#sec:java_project_layout
+// The Java plugin assumes the project layout shown below. None of these directories need to exist or have
+// anything in them. The Java plugin will compile whatever it finds, and handles anything which is missing.
+//
+// src/main/java             - Production Java source.
+// src/main/resources        - Production resources, such as XML and properties files.
+// src/test/java             - Test Java source.
+// src/test/resources        - Test resources.
+// src/<sourceSet>/java      - Java source for the source set named <sourceSet>.
+// src/<sourceSet>/resources - Resources for the source set named <sourceSet>.
+// https://docs.gradle.org/6.7.1/userguide/java_plugin.html#source_sets
+// The plugin adds the following source sets:
+// main - Contains the production source code of the project, which is compiled and assembled into a JAR.
+// test - Contains your test source code, which is compiled and executed using JUnit or TestNG. These are typically unit tests,
+//        but you can include any test in this source set as long as they all share the same compilation and runtime classpaths.
+// https://docs.gradle.org/6.7.1/userguide/java_plugin.html#sec:changing_java_project_layout
 sourceSets.main.java.srcDirs = [ "src/" ]
 sourceSets.main.resources.srcDirs = ["../android/assets"]
 
+// https://docs.gradle.org/6.7.1/dsl/org.gradle.api.Project.html
+// https://docs.gradle.org/6.7.1/dsl/org.gradle.api.Project.html#N14FD8
+// Gradle executes the project's build file against the Project instance to configure the project.
+// Any property or method which your script uses is delegated through to the associated Project object.
+// This means, that you can use any of the methods and properties on the Project interface directly in your script.
+// For example:
+// defaultTasks('some-task')    // Delegates to Project.defaultTasks()
+// reportsDir = file('reports') // Delegates to Project.file() and the Java Plugin
+// You can also access the Project instance using the project property. This can make the script clearer in some cases.
+// For example, you could use project.name rather than name to access the project's name.
+// https://docs.gradle.org/6.7.1/dsl/org.gradle.api.Project.html#N15043
+// All extra properties must be defined through the "ext" namespace. Once an extra property has been defined,
+// it is available directly on the owning object (in the below case the Project, Task, and sub-projects respectively)
+// and can be read and updated. Only the initial declaration that needs to be done via the namespace.
 project.ext.mainClassName = "com.hammergenics.desktop.DesktopLauncher"
 project.ext.assetsDir = new File("../android/assets")
 
+// https://docs.gradle.org/6.7.1/dsl/org.gradle.api.tasks.TaskContainer.html
+// A TaskContainer is responsible for managing a set of Task instances. You can obtain a TaskContainer
+// instance by calling Project.getTasks(), or using the tasks property in your build script.
+// https://docs.gradle.org/6.7.1/dsl/org.gradle.api.Task.html
+// Each task belongs to a Project. You can use the various methods on TaskContainer to create and
+// lookup task instances. For example, TaskContainer.create(java.lang.String) creates an empty task
+// with the given name. You can also use the 'task' keyword in your build file.
+
+// Each task has a name, which can be used to refer to the task within its owning project, and a fully
+// qualified path, which is unique across all tasks in all projects. The path is the concatenation of
+// the owning project's path and the task's name. Path elements are separated using the : character.
+// e.g.
+// desktop:run
+// desktop:debug
+// desktop:dist
+
+// https://docs.gradle.org/6.7.1/dsl/org.gradle.api.Task.html#N18CD4
+// A Task is made up of a sequence of Action objects. When the task is executed, each of the
+// actions is executed in turn, by calling Action.execute(T). You can add actions to a task by calling
+// Task.doFirst(org.gradle.api.Action) or Task.doLast(org.gradle.api.Action).
+
+// Groovy closures can also be used to provide a task action. When the action is executed, the closure
+// is called with the task as parameter. You can add action closures to a task by calling
+// Task.doFirst(groovy.lang.Closure) or Task.doLast(groovy.lang.Closure).
+
+// https://docs.gradle.org/6.7.1/dsl/org.gradle.api.tasks.TaskContainer.html#org.gradle.api.tasks.TaskContainer:create(java.util.Map)
+// Option          Description                                               Default Value
+// name            The name of the task to create.                           None. Must be specified.
+// type            The class of the task to create.                          DefaultTask
+// action          The closure or Action to execute when the task executes.  null
+//                 See Task.doFirst(org.gradle.api.Action).
+// overwrite       Replace an existing task?                                 false
+// dependsOn       The dependencies of the task. See here for more details.  []
+// group           The group of the task.                                    null
+// description     The description of the task.                              null
+// constructorArgs The arguments to pass to the task class constructor.      null
 task run(dependsOn: classes, type: JavaExec) {
-    jvmArgs = ["-Dfile.encoding=\"UTF-8\"", "-Dsun.jnu.encoding=\"UTF-8\""]
-    defaultCharacterEncoding = 'UTF-8'
-    main = project.mainClassName
+    // https://docs.gradle.org/6.7.1/dsl/org.gradle.api.tasks.JavaExec.html
+    //          allJvmArgs - The full set of arguments to use to launch the JVM for the process. This includes arguments
+    //                       to define system properties, the minimum/maximum heap size, and the bootstrap classpath.
+    //                args - The arguments passed to the main class to be executed.
+    //   argumentProviders - Argument providers for the application.
+    //  bootstrapClasspath - The bootstrap classpath to use for the process. The default bootstrap
+    //                       classpath for the JVM is used when this classpath is empty.
+    //           classpath - The classpath for executing the main class.
     classpath = sourceSets.main.runtimeClasspath
-    standardInput = System.in
-    workingDir = project.assetsDir
+    //         commandLine - The full command line, including the executable plus its arguments.
+    //               debug - Determines whether debugging is enabled for the test process.
+    //                       When enabled — debug = true — the process is started in a suspended state, listening on port 5005.
+    //                       You should disable parallel test execution when debugging and you will need to reattach
+    //                       the debugger occasionally if you use a non-zero value for Test.getForkEvery().
+    //    enableAssertions - Returns true if assertions are enabled for the process.
+    //         environment - The environment variables to use for the process. Defaults to the environment of this process.
+    //         errorOutput - The output stream to consume standard error from the process executing the command. Default to System.err.
+    //          executable - The name of the executable to use.
+    //     executionResult - [incubating] The result for the command run by this task.
+    //                       The provider has no value if this task has not been executed yet.
+    //     ignoreExitValue - Tells whether a non-zero exit value is ignored, or an exception thrown. Defaults to false.
     ignoreExitValue = true
+    //             jvmArgs - The extra arguments to use to launch the JVM for the process.
+    //                       Does not include system properties and the minimum/maximum heap size.
+    jvmArgs = ["-Dfile.encoding=\"UTF-8\"", "-Dsun.jnu.encoding=\"UTF-8\""]
+    //jvmArgumentProviders - Command line argument providers for the java process to fork.
+    //                main - The fully qualified name of the Main class to be executed.
+    main = project.mainClassName
+    //         maxHeapSize - The maximum heap size for the process, if any.
+    //       standardInput - The standard input stream for the process executing the command.
+    //                       The stream is closed after the process completes. Defaults to an empty stream.
+    standardInput = System.in
+    //      standardOutput - The output stream to consume standard output from the process executing the command.
+    //                       Defaults to System.out.
+    //    systemProperties - The system properties which will be used for the process.
+    //          workingDir - The working directory for the process. Defaults to the project directory.
+    workingDir = project.assetsDir
 }
 
 task debug(dependsOn: classes, type: JavaExec) {
-    jvmArgs = ["-Dfile.encoding=\"UTF-8\"", "-Dsun.jnu.encoding=\"UTF-8\""]
-    defaultCharacterEncoding = 'UTF-8'
-    main = project.mainClassName
+    // https://docs.gradle.org/6.7.1/dsl/org.gradle.api.tasks.JavaExec.html
+    //          allJvmArgs - The full set of arguments to use to launch the JVM for the process. This includes arguments
+    //                       to define system properties, the minimum/maximum heap size, and the bootstrap classpath.
+    //                args - The arguments passed to the main class to be executed.
+    //   argumentProviders - Argument providers for the application.
+    //  bootstrapClasspath - The bootstrap classpath to use for the process. The default bootstrap
+    //                       classpath for the JVM is used when this classpath is empty.
+    //           classpath - The classpath for executing the main class.
     classpath = sourceSets.main.runtimeClasspath
-    standardInput = System.in
-    workingDir = project.assetsDir
-    ignoreExitValue = true
+    //         commandLine - The full command line, including the executable plus its arguments.
+    //               debug - Determines whether debugging is enabled for the test process.
+    //                       When enabled — debug = true — the process is started in a suspended state, listening on port 5005.
+    //                       You should disable parallel test execution when debugging and you will need to reattach
+    //                       the debugger occasionally if you use a non-zero value for Test.getForkEvery().
     debug = true
+    //    enableAssertions - Returns true if assertions are enabled for the process.
+    //         environment - The environment variables to use for the process. Defaults to the environment of this process.
+    //         errorOutput - The output stream to consume standard error from the process executing the command. Default to System.err.
+    //          executable - The name of the executable to use.
+    //     executionResult - [incubating] The result for the command run by this task.
+    //                       The provider has no value if this task has not been executed yet.
+    //     ignoreExitValue - Tells whether a non-zero exit value is ignored, or an exception thrown. Defaults to false.
+    ignoreExitValue = true
+    //             jvmArgs - The extra arguments to use to launch the JVM for the process.
+    //                       Does not include system properties and the minimum/maximum heap size.
+    jvmArgs = ["-Dfile.encoding=\"UTF-8\"", "-Dsun.jnu.encoding=\"UTF-8\""]
+    //jvmArgumentProviders - Command line argument providers for the java process to fork.
+    //                main - The fully qualified name of the Main class to be executed.
+    main = project.mainClassName
+    //         maxHeapSize - The maximum heap size for the process, if any.
+    //       standardInput - The standard input stream for the process executing the command.
+    //                       The stream is closed after the process completes. Defaults to an empty stream.
+    standardInput = System.in
+    //      standardOutput - The output stream to consume standard output from the process executing the command.
+    //                       Defaults to System.out.
+    //    systemProperties - The system properties which will be used for the process.
+    //          workingDir - The working directory for the process. Defaults to the project directory.
+    workingDir = project.assetsDir
+    // [incubating] - https://docs.gradle.org/6.7.1/userguide/feature_lifecycle.html#sec:incubating_state
 }
 
-task dist(type: Jar) {
+// https://docs.gradle.org/6.7.1/userguide/building_java_projects.html#sec:java_packaging
+// By default, the Java Library Plugin provides the jar task that packages all the compiled production
+// classes and resources into a single JAR. This JAR is also automatically built by the assemble task.
+// Furthermore, the plugin can be configured to provide the javadocJar and sourcesJar tasks to package
+// Javadoc and source code if so desired. If a publishing plugin is used, these tasks will automatically
+// run during publishing or can be called directly.
+java {
+    //withJavadocJar()
+    //withSourcesJar()
+}
+
+// https://docs.oracle.com/en/java/javase/16/jpackage/index.html
+// https://docs.oracle.com/en/java/javase/16/docs/specs/jar/jar.html
+// https://docs.oracle.com/en/java/javase/16/docs/specs/jar/jar.html#jar-manifest
+task dist(dependsOn: classes, type: Jar) {
+    // https://docs.gradle.org/6.7.1/dsl/org.gradle.api.tasks.bundling.Jar.html
+    //              appendix - [deprecated][replaced] The appendix part of the archive name, if any.
+    //       archiveAppendix - The appendix part of the archive name, if any.
+    //       archiveBaseName - The base name of the archive.
+    archiveBaseName = appName + "-" + project.name // putting the two in one place for now...
+                                                   // consider using archiveAppendix for project.name
+    //     archiveClassifier - The classifier part of the archive name, if any.
+    // https://maven.apache.org/pom.html#pom-relationships
+    // classifier: The classifier distinguishes artifacts that were built from the same POM but differ in content.
+    // It is some optional and arbitrary string that - if present - is appended to the artifact name just after the
+    // version number.
+    // As a motivation for this element, consider for example a project that offers an artifact targeting Java 11
+    // but at the same time also an artifact that still supports Java 1.8. The first artifact could be equipped with
+    // the classifier jdk11 and the second one with jdk8 such that clients can choose which one to use.
+    // Another common use case for classifiers is to attach secondary artifacts to the project's main artifact.
+    // If you browse the Maven central repository, you will notice that the classifiers sources and javadoc are used
+    // to deploy the project source code and API docs along with the packaged class files.
+    // https://docs.gradle.org/6.7.1/userguide/building_java_projects.html#sec:java_packaging
+    // If you want to create an 'uber' (AKA 'fat') JAR, then you can use a task definition like this
+    // And note that you need to use archiveClassifier rather than archiveAppendix here for correct publication of the JAR.
+    // 'fat', 'uber', 'shaded', 'jdk8', 'jdk11', 'sources', 'javadoc'
+    archiveClassifier = ''
+    //      archiveExtension - The extension part of the archive name.
+    //           archiveFile - The RegularFile where the archive is constructed. The path is simply
+    //                         the destinationDirectory plus the archiveFileName.
+    //       archiveFileName - The archive name. If the name has not been explicitly set, the pattern for the name is:
+    //                         [archiveBaseName]-[archiveAppendix]-[archiveVersion]-[archiveClassifier].[archiveExtension]
+    //           archiveName - [deprecated][replaced] The archive name. If the name has not been explicitly set, the pattern for the name is:
+    //                         [archiveBaseName]-[archiveAppendix]-[archiveVersion]-[archiveClassifier].[archiveExtension]
+    //           archivePath - [deprecated][replaced] The path where the archive is constructed.
+    //                         The path is simply the destinationDirectory plus the archiveFileName.
+    //        archiveVersion - The version part of the archive name.
+    archiveVersion = project.version // assigning explicitly
+    //              baseName - [deprecated][replaced] The base name of the archive.
+    //         caseSensitive - Specifies whether case-sensitive pattern matching should be used.
+    //            classifier - [deprecated][replaced] The classifier part of the archive name, if any.
+    //        destinationDir - [deprecated][replaced] The directory where the archive is generated into.
+    //  destinationDirectory - The directory where the archive will be placed.
+    //               dirMode - The Unix permissions to use for the target directories. null means that
+    //                         existing permissions are preserved. It is dependent on the copy action
+    //                         implementation whether these permissions will actually be applied.
+    //    duplicatesStrategy - The strategy to use when trying to copy more than one file to the same destination.
+    //      entryCompression - The compression level of the entries of the archive.
+    //                         If set to ZipEntryCompression.DEFLATED (the default), each entry is compressed using the DEFLATE algorithm.
+    //                         If set to ZipEntryCompression.STORED the entries of the archive are left uncompressed.
+    //              excludes - The set of exclude patterns.
+    //             extension - [deprecated][replaced] The extension part of the archive name.
+    //              fileMode - The Unix permissions to use for the target files. null means that
+    //                         existing permissions are preserved. It is dependent on the copy action
+    //                         implementation whether these permissions will actually be applied.
+    //      includeEmptyDirs - Tells if empty target directories will be included in the copy.
+    //              includes - The set of include patterns.
+    //              manifest - The manifest for this JAR archive.
+    // https://docs.gradle.org/6.7.1/userguide/building_java_projects.html#sec:jar_manifest
+    // https://docs.gradle.org/6.7.1/javadoc/org/gradle/api/java/archives/Manifest.html
     manifest {
-        // https://docs.gradle.org/current/userguide/building_java_projects.html#sec:jar_manifest
+        // https://docs.gradle.org/6.7.1/javadoc/org/gradle/api/java/archives/Attributes.html
         attributes (
+                // https://docs.oracle.com/en/java/javase/16/jpackage/index.html
+                // https://docs.oracle.com/en/java/javase/16/docs/specs/jar/jar.html
+                // https://docs.oracle.com/en/java/javase/16/docs/specs/jar/jar.html#jar-manifest
+                // general main attributes:
+                // Manifest-Version: Defines the manifest file version. The value is a legitimate version number, as described in the above spec.
+                // Created-By: Defines the version and the vendor of the java implementation on top of which this manifest file is generated. This attribute is generated by the jar tool.
+                // Signature-Version: Defines the signature version of the jar file. The value should be a valid version-number string.
+                // Class-Path: The value of this attribute specifies the relative URLs of the libraries that this application needs. URLs are separated by one or more spaces. The application class loader uses the value of this attribute to construct its internal search path. See Class-Path Attribute section for details.
+                // Automatic-Module-Name: Defines the module name if this JAR file is deployed as an automatic module on the module path. For further details see the specification of automatic modules.
+                // Multi-Release: This attribute defines whether this JAR file is a multi-release JAR file. If the value is "true" , case is ignored, then the JAR file will be processed by the Java runtime and tooling as a multi-release JAR file. Otherwise, if the value is anything other than "true" then this attribute is ignored.
+                //
+                // attribute defined for stand-alone applications:
+                // This attribute is used by stand-alone applications that are bundled into executable jar files
+                // which can be invoked by the java runtime directly by running "java -jar x.jar".
+                // Main-Class: The value of this attribute is the class name of the main application class which the launcher will load at startup time. The value must not have the .class extension appended to the class name.
                 'Main-Class': project.mainClassName
+                // Launcher-Agent-Class: If this attribute is present then its value is the class name of a java agent that is started before the application main method is invoked. This attribute can be used for cases where a java agent is packaged in the same executable JAR file as the application. The agent class defines a public static method name agentmain in one of the two forms specified in the java.lang.instrument package summary. Additional attributes (such as Can-Retransform-Classes) can be used to indicate capabilities needed by the agent.
+                //
+                // attributes defined for package versioning and sealing information:
+                // The value of these attributes apply to all the packages in the JAR file, but can be overridden by per-entry attributes.
+                // Implementation-Title: The value is a string that defines the title of the extension implementation.
+                // Implementation-Version: The value is a string that defines the version of the extension implementation.
+                // Implementation-Vendor: The value is a string that defines the organization that maintains the extension implementation.
+                // Specification-Title: The value is a string that defines the title of the extension specification.
+                // Specification-Version: The value is a string that defines the version of the extension specification.
+                // Specification-Vendor: The value is a string that defines the organization that maintains the extension specification.
+                // Sealed: This attribute defines whether this JAR file is sealed or not. The value can be either "true" or "false", case is ignored. If it is set to "true", then all the packages in the JAR file are defaulted to be sealed, unless they are defined otherwise individually. See also the Package Sealing section.
         )
     }
+    //       metadataCharset - The character set used to encode JAR metadata like file names.
+    //                         Defaults to UTF-8. You can change this property but it is not recommended
+    //                         as JVMs expect JAR metadata to be encoded using UTF-8
+    //preserveFileTimestamps - Specifies whether file timestamps should be preserved in the archive.
+    // reproducibleFileOrder - Specifies whether to enforce a reproducible file order when reading files from directories.
+    //                source - The source files for this task.
+    //               version - [deprecated][replaced] The version part of the archive name, if any.
+    //                 zip64 - Whether the zip can contain more than 65535 files and/or support files greater than 4GB in size.
+    // [deprecated] - https://docs.gradle.org/6.7.1/userguide/feature_lifecycle.html#sec:deprecated
+    // [replaced] -
+
+    // https://docs.gradle.org/6.7.1/userguide/building_java_projects.html#sec:java_packaging
+    // If you want to create an 'uber' (AKA 'fat') JAR, then you can use a task definition like this
     dependsOn configurations.runtimeClasspath
     from {
-        configurations.runtimeClasspath.collect {
-            it.isDirectory() ? it : zipTree(it)
-        }
+        // https://docs.gradle.org/6.7.1/dsl/org.gradle.api.tasks.AbstractCopyTask.html
+        // https://docs.gradle.org/6.7.1/dsl/org.gradle.api.tasks.AbstractCopyTask.html#org.gradle.api.tasks.AbstractCopyTask:from(java.lang.Object[])
+        // Specifies source files or directories for a copy. The given paths are evaluated as per Project.files(java.lang.Object[]).
+        configurations.runtimeClasspath.collect {it.isDirectory() ? it : zipTree(it)}
     }
+
     with jar
 }
 
-
-dist.dependsOn classes
-
-eclipse.project.name = appName + "-desktop"
+eclipse.project.name = appName + "-" + project.name

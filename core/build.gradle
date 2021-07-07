@@ -1,9 +1,95 @@
-sourceCompatibility = 1.8
+// https://docs.gradle.org/6.7.1/userguide/java_plugin.html#sec:java-extension
+// The Java plugin adds the java extension to the project.
+// This allows to configure a number of Java related properties inside a dedicated DSL block.
+// https://docs.gradle.org/6.7.1/dsl/org.gradle.api.plugins.JavaPluginExtension.html
+// (see current to see the major changes):
+// https://docs.gradle.org/6.7.1/dsl/org.gradle.api.plugins.JavaPluginExtension.html
+// https://docs.gradle.org/6.7.1/dsl/org.gradle.api.plugins.JavaPluginExtension.html#N110F4
+//   sourceCompatibility - The source compatibility used for compiling Java sources.
+//   targetCompatibility - The target compatibility used for compiling Java sources.
+// https://docs.gradle.org/6.7.1/dsl/org.gradle.api.plugins.JavaPluginExtension.html#N11112
+//   disableAutoTargetJvm() - If this method is called, Gradle will not automatically try to fetch dependencies which
+//                            have a JVM version compatible with the target compatibility of this module.
+//   registerFeature(name, configureAction) - Registers a feature.
+//   withJavadocJar() [incubating] - Adds a task javadocJar that will package the output
+//                                   of the javadoc task in a JAR with classifier javadoc.
+//   withSourcesJar() [incubating] - Adds a task sourcesJar that will package the Java sources of the
+//                                   main SourceSet in a JAR with classifier sources.
+//
+// [incubating] - https://docs.gradle.org/6.7.1/userguide/feature_lifecycle.html#sec:incubating_state
+sourceCompatibility = JavaVersion.VERSION_1_8 // https://docs.gradle.org/6.7.1/javadoc/org/gradle/api/JavaVersion.html
+
+// https://docs.gradle.org/6.7.1/userguide/java_plugin.html#sec:java_tasks
+// The Java plugin adds a number of tasks to your project, as shown below.
+//         compileJava - JavaCompile (https://docs.gradle.org/6.7.1/dsl/org.gradle.api.tasks.compile.JavaCompile.html)
+//                       Depends on: All tasks which contribute to the compilation classpath, including jar
+//                                   tasks from projects that are on the classpath via project dependencies
+//                       Compiles production Java source files using the JDK compiler.
+//    processResources - Copy (https://docs.gradle.org/6.7.1/dsl/org.gradle.api.tasks.Copy.html)
+//                       Copies production resources into the production resources directory.
+//             classes - Depends on: compileJava, processResources
+//                       This is an aggregate task that just depends on other tasks.
+//                       Other plugins may attach additional compilation tasks to it.
+//     compileTestJava - JavaCompile (https://docs.gradle.org/6.7.1/dsl/org.gradle.api.tasks.compile.JavaCompile.html)
+//                       Depends on: classes, and all tasks that contribute to the test compilation classpath
+//                       Compiles test Java source files using the JDK compiler.
+//processTestResources - Copy (https://docs.gradle.org/6.7.1/dsl/org.gradle.api.tasks.Copy.html)
+//                       Copies test resources into the test resources directory.
+//         testClasses - Depends on: compileTestJava, processTestResources
+//                       This is an aggregate task that just depends on other tasks.
+//                       Other plugins may attach additional test compilation tasks to it.
+//                 jar - Jar (https://docs.gradle.org/6.7.1/dsl/org.gradle.api.tasks.bundling.Jar.html)
+//                       Depends on: classes
+//                       Assembles the production JAR file, based on the classes and resources attached to the main source set.
+//             javadoc - Javadoc (https://docs.gradle.org/6.7.1/dsl/org.gradle.api.tasks.javadoc.Javadoc.html)
+//                       Depends on: classes
+//                       Generates API documentation for the production Java source using Javadoc.
+//                test - Test (https://docs.gradle.org/6.7.1/dsl/org.gradle.api.tasks.testing.Test.html)
+//                       Depends on: testClasses, and all tasks which produce the test runtime classpath
+//                       Runs the unit tests using JUnit or TestNG.
+//      uploadArchives - Upload
+//                       Depends on: jar, and any other task that produces an artifact attached to the archives configuration
+//                       Uploads artifacts in the archives configuration — including the production JAR file — to the configured
+//                       repositories. This task is deprecated, you should use one of the Ivy or Maven publishing plugins instead.
+//               clean - Delete (https://docs.gradle.org/6.7.1/dsl/org.gradle.api.tasks.Delete.html)
+//                       Deletes the project build directory.
+//       cleanTaskName - Delete (https://docs.gradle.org/6.7.1/dsl/org.gradle.api.tasks.Delete.html)
+//                       Deletes files created by the specified task. For example, cleanJar will delete the JAR file created
+//                       by the jar task and cleanTest will delete the test results created by the test task.
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
+// https://docs.gradle.org/6.7.1/userguide/java_plugin.html#java_source_set_tasks
+// For each source set you add to the project, the Java plugin adds the following tasks:
+//      compile<SourceSet>Java — JavaCompile (https://docs.gradle.org/6.7.1/dsl/org.gradle.api.tasks.compile.JavaCompile.html)
+//                               Depends on: All tasks which contribute to the source set’s compilation classpath
+//                               Compiles the given source set’s Java source files using the JDK compiler.
+// process<SourceSet>Resources — Copy (https://docs.gradle.org/6.7.1/dsl/org.gradle.api.tasks.Copy.html)
+//                               Copies the given source set’s resources into the resources directory.
+//          <sourceSet>Classes — Task (https://docs.gradle.org/6.7.1/dsl/org.gradle.api.Task.html)
+//                               Depends on: compileSourceSetJava, processSourceSetResources
+//                               Prepares the given source set’s classes and resources for packaging and execution.
+//                               Some plugins may add additional compilation tasks for the source set.
+
+
+// https://docs.gradle.org/6.7.1/userguide/java_plugin.html#sec:java_project_layout
+// The Java plugin assumes the project layout shown below. None of these directories need to exist or have
+// anything in them. The Java plugin will compile whatever it finds, and handles anything which is missing.
+//
+// src/main/java             - Production Java source.
+// src/main/resources        - Production resources, such as XML and properties files.
+// src/test/java             - Test Java source.
+// src/test/resources        - Test resources.
+// src/<sourceSet>/java      - Java source for the source set named <sourceSet>.
+// src/<sourceSet>/resources - Resources for the source set named <sourceSet>.
+// https://docs.gradle.org/6.7.1/userguide/java_plugin.html#source_sets
+// The plugin adds the following source sets:
+// main - Contains the production source code of the project, which is compiled and assembled into a JAR.
+// test - Contains your test source code, which is compiled and executed using JUnit or TestNG. These are typically unit tests,
+//        but you can include any test in this source set as long as they all share the same compilation and runtime classpaths.
+// https://docs.gradle.org/6.7.1/userguide/java_plugin.html#sec:changing_java_project_layout
 sourceSets.main.java.srcDirs = [ "src/" ]
 
-eclipse.project.name = appName + "-core"
+eclipse.project.name = appName + "-" + project.name
 
 javadoc {
     source = sourceSets.main.allJava
