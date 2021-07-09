@@ -35,8 +35,7 @@ IF %~1==app-image GOTO :proceed1
 IF %~1==exe GOTO :proceed1
 IF %~1==msi GOTO :proceed1
 
-ECHO wrong type selected: %PACKAGE_TYPE%
-SET PACKAGE_TYPE=
+ECHO wrong type selected: %~1
 EXIT /B -1
 
 :proceed1
