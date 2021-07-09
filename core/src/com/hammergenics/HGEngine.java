@@ -1056,4 +1056,29 @@ public class HGEngine implements Disposable {
         auxMIs.clear();
         currMI = null;
     }
+
+    public void update(final float delta, boolean steering, boolean dynamics) {
+        editableMIs.forEach(hgMI -> {
+            if(hgMI.animationController != null && !hgMI.animationController.paused) {
+                hgMI.animationController.update(delta);
+//                if (animationDesc.loopCount == 0) {
+//                    // do something if the animation is over
+//                }
+            }
+        });
+
+        if (steering) { editableMIs.forEach(mi -> mi.update(delta)); }
+
+        if (dynamics) {
+            // see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part2/
+            // The discrete dynamics world uses a fixed time step.
+            // This basically means that it will always use the same delta value to perform calculations.
+            // This fixed delta value is supplied as the third argument of stepSimulation.
+            // If the actual delta value (the first argument) is greater than the desired fixed delta value,
+            // then the calculation will be done multiple times.
+            // The maximum number of times that this will be done (the maximum number of sub-steps) is specified
+            // by the second argument.
+            dynamicsWorld.stepSimulation(delta, 5, 1f/60f);
+        }
+    }
 }

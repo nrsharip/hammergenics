@@ -148,18 +148,6 @@ public class ModelEditScreen extends ScreenAdapter {
             stage.updateModelSelectBox();
             stage.mapGenerationTable.updateTrrnSelectBoxes();
         }
-
-        meic.update(delta);
-
-        eng.editableMIs.forEach(hgMI -> {
-            if(hgMI.animationController != null) {
-                hgMI.animationController.update(delta);
-//                if (animationDesc.loopCount == 0) {
-//                    // do something if the animation is over
-//                }
-            }
-        });
-
         // https://github.com/libgdx/libgdx/wiki/ModelBatch
         // https://encycolorpedia.com/96b0bc
         Gdx.gl.glClearColor(150 / 255f, 176 / 255f, 188 / 255f, 1f);
@@ -167,26 +155,16 @@ public class ModelEditScreen extends ScreenAdapter {
         // (https://stackoverflow.com/questions/34164309/gl-color-buffer-bit-regenerating-which-memory)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
-        if (stage.aiManagerTable.steerCheckBox.isChecked()) {
-            eng.editableMIs.forEach(mi -> mi.update(delta));
-            if (stage.aiManagerTable.dbgModelInstance != null) {
-                stage.aiManagerTable.updateSteerable();
-            }
+        meic.update(delta);
+        eng.update(delta,
+                stage.aiManagerTable.steerCheckBox.isChecked(),
+                stage.physManagerTable.dynamicsCheckBox.isChecked()
+        );
+        if (stage.isPressed(stage.aiTextButton) && stage.aiManagerTable.dbgModelInstance != null) {
+            stage.aiManagerTable.updateSteerable();
         }
-
-        if (stage.physManagerTable.dynamicsCheckBox.isChecked()) {
-            // see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part2/
-            // The discrete dynamics world uses a fixed time step.
-            // This basically means that it will always use the same delta value to perform calculations.
-            // This fixed delta value is supplied as the third argument of stepSimulation.
-            // If the actual delta value (the first argument) is greater than the desired fixed delta value,
-            // then the calculation will be done multiple times.
-            // The maximum number of times that this will be done (the maximum number of sub-steps) is specified
-            // by the second argument.
-            eng.dynamicsWorld.stepSimulation(delta, 5, 1f/60f);
-            if (stage.physManagerTable.dbgModelInstance != null) {
-                stage.physManagerTable.updateRigidBody();
-            }
+        if (stage.isPressed(stage.physTextButton) && stage.physManagerTable.dbgModelInstance != null) {
+            stage.physManagerTable.updateRigidBody();
         }
 
         visibleTerrainParts = 0;
