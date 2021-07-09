@@ -20,13 +20,51 @@
 :: ENABLEEXTENSIONS - Enables the command extensions until the matching endlocal command
 :: is encountered, regardless of the setting before the setlocal command was run.
 SETLOCAL ENABLEEXTENSIONS
+
+:: https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/if
+IF [%1]==[] (
+  ECHO            usage: pkg-windows.cmd [type] [path_to_jpackage]
+  ECHO             type: app-image, exe, msi
+  ECHO path_to_jpackage: most commonly path to the bin folder of JDK 16+ (also could be set via PACKAGE_JPACKAGE)
+)
+
+IF [%1]==[] EXIT /B -1
+
+:: https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/if
+IF %~1==app-image GOTO :proceed1
+IF %~1==exe GOTO :proceed1
+IF %~1==msi GOTO :proceed1
+
+ECHO wrong type selected: %PACKAGE_TYPE%
+SET PACKAGE_TYPE=
+EXIT /B -1
+
+:proceed1
+:: https://ss64.com/nt/syntax-args.html
+:: %~1 Expand %1 removing any surrounding quotes (")
+SET PACKAGE_TYPE=%~1
+ECHO type selected: %PACKAGE_TYPE%
+
 :: https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/set_1
 :: https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/setx
 SET PACKAGE_PATH=%PATH%
 SET PACKAGE_WIX=.\wix311-binaries\
-SET PACKAGE_OPTIONS=.\jpackage.windows.options
+SET PACKAGE_OPTIONS1=.\jpackage.options
+SET PACKAGE_OPTIONS2=.\jpackage.windows.options
+
 :: https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/if
-IF NOT DEFINED PACKAGE_JPACKAGE (SET PACKAGE_JPACKAGE=)
+IF NOT [%2]==[] (
+  REM https://ss64.com/nt/syntax-args.html
+  REM %~f1 Expand %1 to a Fully qualified path name - C:\utils\MyFile.txt
+  SET PACKAGE_JPACKAGE=%~f2
+)
+
+:: this part is intended for the manual PACKAGE_JPACKAGE override
+:: https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/if
+IF NOT DEFINED PACKAGE_JPACKAGE (
+  SET PACKAGE_JPACKAGE=
+)
+
 :: https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/if
 IF DEFINED PACKAGE_JPACKAGE (
   IF EXIST %PACKAGE_JPACKAGE%\jpackage.exe (
@@ -56,14 +94,16 @@ ECHO packaging for Windows
 ECHO.
 ECHO path: %PATH%
 ECHO.
-jpackage @%PACKAGE_OPTIONS%
+jpackage --type "%PACKAGE_TYPE%" @%PACKAGE_OPTIONS1% @%PACKAGE_OPTIONS2%
 ECHO.
 SET PATH=%PACKAGE_PATH%
 
+SET "PACKAGE_TYPE="
 SET "PACKAGE_JPACKAGE="
 SET "PACKAGE_WIX="
 SET "PACKAGE_PATH="
-SET "PACKAGE_OPTIONS="
+SET "PACKAGE_OPTIONS1="
+SET "PACKAGE_OPTIONS2="
 
 ECHO finished: %PATH%
 ENDLOCAL
