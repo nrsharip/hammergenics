@@ -1,0 +1,6 @@
+--linux-deb-maintainer "sharipovn@gmail.com"
+--linux-menu-group "HammerGenics"
+--linux-rpm-license-type "License: Apache License Version 2.0, January 2004"
+--linux-app-release "releasestring"
+--linux-app-category "categorystring"
+--linux-shortcut
