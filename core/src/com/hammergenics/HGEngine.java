@@ -86,6 +86,7 @@ import com.hammergenics.core.graphics.g3d.saver.G3dModelSaver;
 import com.hammergenics.physics.bullet.collision.HGContactListener;
 import com.hammergenics.core.utils.AttributesMap;
 import com.hammergenics.utils.HGUtils;
+import com.kotcrab.vis.ui.widget.file.FileTypeFilter;
 
 import java.io.FileFilter;
 import java.io.IOException;
@@ -575,8 +576,7 @@ public class HGEngine implements Disposable {
         dynamicsWorld.setConstraintSolver(BT_SEQUENTIAL_IMPULSE_SOLVER.getInstance());
     }
 
-    public void queueAssets(FileHandle rootFileHandle) {
-        assetsLoaded = false;
+    public void queueAssets(FileHandle rootFileHandle, FileTypeFilter.Rule rule) {
         // https://github.com/libgdx/libgdx/wiki/Managing-your-assets#adding-assets-to-the-queue
         // https://github.com/libgdx/fbx-conv
         // fbx-conv.exe -f -v .fbx .g3db
@@ -648,10 +648,17 @@ public class HGEngine implements Disposable {
 
         Array<FileHandle> fileHandleList = HGUtils.traversFileHandle(rootFileHandle, filterAll); // syncup: asset manager
 
+        Arrays.stream(fileHandleList.toArray()).forEach(this::queueAsset); //.filter(rule::accept)
+    }
+
+    // See TextureLoader loadAsync() and loadSync() methods for use of this parameter
+    private final TextureLoader.TextureParameter textureParameter = new TextureLoader.TextureParameter();
+
+    public void queueAsset(FileHandle fileHandle) {
+        assetsLoaded = false;
         // See TextureLoader loadAsync() and loadSync() methods for use of this parameter
         // ATTENTION: 'gdx-1.10.0.jar' and 'gdx-backend-gwt-1.10.0.jar' both have
         //            com.badlogic.gdx.assets.loaders.TextureLoader inside (seemingly with different code)
-        final TextureLoader.TextureParameter textureParameter = new TextureLoader.TextureParameter();
         // textureParameter.format;                                // default = null  (the format of the final Texture. Uses the source images format if null)
         // textureParameter.genMipMaps;                            // default = false (whether to generate mipmaps)
         // textureParameter.texture;                               // default = null  (The texture to put the TextureData in, optional)
@@ -663,31 +670,29 @@ public class HGEngine implements Disposable {
         textureParameter.wrapU = Texture.TextureWrap.Repeat;       // default = TextureWrap.ClampToEdge
         textureParameter.wrapV = Texture.TextureWrap.Repeat;       // default = TextureWrap.ClampToEdge
 
-        fileHandleList.forEach(fileHandle -> {
-            switch (fileHandle.extension().toLowerCase()) {
+        switch (fileHandle.extension().toLowerCase()) {
 //              case "3ds":  // converted to G3DB with fbx-conv
-                case "obj":
+            case "obj":
 //              case "gltf": // see for support: https://github.com/mgsx-dev/gdx-gltf
-                case "g3db":
-                case "g3dj":
-                    assetManager.load(fileHandle.path(), Model.class, null);
-                    break;
-                case "tga":
-                case "png":
-                case "bmp":
-                    assetManager.load(fileHandle.path(), Texture.class, textureParameter);
-                    break;
-                case "fnt":
-                    assetManager.load(fileHandle.path(), BitmapFont.class, null);
-                    break;
-                case "XXX": // for testing purposes
-                    assetManager.load(fileHandle.path(), ParticleEffect.class, null);
-                    break;
-                default:
-                    Gdx.app.error(getClass().getSimpleName(),
-                            "Unexpected file extension: " + fileHandle.extension());
-            }
-        });
+            case "g3db":
+            case "g3dj":
+                assetManager.load(fileHandle.path(), Model.class, null);
+                break;
+            case "tga":
+            case "png":
+            case "bmp":
+                assetManager.load(fileHandle.path(), Texture.class, textureParameter);
+                break;
+            case "fnt":
+                assetManager.load(fileHandle.path(), BitmapFont.class, null);
+                break;
+            case "XXX": // for testing purposes
+                assetManager.load(fileHandle.path(), ParticleEffect.class, null);
+                break;
+            default:
+                Gdx.app.error(getClass().getSimpleName(),
+                        "Unexpected file extension: " + fileHandle.extension());
+        }
     }
 
     public void getAssets() {

@@ -60,11 +60,14 @@ import com.kotcrab.vis.ui.util.dialog.Dialogs;
 import com.kotcrab.vis.ui.widget.Menu;
 import com.kotcrab.vis.ui.widget.MenuBar;
 import com.kotcrab.vis.ui.widget.MenuItem;
+import com.kotcrab.vis.ui.widget.PopupMenu;
 import com.kotcrab.vis.ui.widget.VisCheckBox;
 import com.kotcrab.vis.ui.widget.VisLabel;
+import com.kotcrab.vis.ui.widget.VisProgressBar;
 import com.kotcrab.vis.ui.widget.VisSelectBox;
 import com.kotcrab.vis.ui.widget.VisTable;
 import com.kotcrab.vis.ui.widget.VisTextButton;
+import com.kotcrab.vis.ui.widget.VisWindow;
 import com.kotcrab.vis.ui.widget.color.ColorPicker;
 import com.kotcrab.vis.ui.widget.file.FileChooser;
 import com.kotcrab.vis.ui.widget.file.FileChooser.DefaultFileIconProvider;
@@ -113,6 +116,8 @@ public class ModelEditStage extends Stage {
     // 2D Stage Widgets:
     public ColorPicker colorPicker;
     public FileChooser fileChooser;
+    public VisWindow loadProgressWindow;
+    public VisProgressBar loadProgressBar;
 
     public VisLabel miLabel;  // Model Instance Info
     public VisLabel envLabel; // Environment Info
@@ -156,6 +161,7 @@ public class ModelEditStage extends Stage {
         initColorPicker();
         initFileChooser();
         initMenuBar();
+        initProgressBar();
 
         setup2DStageWidgets();
         setup2DStageLayout();
@@ -244,7 +250,42 @@ public class ModelEditStage extends Stage {
         });
 
         MenuItem addToProjectMenuItem = new MenuItem("Add to Project..."); MENU_ITEM_ADD_TO_PROJECT.seize(addToProjectMenuItem);
-        addToProjectMenuItem.addListener(new ChangeListener() {
+
+        PopupMenu addToProjectPopupMenu = new PopupMenu();
+        MenuItem addFolderMenuItem = new MenuItem("Folder", new ChangeListener() {
+            @Override public void changed (ChangeEvent event, Actor actor) {
+                // https://github.com/kotcrab/vis-ui/wiki/File-chooser#selection-mode
+                // The following selection modes are available: FILES, DIRECTORIES, FILES_AND_DIRECTORIES.
+                // Please note that if dialog is in DIRECTORIES mode files still will be displayed, if user tries
+                // to select file, error message will be showed. Default selection mode is SelectionMode.FILES.
+                fileChooser.setSelectionMode(FileChooser.SelectionMode.DIRECTORIES);
+
+                // https://github.com/kotcrab/vis-ui/wiki/File-chooser#multiple-selection
+                // Chooser allow to select multiple files. It is disabled by default, to enable it call:
+                fileChooser.setMultiSelectionEnabled(true);
+
+                fileChooser.setListener(new FileChooserAdapter() {
+                    @Override
+                    public void selected (Array<FileHandle> fileHandles) {
+                        Gdx.app.debug("filechooser", "\n" + fileHandles.toString("\n"));
+
+                        loadProgressBar.setValue(0f);
+                        addActor(loadProgressWindow.fadeIn());
+
+                        for (FileHandle fh: fileHandles) {
+                            if (fh.isDirectory()) {
+                                modelES.eng.queueAssets(fh, fileChooser.getActiveFileTypeFilterRule());
+                            }
+                        }
+                    }
+                });
+
+                //displaying chooser with fade in animation
+                addActor(fileChooser.fadeIn());
+            }
+        });
+        MENU_ITEM_ADD_FOLDER.seize(addFolderMenuItem);
+        MenuItem addFileMenuItem = new MenuItem("Files", new ChangeListener() {
             @Override public void changed (ChangeEvent event, Actor actor) {
                 // https://github.com/kotcrab/vis-ui/wiki/File-chooser#typefilters
                 // FileTypeFilter allows user to filter file chooser list by given set of extension. If type filter is set
@@ -260,7 +301,7 @@ public class ModelEditStage extends Stage {
                 // The following selection modes are available: FILES, DIRECTORIES, FILES_AND_DIRECTORIES.
                 // Please note that if dialog is in DIRECTORIES mode files still will be displayed, if user tries
                 // to select file, error message will be showed. Default selection mode is SelectionMode.FILES.
-                fileChooser.setSelectionMode(FileChooser.SelectionMode.FILES_AND_DIRECTORIES);
+                fileChooser.setSelectionMode(FileChooser.SelectionMode.FILES);
 
                 // https://github.com/kotcrab/vis-ui/wiki/File-chooser#multiple-selection
                 // Chooser allow to select multiple files. It is disabled by default, to enable it call:
@@ -268,8 +309,15 @@ public class ModelEditStage extends Stage {
 
                 fileChooser.setListener(new FileChooserAdapter() {
                     @Override
-                    public void selected (Array<FileHandle> file) {
-                        Gdx.app.debug("filechooser", "\n" + file.toString("\n"));
+                    public void selected (Array<FileHandle> fileHandles) {
+                        Gdx.app.debug("filechooser", "\n" + fileHandles.toString("\n"));
+
+                        loadProgressBar.setValue(0f);
+                        addActor(loadProgressWindow.fadeIn());
+
+                        for (FileHandle fh: fileHandles) {
+                            if (!fh.isDirectory()) { modelES.eng.queueAsset(fh); }
+                        }
                     }
                 });
 
@@ -277,6 +325,11 @@ public class ModelEditStage extends Stage {
                 addActor(fileChooser.fadeIn());
             }
         });
+        MENU_ITEM_ADD_FILE.seize(addFileMenuItem);
+        addToProjectPopupMenu.addItem(addFolderMenuItem);
+        addToProjectPopupMenu.addItem(addFileMenuItem);
+        addToProjectMenuItem.setSubMenu(addToProjectPopupMenu);
+
 
         MenuItem saveMenuItem = new MenuItem("Save").setShortcut("Ctrl + S"); MENU_ITEM_SAVE.seize(saveMenuItem);
         saveMenuItem.setDisabled(true);
@@ -363,6 +416,9 @@ public class ModelEditStage extends Stage {
         // Mode.SAVE and Mode.OPEN. It changes chooser texts and behavior, it also displays overwrite
         // warring messages when dialog is in SAVE mode.
         fileChooser = new FileChooser(FileChooser.Mode.OPEN);
+
+        fileChooser.setDirectory(Gdx.files.local(""));
+
         // https://github.com/kotcrab/vis-ui/wiki/File-chooser#selection-mode
         // The following selection modes are available: FILES, DIRECTORIES, FILES_AND_DIRECTORIES.
         // Please note that if dialog is in DIRECTORIES mode files still will be displayed, if user tries
@@ -386,6 +442,19 @@ public class ModelEditStage extends Stage {
             @Override public boolean isThumbnailModesSupported() { return true; }
         };
         fileChooser.setIconProvider(fileIconProvider);
+    }
+
+    public void initProgressBar() {
+        loadProgressWindow = new VisWindow("");
+        loadProgressWindow.getTitleLabel().setText("Loading");
+        loadProgressWindow.centerWindow();
+
+        loadProgressBar = new VisProgressBar(0f, 1f, 0.001f, false);
+        loadProgressBar.setValue(0f);
+
+        loadProgressWindow.add(loadProgressBar).expandX().fillX();
+        loadProgressWindow.setHeight(4*loadProgressBar.getHeight());
+        loadProgressWindow.setWidth(2*loadProgressBar.getWidth());
     }
 
     public void applyLocale(I18NBundlesEnum language) {
@@ -435,7 +504,7 @@ public class ModelEditStage extends Stage {
             public void changed(ChangeEvent event, Actor actor) {
                 if (folderSelectBox.getSelectedIndex() == 0) { return; } // syncup: folder select
 
-                modelES.eng.queueAssets(folderSelectBox.getSelected());
+                //modelES.eng.queueAssets(folderSelectBox.getSelected());
             }
         });
 
