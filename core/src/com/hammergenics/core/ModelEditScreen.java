@@ -240,14 +240,14 @@ public class ModelEditScreen extends ScreenAdapter {
         modelBatch.end();
 
         immediateModeRenderer.begin(perspectiveCamera.combined, GL20.GL_LINES);
-        if (stage.showSelectionScaleCheckBox.isChecked()) {
+        if (stage.showSelectionCheckBox.isChecked()) {
             if (eng.currMI != null) { eng.currMI.addSelectionBoxToRenderer(immediateModeRenderer, Color.RED); }
             eng.selectedMIs.forEach(mi -> mi.addSelectionBoxToRenderer(immediateModeRenderer, Color.FOREST));
         }
         if (stage.nodesCheckBox.isChecked()) { eng.editableMIs.forEach(hgMI -> hgMI.addNodesToRenderer(immediateModeRenderer)); }
         if (stage.meshPartsCheckBox.isChecked()) { eng.editableMIs.forEach(hgMI -> hgMI.addMeshPartsToRenderer(immediateModeRenderer)); }
         if (stage.bonesCheckBox.isChecked()) { eng.editableMIs.forEach(hgMI ->
-                hgMI.addBonesToRenderer(immediateModeRenderer, stage.invertCheckBox.isChecked())); }
+                hgMI.addBonesToRenderer(immediateModeRenderer, stage.invertBonesCheckBox.isChecked())); }
         if (stage.physManagerTable.rbCheckBox.isChecked()) { eng.editableMIs.forEach(mi -> mi.addRBShapeToRenderer(immediateModeRenderer)); }
         if (stage.verticesCheckBox.isChecked()) { eng.editableMIs.forEach(mi -> mi.addVerticesToRenderer(immediateModeRenderer)); }
         if (stage.closestCheckBox.isChecked()) { eng.editableMIs.forEach(mi -> mi.addClosestVerticesToRenderer(immediateModeRenderer)); }

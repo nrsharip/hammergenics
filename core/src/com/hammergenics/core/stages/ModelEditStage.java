@@ -114,12 +114,12 @@ public class ModelEditStage extends Stage {
     public VisCheckBox gridOriginCheckBox;
     public VisCheckBox gridYCheckBox;
     public VisCheckBox lightsCheckBox;
-    public VisCheckBox showSelectionScaleCheckBox;
+    public VisCheckBox showSelectionCheckBox;
     public VisCheckBox origScaleCheckBox;
     public VisCheckBox bbCheckBox;
     public VisCheckBox nodesCheckBox;
     public VisCheckBox bonesCheckBox;
-    public VisCheckBox invertCheckBox;
+    public VisCheckBox invertBonesCheckBox;
     public VisCheckBox meshPartsCheckBox;
     public VisCheckBox verticesCheckBox;
     public VisCheckBox closestCheckBox;
@@ -413,7 +413,7 @@ public class ModelEditStage extends Stage {
 
         // CHECK BOXES:
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#checkbox
-        debugStageCheckBox = new VisCheckBox("debug stage");
+        debugStageCheckBox = (VisCheckBox)CHECKBOX_DEBUG_STAGE.seize(new VisCheckBox("debug stage"));
         debugStageCheckBox.setChecked(false);
         debugStageCheckBox.addListener(new ChangeListener() {
             @Override
@@ -426,27 +426,27 @@ public class ModelEditStage extends Stage {
         });
 
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#checkbox
-        gridOriginCheckBox = new VisCheckBox("origin");
+        gridOriginCheckBox = (VisCheckBox)CHECKBOX_GRID_ORIGIN.seize(new VisCheckBox("origin"));
         gridOriginCheckBox.setChecked(true);
 
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#checkbox
-        gridYCheckBox = new VisCheckBox("Y");
+        gridYCheckBox = (VisCheckBox)CHECKBOX_GRID_Y.seize(new VisCheckBox("Y"));
         gridYCheckBox.setChecked(true);
 
-        lightsCheckBox = new VisCheckBox("lights");
+        lightsCheckBox = (VisCheckBox)CHECKBOX_LIGHTS.seize(new VisCheckBox("lights"));
         lightsCheckBox.setChecked(true);
 
-        showSelectionScaleCheckBox = new VisCheckBox("selection");
-        showSelectionScaleCheckBox.setChecked(false);
+        showSelectionCheckBox = (VisCheckBox)CHECKBOX_SHOW_SELECTION.seize(new VisCheckBox("selection"));
+        showSelectionCheckBox.setChecked(false);
 
-        origScaleCheckBox = new VisCheckBox("orig scale");
+        origScaleCheckBox = (VisCheckBox)CHECKBOX_ORIG_SCALE.seize(new VisCheckBox("orig scale"));
         origScaleCheckBox.setChecked(false);
         origScaleCheckBox.addListener(new ChangeListener() {
             @Override
             public void changed (ChangeEvent event, Actor actor) { modelES.eng.arrangeInSpiral(origScaleCheckBox.isChecked()); }
         });
 
-        bbCheckBox = new VisCheckBox("BB");
+        bbCheckBox = (VisCheckBox)CHECKBOX_BB.seize(new VisCheckBox("BB"));
         bbCheckBox.setChecked(false);
         // TODO: fix BB checkbox
         //bbCheckBox.addListener(new ChangeListener() {
@@ -454,22 +454,22 @@ public class ModelEditStage extends Stage {
         //    public void changed (ChangeEvent event, Actor actor) { modelES.eng.resetBBModelInstances(); }
         //});
 
-        nodesCheckBox = new VisCheckBox("nodes");
+        nodesCheckBox = (VisCheckBox)CHECKBOX_NODES.seize(new VisCheckBox("nodes"));
         nodesCheckBox.setChecked(false);
 
-        bonesCheckBox = new VisCheckBox("bones (");
+        bonesCheckBox = (VisCheckBox)CHECKBOX_BONES.seize(new VisCheckBox("bones ("));
         bonesCheckBox.setChecked(false);
 
-        invertCheckBox = new VisCheckBox("invert)");
-        invertCheckBox.setChecked(false);
+        invertBonesCheckBox = (VisCheckBox)CHECKBOX_INVERT_BONES.seize(new VisCheckBox("invert)"));
+        invertBonesCheckBox.setChecked(false);
 
-        meshPartsCheckBox = new VisCheckBox("mesh parts");
+        meshPartsCheckBox = (VisCheckBox)CHECKBOX_MESH_PARTS.seize(new VisCheckBox("mesh parts"));
         meshPartsCheckBox.setChecked(false);
 
-        verticesCheckBox = new VisCheckBox("vertices (");
+        verticesCheckBox = (VisCheckBox)CHECKBOX_VERTICES.seize(new VisCheckBox("vertices ("));
         verticesCheckBox.setChecked(false);
 
-        closestCheckBox = new VisCheckBox("closest to corners)");
+        closestCheckBox = (VisCheckBox)CHECKBOX_CLOSEST.seize(new VisCheckBox("closest to corners)"));
         closestCheckBox.setChecked(false);
 
         // TEXT BUTTONS:
@@ -793,13 +793,13 @@ public class ModelEditStage extends Stage {
         lowerPanel.add(gridOriginCheckBox).pad(3f);
         lowerPanel.add(gridYCheckBox).pad(3f);
         lowerPanel.add(lightsCheckBox).pad(3f);
-        lowerPanel.add(showSelectionScaleCheckBox).pad(3f);
+        lowerPanel.add(showSelectionCheckBox).pad(3f);
         lowerPanel.add(origScaleCheckBox).pad(3f);
         // TODO: fix BB checkbox
         //lowerPanel.add(bbCheckBox).pad(3f);
         lowerPanel.add(nodesCheckBox).pad(3f);
         lowerPanel.add(bonesCheckBox);
-        lowerPanel.add(invertCheckBox).pad(3f);
+        lowerPanel.add(invertBonesCheckBox).pad(3f);
         lowerPanel.add(meshPartsCheckBox).pad(3f);
         lowerPanel.add(verticesCheckBox);
         lowerPanel.add(closestCheckBox).pad(3f);
@@ -900,7 +900,21 @@ public class ModelEditStage extends Stage {
         MENU_BAR_FILE("menuBar.textButton.file"),
         MENU_BAR_EDIT("menuBar.textButton.edit"),
         MENU_BAR_WINDOW("menuBar.textButton.window"),
-        MENU_BAR_HELP("menuBar.textButton.help");
+        MENU_BAR_HELP("menuBar.textButton.help"),
+
+        CHECKBOX_DEBUG_STAGE("checkBox.textButton.debugStage"),
+        CHECKBOX_GRID_ORIGIN("checkBox.textButton.gridOrigin"),
+        CHECKBOX_GRID_Y("checkBox.textButton.gridY"),
+        CHECKBOX_LIGHTS("checkBox.textButton.lights"),
+        CHECKBOX_SHOW_SELECTION("checkBox.textButton.showSelection"),
+        CHECKBOX_ORIG_SCALE("checkBox.textButton.origScale"),
+        CHECKBOX_BB("checkBox.textButton.bb"),
+        CHECKBOX_NODES("checkBox.textButton.nodes"),
+        CHECKBOX_BONES("checkBox.textButton.bones"),
+        CHECKBOX_INVERT_BONES("checkBox.textButton.invertBones"),
+        CHECKBOX_MESH_PARTS("checkBox.textButton.meshParts"),
+        CHECKBOX_VERTICES("checkBox.textButton.vertices"),
+        CHECKBOX_CLOSEST("checkBox.textButton.closest");
 
         private final String property;
         private TextButton instance = null;
