@@ -152,21 +152,21 @@ public abstract class BaseLightsAttributeTable<T extends Attribute, L extends Ba
         VisTable line2 = new VisTable();
 
         line1.add(enabledCheckBox);
-        line1.add(new VisLabel("lights:")).right();
+        line1.add(new VisLabel("lights:", Color.BLACK)).right();
         line1.add(mnsTextButton).width(20f).maxWidth(20f);
         line1.add(plsTextButton).width(20f).maxWidth(20f);
         line1.add(indexedTBTable);
         line1.add().expandX();
 
-        line2.add(new VisLabel("r:")).right();
+        line2.add(new VisLabel("r:", Color.BLACK)).right();
         line2.add(rTF).width(40).maxWidth(40);
-        line2.add(new VisLabel("g:")).right();
+        line2.add(new VisLabel("g:", Color.BLACK)).right();
         line2.add(gTF).width(40).maxWidth(40);
-        line2.add(new VisLabel("b:")).right();
+        line2.add(new VisLabel("b:", Color.BLACK)).right();
         line2.add(bTF).width(40).maxWidth(40);
-        line2.add(new VisLabel("a:")).right();
+        line2.add(new VisLabel("a:", Color.BLACK)).right();
         line2.add(aTF).width(40).maxWidth(40);
-        line2.add(new VisLabel("color:")).right();
+        line2.add(new VisLabel("color:", Color.BLACK)).right();
         line2.add(colorSB).fillX();
         line2.add().expandX();
 

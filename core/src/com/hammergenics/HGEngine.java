@@ -73,6 +73,7 @@ import com.badlogic.gdx.utils.JsonValue;
 import com.badlogic.gdx.utils.Logger;
 import com.badlogic.gdx.utils.Sort;
 import com.badlogic.gdx.utils.UBJsonWriter;
+import com.hammergenics.core.graphics.HGTexture;
 import com.hammergenics.map.HGGrid;
 import com.hammergenics.map.HGGrid.NoiseStageInfo;
 import com.hammergenics.map.TerrainChunk;
@@ -175,7 +176,7 @@ public class HGEngine implements Disposable {
     public G3dModelSaver g3dSaver = new G3dModelSaver();
 
     public ArrayMap<FileHandle, HGModel> hgModels = new ArrayMap<>(FileHandle.class, HGModel.class);
-    public Array<Texture> textures = new Array<>();
+    public ArrayMap<FileHandle, HGTexture> hgTextures = new ArrayMap<>(FileHandle.class, HGTexture.class);
 
     // Creating the Aux Models beforehand:
     public static final HGModel gridHgModel = new HGModel(createGridModel(MAP_SIZE/2));
@@ -699,7 +700,7 @@ public class HGEngine implements Disposable {
         // https://github.com/libgdx/libgdx/wiki/Managing-your-assets#getting-assets
         Array<Model> models = new Array<>(Model.class);
         assetManager.getAll(Model.class, models);
-        hgModels = Arrays.stream(models.toArray())
+        this.hgModels = Arrays.stream(models.toArray())
                 .map(model -> {
                     String fn = assetManager.getAssetFileName(model);
                     FileHandle fh = assetManager.getFileHandleResolver().resolve(fn);
@@ -708,7 +709,17 @@ public class HGEngine implements Disposable {
                         (accum, model) -> accum.put(model.afh, model), ArrayMap::putAll); // retrieving the ArrayMap<FileHandle, HGModel>
         Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "models loaded: " + hgModels.size);
 
+        Array<Texture> textures = new Array<>(Texture.class);
         assetManager.getAll(Texture.class, textures);
+
+        this.hgTextures = Arrays.stream(textures.toArray())
+                .map(texture -> {
+                    String fn = assetManager.getAssetFileName(texture);
+                    FileHandle fh = assetManager.getFileHandleResolver().resolve(fn);
+                    return new HGTexture(texture, fh); })                                       // Array<Texture> -> Array<HGTexture>
+                .collect(() -> new ArrayMap<>(FileHandle.class, HGTexture.class),
+                        (accum, texture) -> accum.put(texture.afh, texture), ArrayMap::putAll); // retrieving the ArrayMap<FileHandle, HGTexture>
+
         Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "textures loaded: " + textures.size);
     }
 

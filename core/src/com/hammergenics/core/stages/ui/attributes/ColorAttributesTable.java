@@ -16,6 +16,7 @@
 
 package com.hammergenics.core.stages.ui.attributes;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.hammergenics.core.ModelEditScreen;
@@ -44,7 +45,7 @@ public class ColorAttributesTable extends AttributesTable<ColorAttribute, ColorA
         resetAttributes();
 
         a2Table.forEach((entry) -> {
-            add(new VisLabel(entry.key + ":")).right();
+            add(new VisLabel(entry.key + ":", Color.BLACK)).right();
             add(entry.value).left();
             add().expandX();
             row();

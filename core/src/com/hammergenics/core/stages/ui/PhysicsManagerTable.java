@@ -16,6 +16,7 @@
 
 package com.hammergenics.core.stages.ui;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.dynamics.btDynamicsWorld;
 import com.badlogic.gdx.physics.bullet.dynamics.btMLCPSolver;
@@ -90,22 +91,22 @@ public class PhysicsManagerTable extends ManagerTable {
         add(row01).colspan(2).center().expandX().fillX();
         row();
 
-        add(new VisLabel("bullet debug mode:")).padRight(5f).right();
+        add(new VisLabel("bullet debug mode:", Color.BLACK)).padRight(5f).right();
         add(btDebugModeSelectBox).expandX().fillX().center();
         row();
 
-        add(new VisLabel("constraint solver:")).padRight(5f).right();
+        add(new VisLabel("constraint solver:", Color.BLACK)).padRight(5f).right();
         add(constraintSolverSelectBox).expandX().fillX().center();
         row();
 
-        add(new VisLabel("algorithm (for MLCP only):")).padRight(5f).right();
+        add(new VisLabel("algorithm (for MLCP only):", Color.BLACK)).padRight(5f).right();
         add(mlcpAlgorithmSelectBox).expandX().fillX().center();
         row();
 
         VisTable lblTable1 = new VisTable();
-        lblTable1.add(new VisLabel("x")).expandX().center();
-        lblTable1.add(new VisLabel("y")).expandX().center();
-        lblTable1.add(new VisLabel("z")).expandX().center();
+        lblTable1.add(new VisLabel("x", Color.BLACK)).expandX().center();
+        lblTable1.add(new VisLabel("y", Color.BLACK)).expandX().center();
+        lblTable1.add(new VisLabel("z", Color.BLACK)).expandX().center();
 
         add().right(); add(lblTable1).expandX().fillX();
         row();
@@ -114,13 +115,13 @@ public class PhysicsManagerTable extends ManagerTable {
         dwGravityTable.add(dwGravityXTF).width(120).maxWidth(120).left();
         dwGravityTable.add(dwGravityYTF).width(120).maxWidth(120).left();
         dwGravityTable.add(dwGravityZTF).width(120).maxWidth(120).left();
-        add(new VisLabel("gravity:")).padRight(5f).right(); add(dwGravityTable).left();
+        add(new VisLabel("gravity:", Color.BLACK)).padRight(5f).right(); add(dwGravityTable).left();
         row();
 
         VisTable lblTable2 = new VisTable();
-        lblTable2.add(new VisLabel("x")).expandX().center();
-        lblTable2.add(new VisLabel("y")).expandX().center();
-        lblTable2.add(new VisLabel("z")).expandX().center();
+        lblTable2.add(new VisLabel("x", Color.BLACK)).expandX().center();
+        lblTable2.add(new VisLabel("y", Color.BLACK)).expandX().center();
+        lblTable2.add(new VisLabel("z", Color.BLACK)).expandX().center();
 
         add().right(); add(lblTable2).expandX().fillX();
         row();
@@ -129,7 +130,7 @@ public class PhysicsManagerTable extends ManagerTable {
         rbCompTable.add(rbCompXTF).width(120).maxWidth(120).left();
         rbCompTable.add(rbCompYTF).width(120).maxWidth(120).left();
         rbCompTable.add(rbCompZTF).width(120).maxWidth(120).left();
-        add(new VisLabel("center of mass position:")).padRight(5f).right(); add(rbCompTable).left();
+        add(new VisLabel("center of mass position:", Color.BLACK)).padRight(5f).right(); add(rbCompTable).left();
         row();
 
         updateDynamicsWorld();
@@ -137,7 +138,7 @@ public class PhysicsManagerTable extends ManagerTable {
 
     @Override
     protected void init() {
-        dwTypeLabel = new VisLabel("");
+        dwTypeLabel = new VisLabel("", Color.BLACK);
 
         dynamicsCheckBox = new VisCheckBox("enable dynamics");
         dynamicsCheckBox.setChecked(false);

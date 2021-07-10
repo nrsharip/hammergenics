@@ -158,30 +158,30 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
         textureSelectBox.addListener(textureSelectBoxListener);
 
         add(enabledCheckBox);
-        add(new VisLabel("offsetU:")).right();
+        add(new VisLabel("offsetU:", Color.BLACK)).right();
         add(offsetUTF).width(40).maxWidth(40);
-        add(new VisLabel("minFilter:")).right();
+        add(new VisLabel("minFilter:", Color.BLACK)).right();
         add(minFilterSB).fillX();
         row();
 
         add();
-        add(new VisLabel("offsetV:")).right();
+        add(new VisLabel("offsetV:", Color.BLACK)).right();
         add(offsetVTF).width(40).maxWidth(40);
-        add(new VisLabel("magFilter:")).right();
+        add(new VisLabel("magFilter:", Color.BLACK)).right();
         add(magFilterSB).fillX();
         row();
 
         add();
-        add(new VisLabel("scaleU:")).right();
+        add(new VisLabel("scaleU:", Color.BLACK)).right();
         add(scaleUTF).width(40).maxWidth(40);
-        add(new VisLabel("uWrap:")).right();
+        add(new VisLabel("uWrap:", Color.BLACK)).right();
         add(uWrapSB).fillX();
         row();
 
         add();
-        add(new VisLabel("scaleV:")).right();
+        add(new VisLabel("scaleV:", Color.BLACK)).right();
         add(scaleVTF).width(40).maxWidth(40);
-        add(new VisLabel("vWrap:")).right();
+        add(new VisLabel("vWrap:", Color.BLACK)).right();
         add(vWrapSB).fillX();
         row();
 

@@ -99,15 +99,15 @@ public class BlendingAttributeTable extends AttributeTable<BlendingAttribute> {
         VisTable line2 = new VisTable();
 
         line1.add(enabledCheckBox);
-        line1.add(new VisLabel("opacity:")).right();
+        line1.add(new VisLabel("opacity:", Color.BLACK)).right();
         line1.add(opacityTF).width(80).maxWidth(80).padRight(5f);
         line1.add(blendedCB).padRight(5f);
         line1.add(mapSrc2DstCB).padRight(5f);
         line1.add().expandX();
 
-        line2.add(new VisLabel("src:")).right();
+        line2.add(new VisLabel("src:", Color.BLACK)).right();
         line2.add(srcFuncSB);
-        line2.add(new VisLabel("dst:")).right();
+        line2.add(new VisLabel("dst:", Color.BLACK)).right();
         line2.add(dstFuncSB);
 
         add(line1).fillX();

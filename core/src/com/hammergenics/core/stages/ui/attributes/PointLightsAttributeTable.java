@@ -65,13 +65,13 @@ public class PointLightsAttributeTable extends BaseLightsAttributeTable<PointLig
         iTF.setTextFieldListener(xyziTextFieldListener);
 
         VisTable line = new VisTable();
-        line.add(new VisLabel("x:")).right();
+        line.add(new VisLabel("x:", Color.BLACK)).right();
         line.add(xTF).width(100).maxWidth(100);
-        line.add(new VisLabel("y:")).right();
+        line.add(new VisLabel("y:", Color.BLACK)).right();
         line.add(yTF).width(100).maxWidth(100);
-        line.add(new VisLabel("z:")).right();
+        line.add(new VisLabel("z:", Color.BLACK)).right();
         line.add(zTF).width(100).maxWidth(100);
-        line.add(new VisLabel("intensity:")).right();
+        line.add(new VisLabel("intensity:", Color.BLACK)).right();
         line.add(iTF).width(100).maxWidth(100);
         line.add().expandX();
         add(line).fillX();

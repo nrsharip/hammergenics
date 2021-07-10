@@ -16,6 +16,7 @@
 
 package com.hammergenics.core.stages.ui.attributes;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -52,7 +53,7 @@ public class TextureAttributesTable extends AttributesTable<TextureAttribute, Te
             }
         });
 
-        add(new VisLabel("Texture Type: ")).right();
+        add(new VisLabel("Texture Type: ", Color.BLACK)).right();
         add(textureAttributeSelectBox).left();
         add().expandX();
         row();

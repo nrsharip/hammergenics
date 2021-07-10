@@ -489,9 +489,9 @@ public class ModelEditStage extends Stage {
 
         // LABELS:
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#label
-        fpsLabel = new VisLabel("");
-        miLabel = new VisLabel("");
-        envLabel = new VisLabel("");
+        fpsLabel = new VisLabel("", Color.BLACK);
+        miLabel = new VisLabel("", Color.BLACK);
+        envLabel = new VisLabel("", Color.BLACK);
 
         // SELECT BOXES:
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#selectbox
@@ -904,11 +904,11 @@ public class ModelEditStage extends Stage {
 
         // https://github.com/libgdx/libgdx/wiki/Table#adding-cells
         VisTable upperPanel = new VisTable();
-        upperPanel.add(new VisLabel("Folder: ")).right();
+        upperPanel.add(new VisLabel("Folder: ", Color.BLACK)).right();
         upperPanel.add(folderSelectBox).padLeft(5f).left();
-        upperPanel.add(new VisLabel("Model: ")).right();
+        upperPanel.add(new VisLabel("Model: ", Color.BLACK)).right();
         upperPanel.add(modelSelectBox).padLeft(5f).left();
-        upperPanel.add(new VisLabel("Node: ")).padLeft(5f).right();
+        upperPanel.add(new VisLabel("Node: ", Color.BLACK)).padLeft(5f).right();
         upperPanel.add(nodeSelectBox).padLeft(5f).left();
         upperPanel.add().expandX();
 
@@ -934,11 +934,11 @@ public class ModelEditStage extends Stage {
         rootTable.add(leftPanel).center();
 
         VisTable infoTable = new VisTable();
-        infoTCell = infoTable.add().expand().top().left();
+        infoTCell = infoTable.add().expand().fill().top().left();
         infoTable.row();
-        infoBCell = infoTable.add().expand().bottom().left().maxWidth(512).maxHeight(512);
+        infoBCell = infoTable.add().expand().fill().bottom().left().maxWidth(512).maxHeight(512);
 
-        rootTable.add(infoTable).expand().fillY().left().pad(10f);
+        rootTable.add(infoTable).expand().fill().left().pad(10f);
         editCell = rootTable.add().expand().right().top().pad(10f);
 
         rootTable.row();

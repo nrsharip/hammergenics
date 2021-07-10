@@ -59,7 +59,7 @@ public class AnimationsManagerTable extends ManagerTable {
     public AnimationsManagerTable(ModelEditScreen modelES, ModelEditStage stage) {
         super(modelES, stage);
 
-        add(new VisLabel("Animation: ")).padLeft(5f).right();
+        add(new VisLabel("Animation: ", Color.BLACK)).padLeft(5f).right();
         add(animationSelectBox).padLeft(5f).left();
         add(animLoopCheckBox).padLeft(5f).left();
         add(deleteAnimTextButton).padLeft(5f).left();
@@ -79,7 +79,7 @@ public class AnimationsManagerTable extends ManagerTable {
 
     @Override
     protected void init() {
-        animInfoLabel = new VisLabel("");
+        animInfoLabel = new VisLabel("", Color.BLACK);
 
         // Select Box: Animations
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#selectbox

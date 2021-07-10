@@ -16,6 +16,7 @@
 
 package com.hammergenics.core.stages.ui;
 
+import com.badlogic.gdx.graphics.Color;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.graphics.g3d.EditableModelInstance;
 import com.hammergenics.core.stages.ModelEditStage;
@@ -56,9 +57,9 @@ public class AIManagerTable extends ManagerTable {
         add(steerCheckBox).right(); add().expandX().fillX(); row();
 
         VisTable lvLblTable1 = new VisTable();
-        lvLblTable1.add(new VisLabel("x")).expandX().center();
-        lvLblTable1.add(new VisLabel("y")).expandX().center();
-        lvLblTable1.add(new VisLabel("z")).expandX().center();
+        lvLblTable1.add(new VisLabel("x", Color.BLACK)).expandX().center();
+        lvLblTable1.add(new VisLabel("y", Color.BLACK)).expandX().center();
+        lvLblTable1.add(new VisLabel("z", Color.BLACK)).expandX().center();
 
         add().right(); add(lvLblTable1).expandX().fillX(); row();
 
@@ -67,21 +68,21 @@ public class AIManagerTable extends ManagerTable {
         lvTable.add(lvyTF).width(120).maxWidth(120).left();
         lvTable.add(lvzTF).width(120).maxWidth(120).left();
 
-        add(new VisLabel("linear velocity:")).right(); add(lvTable).left(); row();
-        add(new VisLabel("angular velocity:")).right(); add(avTF).width(120).maxWidth(120).left(); row();
-        add(new VisLabel("bounding radius:")).right(); add(brTF).width(120).maxWidth(120).left(); row();
+        add(new VisLabel("linear velocity:", Color.BLACK)).right(); add(lvTable).left(); row();
+        add(new VisLabel("angular velocity:", Color.BLACK)).right(); add(avTF).width(120).maxWidth(120).left(); row();
+        add(new VisLabel("bounding radius:", Color.BLACK)).right(); add(brTF).width(120).maxWidth(120).left(); row();
         add().expandX().fillX().right(); add(taggedCB).width(120).maxWidth(120).left(); row();
 
-        add(new VisLabel("zero linear speed threshold:")).right(); add(zlstTF).width(120).maxWidth(120).left(); row();
-        add(new VisLabel("maximum linear speed:")).right(); add(mlsTF).width(120).maxWidth(120).left(); row();
-        add(new VisLabel("maximum linear acceleration:")).right(); add(mlaTF).width(120).maxWidth(120).left(); row();
-        add(new VisLabel("maximum angular speed:")).right(); add(masTF).width(120).maxWidth(120).left(); row();
-        add(new VisLabel("maximum angular acceleration:")).right(); add(maaTF).width(120).maxWidth(120).left(); row();
+        add(new VisLabel("zero linear speed threshold:", Color.BLACK)).right(); add(zlstTF).width(120).maxWidth(120).left(); row();
+        add(new VisLabel("maximum linear speed:", Color.BLACK)).right(); add(mlsTF).width(120).maxWidth(120).left(); row();
+        add(new VisLabel("maximum linear acceleration:", Color.BLACK)).right(); add(mlaTF).width(120).maxWidth(120).left(); row();
+        add(new VisLabel("maximum angular speed:", Color.BLACK)).right(); add(masTF).width(120).maxWidth(120).left(); row();
+        add(new VisLabel("maximum angular acceleration:", Color.BLACK)).right(); add(maaTF).width(120).maxWidth(120).left(); row();
 
         VisTable lvLblTable2 = new VisTable();
-        lvLblTable2.add(new VisLabel("x")).expandX().center();
-        lvLblTable2.add(new VisLabel("y")).expandX().center();
-        lvLblTable2.add(new VisLabel("z")).expandX().center();
+        lvLblTable2.add(new VisLabel("x", Color.BLACK)).expandX().center();
+        lvLblTable2.add(new VisLabel("y", Color.BLACK)).expandX().center();
+        lvLblTable2.add(new VisLabel("z", Color.BLACK)).expandX().center();
 
         add().right(); add(lvLblTable2).expandX().fillX(); row();
 
@@ -90,8 +91,8 @@ public class AIManagerTable extends ManagerTable {
         pTable.add(pyTF).width(120).maxWidth(120).left();
         pTable.add(pzTF).width(120).maxWidth(120).left();
 
-        add(new VisLabel("position:")).right(); add(pTable).left(); row();
-        add(new VisLabel("orientation:")).right(); add(oTF).width(120).maxWidth(120).left(); row();
+        add(new VisLabel("position:", Color.BLACK)).right(); add(pTable).left(); row();
+        add(new VisLabel("orientation:", Color.BLACK)).right(); add(oTF).width(120).maxWidth(120).left(); row();
     }
 
     @Override

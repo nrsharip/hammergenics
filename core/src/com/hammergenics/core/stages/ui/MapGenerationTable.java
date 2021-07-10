@@ -112,11 +112,11 @@ public class MapGenerationTable extends ManagerTable {
         }
 
         VisTable noiseGridTable = new VisTable();
-        noiseGridTable.add(new VisLabel("yScale:")).right();
+        noiseGridTable.add(new VisLabel("yScale:", Color.BLACK)).right();
         noiseGridTable.add(noiseYScaleTF).width(60).maxWidth(60).padRight(5f);
         noiseGridTable.add(genNoiseTextButton).center().expandX().fillX();
 
-        noiseGridTable.add(new VisLabel("step:")).right();
+        noiseGridTable.add(new VisLabel("step:", Color.BLACK)).right();
         noiseGridTable.add(noiseStepTF).width(60).maxWidth(60).padRight(5f);
         noiseGridTable.add(roundStepNoiseTextButton).center().expandX().fillX();
 
@@ -142,7 +142,7 @@ public class MapGenerationTable extends ManagerTable {
             TerrainPartsEnum part = entry.key;
             VisSelectBox<FileHandle> sb = entry.value;
 
-            trrnPartTable.add(new VisLabel(part.description + ":")).right();
+            trrnPartTable.add(new VisLabel(part.description + ":", Color.BLACK)).right();
             trrnPartTable.add(sb).center().expandX().fillX();
             trrnPartTable.row();
         }
@@ -218,11 +218,11 @@ public class MapGenerationTable extends ManagerTable {
             });
 
             add(enabledCB).padRight(5f);
-            add(new VisLabel("radius:")).right();
+            add(new VisLabel("radius:", Color.BLACK)).right();
             add(radiusTF).width(40).maxWidth(40).padRight(5f);
-            add(new VisLabel("modifier:")).right();
+            add(new VisLabel("modifier:", Color.BLACK)).right();
             add(modifierTF).width(40).maxWidth(40).padRight(5f);
-            add(new VisLabel("seed:")).right();
+            add(new VisLabel("seed:", Color.BLACK)).right();
             add(noiseGridSeedTF).width(200).maxWidth(200).padRight(5f);
             add(applySeedCB).padRight(5f);
         }

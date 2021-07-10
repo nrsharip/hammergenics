@@ -147,6 +147,9 @@ public class ModelEditScreen extends ScreenAdapter {
             eng.assetsLoaded = true;
             stage.updateModelSelectBox();
             stage.mapGenerationTable.updateTrrnSelectBoxes();
+
+            stage.projManagerTable.updateAssetsTree();
+
             stage.loadProgressWindow.fadeOut();
         } else if (!eng.assetsLoaded) {
             stage.loadProgressBar.setValue(eng.assetManager.getProgress());

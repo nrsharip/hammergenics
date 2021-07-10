@@ -65,11 +65,11 @@ public class DirectionalLightsAttributeTable extends BaseLightsAttributeTable<Di
         setTB.addListener(setInputListener);
 
         VisTable line = new VisTable();
-        line.add(new VisLabel("dir x:")).right();
+        line.add(new VisLabel("dir x:", Color.BLACK)).right();
         line.add(xTF).width(100).maxWidth(100);
-        line.add(new VisLabel("dir y:")).right();
+        line.add(new VisLabel("dir y:", Color.BLACK)).right();
         line.add(yTF).width(100).maxWidth(100);
-        line.add(new VisLabel("dir z:")).right();
+        line.add(new VisLabel("dir z:", Color.BLACK)).right();
         line.add(zTF).width(100).maxWidth(100);
         line.add(setTB).padLeft(10f);
         line.add().expandX();

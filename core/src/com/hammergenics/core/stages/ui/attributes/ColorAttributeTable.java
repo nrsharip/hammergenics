@@ -106,15 +106,15 @@ public class ColorAttributeTable extends AttributeTable<ColorAttribute> {
         });
 
         add(enabledCheckBox).expandX().left().padLeft(5f).padRight(5f);
-        add(new VisLabel("r:")).right();
+        add(new VisLabel("r:", Color.BLACK)).right();
         add(rTF).pad(1f).width(40).maxWidth(40);
-        add(new VisLabel("g:")).right();
+        add(new VisLabel("g:", Color.BLACK)).right();
         add(gTF).pad(1f).width(40).maxWidth(40);
-        add(new VisLabel("b:")).right();
+        add(new VisLabel("b:", Color.BLACK)).right();
         add(bTF).pad(1f).width(40).maxWidth(40);
-        add(new VisLabel("a:")).right();
+        add(new VisLabel("a:", Color.BLACK)).right();
         add(aTF).pad(1f).width(40).maxWidth(40);
-        add(new VisLabel("color:")).right();
+        add(new VisLabel("color:", Color.BLACK)).right();
         add(colorSB).pad(1f).fillX();
         add(selectColorTB).fillX();
         add().expandX();
