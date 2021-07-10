@@ -16,7 +16,6 @@
 
 package com.hammergenics.core.stages.ui;
 
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.model.Animation;
@@ -45,27 +44,20 @@ import com.kotcrab.vis.ui.widget.VisTextField;
  *
  * @author nrsharip
  */
-public class AnimationsManagerTable extends VisTable {
-    public ModelEditScreen modelES;
-    public ModelEditStage stage;
-    public EditableModelInstance dbgModelInstance;
-
+public class AnimationsManagerTable extends ManagerTable {
     public VisLabel animInfoLabel;
-    public VisSelectBox<String> animationSelectBox = null;
-    public VisCheckBox animLoopCheckBox = null;
-    public VisSlider keyFrameSlider = null;
-    public VisTextField animIdTextField = null;
-    public VisTextField keyTimeTextField = null;
-    public VisTextButton createAnimTextButton = null;
-    public VisTextButton deleteAnimTextButton = null;
-    public VisTextButton plsKeyFrameTextButton = null;
-    public VisTextButton mnsKeyFrameTextButton = null;
+    public VisSelectBox<String> animationSelectBox;
+    public VisCheckBox animLoopCheckBox;
+    public VisSlider keyFrameSlider;
+    public VisTextField animIdTextField;
+    public VisTextField keyTimeTextField;
+    public VisTextButton createAnimTextButton;
+    public VisTextButton deleteAnimTextButton;
+    public VisTextButton plsKeyFrameTextButton;
+    public VisTextButton mnsKeyFrameTextButton;
 
     public AnimationsManagerTable(ModelEditScreen modelES, ModelEditStage stage) {
-        this.modelES = modelES;
-        this.stage = stage;
-
-        init();
+        super(modelES, stage);
 
         add(new VisLabel("Animation: ")).padLeft(5f).right();
         add(animationSelectBox).padLeft(5f).left();
@@ -85,8 +77,8 @@ public class AnimationsManagerTable extends VisTable {
         add(kfTable).left().colspan(5).fillX();
     }
 
-    private void init() {
-
+    @Override
+    protected void init() {
         animInfoLabel = new VisLabel("");
 
         // Select Box: Animations
@@ -352,21 +344,20 @@ public class AnimationsManagerTable extends VisTable {
         }
     }
 
+    @Override
     public void setDbgModelInstance(EditableModelInstance mi) {
-        this.dbgModelInstance = mi;
+        super.setDbgModelInstance(mi);
 
         setAnimSelectBox(mi);
         setAnimation(mi);
         updateActors();
     }
 
+    @Override
     public void resetActors() {
-        stage.infoTCell.clearActor();
-        stage.infoBCell.clearActor();
-        stage.editCell.clearActor();
+        super.resetActors();
 
         stage.infoTCell.setActor(animInfoLabel);
-        stage.editCell.setActor(this);
     }
 
     public void applyLocale() {

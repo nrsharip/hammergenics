@@ -16,7 +16,6 @@
 
 package com.hammergenics.core.stages.ui;
 
-
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
@@ -35,11 +34,7 @@ import com.kotcrab.vis.ui.widget.VisTextButton;
  *
  * @author nrsharip
  */
-public class AggregatedAttributesManagerTable extends VisTable {
-    public ModelEditScreen modelES;
-    public ModelEditStage stage;
-    public EditableModelInstance dbgModelInstance;
-
+public class AggregatedAttributesManagerTable extends ManagerTable {
     public Cell<?> attrTableCell;
     
     public VisTextButton mtlTextButton;
@@ -47,10 +42,7 @@ public class AggregatedAttributesManagerTable extends VisTable {
     public VisSelectBox<String> mtlSelectBox;
 
     public AggregatedAttributesManagerTable(ModelEditScreen modelES, ModelEditStage stage) {
-        this.modelES = modelES;
-        this.stage = stage;
-
-        init();
+        super(modelES, stage);
 
         VisTable topPanel = new VisTable();
         topPanel.add(envTextButton).padRight(5f);
@@ -62,7 +54,8 @@ public class AggregatedAttributesManagerTable extends VisTable {
         attrTableCell = add();
     }
 
-    private void init() {
+    @Override
+    protected void init() {
         mtlTextButton = new VisTextButton("MTL");
         stage.unpressButton(mtlTextButton);
         mtlTextButton.addListener(new InputListener() {
@@ -92,8 +85,9 @@ public class AggregatedAttributesManagerTable extends VisTable {
         });
     }
 
-    public void setDbgModelInstance(EditableModelInstance dbgModelInstance) {
-        this.dbgModelInstance = dbgModelInstance;
+    @Override
+    public void setDbgModelInstance(EditableModelInstance mi) {
+        super.setDbgModelInstance(mi);
         mtlSelectBox.getSelection().setProgrammaticChangeEvents(false);
         mtlSelectBox.clearItems();
         if (dbgModelInstance != null) { mtlSelectBox.setItems(dbgModelInstance.mtlIds); }
@@ -121,10 +115,9 @@ public class AggregatedAttributesManagerTable extends VisTable {
         }
     }
 
+    @Override
     public void resetActors() {
-        stage.infoTCell.clearActor();
-        stage.infoBCell.clearActor();
-        stage.editCell.clearActor();
+        super.resetActors();
 
         if (!isAnyButtonPressed()) { pressEnv(); }
 
@@ -147,8 +140,6 @@ public class AggregatedAttributesManagerTable extends VisTable {
         } else if (stage.isPressed(mtlTextButton)) {
             pressEnv();
         }
-
-        stage.editCell.setActor(this);
     }
 
     public void applyLocale() {

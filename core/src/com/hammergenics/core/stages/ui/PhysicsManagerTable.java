@@ -16,7 +16,6 @@
 
 package com.hammergenics.core.stages.ui;
 
-
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.dynamics.btDynamicsWorld;
 import com.badlogic.gdx.physics.bullet.dynamics.btMLCPSolver;
@@ -44,13 +43,8 @@ import static com.hammergenics.utils.HGUtils.btDbgModes;
  *
  * @author nrsharip
  */
-public class PhysicsManagerTable extends VisTable {
-    public ModelEditScreen modelES;
-    public ModelEditStage stage;
-    public HGEngine eng;
+public class PhysicsManagerTable extends ManagerTable {
     public btDynamicsWorld dw;
-    public EditableModelInstance dbgModelInstance;
-
     public btRigidBody rb;
     public btRigidBodyProxy rbp;
 
@@ -60,27 +54,31 @@ public class PhysicsManagerTable extends VisTable {
     public VisCheckBox rbCheckBox;
     public VisCheckBox groundCheckBox;
 
-    public VisSelectBox<String> btDebugModeSelectBox = null;
-    public VisSelectBox<btConstraintSolversEnum> constraintSolverSelectBox = null;
-    public VisSelectBox<btMLCPSolversEnum> mlcpAlgorithmSelectBox = null;
+    public VisSelectBox<String> btDebugModeSelectBox;
+    public VisSelectBox<btConstraintSolversEnum> constraintSolverSelectBox;
+    public VisSelectBox<btMLCPSolversEnum> mlcpAlgorithmSelectBox;
 
-    public VisTextField dwGravityXTF = null; // dw gravity
-    public VisTextField dwGravityYTF = null; // dw gravity
-    public VisTextField dwGravityZTF = null; // dw gravity
+    public VisTextField dwGravityXTF; // dw gravity
+    public VisTextField dwGravityYTF; // dw gravity
+    public VisTextField dwGravityZTF; // dw gravity
 
     public Vector3 dwGravity = new Vector3();
 
-    public VisTextField rbCompXTF = null; // Center Of Mass Position
-    public VisTextField rbCompYTF = null; // Center Of Mass Position
-    public VisTextField rbCompZTF = null; // Center Of Mass Position
+    public VisTextField rbCompXTF; // Center Of Mass Position
+    public VisTextField rbCompYTF; // Center Of Mass Position
+    public VisTextField rbCompZTF; // Center Of Mass Position
 
     public PhysicsManagerTable(ModelEditScreen modelES, ModelEditStage stage) {
-        this.modelES = modelES;
-        this.eng = modelES.eng;
+        super(modelES, stage);
         this.dw = modelES.eng.dynamicsWorld;
-        this.stage = stage;
 
-        init();
+        btDebugModeSelectBox.getSelection().setProgrammaticChangeEvents(false);
+        btDebugModeSelectBox.setSelectedIndex(btDbgModes.indexOfValue(dw.getDebugDrawer().getDebugMode(), false));
+        btDebugModeSelectBox.getSelection().setProgrammaticChangeEvents(true);
+
+        constraintSolverSelectBox.getSelection().setProgrammaticChangeEvents(false);
+        constraintSolverSelectBox.setSelected(btConstraintSolversEnum.findByType(dw.getConstraintSolver().getSolverType()));
+        constraintSolverSelectBox.getSelection().setProgrammaticChangeEvents(true);
 
         add(dwTypeLabel).colspan(2).center().expandX();
         row();
@@ -137,7 +135,8 @@ public class PhysicsManagerTable extends VisTable {
         updateDynamicsWorld();
     }
 
-    private void init() {
+    @Override
+    protected void init() {
         dwTypeLabel = new VisLabel("");
 
         dynamicsCheckBox = new VisCheckBox("enable dynamics");
@@ -158,7 +157,6 @@ public class PhysicsManagerTable extends VisTable {
         btDebugModeSelectBox = new VisSelectBox<>();
         btDebugModeSelectBox.clearItems();
         btDebugModeSelectBox.setItems(btDbgModes.keys().toArray());
-        btDebugModeSelectBox.setSelectedIndex(btDbgModes.indexOfValue(dw.getDebugDrawer().getDebugMode(), false));
         btDebugModeSelectBox.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -191,7 +189,6 @@ public class PhysicsManagerTable extends VisTable {
         constraintSolverSelectBox = new VisSelectBox<>();
         constraintSolverSelectBox.clearItems();
         constraintSolverSelectBox.setItems(btConstraintSolversEnum.values());
-        constraintSolverSelectBox.setSelected(btConstraintSolversEnum.findByType(dw.getConstraintSolver().getSolverType()));
         constraintSolverSelectBox.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -257,19 +254,12 @@ public class PhysicsManagerTable extends VisTable {
         }
     }
 
+    @Override
     public void setDbgModelInstance(EditableModelInstance mi) {
-        this.dbgModelInstance = mi;
+        super.setDbgModelInstance(mi);
 
         updateDynamicsWorld();
         updateRigidBody();
-    }
-
-    public void resetActors() {
-        stage.infoTCell.clearActor();
-        stage.infoBCell.clearActor();
-        stage.editCell.clearActor();
-
-        stage.editCell.setActor(this);
     }
 
     public void applyLocale() {

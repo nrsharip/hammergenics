@@ -49,6 +49,7 @@ import com.hammergenics.core.stages.ui.AggregatedAttributesManagerTable;
 import com.hammergenics.core.stages.ui.AnimationsManagerTable;
 import com.hammergenics.core.stages.ui.MapGenerationTable;
 import com.hammergenics.core.stages.ui.PhysicsManagerTable;
+import com.hammergenics.core.stages.ui.ProjectManagerTable;
 import com.hammergenics.core.stages.ui.attributes.AttributesManagerTable;
 import com.hammergenics.core.stages.ui.attributes.BaseAttributeTable;
 import com.hammergenics.core.stages.ui.attributes.BaseAttributeTable.EventType;
@@ -97,10 +98,11 @@ public class ModelEditStage extends Stage {
     // 2D Stage Layout:
     public VisTable rootTable;
     public MenuBar menuBar;
-    public Cell<?> infoTCell = null;
-    public Cell<?> infoBCell = null;
-    public Cell<?> editCell = null;
+    public Cell<?> infoTCell;
+    public Cell<?> infoBCell;
+    public Cell<?> editCell;
 
+    public ProjectManagerTable projManagerTable;
     public AttributesManagerTable envAttrTable;
     public AggregatedAttributesManagerTable aggrAttrTable;
     public AnimationsManagerTable animationsManagerTable;
@@ -132,14 +134,15 @@ public class ModelEditStage extends Stage {
     public VisSelectBox<FileHandle> folderSelectBox;
     public VisSelectBox<FileHandle> modelSelectBox;
     public VisSelectBox<String> nodeSelectBox;
-    public VisTextButton attrTextButton = null;
-    public VisTextButton animTextButton = null;
-    public VisTextButton mapTextButton = null;
-    public VisTextButton aiTextButton = null;
-    public VisTextButton physTextButton = null;
-    public VisTextButton clearModelsTextButton = null;
-    public VisTextButton deleteCurrModelTextButton = null;
-    public VisTextButton saveCurrModelTextButton = null;
+    public VisTextButton projTextButton;
+    public VisTextButton attrTextButton;
+    public VisTextButton animTextButton;
+    public VisTextButton mapTextButton;
+    public VisTextButton aiTextButton;
+    public VisTextButton physTextButton;
+    public VisTextButton clearModelsTextButton;
+    public VisTextButton deleteCurrModelTextButton;
+    public VisTextButton saveCurrModelTextButton;
 
     public BaseAttributeTable.EventListener eventListener;
 
@@ -164,6 +167,7 @@ public class ModelEditStage extends Stage {
             Gdx.app.exit();
         }
 
+        projManagerTable = new ProjectManagerTable(modelES, this);
         aggrAttrTable = new AggregatedAttributesManagerTable(modelES, this);
         animationsManagerTable = new AnimationsManagerTable(modelES, this);
         mapGenerationTable = new MapGenerationTable(modelES, this);
@@ -361,6 +365,7 @@ public class ModelEditStage extends Stage {
         initColorPicker();
         initFileChooser();
 
+        if (projManagerTable != null) { projManagerTable.applyLocale(); }
         if (envAttrTable != null) { envAttrTable.applyLocale(); }
         if (aggrAttrTable != null) { aggrAttrTable.applyLocale(); }
         if (animationsManagerTable != null) { animationsManagerTable.applyLocale(); }
@@ -506,6 +511,26 @@ public class ModelEditStage extends Stage {
 
         // TEXT BUTTONS:
         // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textbutton
+        projTextButton = (VisTextButton)PROJECT.seize(new VisTextButton("PROJ"));
+        unpressButton(projTextButton);
+        projTextButton.addListener(new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                editCell.clearActor();
+                if (!isPressed(projTextButton)) {
+                    unpressAllButtons();
+                    pressButton(projTextButton);
+                } else {
+                    unpressButton(projTextButton);
+                }
+                resetTables();
+                return super.touchDown(event, x, y, pointer, button); // false
+                // If true is returned, this listener will have touch focus, so it will receive all
+                // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
+                // Also when true is returned, the event is handled
+            }
+        });
+
         attrTextButton = (VisTextButton)ATTRIBUTES.seize(new VisTextButton("ATTR"));
         unpressButton(attrTextButton);
         attrTextButton.addListener(new InputListener() {
@@ -796,6 +821,8 @@ public class ModelEditStage extends Stage {
         rootTable.row();
 
         VisTable leftPanel = new VisTable();
+        leftPanel.add(projTextButton).pad(1f).padLeft(0f).fillX();
+        leftPanel.row();
         leftPanel.add(attrTextButton).pad(1f).padLeft(0f).fillX();
         leftPanel.row();
         leftPanel.add(animTextButton).pad(1f).padLeft(0f).fillX();
@@ -846,6 +873,7 @@ public class ModelEditStage extends Stage {
     }
 
     public void unpressAllButtons() {
+        unpressButton(projTextButton);
         unpressButton(attrTextButton);
         unpressButton(animTextButton);
         unpressButton(mapTextButton);
@@ -853,8 +881,8 @@ public class ModelEditStage extends Stage {
         unpressButton(physTextButton);
     }
     public boolean isAnyButtonPressed() {
-        return isPressed(attrTextButton) || isPressed(animTextButton) || isPressed(mapTextButton)
-                || isPressed(aiTextButton) || isPressed(physTextButton);
+        return isPressed(projTextButton) || isPressed(attrTextButton) || isPressed(animTextButton)
+                || isPressed(mapTextButton) || isPressed(aiTextButton) || isPressed(physTextButton);
     }
     public void unpressButton(VisTextButton btn) { btn.setStyle(tbStyleDefault); }
     public void pressButton(VisTextButton btn) { btn.setStyle(tbStyleBlue); }
@@ -886,6 +914,11 @@ public class ModelEditStage extends Stage {
     public void resetTables() {
         if (modelES == null) { return; }
 
+        if (isPressed(projTextButton)) {
+            projManagerTable.setDbgModelInstance(modelES.eng.currMI);
+            projManagerTable.resetActors();
+        }
+
         if (isPressed(attrTextButton)) {
             aggrAttrTable.setDbgModelInstance(modelES.eng.currMI);
             aggrAttrTable.resetActors();
@@ -897,7 +930,7 @@ public class ModelEditStage extends Stage {
         }
 
         if (isPressed(mapTextButton)) {
-            //mapGenerationTable.setDbgModelInstance(modelES.eng.currMI);
+            mapGenerationTable.setDbgModelInstance(modelES.eng.currMI);
             mapGenerationTable.resetActors();
         }
 
@@ -920,6 +953,7 @@ public class ModelEditStage extends Stage {
     }
 
     public enum TextButtonsTextEnum implements BundleText {
+        PROJECT("textButton.project"),
         ATTRIBUTES("textButton.attributes"),
         ANIMATIONS("textButton.animations"),
         MAP("textButton.map"),

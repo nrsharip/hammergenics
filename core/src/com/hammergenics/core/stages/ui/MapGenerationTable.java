@@ -58,27 +58,22 @@ import static com.hammergenics.map.TerrainPartsEnum.TRRN_SIDE;
  *
  * @author nrsharip
  */
-public class MapGenerationTable extends VisTable {
-    public ModelEditScreen modelES;
-    public ModelEditStage stage;
-    public HGEngine eng;
-    public EditableModelInstance dbgModelInstance;
-
-    public VisTextButton genNoiseTextButton = null;
-    public VisTextButton genCellTextButton = null;
-    public VisTextButton genDungTextButton = null;
+public class MapGenerationTable extends ManagerTable {
+    public VisTextButton genNoiseTextButton;
+    public VisTextButton genCellTextButton;
+    public VisTextButton genDungTextButton;
 
     public Texture textureNoise;
     public Texture textureCellular;
     public Texture textureDungeon;
 
     public Array<NoiseStageTable> noiseStageTables = new Array<>(true, 16, NoiseStageTable.class);
-    public VisTextButton roundStepNoiseTextButton = null;
+    public VisTextButton roundStepNoiseTextButton;
 
-    public VisCheckBox previewNoiseGrid = null;
+    public VisCheckBox previewNoiseGrid;
     // TODO: preview image should be more general option on the stage level
-    public VisCheckBox previewNoiseImage = null;
-    public VisCheckBox previewTerrain = null;
+    public VisCheckBox previewNoiseImage;
+    public VisCheckBox previewTerrain;
 
     public VisTextField noiseYScaleTF;
     public VisTextField noiseStepTF;
@@ -86,17 +81,30 @@ public class MapGenerationTable extends VisTable {
     public float noiseYScale = 20f;
     public float noiseStep = 0.05f;
 
-    public VisTextButton applyTerrainTextButton = null;
-    public VisTextButton clearTerrainTextButton = null;
+    public VisTextButton applyTerrainTextButton;
+    public VisTextButton clearTerrainTextButton;
     public ArrayMap<TerrainPartsEnum, VisSelectBox<FileHandle>> trrnSelectBoxes =
             new ArrayMap<>(true, 16, TerrainPartsEnum.class, VisSelectBox.class);
 
     public MapGenerationTable(ModelEditScreen modelES, ModelEditStage stage) {
-        this.modelES = modelES;
-        this.eng = modelES.eng;
-        this.stage = stage;
+        super(modelES, stage);
 
-        init();
+        noiseStageTables.addAll(
+                new NoiseStageTable(stage, 16, 0.8f),
+                new NoiseStageTable(stage, 8, 0.1f),
+                new NoiseStageTable(stage, 4, 0.1f),
+                new NoiseStageTable(stage, 1, 0.05f)
+        );
+
+        trrnSelectBoxes.put(TRRN_FLAT, new VisSelectBox<>());
+        trrnSelectBoxes.put(TRRN_SIDE, new VisSelectBox<>());
+        trrnSelectBoxes.put(TRRN_CORN_INN, new VisSelectBox<>());
+        trrnSelectBoxes.put(TRRN_CORN_OUT, new VisSelectBox<>());
+
+        trrnSelectBoxes.get(TRRN_FLAT).setName(TRRN_FLAT.name());
+        trrnSelectBoxes.get(TRRN_SIDE).setName(TRRN_SIDE.name());
+        trrnSelectBoxes.get(TRRN_CORN_INN).setName(TRRN_CORN_INN.name());
+        trrnSelectBoxes.get(TRRN_CORN_OUT).setName(TRRN_CORN_OUT.name());
 
         for (NoiseStageTable nst: noiseStageTables) {
             add(nst).center().expandX().fillX();
@@ -220,14 +228,8 @@ public class MapGenerationTable extends VisTable {
         }
     }
 
-    public void init() {
-        noiseStageTables.addAll(
-                new NoiseStageTable(stage, 16, 0.8f),
-                new NoiseStageTable(stage, 8, 0.1f),
-                new NoiseStageTable(stage, 4, 0.1f),
-                new NoiseStageTable(stage, 1, 0.05f)
-        );
-
+    @Override
+    protected void init() {
         genNoiseTextButton = new VisTextButton("gen noise grid");
         stage.unpressButton(genNoiseTextButton);
         genNoiseTextButton.addListener(new InputListener() {
@@ -385,16 +387,6 @@ public class MapGenerationTable extends VisTable {
 
         previewTerrain = new VisCheckBox("preview terrain");
         previewTerrain.setChecked(true);
-
-        trrnSelectBoxes.put(TRRN_FLAT, new VisSelectBox<>());
-        trrnSelectBoxes.put(TRRN_SIDE, new VisSelectBox<>());
-        trrnSelectBoxes.put(TRRN_CORN_INN, new VisSelectBox<>());
-        trrnSelectBoxes.put(TRRN_CORN_OUT, new VisSelectBox<>());
-
-        trrnSelectBoxes.get(TRRN_FLAT).setName(TRRN_FLAT.name());
-        trrnSelectBoxes.get(TRRN_SIDE).setName(TRRN_SIDE.name());
-        trrnSelectBoxes.get(TRRN_CORN_INN).setName(TRRN_CORN_INN.name());
-        trrnSelectBoxes.get(TRRN_CORN_OUT).setName(TRRN_CORN_OUT.name());
     }
 
     // see: https://github.com/czyzby/noise4j
@@ -477,13 +469,11 @@ public class MapGenerationTable extends VisTable {
         }
     }
 
+    @Override
     public void resetActors() {
-        stage.infoTCell.clearActor();
-        stage.infoBCell.clearActor();
-        stage.editCell.clearActor();
+        super.resetActors();
 
         stage.infoBCell.setActor(stage.textureImage);
-        stage.editCell.setActor(this);
     }
 
     public void applyLocale() {
