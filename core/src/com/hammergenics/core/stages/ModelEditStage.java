@@ -17,6 +17,7 @@
 package com.hammergenics.core.stages;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Attributes;
@@ -66,14 +67,8 @@ import com.kotcrab.vis.ui.widget.VisTable;
 import com.kotcrab.vis.ui.widget.VisTextButton;
 import com.kotcrab.vis.ui.widget.color.ColorPicker;
 
-import static com.hammergenics.core.stages.ModelEditStage.TextButtonsTextEnum.AI;
-import static com.hammergenics.core.stages.ModelEditStage.TextButtonsTextEnum.ANIMATIONS;
-import static com.hammergenics.core.stages.ModelEditStage.TextButtonsTextEnum.ATTRIBUTES;
-import static com.hammergenics.core.stages.ModelEditStage.TextButtonsTextEnum.CLEAR_MODELS;
-import static com.hammergenics.core.stages.ModelEditStage.TextButtonsTextEnum.DELETE_CURRENT_MODEL;
-import static com.hammergenics.core.stages.ModelEditStage.TextButtonsTextEnum.MAP;
-import static com.hammergenics.core.stages.ModelEditStage.TextButtonsTextEnum.PHYSICS;
-import static com.hammergenics.core.stages.ModelEditStage.TextButtonsTextEnum.SAVE_CURRENT_MODEL;
+import static com.hammergenics.core.stages.ModelEditStage.MenuItemsTextEnum.*;
+import static com.hammergenics.core.stages.ModelEditStage.TextButtonsTextEnum.*;
 import static com.hammergenics.core.stages.ui.attributes.BaseAttributeTable.EventType.ATTR_CHANGED;
 import static com.hammergenics.core.stages.ui.attributes.BaseAttributeTable.EventType.ATTR_DISABLED;
 import static com.hammergenics.core.stages.ui.attributes.BaseAttributeTable.EventType.ATTR_ENABLED;
@@ -242,27 +237,31 @@ public class ModelEditStage extends Stage {
             @Override public void menuClosed (Menu menu) { }
         });
 
-        Menu fileMenu = new Menu("File");
-        Menu editMenu = new Menu("Edit");
-        //Menu windowMenu = new Menu("Window");
-        Menu helpMenu = new Menu("Help");
+        Menu fileMenu = new Menu("File"); MENU_BAR_FILE.seize(fileMenu.openButton);
+        Menu editMenu = new Menu("Edit"); MENU_BAR_EDIT.seize(editMenu.openButton);
+        //Menu windowMenu = new Menu("Window"); MENU_BAR_WINDOW.seize(windowMenu.openButton);
+        Menu helpMenu = new Menu("Help"); MENU_BAR_HELP.seize(helpMenu.openButton);
 
-        MenuItem newMenuItem = new MenuItem("New").setShortcut("Ctrl + N");
-        MenuItem openMenuItem = new MenuItem("Open").setShortcut("Ctrl + O");
-        MenuItem addToProjectMenuItem = new MenuItem("Add to Project");
+        MenuItem newMenuItem = new MenuItem("New").setShortcut("Ctrl + N"); MENU_ITEM_NEW.seize(newMenuItem);
+        MenuItem openMenuItem = new MenuItem("Open").setShortcut("Ctrl + O"); MENU_ITEM_OPEN.seize(openMenuItem);
+        MenuItem addToProjectMenuItem = new MenuItem("Add to Project"); MENU_ITEM_ADD_TO_PROJECT.seize(addToProjectMenuItem);
         PopupMenu addToProjectPopupMenu = new PopupMenu();
-        addToProjectPopupMenu.addItem(new MenuItem("Folder", new ChangeListener() {
+        MenuItem addFolderMenuItem = new MenuItem("Folder", new ChangeListener() {
             @Override public void changed (ChangeEvent event, Actor actor) {}
-        }));
-        addToProjectPopupMenu.addItem(new MenuItem("File", new ChangeListener() {
+        });
+        MENU_ITEM_ADD_FOLDER.seize(addFolderMenuItem);
+        MenuItem addFileMenuItem = new MenuItem("File", new ChangeListener() {
             @Override public void changed (ChangeEvent event, Actor actor) {}
-        }));
+        });
+        MENU_ITEM_ADD_FILE.seize(addFileMenuItem);
+        addToProjectPopupMenu.addItem(addFolderMenuItem);
+        addToProjectPopupMenu.addItem(addFileMenuItem);
         addToProjectMenuItem.setSubMenu(addToProjectPopupMenu);
 
-        MenuItem saveMenuItem = new MenuItem("Save").setShortcut("Ctrl + S");
+        MenuItem saveMenuItem = new MenuItem("Save").setShortcut("Ctrl + S"); MENU_ITEM_SAVE.seize(saveMenuItem);
         saveMenuItem.setDisabled(true);
-        MenuItem settingsMenuItem = new MenuItem("Settings...").setShortcut("Ctrl + Alt + S");
-        MenuItem exitMenuItem = new MenuItem("Exit").setShortcut("Alt + F4");
+        MenuItem settingsMenuItem = new MenuItem("Settings...").setShortcut("Ctrl + Alt + S"); MENU_ITEM_SETTINGS.seize(settingsMenuItem);
+        MenuItem exitMenuItem = new MenuItem("Exit").setShortcut("Alt + F4"); MENU_ITEM_EXIT.seize(exitMenuItem);
 
         fileMenu.addItem(newMenuItem);
         fileMenu.addItem(openMenuItem);
@@ -274,14 +273,14 @@ public class ModelEditStage extends Stage {
         fileMenu.addSeparator();
         fileMenu.addItem(exitMenuItem);
 
-        MenuItem undoMenuItem = new MenuItem("Undo").setShortcut("Ctrl + Z");
-        MenuItem redoMenuItem = new MenuItem("Redo").setShortcut("Ctrl + Shift + Z");
-        MenuItem cutMenuItem = new MenuItem("Cut").setShortcut("Ctrl + X");
-        MenuItem copyMenuItem = new MenuItem("Copy").setShortcut("Ctrl + C");
-        MenuItem pasteMenuItem = new MenuItem("Paste").setShortcut("Ctrl + V");
-        MenuItem deleteMenuItem = new MenuItem("Delete").setShortcut("Delete");
-        MenuItem deleteAllMenuItem = new MenuItem("Delete All").setShortcut("Shift + Delete");
-        MenuItem selectAllMenuItem = new MenuItem("Select All").setShortcut("Ctrl + A");
+        MenuItem undoMenuItem = new MenuItem("Undo").setShortcut("Ctrl + Z"); MENU_ITEM_UNDO.seize(undoMenuItem);
+        MenuItem redoMenuItem = new MenuItem("Redo").setShortcut("Ctrl + Shift + Z"); MENU_ITEM_REDO.seize(redoMenuItem);
+        MenuItem cutMenuItem = new MenuItem("Cut").setShortcut("Ctrl + X"); MENU_ITEM_CUT.seize(cutMenuItem);
+        MenuItem copyMenuItem = new MenuItem("Copy").setShortcut("Ctrl + C"); MENU_ITEM_COPY.seize(copyMenuItem);
+        MenuItem pasteMenuItem = new MenuItem("Paste").setShortcut("Ctrl + V"); MENU_ITEM_PASTE.seize(pasteMenuItem);
+        MenuItem deleteMenuItem = new MenuItem("Delete").setShortcut("Delete"); MENU_ITEM_DELETE.seize(deleteMenuItem);
+        MenuItem deleteAllMenuItem = new MenuItem("Delete All").setShortcut("Shift + Delete"); MENU_ITEM_DELETE_ALL.seize(deleteAllMenuItem);
+        MenuItem selectAllMenuItem = new MenuItem("Select All").setShortcut("Ctrl + A"); MENU_ITEM_SELECT_ALL.seize(selectAllMenuItem);
 
         editMenu.addItem(undoMenuItem);
         editMenu.addItem(redoMenuItem);
@@ -295,12 +294,14 @@ public class ModelEditStage extends Stage {
         editMenu.addItem(selectAllMenuItem);
 
         final Stage stage = this;
-        helpMenu.addItem(new MenuItem("about", new ChangeListener() {
+        MenuItem aboutMenuItem = new MenuItem("about", new ChangeListener() {
             @Override
             public void changed (ChangeEvent event, Actor actor) {
                 Dialogs.showOKDialog(stage, "about", "Project Info\nRelease Info\nBuild Info\nCopyright notice");
             }
-        }));
+        });
+        MENU_ITEM_ABOUT.seize(aboutMenuItem);
+        helpMenu.addItem(aboutMenuItem);
 
         menuBar.addMenu(fileMenu);
         menuBar.addMenu(editMenu);
@@ -336,42 +337,7 @@ public class ModelEditStage extends Stage {
         if (physManagerTable != null) { physManagerTable.applyLocale(); }
 
         TextButtonsTextEnum.setLanguage(language);
-    }
-
-    public enum TextButtonsTextEnum implements BundleText {
-        ATTRIBUTES("textButton.attributes"),
-        ANIMATIONS("textButton.animations"),
-        MAP("textButton.map"),
-        AI("textButton.ai"),
-        PHYSICS("textButton.physics"),
-        CLEAR_MODELS("textButton.clearAll"),
-        DELETE_CURRENT_MODEL("textButton.deleteCurrentModel"),
-        SAVE_CURRENT_MODEL("textButton.saveCurrentModel");
-
-        private final String property;
-        private TextButton instance = null;
-        private static I18NBundlesEnum language;
-
-        TextButtonsTextEnum(String property) { this.property = property; }
-
-        public static void setLanguage(I18NBundlesEnum lang) {
-            language = lang;
-
-            for (TextButtonsTextEnum tb: TextButtonsTextEnum.values()) {
-                if (tb.instance != null) { tb.instance.setText(tb.get()); }
-            }
-        }
-
-        public TextButton seize(TextButton btn) {
-            this.instance = btn;
-            btn.setText(get());
-            return btn;
-        }
-
-        @Override public String getName() { return property; }
-        @Override public String get() { return language != null ? language.modelEditStageBundle.get(property) : "ERR"; }
-        @Override public String format() { return language != null ? language.modelEditStageBundle.format(property) : "ERR"; }
-        @Override public String format(Object... arguments) { return language != null ? language.modelEditStageBundle.format(property, arguments) : "ERR"; }
+        MenuItemsTextEnum.setLanguage(language);
     }
 
     /**
@@ -919,5 +885,103 @@ public class ModelEditStage extends Stage {
             editCell.clearActor();
             textureImage.setDrawable(null);
         }
+    }
+
+    public enum TextButtonsTextEnum implements BundleText {
+        ATTRIBUTES("textButton.attributes"),
+        ANIMATIONS("textButton.animations"),
+        MAP("textButton.map"),
+        AI("textButton.ai"),
+        PHYSICS("textButton.physics"),
+        CLEAR_MODELS("textButton.clearAll"),
+        DELETE_CURRENT_MODEL("textButton.deleteCurrentModel"),
+        SAVE_CURRENT_MODEL("textButton.saveCurrentModel"),
+
+        MENU_BAR_FILE("menuBar.textButton.file"),
+        MENU_BAR_EDIT("menuBar.textButton.edit"),
+        MENU_BAR_WINDOW("menuBar.textButton.window"),
+        MENU_BAR_HELP("menuBar.textButton.help");
+
+        private final String property;
+        private TextButton instance = null;
+        private static I18NBundlesEnum language;
+
+        TextButtonsTextEnum(String property) { this.property = property; }
+
+        public static void setLanguage(I18NBundlesEnum lang) {
+            language = lang;
+
+            for (TextButtonsTextEnum tb: TextButtonsTextEnum.values()) {
+                if (tb.instance != null) { tb.instance.setText(tb.get()); }
+            }
+        }
+
+        public TextButton seize(TextButton btn) {
+            this.instance = btn;
+            btn.setText(get());
+            return btn;
+        }
+
+        @Override public String getName() { return property; }
+        @Override public String get() { return language != null ? language.modelEditStageBundle.get(property) : "ERR"; }
+        @Override public String format() { return language != null ? language.modelEditStageBundle.format(property) : "ERR"; }
+        @Override public String format(Object... arguments) { return language != null ? language.modelEditStageBundle.format(property, arguments) : "ERR"; }
+    }
+
+    public enum MenuItemsTextEnum implements BundleText {
+        MENU_ITEM_NEW("menuItem.label.new", Keys.CONTROL_LEFT, Keys.N),
+        MENU_ITEM_OPEN("menuItem.label.open", Keys.CONTROL_LEFT, Keys.O),
+        MENU_ITEM_ADD_TO_PROJECT("menuItem.label.addToProject"),
+        MENU_ITEM_ADD_FOLDER("menuItem.label.addFolderToProject"),
+        MENU_ITEM_ADD_FILE("menuItem.label.addFileToProject"),
+        MENU_ITEM_SAVE("menuItem.label.save", Keys.CONTROL_LEFT, Keys.S),
+        MENU_ITEM_SETTINGS("menuItem.label.settings", Keys.CONTROL_LEFT, Keys.ALT_LEFT, Keys.S),
+        MENU_ITEM_EXIT("menuItem.label.exit", Keys.ALT_LEFT, Keys.F4),
+
+        MENU_ITEM_UNDO("menuItem.label.undo", Keys.CONTROL_LEFT, Keys.Z),
+        MENU_ITEM_REDO("menuItem.label.redo", Keys.CONTROL_LEFT, Keys.SHIFT_LEFT, Keys.Z),
+        MENU_ITEM_CUT("menuItem.label.cut", Keys.CONTROL_LEFT, Keys.X),
+        MENU_ITEM_COPY("menuItem.label.copy", Keys.CONTROL_LEFT, Keys.C),
+        MENU_ITEM_PASTE("menuItem.label.paste", Keys.CONTROL_LEFT, Keys.V),
+        MENU_ITEM_DELETE("menuItem.label.delete", Keys.DEL),
+        MENU_ITEM_DELETE_ALL("menuItem.label.deleteAll", Keys.SHIFT_LEFT, Keys.DEL),
+        MENU_ITEM_SELECT_ALL("menuItem.label.selectAll", Keys.CONTROL_LEFT, Keys.A),
+
+        MENU_ITEM_ABOUT("menuItem.label.about");
+
+        private final String property;
+        private final int[] keycodes;
+        private MenuItem instance = null;
+        private static I18NBundlesEnum language;
+
+        MenuItemsTextEnum(String property, int... keycodes) {
+            this.property = property;
+            this.keycodes = keycodes;
+        }
+
+        public static void setLanguage(I18NBundlesEnum lang) {
+            language = lang;
+
+            for (MenuItemsTextEnum menuItem: MenuItemsTextEnum.values()) {
+                if (menuItem.instance != null) {
+                    menuItem.instance.setText(menuItem.get());
+                    // resetting shortcut is mostly done to trigger packContainerMenu() -> containerMenu.pack()
+                    // and have found no obvious way to do that explicitly. If container is not repacked on long i18n
+                    // strings label width might exceed the container's width causing undesired visual glitches
+                    menuItem.instance.setShortcut(menuItem.keycodes);
+                }
+            }
+        }
+
+        public MenuItem seize(MenuItem label) {
+            this.instance = label;
+            label.setText(get());
+            return label;
+        }
+
+        @Override public String getName() { return property; }
+        @Override public String get() { return language != null ? language.modelEditStageBundle.get(property) : "ERR"; }
+        @Override public String format() { return language != null ? language.modelEditStageBundle.format(property) : "ERR"; }
+        @Override public String format(Object... arguments) { return language != null ? language.modelEditStageBundle.format(property, arguments) : "ERR"; }
     }
 }
