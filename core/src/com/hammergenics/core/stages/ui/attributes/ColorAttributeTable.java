@@ -148,10 +148,22 @@ public class ColorAttributeTable extends AttributeTable<ColorAttribute> {
 
     private void createListeners() {
         colorPickerListener = new ColorPickerListener() {
-            @Override public void canceled(Color oldColor) { setColor(oldColor); }
-            @Override public void changed(Color newColor) { setColor(newColor); }
-            @Override public void reset(Color previousColor, Color newColor) { setColor(newColor); }
-            @Override public void finished(Color newColor) { setColor(newColor); }
+            @Override public void canceled(Color oldColor) {
+                if (enabledCheckBox != null && !enabledCheckBox.isChecked()) { enabledCheckBox.setChecked(true); }
+                setColor(oldColor);
+            }
+            @Override public void changed(Color newColor) {
+                if (enabledCheckBox != null && !enabledCheckBox.isChecked()) { enabledCheckBox.setChecked(true); }
+                setColor(newColor);
+            }
+            @Override public void reset(Color previousColor, Color newColor) {
+                if (enabledCheckBox != null && !enabledCheckBox.isChecked()) { enabledCheckBox.setChecked(true); }
+                setColor(newColor);
+            }
+            @Override public void finished(Color newColor) {
+                if (enabledCheckBox != null && !enabledCheckBox.isChecked()) { enabledCheckBox.setChecked(true); }
+                setColor(newColor);
+            }
         };
 
         paramTextFieldListener = new VisTextField.TextFieldListener() {

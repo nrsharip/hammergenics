@@ -66,6 +66,11 @@ import com.kotcrab.vis.ui.widget.VisSelectBox;
 import com.kotcrab.vis.ui.widget.VisTable;
 import com.kotcrab.vis.ui.widget.VisTextButton;
 import com.kotcrab.vis.ui.widget.color.ColorPicker;
+import com.kotcrab.vis.ui.widget.file.FileChooser;
+import com.kotcrab.vis.ui.widget.file.FileChooser.DefaultFileIconProvider;
+import com.kotcrab.vis.ui.widget.file.FileChooser.FileIconProvider;
+import com.kotcrab.vis.ui.widget.file.FileChooserAdapter;
+import com.kotcrab.vis.ui.widget.file.FileTypeFilter;
 
 import static com.hammergenics.core.stages.ModelEditStage.MenuItemsTextEnum.*;
 import static com.hammergenics.core.stages.ModelEditStage.TextButtonsTextEnum.*;
@@ -105,6 +110,7 @@ public class ModelEditStage extends Stage {
 
     // 2D Stage Widgets:
     public ColorPicker colorPicker;
+    public FileChooser fileChooser;
 
     public VisLabel miLabel;  // Model Instance Info
     public VisLabel envLabel; // Environment Info
@@ -145,6 +151,7 @@ public class ModelEditStage extends Stage {
         lStyleFontWhite.fontColor = Color.WHITE.cpy();
 
         initColorPicker();
+        initFileChooser();
         initMenuBar();
 
         setup2DStageWidgets();
@@ -182,51 +189,6 @@ public class ModelEditStage extends Stage {
         // VisUI widgets must be disposed (by calling picker.dispose()) when no longer needed.
         //picker creation
         colorPicker = new ColorPicker();
-
-        // making label font color white
-        if (colorPicker.getPicker().getCells().size == 2) {
-            // should only be two actors - VisTable mainTable, extendedTable
-            Actor actor;
-            VisTable table;
-            VisLabel label;
-            // 1.
-            // see ColorPicker.picker -> ExtendedColorPicker.createUI -> BasicColorPicker.createUI -> BasicColorPicker.createHexTable()
-            // see ColorPicker.picker -> ExtendedColorPicker.createUI -> BasicColorPicker.createUI -> rebuildMainTable()
-            // see ColorPicker.picker -> ExtendedColorPicker.createUI -> BasicColorPicker.createUI -> add(mainTable)
-            actor = colorPicker.getPicker().getCells().first().getActor();
-            if (actor instanceof VisTable) {
-                table = (VisTable) actor;
-                //Gdx.app.debug("picker", "" + " r: " + table.getRows() + " c: " + table.getColumns() + " table:\n" + table);
-                for (Cell<?> cell1: table.getCells()) {
-                    if (cell1.getActor() instanceof VisTable) {
-                        for (Cell<?> cell2: ((VisTable)cell1.getActor()).getCells()) {
-                            if (cell2.getActor() instanceof VisLabel) {
-                                ((VisLabel)cell2.getActor()).setStyle(lStyleFontWhite);
-                            }
-                        }
-                    }
-                }
-            }
-
-            // 2.
-            // see ColorPicker.picker -> ExtendedColorPicker.createUI -> add(extendedTable)
-            // Cell Indices: hBar:0, sBar: 1, vBar: 2, rBar: 4, gBar: 5, bBar: 6, aBar: 8
-            // see ColorChannelWidget::new - add(new VisLabel(label)) - Label index is 0
-            actor = colorPicker.getPicker().getCells().peek().getActor();
-            if (actor instanceof VisTable) {
-                table = (VisTable) actor;
-                //Gdx.app.debug("picker", "" + " r: " + table.getRows() + " c: " + table.getColumns() + " table:\n" + table);
-                for (Cell<?> cell1: table.getCells()) {
-                    if (cell1.getActor() instanceof VisTable) {
-                        for (Cell<?> cell2: ((VisTable)cell1.getActor()).getCells()) {
-                            if (cell2.getActor() instanceof VisLabel) {
-                                ((VisLabel)cell2.getActor()).setStyle(lStyleFontWhite);
-                            }
-                        }
-                    }
-                }
-            }
-        }
     }
 
     // see: https://github.com/kotcrab/vis-ui/blob/master/ui/src/test/java/com/kotcrab/vis/ui/test/manual/TestLauncher.java
@@ -244,6 +206,14 @@ public class ModelEditStage extends Stage {
 
         MenuItem newMenuItem = new MenuItem("New").setShortcut("Ctrl + N"); MENU_ITEM_NEW.seize(newMenuItem);
         MenuItem openMenuItem = new MenuItem("Open").setShortcut("Ctrl + O"); MENU_ITEM_OPEN.seize(openMenuItem);
+
+        openMenuItem.addListener(new ChangeListener() {
+            @Override public void changed (ChangeEvent event, Actor actor) {
+                //displaying chooser with fade in animation
+                addActor(fileChooser.fadeIn());
+            }
+        });
+
         MenuItem addToProjectMenuItem = new MenuItem("Add to Project"); MENU_ITEM_ADD_TO_PROJECT.seize(addToProjectMenuItem);
         PopupMenu addToProjectPopupMenu = new PopupMenu();
         MenuItem addFolderMenuItem = new MenuItem("Folder", new ChangeListener() {
@@ -294,10 +264,10 @@ public class ModelEditStage extends Stage {
         editMenu.addItem(selectAllMenuItem);
 
         final Stage stage = this;
-        MenuItem aboutMenuItem = new MenuItem("about", new ChangeListener() {
+        MenuItem aboutMenuItem = new MenuItem("About", new ChangeListener() {
             @Override
             public void changed (ChangeEvent event, Actor actor) {
-                Dialogs.showOKDialog(stage, "about", "Project Info\nRelease Info\nBuild Info\nCopyright notice");
+                Dialogs.showOKDialog(stage, "About", "HammerGenics\nRelease Info\nBuild Info\nApache License, Version 2.0\n(c) 2021 Nail Sharipov (sharipovn@gmail.com).\nAll rights reserved.");
             }
         });
         MENU_ITEM_ABOUT.seize(aboutMenuItem);
@@ -326,8 +296,70 @@ public class ModelEditStage extends Stage {
         menuBar.getTable().add(languages).expandX().right();
     }
 
+    // https://github.com/kotcrab/vis-ui/wiki/File-chooser
+    // Chooser is platform dependent and can be only used on desktop.
+    // File chooser should be created once and reused, if you reuse it will load
+    // much faster and it will remember last directory that user browsed.
+    public void initFileChooser() {
+        // https://github.com/kotcrab/vis-ui/wiki/File-chooser#preferences-storage
+        // File chooser needs to store persistent data such as favorites or recent directories. If not changed,
+        // file chooser will use default that may cause sharing preferences with other applications using VisUI.
+        // To avoid that call:
+        FileChooser.setDefaultPrefsName("com.hammergenics.filechooser");
+
+        // chooser creation
+        // https://github.com/kotcrab/vis-ui/wiki/File-chooser#mode
+        // When creating file chooser you must pass mode that it will use, there are two possibilities
+        // Mode.SAVE and Mode.OPEN. It changes chooser texts and behavior, it also displays overwrite
+        // warring messages when dialog is in SAVE mode.
+        fileChooser = new FileChooser(FileChooser.Mode.OPEN);
+        // https://github.com/kotcrab/vis-ui/wiki/File-chooser#selection-mode
+        // The following selection modes are available: FILES, DIRECTORIES, FILES_AND_DIRECTORIES.
+        // Please note that if dialog is in DIRECTORIES mode files still will be displayed, if user tries
+        // to select file, error message will be showed. Default selection mode is SelectionMode.FILES.
+        fileChooser.setSelectionMode(FileChooser.SelectionMode.FILES_AND_DIRECTORIES);
+
+        // https://github.com/kotcrab/vis-ui/wiki/File-chooser#multiple-selection
+        // Chooser allow to select multiple files. It is disabled by default, to enable it call:
+        fileChooser.setMultiSelectionEnabled(true);
+        // To select multiple files you need to press a key on keyboard, default is Keys.CONTROL_LEFT, to change it call:
+        fileChooser.setMultiSelectKey(Keys.CONTROL_LEFT);
+        // You can also do group selection on files, default key is Keys.SHIFT_LEFT, to change it call:
+        fileChooser.setGroupMultiSelectKey(Keys.SHIFT_LEFT);
+        // Where int is value from LibGDX Keys class.
+
+        // https://github.com/kotcrab/vis-ui/wiki/File-chooser#typefilters
+        // FileTypeFilter allows user to filter file chooser list by given set of extension. If type filter is set
+        // for chooser then below file path select box with possible extensions is displayed. If user switches filter
+        // rule then only extensions allowed in that rule will be displayed (directories are also displayed of course)
+        FileTypeFilter typeFilter = new FileTypeFilter(true); //allow "All Types" mode where all files are shown
+        typeFilter.addRule("Image files (*.png, *.jpg, *.gif)", "png", "jpg", "gif");
+        typeFilter.addRule("Text files (*.txt)", "txt");
+        typeFilter.addRule("Audio files (*.mp3, *.wav, *.ogg)", "mp3", "wav", "ogg");
+        fileChooser.setFileTypeFilter(typeFilter);
+
+        // https://github.com/kotcrab/vis-ui/wiki/File-chooser#view-modes
+        // Chooser out of the box supports two view modes: details (single column of files but with more details) and
+        // list (multiple columns of files, less details). There are also additional view modes that supports images
+        // thumbnails however in order to be enabled they require setting special FileIconProvider that can supply thumbnails.
+        FileIconProvider fileIconProvider = new DefaultFileIconProvider(fileChooser) {
+            @Override public boolean isThumbnailModesSupported() { return true; }
+        };
+        fileChooser.setIconProvider(fileIconProvider);
+
+        fileChooser.setListener(new FileChooserAdapter() {
+            @Override
+            public void selected (Array<FileHandle> file) {
+                Gdx.app.debug("filechooser", "\n" + file.toString("\n"));
+                //textField.setText(file.file().getAbsolutePath());
+            }
+        });
+    }
+
     public void applyLocale(I18NBundlesEnum language) {
+        // recreating "heavy" widgets since changing locale does not affect widgets created before
         initColorPicker();
+        initFileChooser();
 
         if (envAttrTable != null) { envAttrTable.applyLocale(); }
         if (aggrAttrTable != null) { aggrAttrTable.applyLocale(); }
@@ -775,7 +807,7 @@ public class ModelEditStage extends Stage {
         leftPanel.add(aiTextButton).pad(1f).padLeft(0f).fillX();
         leftPanel.row();
 
-        rootTable.add(leftPanel).padTop(10f).top().left();
+        rootTable.add(leftPanel).center();
 
         VisTable infoTable = new VisTable();
         infoTCell = infoTable.add().expand().top().left();
@@ -789,6 +821,7 @@ public class ModelEditStage extends Stage {
 
         VisTable lowerPanel = new VisTable();
         lowerPanel.add(fpsLabel).minWidth(70f).pad(3f);
+        lowerPanel.add().expandX();
         lowerPanel.add(debugStageCheckBox).pad(3f);
         lowerPanel.add(gridOriginCheckBox).pad(3f);
         lowerPanel.add(gridYCheckBox).pad(3f);
@@ -806,9 +839,8 @@ public class ModelEditStage extends Stage {
         lowerPanel.add(saveCurrModelTextButton).pad(3f);
         lowerPanel.add(deleteCurrModelTextButton).pad(3f);
         lowerPanel.add(clearModelsTextButton).pad(3f);
-        lowerPanel.add().expandX();
 
-        rootTable.add(lowerPanel).colspan(3).expandX().left();
+        rootTable.add(lowerPanel).colspan(3).center().expandX().fillX();
 
         addActor(rootTable);
     }
