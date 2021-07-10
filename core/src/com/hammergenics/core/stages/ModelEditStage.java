@@ -60,7 +60,6 @@ import com.kotcrab.vis.ui.util.dialog.Dialogs;
 import com.kotcrab.vis.ui.widget.Menu;
 import com.kotcrab.vis.ui.widget.MenuBar;
 import com.kotcrab.vis.ui.widget.MenuItem;
-import com.kotcrab.vis.ui.widget.PopupMenu;
 import com.kotcrab.vis.ui.widget.VisCheckBox;
 import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisSelectBox;
@@ -73,6 +72,7 @@ import com.kotcrab.vis.ui.widget.file.FileChooser.FileIconProvider;
 import com.kotcrab.vis.ui.widget.file.FileChooserAdapter;
 import com.kotcrab.vis.ui.widget.file.FileTypeFilter;
 
+import static com.hammergenics.HGEngine.TypeFilterRulesEnum.*;
 import static com.hammergenics.core.stages.ModelEditStage.MenuItemsTextEnum.*;
 import static com.hammergenics.core.stages.ModelEditStage.TextButtonsTextEnum.*;
 import static com.hammergenics.core.stages.ui.attributes.BaseAttributeTable.EventType.ATTR_CHANGED;
@@ -213,24 +213,70 @@ public class ModelEditStage extends Stage {
 
         openMenuItem.addListener(new ChangeListener() {
             @Override public void changed (ChangeEvent event, Actor actor) {
+                // https://github.com/kotcrab/vis-ui/wiki/File-chooser#typefilters
+                // FileTypeFilter allows user to filter file chooser list by given set of extension. If type filter is set
+                // for chooser then below file path select box with possible extensions is displayed. If user switches filter
+                // rule then only extensions allowed in that rule will be displayed (directories are also displayed of course)
+                FileTypeFilter typeFilter = new FileTypeFilter(false); //allow "All Types" mode where all files are shown
+                typeFilter.addRule(HG_FILES.getDescription(), HG_FILES.getExtensions());
+                fileChooser.setFileTypeFilter(typeFilter);
+
+                // https://github.com/kotcrab/vis-ui/wiki/File-chooser#selection-mode
+                // The following selection modes are available: FILES, DIRECTORIES, FILES_AND_DIRECTORIES.
+                // Please note that if dialog is in DIRECTORIES mode files still will be displayed, if user tries
+                // to select file, error message will be showed. Default selection mode is SelectionMode.FILES.
+                fileChooser.setSelectionMode(FileChooser.SelectionMode.FILES);
+
+                // https://github.com/kotcrab/vis-ui/wiki/File-chooser#multiple-selection
+                // Chooser allow to select multiple files. It is disabled by default, to enable it call:
+                fileChooser.setMultiSelectionEnabled(false);
+
+                fileChooser.setListener(new FileChooserAdapter() {
+                    @Override
+                    public void selected (Array<FileHandle> file) {
+                        Gdx.app.debug("filechooser", "\n" + file.toString("\n"));
+                    }
+                });
+
                 //displaying chooser with fade in animation
                 addActor(fileChooser.fadeIn());
             }
         });
 
-        MenuItem addToProjectMenuItem = new MenuItem("Add to Project"); MENU_ITEM_ADD_TO_PROJECT.seize(addToProjectMenuItem);
-        PopupMenu addToProjectPopupMenu = new PopupMenu();
-        MenuItem addFolderMenuItem = new MenuItem("Folder", new ChangeListener() {
-            @Override public void changed (ChangeEvent event, Actor actor) {}
+        MenuItem addToProjectMenuItem = new MenuItem("Add to Project..."); MENU_ITEM_ADD_TO_PROJECT.seize(addToProjectMenuItem);
+        addToProjectMenuItem.addListener(new ChangeListener() {
+            @Override public void changed (ChangeEvent event, Actor actor) {
+                // https://github.com/kotcrab/vis-ui/wiki/File-chooser#typefilters
+                // FileTypeFilter allows user to filter file chooser list by given set of extension. If type filter is set
+                // for chooser then below file path select box with possible extensions is displayed. If user switches filter
+                // rule then only extensions allowed in that rule will be displayed (directories are also displayed of course)
+                FileTypeFilter typeFilter = new FileTypeFilter(true); //allow "All Types" mode where all files are shown
+                typeFilter.addRule(MODEL_FILES.getDescription(), MODEL_FILES.getExtensions());
+                typeFilter.addRule(IMAGE_FILES.getDescription(), IMAGE_FILES.getExtensions());
+                typeFilter.addRule(FONT_FILES.getDescription(), FONT_FILES.getExtensions());
+                fileChooser.setFileTypeFilter(typeFilter);
+
+                // https://github.com/kotcrab/vis-ui/wiki/File-chooser#selection-mode
+                // The following selection modes are available: FILES, DIRECTORIES, FILES_AND_DIRECTORIES.
+                // Please note that if dialog is in DIRECTORIES mode files still will be displayed, if user tries
+                // to select file, error message will be showed. Default selection mode is SelectionMode.FILES.
+                fileChooser.setSelectionMode(FileChooser.SelectionMode.FILES_AND_DIRECTORIES);
+
+                // https://github.com/kotcrab/vis-ui/wiki/File-chooser#multiple-selection
+                // Chooser allow to select multiple files. It is disabled by default, to enable it call:
+                fileChooser.setMultiSelectionEnabled(true);
+
+                fileChooser.setListener(new FileChooserAdapter() {
+                    @Override
+                    public void selected (Array<FileHandle> file) {
+                        Gdx.app.debug("filechooser", "\n" + file.toString("\n"));
+                    }
+                });
+
+                //displaying chooser with fade in animation
+                addActor(fileChooser.fadeIn());
+            }
         });
-        MENU_ITEM_ADD_FOLDER.seize(addFolderMenuItem);
-        MenuItem addFileMenuItem = new MenuItem("File", new ChangeListener() {
-            @Override public void changed (ChangeEvent event, Actor actor) {}
-        });
-        MENU_ITEM_ADD_FILE.seize(addFileMenuItem);
-        addToProjectPopupMenu.addItem(addFolderMenuItem);
-        addToProjectPopupMenu.addItem(addFileMenuItem);
-        addToProjectMenuItem.setSubMenu(addToProjectPopupMenu);
 
         MenuItem saveMenuItem = new MenuItem("Save").setShortcut("Ctrl + S"); MENU_ITEM_SAVE.seize(saveMenuItem);
         saveMenuItem.setDisabled(true);
@@ -332,16 +378,6 @@ public class ModelEditStage extends Stage {
         fileChooser.setGroupMultiSelectKey(Keys.SHIFT_LEFT);
         // Where int is value from LibGDX Keys class.
 
-        // https://github.com/kotcrab/vis-ui/wiki/File-chooser#typefilters
-        // FileTypeFilter allows user to filter file chooser list by given set of extension. If type filter is set
-        // for chooser then below file path select box with possible extensions is displayed. If user switches filter
-        // rule then only extensions allowed in that rule will be displayed (directories are also displayed of course)
-        FileTypeFilter typeFilter = new FileTypeFilter(true); //allow "All Types" mode where all files are shown
-        typeFilter.addRule("Image files (*.png, *.jpg, *.gif)", "png", "jpg", "gif");
-        typeFilter.addRule("Text files (*.txt)", "txt");
-        typeFilter.addRule("Audio files (*.mp3, *.wav, *.ogg)", "mp3", "wav", "ogg");
-        fileChooser.setFileTypeFilter(typeFilter);
-
         // https://github.com/kotcrab/vis-ui/wiki/File-chooser#view-modes
         // Chooser out of the box supports two view modes: details (single column of files but with more details) and
         // list (multiple columns of files, less details). There are also additional view modes that supports images
@@ -350,14 +386,6 @@ public class ModelEditStage extends Stage {
             @Override public boolean isThumbnailModesSupported() { return true; }
         };
         fileChooser.setIconProvider(fileIconProvider);
-
-        fileChooser.setListener(new FileChooserAdapter() {
-            @Override
-            public void selected (Array<FileHandle> file) {
-                Gdx.app.debug("filechooser", "\n" + file.toString("\n"));
-                //textField.setText(file.file().getAbsolutePath());
-            }
-        });
     }
 
     public void applyLocale(I18NBundlesEnum language) {

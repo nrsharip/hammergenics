@@ -133,6 +133,41 @@ public class HGEngine implements Disposable {
     public static final FileFilter filterAll = file ->
             filterBitmapFonts.accept(file) | filterTextures.accept(file) | filterModels.accept(file);
 
+    public enum TypeFilterRulesEnum {
+        HG_FILES("Save files", "hg"),
+        MODEL_FILES("Model files", "obj", "g3dj", "g3db"),
+        IMAGE_FILES("Image files", "bmp", "png", "tga"),
+        FONT_FILES("Font files", "fnt"),
+        ALL_FILES("All files") {
+            @Override
+            public String getDescription() {
+                if (extensions.size == 0) {
+                    for (TypeFilterRulesEnum tfr: TypeFilterRulesEnum.values()) {
+                        extensions.addAll(tfr.extensions);
+                    }
+                }
+                return super.getDescription();
+            }
+        };
+
+        private final static StringBuilder sb = new StringBuilder();
+        public final String description;
+        public final Array<String> extensions = new Array<>(true, 16, String.class);
+
+        TypeFilterRulesEnum(String description, String... extensions) {
+            this.description = description;
+            this.extensions.addAll(extensions);
+        }
+
+        public String getDescription() {
+            sb.setLength(0);
+            sb.append(description).append(" (*.").append(extensions.toString(", *.")).append(")");
+            return sb.toString();
+        }
+
+        public String[] getExtensions() { return extensions.toArray(); }
+    }
+
     public final HGGame game;
     public final AssetManager assetManager = new AssetManager();
     public boolean assetsLoaded = true;
