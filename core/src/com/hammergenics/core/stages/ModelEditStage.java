@@ -272,6 +272,7 @@ public class ModelEditStage extends Stage {
                     public void selected (Array<FileHandle> fileHandles) {
                         Gdx.app.debug("filechooser", "\n" + fileHandles.toString("\n"));
 
+                        if (modelES.eng.assetManager.getQueuedAssets() > 0) { return; } // another load is in progress
                         modelES.eng.loadQueue.clear();
 
                         loadProgressBar.setValue(0f);
@@ -316,6 +317,9 @@ public class ModelEditStage extends Stage {
                     @Override
                     public void selected (Array<FileHandle> fileHandles) {
                         Gdx.app.debug("filechooser", "\n" + fileHandles.toString("\n"));
+
+                        if (modelES.eng.assetManager.getQueuedAssets() > 0) { return; } // another load is in progress
+                        modelES.eng.loadQueue.clear();
 
                         loadProgressBar.setValue(0f);
                         addActor(loadProgressWindow.fadeIn());
@@ -422,7 +426,7 @@ public class ModelEditStage extends Stage {
         // warring messages when dialog is in SAVE mode.
         fileChooser = new FileChooser(FileChooser.Mode.OPEN);
 
-        fileChooser.setDirectory(Gdx.files.local(""));
+        fileChooser.setDirectory(Gdx.files.local("").file().getAbsolutePath());
 
         // https://github.com/kotcrab/vis-ui/wiki/File-chooser#selection-mode
         // The following selection modes are available: FILES, DIRECTORIES, FILES_AND_DIRECTORIES.
@@ -457,8 +461,23 @@ public class ModelEditStage extends Stage {
         loadProgressBar = new VisProgressBar(0f, 1f, 0.001f, false);
         loadProgressBar.setValue(0f);
 
+        VisTextButton cancelTextButton = new VisTextButton("Cancel");
+        cancelTextButton.addListener(new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                for (FileHandle fh: modelES.eng.loadQueue) { modelES.eng.assetManager.unload(fh.path()); }
+                modelES.eng.loadQueue.clear();
+                modelES.eng.loaded = null;
+                modelES.eng.failed = null;
+                return super.touchDown(event, x, y, pointer, button);
+            }
+        });
+
         loadProgressWindow.add(loadProgressBar).expandX().fillX();
-        loadProgressWindow.setHeight(4*loadProgressBar.getHeight());
+        loadProgressWindow.row();
+        loadProgressWindow.add(cancelTextButton).expandX().fillX().padTop(5f);
+
+        loadProgressWindow.setHeight(3*loadProgressBar.getHeight() + cancelTextButton.getHeight());
         loadProgressWindow.setWidth(2*loadProgressBar.getWidth());
     }
 

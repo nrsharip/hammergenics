@@ -44,22 +44,22 @@ import java.util.regex.Pattern;
  * @author nrsharip
  */
 public class ProjectManagerTable extends ManagerTable {
-    public VisTree<HGTreeNode, VisLabel> projectTree;
+    public VisTree<HGVisLabelTreeNode, VisLabel> projectTree;
     public VisScrollPane projectTreeScrollPane;
 
-    public HGTreeNode assetsTreeNode;
-    public HGTreeNode assetsModelsTreeNode;
-    public HGTreeNode assetsImagesTreeNode;
-    public HGTreeNode assetsSoundsTreeNode;
-    public HGTreeNode assetsFontsTreeNode;
-    public HGTreeNode modelInstancesTreeNode;
-    public HGTreeNode envTreeNode;
+    public HGVisLabelTreeNode assetsTreeNode;
+    public HGVisLabelTreeNode assetsModelsTreeNode;
+    public HGVisLabelTreeNode assetsImagesTreeNode;
+    public HGVisLabelTreeNode assetsSoundsTreeNode;
+    public HGVisLabelTreeNode assetsFontsTreeNode;
+    public HGVisLabelTreeNode modelInstancesTreeNode;
+    public HGVisLabelTreeNode envTreeNode;
 
     public FileHandle commonPath = null;
-    public final ArrayMap<HGTreeNode, FileHandle> treeNode2fh = new ArrayMap<>(HGTreeNode.class, FileHandle.class);
-    public final ArrayMap<FileHandle, HGTreeNode> fh2treeNode = new ArrayMap<>(FileHandle.class, HGTreeNode.class);
+    public final ArrayMap<HGVisLabelTreeNode, FileHandle> treeNode2fh = new ArrayMap<>(HGVisLabelTreeNode.class, FileHandle.class);
+    public final ArrayMap<FileHandle, HGVisLabelTreeNode> fh2treeNode = new ArrayMap<>(FileHandle.class, HGVisLabelTreeNode.class);
 
-    public final ArrayMap<String, HGTreeNode> extension2treeNode = new ArrayMap<>(String.class, HGTreeNode.class);
+    public final ArrayMap<String, HGVisLabelTreeNode> extension2treeNode = new ArrayMap<>(String.class, HGVisLabelTreeNode.class);
 
     public ProjectManagerTable(ModelEditScreen modelES, ModelEditStage stage) {
         super(modelES, stage);
@@ -69,20 +69,20 @@ public class ProjectManagerTable extends ManagerTable {
     protected void init() {
         // https://github.com/kotcrab/vis-ui/blob/master/ui/src/test/java/com/kotcrab/vis/ui/test/manual/TestTree.java#L75
         projectTree = new VisTree<>();
-        projectTree.add(assetsTreeNode = new HGTreeNode(new VisLabel("Assets", Color.BLACK)));
-        projectTree.add(modelInstancesTreeNode = new HGTreeNode(new VisLabel("Model Instances", Color.BLACK)));
-        projectTree.add(envTreeNode = new HGTreeNode(new VisLabel("Environment", Color.BLACK)));
+        projectTree.add(assetsTreeNode = new HGVisLabelTreeNode(new VisLabel("Assets", Color.BLACK)));
+        projectTree.add(modelInstancesTreeNode = new HGVisLabelTreeNode(new VisLabel("Model Instances", Color.BLACK)));
+        projectTree.add(envTreeNode = new HGVisLabelTreeNode(new VisLabel("Environment", Color.BLACK)));
 
-        assetsTreeNode.add(assetsModelsTreeNode = new HGTreeNode(new VisLabel("Models", Color.BLACK)));
-        assetsTreeNode.add(assetsImagesTreeNode = new HGTreeNode(new VisLabel("Images", Color.BLACK)));
-        assetsTreeNode.add(assetsSoundsTreeNode = new HGTreeNode(new VisLabel("Sounds", Color.BLACK)));
-        assetsTreeNode.add(assetsFontsTreeNode = new HGTreeNode(new VisLabel("Fonts", Color.BLACK)));
+        assetsTreeNode.add(assetsModelsTreeNode = new HGVisLabelTreeNode(new VisLabel("Models", Color.BLACK)));
+        assetsTreeNode.add(assetsImagesTreeNode = new HGVisLabelTreeNode(new VisLabel("Images", Color.BLACK)));
+        assetsTreeNode.add(assetsSoundsTreeNode = new HGVisLabelTreeNode(new VisLabel("Sounds", Color.BLACK)));
+        assetsTreeNode.add(assetsFontsTreeNode = new HGVisLabelTreeNode(new VisLabel("Fonts", Color.BLACK)));
 
         projectTreeScrollPane = new VisScrollPane(projectTree);
     }
 
-    public static class HGTreeNode extends Tree.Node<HGTreeNode, Integer, VisLabel> {
-        public HGTreeNode(VisLabel actor) {
+    private static class HGVisLabelTreeNode extends Tree.Node<HGVisLabelTreeNode, Integer, VisLabel> {
+        public HGVisLabelTreeNode(VisLabel actor) {
             super(actor);
         }
     }
@@ -90,16 +90,16 @@ public class ProjectManagerTable extends ManagerTable {
     public void updateAssetsTree() {
         assetsModelsTreeNode.clearChildren();
         for (ObjectMap.Entry<FileHandle, HGModel> entry: eng.hgModels) {
-            HGTreeNode node;
-            assetsModelsTreeNode.add(node = new HGTreeNode(new VisLabel(entry.key.nameWithoutExtension(), Color.BLACK)));
-            node.add(new HGTreeNode(new VisLabel(entry.key.path(), Color.BLACK)));
+            HGVisLabelTreeNode node;
+            assetsModelsTreeNode.add(node = new HGVisLabelTreeNode(new VisLabel(entry.key.nameWithoutExtension(), Color.BLACK)));
+            node.add(new HGVisLabelTreeNode(new VisLabel(entry.key.path(), Color.BLACK)));
         }
 
         assetsImagesTreeNode.clearChildren();
         for (ObjectMap.Entry<FileHandle, HGTexture> entry: eng.hgTextures) {
-            HGTreeNode node;
-            assetsImagesTreeNode.add(node = new HGTreeNode(new VisLabel(entry.key.nameWithoutExtension(), Color.BLACK)));
-            node.add(new HGTreeNode(new VisLabel(entry.key.path(), Color.BLACK)));
+            HGVisLabelTreeNode node;
+            assetsImagesTreeNode.add(node = new HGVisLabelTreeNode(new VisLabel(entry.key.nameWithoutExtension(), Color.BLACK)));
+            node.add(new HGVisLabelTreeNode(new VisLabel(entry.key.path(), Color.BLACK)));
         }
     }
 
@@ -109,9 +109,9 @@ public class ProjectManagerTable extends ManagerTable {
         Class<?> assetClass = eng.getAssetClass(fileHandle);
         FileHandle parent = fileHandle.parent();
 
-        HGTreeNode treeNode = fh2treeNode.get(parent);
+        HGVisLabelTreeNode treeNode = fh2treeNode.get(parent);
         if (treeNode == null) {
-            treeNode = new HGTreeNode(new VisLabel(parent.file().getAbsolutePath(), Color.BLACK));
+            treeNode = new HGVisLabelTreeNode(new VisLabel(parent.file().getAbsolutePath(), Color.BLACK));
             if (assetClass.equals(Model.class)) { assetsModelsTreeNode.add(treeNode); }
             else if (assetClass.equals(Texture.class)) { assetsImagesTreeNode.add(treeNode); }
             else { return; }
@@ -141,9 +141,9 @@ public class ProjectManagerTable extends ManagerTable {
             //Gdx.app.debug("project", "" + " commonPath: " + commonPath);
         }
 
-        for (ObjectMap.Entry<FileHandle, HGTreeNode> entry: fh2treeNode) {
+        for (ObjectMap.Entry<FileHandle, HGVisLabelTreeNode> entry: fh2treeNode) {
             FileHandle fh = entry.key;
-            HGTreeNode tn = entry.value;
+            HGVisLabelTreeNode tn = entry.value;
 
             tn.getActor().setText(fh.file().getAbsolutePath().replace(commonPath.file().getAbsolutePath(), ""));
         }
@@ -155,16 +155,16 @@ public class ProjectManagerTable extends ManagerTable {
         }
     }
 
-    public void addModelAssetTreeNode(FileHandle fileHandle, HGTreeNode treeNode) {
-        HGTreeNode node;
-        treeNode.add(node = new HGTreeNode(new VisLabel(fileHandle.name(), Color.BLACK)));
-        node.add(new HGTreeNode(new VisLabel(fileHandle.file().getAbsolutePath(), Color.BLACK)));
+    public void addModelAssetTreeNode(FileHandle fileHandle, HGVisLabelTreeNode treeNode) {
+        HGVisLabelTreeNode node;
+        treeNode.add(node = new HGVisLabelTreeNode(new VisLabel(fileHandle.name(), Color.BLACK)));
+        node.add(new HGVisLabelTreeNode(new VisLabel(fileHandle.file().getAbsolutePath(), Color.BLACK)));
     }
 
-    public void addImageAssetTreeNode(FileHandle fileHandle, HGTreeNode treeNode) {
-        HGTreeNode node;
-        treeNode.add(node = new HGTreeNode(new VisLabel(fileHandle.name(), Color.BLACK)));
-        node.add(new HGTreeNode(new VisLabel(fileHandle.file().getAbsolutePath(), Color.BLACK)));
+    public void addImageAssetTreeNode(FileHandle fileHandle, HGVisLabelTreeNode treeNode) {
+        HGVisLabelTreeNode node;
+        treeNode.add(node = new HGVisLabelTreeNode(new VisLabel(fileHandle.name(), Color.BLACK)));
+        node.add(new HGVisLabelTreeNode(new VisLabel(fileHandle.file().getAbsolutePath(), Color.BLACK)));
     }
 
     @Override
