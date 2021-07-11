@@ -40,8 +40,8 @@ import com.kotcrab.vis.ui.widget.VisTextButton;
 import java.nio.charset.Charset;
 import java.util.Locale;
 
-import static com.hammergenics.HGEngine.TypeFilterRulesEnum.MODEL_FILES;
 import static com.hammergenics.HGGame.I18NBundlesEnum.ENGLISH;
+import static com.hammergenics.core.stages.ui.file.TypeFilterRulesEnum.MODEL_FILES;
 
 /**
  * Add description here

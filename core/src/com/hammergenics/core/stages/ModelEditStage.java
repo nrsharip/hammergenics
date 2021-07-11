@@ -75,12 +75,15 @@ import com.kotcrab.vis.ui.widget.file.FileChooser.FileIconProvider;
 import com.kotcrab.vis.ui.widget.file.FileChooserAdapter;
 import com.kotcrab.vis.ui.widget.file.FileTypeFilter;
 
-import static com.hammergenics.HGEngine.TypeFilterRulesEnum.*;
 import static com.hammergenics.core.stages.ModelEditStage.MenuItemsTextEnum.*;
 import static com.hammergenics.core.stages.ModelEditStage.TextButtonsTextEnum.*;
 import static com.hammergenics.core.stages.ui.attributes.BaseAttributeTable.EventType.ATTR_CHANGED;
 import static com.hammergenics.core.stages.ui.attributes.BaseAttributeTable.EventType.ATTR_DISABLED;
 import static com.hammergenics.core.stages.ui.attributes.BaseAttributeTable.EventType.ATTR_ENABLED;
+import static com.hammergenics.core.stages.ui.file.TypeFilterRulesEnum.FONT_FILES;
+import static com.hammergenics.core.stages.ui.file.TypeFilterRulesEnum.HG_FILES;
+import static com.hammergenics.core.stages.ui.file.TypeFilterRulesEnum.IMAGE_FILES;
+import static com.hammergenics.core.stages.ui.file.TypeFilterRulesEnum.MODEL_FILES;
 
 /**
  * Add description here

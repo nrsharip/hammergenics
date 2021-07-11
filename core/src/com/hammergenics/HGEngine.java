@@ -91,24 +91,23 @@ import com.hammergenics.physics.bullet.collision.HGContactListener;
 import com.hammergenics.utils.HGUtils;
 import com.kotcrab.vis.ui.widget.file.FileTypeFilter;
 
-import java.io.FileFilter;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 
-import static com.hammergenics.HGEngine.TypeFilterRulesEnum.ALL_FILES;
-import static com.hammergenics.HGEngine.btConstraintSolversEnum.BT_MLCP_SOLVER;
-import static com.hammergenics.HGEngine.btConstraintSolversEnum.BT_MULTIBODY_SOLVER;
-import static com.hammergenics.HGEngine.btConstraintSolversEnum.BT_NNCG_SOLVER;
-import static com.hammergenics.HGEngine.btConstraintSolversEnum.BT_SEQUENTIAL_IMPULSE_SOLVER;
-import static com.hammergenics.HGEngine.btMLCPSolversEnum.BT_DANTZIG;
-import static com.hammergenics.HGEngine.btMLCPSolversEnum.BT_GAUSS_SEIDEL;
-import static com.hammergenics.HGEngine.btMLCPSolversEnum.BT_LEMKE;
 import static com.hammergenics.core.graphics.g3d.utils.Models.createGridModel;
 import static com.hammergenics.core.graphics.g3d.utils.Models.createLightsModel;
 import static com.hammergenics.core.graphics.g3d.utils.Models.createTestBox;
 import static com.hammergenics.core.graphics.g3d.utils.Models.createTestSphere;
+import static com.hammergenics.core.stages.ui.file.TypeFilterRulesEnum.ALL_FILES;
+import static com.hammergenics.physics.bullet.dynamics.btConstraintSolversEnum.BT_MLCP_SOLVER;
+import static com.hammergenics.physics.bullet.dynamics.btConstraintSolversEnum.BT_MULTIBODY_SOLVER;
+import static com.hammergenics.physics.bullet.dynamics.btConstraintSolversEnum.BT_NNCG_SOLVER;
+import static com.hammergenics.physics.bullet.dynamics.btConstraintSolversEnum.BT_SEQUENTIAL_IMPULSE_SOLVER;
+import static com.hammergenics.physics.bullet.dynamics.btMLCPSolversEnum.BT_DANTZIG;
+import static com.hammergenics.physics.bullet.dynamics.btMLCPSolversEnum.BT_GAUSS_SEIDEL;
+import static com.hammergenics.physics.bullet.dynamics.btMLCPSolversEnum.BT_LEMKE;
 
 /**
  * Add description here
@@ -123,66 +122,6 @@ public class HGEngine implements Disposable {
     public final static int MAP_SIZE = 64; // amount of cells on one side of the grid
 
     public ArrayMap<FileHandle, Array<FileHandle>> folder2models;
-
-    public enum TypeFilterRulesEnum {
-        HG_FILES("Save files", file -> file.isDirectory()
-                || file.getName().toLowerCase().endsWith(".hg"), "hg"),
-        MODEL_FILES("Model files", file -> file.isDirectory()
-              //|| file.getName().toLowerCase().endsWith(".3ds")  // converted to G3DB with fbx-conv
-                || file.getName().toLowerCase().endsWith(".g3db") // binary
-                || file.getName().toLowerCase().endsWith(".g3dj") // json
-              //|| file.getName().toLowerCase().endsWith(".gltf") // see for support: https://github.com/mgsx-dev/gdx-gltf
-                || file.getName().toLowerCase().endsWith(".obj"), "obj", "g3dj", "g3db"),
-        IMAGE_FILES("Image files", file -> file.isDirectory()
-                || file.getName().toLowerCase().endsWith(".bmp")  // textures in BMP
-                || file.getName().toLowerCase().endsWith(".png")  // textures in PNG
-                || file.getName().toLowerCase().endsWith(".tga"), "bmp", "png", "tga"),
-        FONT_FILES("Font files", file -> file.isDirectory()
-                || file.getName().toLowerCase().endsWith(".fnt"), "fnt"),
-        ALL_FILES("All files", file -> false) {
-            @Override
-            public String getDescription() {
-                if (extensions.size == 0) {
-                    for (TypeFilterRulesEnum tfr: TypeFilterRulesEnum.values()) {
-                        extensions.addAll(tfr.extensions);
-                    }
-                }
-                return super.getDescription();
-            }
-
-            @Override
-            public FileFilter getFileFilter() {
-                // OR combination of file filters of all type filters
-                return file -> {
-                    for (TypeFilterRulesEnum tfr: TypeFilterRulesEnum.values()) {
-                        if (tfr.fileFilter.accept(file)) { return true; }
-                    }
-                    return false;
-                };
-            }
-        };
-
-        private final static StringBuilder sb = new StringBuilder();
-        public final String description;
-        public final FileFilter fileFilter;
-        public final Array<String> extensions = new Array<>(true, 16, String.class);
-
-        TypeFilterRulesEnum(String description, FileFilter fileFilter, String... extensions) {
-            this.description = description;
-            this.fileFilter = fileFilter;
-            this.extensions.addAll(extensions);
-        }
-
-        public String getDescription() {
-            sb.setLength(0);
-            sb.append(description).append(" (*.").append(extensions.toString(", *.")).append(")");
-            return sb.toString();
-        }
-
-        public FileFilter getFileFilter() { return fileFilter; }
-
-        public String[] getExtensions() { return extensions.toArray(); }
-    }
 
     public final HGGame game;
     public final AssetManager assetManager = new HGAssetManager();
@@ -258,151 +197,6 @@ public class HGEngine implements Disposable {
     public final ArrayMap<btRigidBody, Integer> rb2hc = new ArrayMap<>(btRigidBody.class, Integer.class);
 
     public btDynamicsWorld dynamicsWorld;
-    // https://github.com/bulletphysics/bullet3/blob/master/src/BulletDynamics/Dynamics/btDynamicsWorld.h#L30
-    // enum btDynamicsWorldType
-    // {
-    //     BT_SIMPLE_DYNAMICS_WORLD = 1,
-    //     BT_DISCRETE_DYNAMICS_WORLD = 2,
-    //     BT_CONTINUOUS_DYNAMICS_WORLD = 3,
-    //     BT_SOFT_RIGID_DYNAMICS_WORLD = 4,
-    //     BT_GPU_DYNAMICS_WORLD = 5,
-    //     BT_SOFT_MULTIBODY_DYNAMICS_WORLD = 6,
-    //     BT_DEFORMABLE_MULTIBODY_DYNAMICS_WORLD = 7
-    // };
-    // https://github.com/libgdx/libgdx/blob/024282e47e9b5d8ec25373d3e1e5ddfe55122596/extensions/gdx-bullet/jni/src/bullet/BulletDynamics/Dynamics/btDynamicsWorld.h#L31
-    // enum btDynamicsWorldType
-    // {
-    //     BT_SIMPLE_DYNAMICS_WORLD=1,
-    //     BT_DISCRETE_DYNAMICS_WORLD=2,
-    //     BT_CONTINUOUS_DYNAMICS_WORLD=3,
-    //     BT_SOFT_RIGID_DYNAMICS_WORLD=4,
-    //     BT_GPU_DYNAMICS_WORLD=5,
-    //     BT_SOFT_MULTIBODY_DYNAMICS_WORLD=6
-    // };
-    public enum btDynamicsWorldTypesEnum {
-        BT_SIMPLE_DYNAMICS_WORLD(1),
-        BT_DISCRETE_DYNAMICS_WORLD(2),
-        BT_CONTINUOUS_DYNAMICS_WORLD(3),
-        BT_SOFT_RIGID_DYNAMICS_WORLD(4),
-        BT_GPU_DYNAMICS_WORLD(5),
-        BT_SOFT_MULTIBODY_DYNAMICS_WORLD(6);
-
-        int type;
-        btDynamicsWorldTypesEnum(int type) { this.type = type; }
-
-        public static btDynamicsWorldTypesEnum findByType(int type) {
-            for (btDynamicsWorldTypesEnum dw: btDynamicsWorldTypesEnum.values()) {
-                if (dw.type == type) { return dw; }
-            }
-            Gdx.app.error("bullet", "ERROR: undefined dynamics world type " + type);
-            return null;
-        }
-
-        @Override
-        public String toString() { return this.name().replace("BT_", "").replace("_", " "); }
-    }
-
-    // CONSTRAINT SOLVERS:
-    // https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part2/
-    // simply said: constraints can be used to attach objects to each other
-    //
-    // "Exploring MLCP solvers and Featherstone" by Erwin Coumans:
-    // http://goo.gl/84N71q (https://www.gdcvault.com/play/1020076/Physics-for-Game-Programmers-Exploring)
-    // "Normal and Friction Stabilization Techniques for Interactive Rigid Body Constraint-based
-    // Contact Force Computations" by Morten Silcowitz, Sarah Niebe, Kenny Erleben
-    // https://diglib.eg.org/bitstream/handle/10.2312/PE.vriphys.vriphys10.089-095/089-095.pdf
-    // https://github.com/bulletphysics/bullet3/blob/master/src/BulletDynamics/ConstraintSolver/btConstraintSolver.h#L32
-    // enum btConstraintSolverType
-    // {
-    //     BT_SEQUENTIAL_IMPULSE_SOLVER = 1,
-    //     BT_MLCP_SOLVER = 2,
-    //     BT_NNCG_SOLVER = 4,
-    //     BT_MULTIBODY_SOLVER = 8,
-    //     BT_BLOCK_SOLVER = 16,
-    // };
-    public enum btConstraintSolversEnum implements Disposable {
-        // https://github.com/bulletphysics/bullet3/blob/master/src/BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.h
-        BT_SEQUENTIAL_IMPULSE_SOLVER(btConstraintSolverType.BT_SEQUENTIAL_IMPULSE_SOLVER, "Sequential Impulse", "SI"),
-        // https://github.com/bulletphysics/bullet3/blob/master/src/BulletDynamics/MLCPSolvers/btMLCPSolver.h
-        BT_MLCP_SOLVER(btConstraintSolverType.BT_MLCP_SOLVER, "Mixed Linear Complementarity Problem", "MLCP"),
-        // https://github.com/bulletphysics/bullet3/blob/master/src/BulletDynamics/ConstraintSolver/btNNCGConstraintSolver.h
-        BT_NNCG_SOLVER(btConstraintSolverType.BT_NNCG_SOLVER, "Nonlinear Nonsmooth Conjugate Gradient", "NNCG"),
-        // https://github.com/bulletphysics/bullet3/blob/master/src/BulletDynamics/Featherstone/btMultiBodyConstraintSolver.h
-        BT_MULTIBODY_SOLVER(8, "Multi-Body", "MB");
-        // https://github.com/bulletphysics/bullet3/blob/master/src/BulletDynamics/Dynamics/btDiscreteDynamicsWorldMt.h#L24
-        // TODO: look into multi-threaded solvers' pooling
-
-        public final int type;
-        public final String fullName;
-        public final String abbreviation;
-        public btConstraintSolver instance = null;
-
-        btConstraintSolversEnum(int type, String fullName, String abbreviation) {
-            this.type = type;
-            this.fullName = fullName;
-            this.abbreviation = abbreviation;
-        }
-
-        public btConstraintSolver getInstance() { return instance; }
-        public void setInstance(btConstraintSolver instance) {
-            if (this.instance == null) { this.instance = instance; }
-        }
-
-        public static btConstraintSolversEnum findByType(int type) {
-            for (btConstraintSolversEnum cs: btConstraintSolversEnum.values()) {
-                if (cs.type == type) { return cs; }
-            }
-            Gdx.app.error("bullet", "ERROR: undefined constraint solver type " + type);
-            return null;
-        }
-
-        @Override
-        public String toString() { return toString(false); }
-        public String toString(boolean abbr) { return abbr ? abbreviation : fullName; }
-
-        @Override
-        public void dispose() { if (instance != null) { instance.dispose(); } }
-    }
-
-    public enum btMLCPSolversEnum implements Disposable {
-        // https://github.com/bulletphysics/bullet3/blob/master/src/BulletDynamics/MLCPSolvers/btDantzigLCP.cpp
-        BT_DANTZIG("Dantzig"),
-        // https://github.com/bulletphysics/bullet3/blob/master/src/BulletDynamics/MLCPSolvers/btLemkeAlgorithm.h
-        BT_LEMKE("Lemke"),
-        // https://github.com/bulletphysics/bullet3/blob/master/src/BulletDynamics/MLCPSolvers/btSolveProjectedGaussSeidel.h#L22
-        // This solver is mainly for debug/learning purposes: it is functionally equivalent to the
-        // btSequentialImpulseConstraintSolver solver, but much slower (it builds the full LCP matrix)
-        BT_GAUSS_SEIDEL("Gauss–Seidel");
-
-        private boolean isApplied = false;
-        public final String fullName;
-        public btMLCPSolverInterface instance = null;
-
-        btMLCPSolversEnum(String fullName) { this.fullName = fullName; }
-
-        public btMLCPSolverInterface apply() {
-            unsetAll();
-            isApplied = true;
-            return instance;
-        }
-        public void setInstance(btMLCPSolverInterface instance) {
-            if (this.instance == null) { this.instance = instance; }
-        }
-
-        @Override public String toString() { return fullName; }
-        @Override public void dispose() { if (instance != null) { instance.dispose(); } }
-
-        private static void unsetAll() {
-            for (btMLCPSolversEnum solver: btMLCPSolversEnum.values()) { solver.isApplied = false; }
-        }
-
-        public static btMLCPSolversEnum current() {
-            for (btMLCPSolversEnum solver: btMLCPSolversEnum.values()) {
-                if (solver.isApplied) { return solver; }
-            }
-            return null;
-        }
-    }
 
     // BROAD PHASE:
     // IMPORTANT: see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/

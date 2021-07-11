@@ -48,7 +48,7 @@ import com.hammergenics.core.stages.ui.attributes.AttributesManagerTable;
 import com.hammergenics.utils.HGUtils;
 
 import static com.badlogic.gdx.physics.bullet.linearmath.btIDebugDraw.DebugDrawModes.DBG_NoDebug;
-import static com.hammergenics.HGEngine.TypeFilterRulesEnum.MODEL_FILES;
+import static com.hammergenics.core.stages.ui.file.TypeFilterRulesEnum.MODEL_FILES;
 
 /**
  * Add description here

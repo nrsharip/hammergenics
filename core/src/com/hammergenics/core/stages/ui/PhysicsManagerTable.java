@@ -23,20 +23,20 @@ import com.badlogic.gdx.physics.bullet.dynamics.btMLCPSolver;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
-import com.hammergenics.HGEngine;
-import com.hammergenics.HGEngine.btConstraintSolversEnum;
-import com.hammergenics.HGEngine.btMLCPSolversEnum;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.graphics.g3d.EditableModelInstance;
-import com.hammergenics.physics.bullet.dynamics.btRigidBodyProxy;
 import com.hammergenics.core.stages.ModelEditStage;
+import com.hammergenics.physics.bullet.dynamics.btConstraintSolversEnum;
+import com.hammergenics.physics.bullet.dynamics.btDynamicsWorldTypesEnum;
+import com.hammergenics.physics.bullet.dynamics.btMLCPSolversEnum;
+import com.hammergenics.physics.bullet.dynamics.btRigidBodyProxy;
 import com.kotcrab.vis.ui.widget.VisCheckBox;
 import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisSelectBox;
 import com.kotcrab.vis.ui.widget.VisTable;
 import com.kotcrab.vis.ui.widget.VisTextField;
 
-import static com.hammergenics.HGEngine.btConstraintSolversEnum.BT_MLCP_SOLVER;
+import static com.hammergenics.physics.bullet.dynamics.btConstraintSolversEnum.BT_MLCP_SOLVER;
 import static com.hammergenics.utils.HGUtils.btDbgModes;
 
 /**
@@ -222,7 +222,7 @@ public class PhysicsManagerTable extends ManagerTable {
     }
 
     public void updateDynamicsWorld() {
-        String dwTypeName = HGEngine.btDynamicsWorldTypesEnum.findByType(dw.getWorldType()).toString();
+        String dwTypeName = btDynamicsWorldTypesEnum.findByType(dw.getWorldType()).toString();
         dwTypeLabel.setText("Dynamics World Type: " + dwTypeName);
 
         dwGravity = dw.getGravity();

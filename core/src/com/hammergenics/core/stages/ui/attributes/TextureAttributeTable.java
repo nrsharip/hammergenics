@@ -36,7 +36,7 @@ import com.kotcrab.vis.ui.widget.VisTextField;
 
 import java.util.Arrays;
 
-import static com.hammergenics.HGEngine.TypeFilterRulesEnum.IMAGE_FILES;
+import static com.hammergenics.core.stages.ui.file.TypeFilterRulesEnum.IMAGE_FILES;
 
 /**
  * Add description here
