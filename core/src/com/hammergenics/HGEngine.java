@@ -194,20 +194,28 @@ public class HGEngine implements Disposable {
     public FileHandle failed;
     public class HGAssetManager extends AssetManager {
         @Override public synchronized <T> void load(String fileName, Class<T> type, AssetLoaderParameters<T> parameter) {
+            //Gdx.app.debug("asset manager", "load: " + " fileName: " + fileName + " type: " + type.getSimpleName());
             loadQueue.add(getFileHandleResolver().resolve(fileName));
             super.load(fileName, type, parameter);
         }
         @Override public synchronized boolean update() {
+            //Gdx.app.debug("asset manager", "update");
             loaded = null;
             failed = null;
             return super.update();
         }
         @Override protected <T> void addAsset(String fileName, Class<T> type, T asset) {
-            loadQueue.removeValue(loaded = getFileHandleResolver().resolve(fileName), false);
+            loaded = getFileHandleResolver().resolve(fileName);
+            //Gdx.app.debug("asset manager", "add: "
+            //        + " fileName: " + fileName + " loaded: " + loaded + " type: " + type.getSimpleName());
+            loadQueue.removeValue(loaded, false);
             super.addAsset(fileName, type, asset);
         }
         @Override protected void taskFailed(AssetDescriptor assetDesc, RuntimeException ex) {
-            loadQueue.removeValue(failed = getFileHandleResolver().resolve(assetDesc.fileName), false);
+            failed = getFileHandleResolver().resolve(assetDesc.fileName);
+            //Gdx.app.debug("asset manager", "failed: "
+            //        + " fileName: " + assetDesc.fileName + " failed: " + failed);
+            loadQueue.removeValue(failed, false);
             super.taskFailed(assetDesc, ex);
         }
     }
@@ -693,6 +701,7 @@ public class HGEngine implements Disposable {
     private final TextureLoader.TextureParameter textureParameter = new TextureLoader.TextureParameter();
 
     public void queueAsset(FileHandle fileHandle) {
+        if (fileHandle == null) { return; }
         assetsLoaded = false;
         // See TextureLoader loadAsync() and loadSync() methods for use of this parameter
         // ATTENTION: 'gdx-1.10.0.jar' and 'gdx-backend-gwt-1.10.0.jar' both have
@@ -717,6 +726,7 @@ public class HGEngine implements Disposable {
     }
 
     public Class<?> getAssetClass(FileHandle fileHandle) {
+        if (fileHandle == null) { return null; }
         switch (fileHandle.extension().toLowerCase()) {
 //              case "3ds":  // converted to G3DB with fbx-conv
             case "obj":
@@ -740,25 +750,26 @@ public class HGEngine implements Disposable {
     }
 
     public void addAsset(FileHandle fileHandle) {
+        if (fileHandle == null) { return; }
         Class<?> assetClass = getAssetClass(fileHandle);
+        //Gdx.app.debug("engine", "add asset:" + " fileHandle: " + fileHandle + " assetClass: " + assetClass.getSimpleName());
         if (assetClass.equals(Model.class)) {
+            //Gdx.app.debug("engine", "add asset:" + " Model");
             Model model = assetManager.get(fileHandle.path(), Model.class);
             this.hgModels.put(fileHandle, new HGModel(model, fileHandle));
         } else if (assetClass.equals(Texture.class)) {
+            //Gdx.app.debug("engine", "add asset:" + " Texture");
             Texture texture = assetManager.get(fileHandle.path(), Texture.class);
             this.hgTextures.put(fileHandle, new HGTexture(texture, fileHandle));
         }
     }
 
     public boolean updateLoad() {
-        if (!assetsLoaded && assetManager.update()) {
-            assetsLoaded = true;
-            return true;
-        } else if (!assetsLoaded) {
-            if (loaded != null) { addAsset(loaded); }
-            return false;
+        if (!assetsLoaded) {
+            if (assetManager.update()) { assetsLoaded = true; }
+            addAsset(loaded);
         }
-        return true;
+        return assetsLoaded;
     }
 
     public void getAllAssets() {

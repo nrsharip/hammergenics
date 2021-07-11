@@ -143,14 +143,12 @@ public class ModelEditScreen extends ScreenAdapter {
     @Override
     public void render(float delta) {
         if (!eng.assetsLoaded) {
-            if (eng.updateLoad()) {
-                stage.loadProgressWindow.fadeOut();
-            } else {
-                stage.loadProgressBar.setValue(eng.assetManager.getProgress());
-                if (eng.loaded != null) {
-                    stage.loadProgressWindow.getTitleLabel().setText("Loading... (" + eng.loaded.name() + ")");
-                    stage.projManagerTable.addAssetTreeNode(eng.loaded);
-                }
+            if (eng.updateLoad()) { stage.loadProgressWindow.fadeOut(); }
+            else { stage.loadProgressBar.setValue(eng.assetManager.getProgress()); }
+
+            if (eng.loaded != null) {
+                stage.projManagerTable.addAssetTreeNode(eng.loaded);
+                stage.loadProgressWindow.getTitleLabel().setText("Loading... (" + eng.loaded.name() + ")");
             }
         }
 

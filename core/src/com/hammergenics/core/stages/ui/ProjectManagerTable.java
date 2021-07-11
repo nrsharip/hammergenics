@@ -21,6 +21,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.scenes.scene2d.ui.Tree;
+import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.graphics.HGTexture;
@@ -48,6 +49,8 @@ public class ProjectManagerTable extends ManagerTable {
     public HGTreeNode assetsFontsTreeNode;
     public HGTreeNode modelInstancesTreeNode;
     public HGTreeNode envTreeNode;
+
+    public final ArrayMap<String, HGTreeNode> extension2treeNode = new ArrayMap<>(String.class, HGTreeNode.class);
 
     public ProjectManagerTable(ModelEditScreen modelES, ModelEditStage stage) {
         super(modelES, stage);
@@ -93,23 +96,34 @@ public class ProjectManagerTable extends ManagerTable {
 
     public void addAssetTreeNode(FileHandle fileHandle) {
         Class<?> assetClass = eng.getAssetClass(fileHandle);
+        String extension = fileHandle.extension().toUpperCase();
+        HGTreeNode treeNode = extension2treeNode.get(extension, null);
+        //Gdx.app.debug("project", "add asset" + " filehandle: " + fileHandle + " extension: " + extension + " treeNode: " + treeNode);
+        if (treeNode == null) {
+            treeNode = new HGTreeNode(new VisLabel(extension, Color.BLACK));
+            if (assetClass.equals(Model.class)) { assetsModelsTreeNode.add(treeNode); }
+            else if (assetClass.equals(Texture.class)) { assetsImagesTreeNode.add(treeNode); }
+            else { return; }
+            extension2treeNode.put(extension, treeNode);
+        }
+
         if (assetClass == Model.class) {
-            addModelAssetTreeNode(fileHandle);
+            addModelAssetTreeNode(fileHandle, treeNode);
         } else if (assetClass == Texture.class) {
-            addImageAssetTreeNode(fileHandle);
+            addImageAssetTreeNode(fileHandle, treeNode);
         }
     }
 
-    public void addModelAssetTreeNode(FileHandle fileHandle) {
+    public void addModelAssetTreeNode(FileHandle fileHandle, HGTreeNode treeNode) {
         HGTreeNode node;
-        assetsModelsTreeNode.add(node = new HGTreeNode(new VisLabel(fileHandle.nameWithoutExtension(), Color.BLACK)));
-        node.add(new HGTreeNode(new VisLabel(fileHandle.path(), Color.BLACK)));
+        treeNode.add(node = new HGTreeNode(new VisLabel(fileHandle.nameWithoutExtension(), Color.BLACK)));
+        node.add(new HGTreeNode(new VisLabel(fileHandle.file().getAbsolutePath(), Color.BLACK)));
     }
 
-    public void addImageAssetTreeNode(FileHandle fileHandle) {
+    public void addImageAssetTreeNode(FileHandle fileHandle, HGTreeNode treeNode) {
         HGTreeNode node;
-        assetsImagesTreeNode.add(node = new HGTreeNode(new VisLabel(fileHandle.nameWithoutExtension(), Color.BLACK)));
-        node.add(new HGTreeNode(new VisLabel(fileHandle.path(), Color.BLACK)));
+        treeNode.add(node = new HGTreeNode(new VisLabel(fileHandle.nameWithoutExtension(), Color.BLACK)));
+        node.add(new HGTreeNode(new VisLabel(fileHandle.file().getAbsolutePath(), Color.BLACK)));
     }
 
     @Override
