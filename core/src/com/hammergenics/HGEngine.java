@@ -18,6 +18,8 @@ package com.hammergenics;
 
 import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.assets.AssetDescriptor;
+import com.badlogic.gdx.assets.AssetLoaderParameters;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.assets.loaders.TextureLoader;
 import com.badlogic.gdx.files.FileHandle;
@@ -74,18 +76,18 @@ import com.badlogic.gdx.utils.Logger;
 import com.badlogic.gdx.utils.Sort;
 import com.badlogic.gdx.utils.UBJsonWriter;
 import com.hammergenics.core.graphics.HGTexture;
-import com.hammergenics.map.HGGrid;
-import com.hammergenics.map.HGGrid.NoiseStageInfo;
-import com.hammergenics.map.TerrainChunk;
-import com.hammergenics.map.TerrainPartsEnum;
 import com.hammergenics.core.graphics.g3d.EditableModelInstance;
 import com.hammergenics.core.graphics.g3d.HGModel;
 import com.hammergenics.core.graphics.g3d.HGModelInstance;
 import com.hammergenics.core.graphics.g3d.PhysicalModelInstance;
 import com.hammergenics.core.graphics.g3d.PhysicalModelInstance.ShapesEnum;
 import com.hammergenics.core.graphics.g3d.saver.G3dModelSaver;
-import com.hammergenics.physics.bullet.collision.HGContactListener;
 import com.hammergenics.core.utils.AttributesMap;
+import com.hammergenics.map.HGGrid;
+import com.hammergenics.map.HGGrid.NoiseStageInfo;
+import com.hammergenics.map.TerrainChunk;
+import com.hammergenics.map.TerrainPartsEnum;
+import com.hammergenics.physics.bullet.collision.HGContactListener;
 import com.hammergenics.utils.HGUtils;
 import com.kotcrab.vis.ui.widget.file.FileTypeFilter;
 
@@ -126,10 +128,10 @@ public class HGEngine implements Disposable {
         HG_FILES("Save files", file -> file.isDirectory()
                 || file.getName().toLowerCase().endsWith(".hg"), "hg"),
         MODEL_FILES("Model files", file -> file.isDirectory()
-//          || file.getName().toLowerCase().endsWith(".3ds")  // converted to G3DB with fbx-conv
+              //|| file.getName().toLowerCase().endsWith(".3ds")  // converted to G3DB with fbx-conv
                 || file.getName().toLowerCase().endsWith(".g3db") // binary
                 || file.getName().toLowerCase().endsWith(".g3dj") // json
-//          || file.getName().toLowerCase().endsWith(".gltf") // see for support: https://github.com/mgsx-dev/gdx-gltf
+              //|| file.getName().toLowerCase().endsWith(".gltf") // see for support: https://github.com/mgsx-dev/gdx-gltf
                 || file.getName().toLowerCase().endsWith(".obj"), "obj", "g3dj", "g3db"),
         IMAGE_FILES("Image files", file -> file.isDirectory()
                 || file.getName().toLowerCase().endsWith(".bmp")  // textures in BMP
@@ -183,9 +185,32 @@ public class HGEngine implements Disposable {
     }
 
     public final HGGame game;
-    public final AssetManager assetManager = new AssetManager();
+    public final AssetManager assetManager = new HGAssetManager();
     public boolean assetsLoaded = true;
     public G3dModelSaver g3dSaver = new G3dModelSaver();
+
+    public final Array<FileHandle> loadQueue = new Array<>(true, 16, FileHandle.class);
+    public FileHandle loaded;
+    public FileHandle failed;
+    public class HGAssetManager extends AssetManager {
+        @Override public synchronized <T> void load(String fileName, Class<T> type, AssetLoaderParameters<T> parameter) {
+            loadQueue.add(getFileHandleResolver().resolve(fileName));
+            super.load(fileName, type, parameter);
+        }
+        @Override public synchronized boolean update() {
+            loaded = null;
+            failed = null;
+            return super.update();
+        }
+        @Override protected <T> void addAsset(String fileName, Class<T> type, T asset) {
+            loadQueue.removeValue(loaded = getFileHandleResolver().resolve(fileName), false);
+            super.addAsset(fileName, type, asset);
+        }
+        @Override protected void taskFailed(AssetDescriptor assetDesc, RuntimeException ex) {
+            loadQueue.removeValue(failed = getFileHandleResolver().resolve(assetDesc.fileName), false);
+            super.taskFailed(assetDesc, ex);
+        }
+    }
 
     public ArrayMap<FileHandle, HGModel> hgModels = new ArrayMap<>(FileHandle.class, HGModel.class);
     public ArrayMap<FileHandle, HGTexture> hgTextures = new ArrayMap<>(FileHandle.class, HGTexture.class);
@@ -660,9 +685,6 @@ public class HGEngine implements Disposable {
         //    }
 
         Array<FileHandle> fileHandleList = HGUtils.traversFileHandle(rootFileHandle, ALL_FILES.getFileFilter()); // syncup: asset manager
-
-        Gdx.app.debug("load", "rootFileHandle: " + rootFileHandle);
-        Gdx.app.debug("load", "fileHandleList:\n" + fileHandleList.toString("\n"));
 
         Arrays.stream(fileHandleList.toArray()).forEach(this::queueAsset); //.filter(rule::accept)
     }

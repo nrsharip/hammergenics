@@ -269,6 +269,8 @@ public class ModelEditStage extends Stage {
                     public void selected (Array<FileHandle> fileHandles) {
                         Gdx.app.debug("filechooser", "\n" + fileHandles.toString("\n"));
 
+                        modelES.eng.loadQueue.clear();
+
                         loadProgressBar.setValue(0f);
                         addActor(loadProgressWindow.fadeIn());
 
@@ -446,7 +448,7 @@ public class ModelEditStage extends Stage {
 
     public void initProgressBar() {
         loadProgressWindow = new VisWindow("");
-        loadProgressWindow.getTitleLabel().setText("Loading");
+        loadProgressWindow.getTitleLabel().setText("Loading...");
         loadProgressWindow.centerWindow();
 
         loadProgressBar = new VisProgressBar(0f, 1f, 0.001f, false);

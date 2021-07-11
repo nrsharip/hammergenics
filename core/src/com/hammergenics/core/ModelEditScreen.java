@@ -153,6 +153,9 @@ public class ModelEditScreen extends ScreenAdapter {
             stage.loadProgressWindow.fadeOut();
         } else if (!eng.assetsLoaded) {
             stage.loadProgressBar.setValue(eng.assetManager.getProgress());
+            if (eng.loaded != null) {
+                stage.loadProgressWindow.getTitleLabel().setText("Loading... (" + eng.loaded.name() + ")");
+            }
         }
         // https://github.com/libgdx/libgdx/wiki/ModelBatch
         // https://encycolorpedia.com/96b0bc
