@@ -48,7 +48,7 @@ import com.hammergenics.core.stages.ui.attributes.AttributesManagerTable;
 import com.hammergenics.utils.HGUtils;
 
 import static com.badlogic.gdx.physics.bullet.linearmath.btIDebugDraw.DebugDrawModes.DBG_NoDebug;
-import static com.hammergenics.HGEngine.filterModels;
+import static com.hammergenics.HGEngine.TypeFilterRulesEnum.MODEL_FILES;
 
 /**
  * Add description here
@@ -316,7 +316,7 @@ public class ModelEditScreen extends ScreenAdapter {
             // check if there're changes made in the root directory
             // the map should be ordered: see resetFolderSelectBoxItems
             ArrayMap<FileHandle, Array<FileHandle>> f2m = new ArrayMap<>(true, 16, FileHandle.class, Array.class);
-            HGUtils.traversFileHandle(Gdx.files.internal("root"), filterModels, f2m); // syncup: asset manager
+            HGUtils.traversFileHandle(Gdx.files.internal("root"), MODEL_FILES.fileFilter, f2m); // syncup: asset manager
 
             if (!eng.folder2models.equals(f2m)) {
                 eng.folder2models = f2m;

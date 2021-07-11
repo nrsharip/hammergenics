@@ -40,7 +40,7 @@ import com.kotcrab.vis.ui.widget.VisTextButton;
 import java.nio.charset.Charset;
 import java.util.Locale;
 
-import static com.hammergenics.HGEngine.filterModels;
+import static com.hammergenics.HGEngine.TypeFilterRulesEnum.MODEL_FILES;
 import static com.hammergenics.HGGame.I18NBundlesEnum.ENGLISH;
 
 /**
@@ -88,7 +88,7 @@ public class HGGame extends Game {
         engine = new HGEngine(this);
         // the map should be ordered: see resetFolderSelectBoxItems
         engine.folder2models = new ArrayMap<>(true, 16, FileHandle.class, Array.class);
-        HGUtils.traversFileHandle(Gdx.files.internal("root"), filterModels, engine.folder2models); // syncup: asset manager
+        HGUtils.traversFileHandle(Gdx.files.internal("root"), MODEL_FILES.fileFilter, engine.folder2models); // syncup: asset manager
 
         // https://github.com/libgdx/libgdx/wiki/ModelBatch#default-shader
         // The behavior of DefaultShader class is configurable by supplying

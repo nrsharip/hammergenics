@@ -36,7 +36,7 @@ import com.kotcrab.vis.ui.widget.VisTextField;
 
 import java.util.Arrays;
 
-import static com.hammergenics.HGEngine.filterTextures;
+import static com.hammergenics.HGEngine.TypeFilterRulesEnum.IMAGE_FILES;
 
 /**
  * Add description here
@@ -190,21 +190,21 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
 
     private Array<FileHandle> texturesLookUp (FileHandle assetFileHandle) {
         if (assetFileHandle == null) { return null; }
-        Array<FileHandle> textureFileHandleArray = HGUtils.traversFileHandle(assetFileHandle.parent(), filterTextures);
+        Array<FileHandle> textureFileHandleArray = HGUtils.traversFileHandle(assetFileHandle.parent(), IMAGE_FILES.fileFilter);
 
         // TODO: Add unified convention like "textures | skins" to specify all folders at once
         // All texture files in the "textures" directory and subdirectories (if any) on asset's path
         textureFileHandleArray = HGUtils.traversFileHandle(
                 // starting at parent() since we already traversed current folder/subfolders above
                 HGUtils.fileOnPath(assetFileHandle.parent(), "textures"),
-                filterTextures,
+                IMAGE_FILES.fileFilter,
                 textureFileHandleArray
         );
         // All texture files in the "skins" directory and subdirectories (if any) on asset's path
         textureFileHandleArray = HGUtils.traversFileHandle(
                 // starting at parent() since we already traversed current folder/subfolders above
                 HGUtils.fileOnPath(assetFileHandle.parent(), "skins"),
-                filterTextures,
+                IMAGE_FILES.fileFilter,
                 textureFileHandleArray
         );
         return textureFileHandleArray;

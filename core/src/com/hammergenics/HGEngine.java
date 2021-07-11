@@ -95,6 +95,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 
+import static com.hammergenics.HGEngine.TypeFilterRulesEnum.ALL_FILES;
 import static com.hammergenics.HGEngine.btConstraintSolversEnum.BT_MLCP_SOLVER;
 import static com.hammergenics.HGEngine.btConstraintSolversEnum.BT_MULTIBODY_SOLVER;
 import static com.hammergenics.HGEngine.btConstraintSolversEnum.BT_NNCG_SOLVER;
@@ -120,27 +121,23 @@ public class HGEngine implements Disposable {
     public final static int MAP_SIZE = 64; // amount of cells on one side of the grid
 
     public ArrayMap<FileHandle, Array<FileHandle>> folder2models;
-    public static final FileFilter filterBitmapFonts = file -> file.isDirectory()
-            || file.getName().toLowerCase().endsWith(".fnt"); // BitmapFont
-    public static final FileFilter filterTextures = file -> file.isDirectory()
-            || file.getName().toLowerCase().endsWith(".bmp")  // textures in BMP
-            || file.getName().toLowerCase().endsWith(".png")  // textures in PNG
-            || file.getName().toLowerCase().endsWith(".tga"); // textures in TGA
-    public static final FileFilter filterModels = file -> file.isDirectory()
-//          || file.getName().toLowerCase().endsWith(".3ds")  // converted to G3DB with fbx-conv
-            || file.getName().toLowerCase().endsWith(".g3db") // binary
-            || file.getName().toLowerCase().endsWith(".g3dj") // json
-//          || file.getName().toLowerCase().endsWith(".gltf") // see for support: https://github.com/mgsx-dev/gdx-gltf
-            || file.getName().toLowerCase().endsWith(".obj"); // wavefront
-    public static final FileFilter filterAll = file ->
-            filterBitmapFonts.accept(file) | filterTextures.accept(file) | filterModels.accept(file);
 
     public enum TypeFilterRulesEnum {
-        HG_FILES("Save files", "hg"),
-        MODEL_FILES("Model files", "obj", "g3dj", "g3db"),
-        IMAGE_FILES("Image files", "bmp", "png", "tga"),
-        FONT_FILES("Font files", "fnt"),
-        ALL_FILES("All files") {
+        HG_FILES("Save files", file -> file.isDirectory()
+                || file.getName().toLowerCase().endsWith(".hg"), "hg"),
+        MODEL_FILES("Model files", file -> file.isDirectory()
+//          || file.getName().toLowerCase().endsWith(".3ds")  // converted to G3DB with fbx-conv
+                || file.getName().toLowerCase().endsWith(".g3db") // binary
+                || file.getName().toLowerCase().endsWith(".g3dj") // json
+//          || file.getName().toLowerCase().endsWith(".gltf") // see for support: https://github.com/mgsx-dev/gdx-gltf
+                || file.getName().toLowerCase().endsWith(".obj"), "obj", "g3dj", "g3db"),
+        IMAGE_FILES("Image files", file -> file.isDirectory()
+                || file.getName().toLowerCase().endsWith(".bmp")  // textures in BMP
+                || file.getName().toLowerCase().endsWith(".png")  // textures in PNG
+                || file.getName().toLowerCase().endsWith(".tga"), "bmp", "png", "tga"),
+        FONT_FILES("Font files", file -> file.isDirectory()
+                || file.getName().toLowerCase().endsWith(".fnt"), "fnt"),
+        ALL_FILES("All files", file -> false) {
             @Override
             public String getDescription() {
                 if (extensions.size == 0) {
@@ -150,14 +147,27 @@ public class HGEngine implements Disposable {
                 }
                 return super.getDescription();
             }
+
+            @Override
+            public FileFilter getFileFilter() {
+                // OR combination of file filters of all type filters
+                return file -> {
+                    for (TypeFilterRulesEnum tfr: TypeFilterRulesEnum.values()) {
+                        if (tfr.fileFilter.accept(file)) { return true; }
+                    }
+                    return false;
+                };
+            }
         };
 
         private final static StringBuilder sb = new StringBuilder();
         public final String description;
+        public final FileFilter fileFilter;
         public final Array<String> extensions = new Array<>(true, 16, String.class);
 
-        TypeFilterRulesEnum(String description, String... extensions) {
+        TypeFilterRulesEnum(String description, FileFilter fileFilter, String... extensions) {
             this.description = description;
+            this.fileFilter = fileFilter;
             this.extensions.addAll(extensions);
         }
 
@@ -166,6 +176,8 @@ public class HGEngine implements Disposable {
             sb.append(description).append(" (*.").append(extensions.toString(", *.")).append(")");
             return sb.toString();
         }
+
+        public FileFilter getFileFilter() { return fileFilter; }
 
         public String[] getExtensions() { return extensions.toArray(); }
     }
@@ -647,7 +659,10 @@ public class HGEngine implements Disposable {
         //        texture.setWrap(parameter.wrapU, parameter.wrapV);
         //    }
 
-        Array<FileHandle> fileHandleList = HGUtils.traversFileHandle(rootFileHandle, filterAll); // syncup: asset manager
+        Array<FileHandle> fileHandleList = HGUtils.traversFileHandle(rootFileHandle, ALL_FILES.getFileFilter()); // syncup: asset manager
+
+        Gdx.app.debug("load", "rootFileHandle: " + rootFileHandle);
+        Gdx.app.debug("load", "fileHandleList:\n" + fileHandleList.toString("\n"));
 
         Arrays.stream(fileHandleList.toArray()).forEach(this::queueAsset); //.filter(rule::accept)
     }
