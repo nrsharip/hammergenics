@@ -142,21 +142,18 @@ public class ModelEditScreen extends ScreenAdapter {
      */
     @Override
     public void render(float delta) {
-        if (!eng.assetsLoaded && eng.assetManager.update()) {
-            eng.getAssets();
-            eng.assetsLoaded = true;
-            stage.updateModelSelectBox();
-            stage.mapGenerationTable.updateTrrnSelectBoxes();
-
-            stage.projManagerTable.updateAssetsTree();
-
-            stage.loadProgressWindow.fadeOut();
-        } else if (!eng.assetsLoaded) {
-            stage.loadProgressBar.setValue(eng.assetManager.getProgress());
-            if (eng.loaded != null) {
-                stage.loadProgressWindow.getTitleLabel().setText("Loading... (" + eng.loaded.name() + ")");
+        if (!eng.assetsLoaded) {
+            if (eng.updateLoad()) {
+                stage.loadProgressWindow.fadeOut();
+            } else {
+                stage.loadProgressBar.setValue(eng.assetManager.getProgress());
+                if (eng.loaded != null) {
+                    stage.loadProgressWindow.getTitleLabel().setText("Loading... (" + eng.loaded.name() + ")");
+                    stage.projManagerTable.addAssetTreeNode(eng.loaded);
+                }
             }
         }
+
         // https://github.com/libgdx/libgdx/wiki/ModelBatch
         // https://encycolorpedia.com/96b0bc
         Gdx.gl.glClearColor(150 / 255f, 176 / 255f, 188 / 255f, 1f);

@@ -18,6 +18,8 @@ package com.hammergenics.core.stages.ui;
 
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.scenes.scene2d.ui.Tree;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.hammergenics.core.ModelEditScreen;
@@ -44,7 +46,7 @@ public class ProjectManagerTable extends ManagerTable {
     public HGTreeNode assetsImagesTreeNode;
     public HGTreeNode assetsSoundsTreeNode;
     public HGTreeNode assetsFontsTreeNode;
-    public HGTreeNode modelsTreeNode;
+    public HGTreeNode modelInstancesTreeNode;
     public HGTreeNode envTreeNode;
 
     public ProjectManagerTable(ModelEditScreen modelES, ModelEditStage stage) {
@@ -56,7 +58,7 @@ public class ProjectManagerTable extends ManagerTable {
         // https://github.com/kotcrab/vis-ui/blob/master/ui/src/test/java/com/kotcrab/vis/ui/test/manual/TestTree.java#L75
         projectTree = new VisTree<>();
         projectTree.add(assetsTreeNode = new HGTreeNode(new VisLabel("Assets", Color.BLACK)));
-        projectTree.add(modelsTreeNode = new HGTreeNode(new VisLabel("Models", Color.BLACK)));
+        projectTree.add(modelInstancesTreeNode = new HGTreeNode(new VisLabel("Model Instances", Color.BLACK)));
         projectTree.add(envTreeNode = new HGTreeNode(new VisLabel("Environment", Color.BLACK)));
 
         assetsTreeNode.add(assetsModelsTreeNode = new HGTreeNode(new VisLabel("Models", Color.BLACK)));
@@ -87,6 +89,27 @@ public class ProjectManagerTable extends ManagerTable {
             assetsImagesTreeNode.add(node = new HGTreeNode(new VisLabel(entry.key.nameWithoutExtension(), Color.BLACK)));
             node.add(new HGTreeNode(new VisLabel(entry.key.path(), Color.BLACK)));
         }
+    }
+
+    public void addAssetTreeNode(FileHandle fileHandle) {
+        Class<?> assetClass = eng.getAssetClass(fileHandle);
+        if (assetClass == Model.class) {
+            addModelAssetTreeNode(fileHandle);
+        } else if (assetClass == Texture.class) {
+            addImageAssetTreeNode(fileHandle);
+        }
+    }
+
+    public void addModelAssetTreeNode(FileHandle fileHandle) {
+        HGTreeNode node;
+        assetsModelsTreeNode.add(node = new HGTreeNode(new VisLabel(fileHandle.nameWithoutExtension(), Color.BLACK)));
+        node.add(new HGTreeNode(new VisLabel(fileHandle.path(), Color.BLACK)));
+    }
+
+    public void addImageAssetTreeNode(FileHandle fileHandle) {
+        HGTreeNode node;
+        assetsImagesTreeNode.add(node = new HGTreeNode(new VisLabel(fileHandle.nameWithoutExtension(), Color.BLACK)));
+        node.add(new HGTreeNode(new VisLabel(fileHandle.path(), Color.BLACK)));
     }
 
     @Override

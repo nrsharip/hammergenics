@@ -708,32 +708,60 @@ public class HGEngine implements Disposable {
         textureParameter.wrapU = Texture.TextureWrap.Repeat;       // default = TextureWrap.ClampToEdge
         textureParameter.wrapV = Texture.TextureWrap.Repeat;       // default = TextureWrap.ClampToEdge
 
+        Class<?> assetClass = getAssetClass(fileHandle);
+        if (assetClass.equals(Texture.class)) {
+            assetManager.load(fileHandle.path(), Texture.class, textureParameter);
+        } else {
+            assetManager.load(fileHandle.path(), assetClass, null);
+        }
+    }
+
+    public Class<?> getAssetClass(FileHandle fileHandle) {
         switch (fileHandle.extension().toLowerCase()) {
 //              case "3ds":  // converted to G3DB with fbx-conv
             case "obj":
 //              case "gltf": // see for support: https://github.com/mgsx-dev/gdx-gltf
             case "g3db":
             case "g3dj":
-                assetManager.load(fileHandle.path(), Model.class, null);
-                break;
+                return Model.class;
             case "tga":
             case "png":
             case "bmp":
-                assetManager.load(fileHandle.path(), Texture.class, textureParameter);
-                break;
+                return Texture.class;
             case "fnt":
-                assetManager.load(fileHandle.path(), BitmapFont.class, null);
-                break;
+                return BitmapFont.class;
             case "XXX": // for testing purposes
-                assetManager.load(fileHandle.path(), ParticleEffect.class, null);
-                break;
+                return ParticleEffect.class;
             default:
                 Gdx.app.error(getClass().getSimpleName(),
                         "Unexpected file extension: " + fileHandle.extension());
         }
+        return null;
     }
 
-    public void getAssets() {
+    public void addAsset(FileHandle fileHandle) {
+        Class<?> assetClass = getAssetClass(fileHandle);
+        if (assetClass.equals(Model.class)) {
+            Model model = assetManager.get(fileHandle.path(), Model.class);
+            this.hgModels.put(fileHandle, new HGModel(model, fileHandle));
+        } else if (assetClass.equals(Texture.class)) {
+            Texture texture = assetManager.get(fileHandle.path(), Texture.class);
+            this.hgTextures.put(fileHandle, new HGTexture(texture, fileHandle));
+        }
+    }
+
+    public boolean updateLoad() {
+        if (!assetsLoaded && assetManager.update()) {
+            assetsLoaded = true;
+            return true;
+        } else if (!assetsLoaded) {
+            if (loaded != null) { addAsset(loaded); }
+            return false;
+        }
+        return true;
+    }
+
+    public void getAllAssets() {
         // https://github.com/libgdx/libgdx/wiki/Managing-your-assets#getting-assets
         Array<Model> models = new Array<>(Model.class);
         assetManager.getAll(Model.class, models);
