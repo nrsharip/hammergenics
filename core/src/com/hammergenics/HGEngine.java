@@ -596,6 +596,7 @@ public class HGEngine implements Disposable {
     public boolean addModelInstance(FileHandle assetFL) { return addModelInstance(assetFL, null, -1); }
 
     public boolean addModelInstance(FileHandle assetFL, String nodeId, int nodeIndex) {
+        if (assetFL == null) { return false; }
         if (!assetManager.contains(assetFL.path())) { return false; }
         HGModel hgModel = new HGModel(assetManager.get(assetFL.path(), Model.class), assetFL);
         return addModelInstance(hgModel, nodeId, nodeIndex);

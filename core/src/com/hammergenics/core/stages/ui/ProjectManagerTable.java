@@ -20,6 +20,10 @@ import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
+import com.badlogic.gdx.scenes.scene2d.ui.Cell;
 import com.badlogic.gdx.scenes.scene2d.ui.Tree;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
@@ -32,6 +36,7 @@ import com.hammergenics.core.stages.ModelEditStage;
 import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisScrollPane;
 import com.kotcrab.vis.ui.widget.VisTable;
+import com.kotcrab.vis.ui.widget.VisTextButton;
 import com.kotcrab.vis.ui.widget.VisTree;
 
 import java.io.File;
@@ -44,22 +49,22 @@ import java.util.regex.Pattern;
  * @author nrsharip
  */
 public class ProjectManagerTable extends ManagerTable {
-    public VisTree<HGVisLabelTreeNode, VisLabel> projectTree;
+    public VisTree<HGVisTableTreeNode, VisLabel> projectTree;
     public VisScrollPane projectTreeScrollPane;
 
-    public HGVisLabelTreeNode assetsTreeNode;
-    public HGVisLabelTreeNode assetsModelsTreeNode;
-    public HGVisLabelTreeNode assetsImagesTreeNode;
-    public HGVisLabelTreeNode assetsSoundsTreeNode;
-    public HGVisLabelTreeNode assetsFontsTreeNode;
-    public HGVisLabelTreeNode modelInstancesTreeNode;
-    public HGVisLabelTreeNode envTreeNode;
+    public HGVisTableTreeNode assetsTreeNode;
+    public HGVisTableTreeNode assetsModelsTreeNode;
+    public HGVisTableTreeNode assetsImagesTreeNode;
+    public HGVisTableTreeNode assetsSoundsTreeNode;
+    public HGVisTableTreeNode assetsFontsTreeNode;
+    public HGVisTableTreeNode modelInstancesTreeNode;
+    public HGVisTableTreeNode envTreeNode;
 
     public FileHandle commonPath = null;
-    public final ArrayMap<HGVisLabelTreeNode, FileHandle> treeNode2fh = new ArrayMap<>(HGVisLabelTreeNode.class, FileHandle.class);
-    public final ArrayMap<FileHandle, HGVisLabelTreeNode> fh2treeNode = new ArrayMap<>(FileHandle.class, HGVisLabelTreeNode.class);
+    public final ArrayMap<HGVisTableTreeNode, FileHandle> treeNode2fh = new ArrayMap<>(HGVisTableTreeNode.class, FileHandle.class);
+    public final ArrayMap<FileHandle, HGVisTableTreeNode> fh2treeNode = new ArrayMap<>(FileHandle.class, HGVisTableTreeNode.class);
 
-    public final ArrayMap<String, HGVisLabelTreeNode> extension2treeNode = new ArrayMap<>(String.class, HGVisLabelTreeNode.class);
+    public final ArrayMap<String, HGVisTableTreeNode> extension2treeNode = new ArrayMap<>(String.class, HGVisTableTreeNode.class);
 
     public ProjectManagerTable(ModelEditScreen modelES, ModelEditStage stage) {
         super(modelES, stage);
@@ -69,37 +74,58 @@ public class ProjectManagerTable extends ManagerTable {
     protected void init() {
         // https://github.com/kotcrab/vis-ui/blob/master/ui/src/test/java/com/kotcrab/vis/ui/test/manual/TestTree.java#L75
         projectTree = new VisTree<>();
-        projectTree.add(assetsTreeNode = new HGVisLabelTreeNode(new VisLabel("Assets", Color.BLACK)));
-        projectTree.add(modelInstancesTreeNode = new HGVisLabelTreeNode(new VisLabel("Model Instances", Color.BLACK)));
-        projectTree.add(envTreeNode = new HGVisLabelTreeNode(new VisLabel("Environment", Color.BLACK)));
+        projectTree.add(assetsTreeNode = new HGVisTableTreeNode(new HGVisTable("Assets", Color.BLACK)));
+        projectTree.add(modelInstancesTreeNode = new HGVisTableTreeNode(new HGVisTable("Model Instances", Color.BLACK)));
+        projectTree.add(envTreeNode = new HGVisTableTreeNode(new HGVisTable("Environment", Color.BLACK)));
 
-        assetsTreeNode.add(assetsModelsTreeNode = new HGVisLabelTreeNode(new VisLabel("Models", Color.BLACK)));
-        assetsTreeNode.add(assetsImagesTreeNode = new HGVisLabelTreeNode(new VisLabel("Images", Color.BLACK)));
-        assetsTreeNode.add(assetsSoundsTreeNode = new HGVisLabelTreeNode(new VisLabel("Sounds", Color.BLACK)));
-        assetsTreeNode.add(assetsFontsTreeNode = new HGVisLabelTreeNode(new VisLabel("Fonts", Color.BLACK)));
+        assetsTreeNode.add(assetsModelsTreeNode = new HGVisTableTreeNode(new HGVisTable("Models", Color.BLACK)));
+        assetsTreeNode.add(assetsImagesTreeNode = new HGVisTableTreeNode(new HGVisTable("Images", Color.BLACK)));
+        assetsTreeNode.add(assetsSoundsTreeNode = new HGVisTableTreeNode(new HGVisTable("Sounds", Color.BLACK)));
+        assetsTreeNode.add(assetsFontsTreeNode = new HGVisTableTreeNode(new HGVisTable("Fonts", Color.BLACK)));
 
         projectTreeScrollPane = new VisScrollPane(projectTree);
     }
 
-    private static class HGVisLabelTreeNode extends Tree.Node<HGVisLabelTreeNode, Integer, VisLabel> {
-        public HGVisLabelTreeNode(VisLabel actor) {
-            super(actor);
+    private static class HGVisTableTreeNode extends Tree.Node<HGVisTableTreeNode, Integer, HGVisTable> {
+        public HGVisTableTreeNode(HGVisTable actor) { super(actor); }
+    }
+
+    private static class HGVisTable extends VisTable {
+        public Cell<?> cell1, cell2, cell3, cell4;
+        public VisLabel label;
+        public FileHandle fileHandle;
+
+        public HGVisTable(CharSequence text, Color textColor) { this(text, textColor, null); }
+
+        public HGVisTable(CharSequence text, Color textColor, FileHandle fileHandle) {
+            this.label = new VisLabel(text, textColor);
+            this.fileHandle = fileHandle;
+
+            cell1 = add().padRight(2f); cell2 = add().padRight(2f);
+            cell3 = add().padRight(2f); cell4 = add().padRight(2f);
+            add(this.label);
         }
+
+        public FileHandle getFileHandle() { return fileHandle; }
+        public HGVisTable setCell1(Actor actor) { this.cell1.setActor(actor); return this; }
+        public HGVisTable setCell2(Actor actor) { this.cell2.setActor(actor); return this; }
+        public HGVisTable setCell3(Actor actor) { this.cell3.setActor(actor); return this; }
+        public HGVisTable setCell4(Actor actor) { this.cell4.setActor(actor); return this; }
     }
 
     public void updateAssetsTree() {
         assetsModelsTreeNode.clearChildren();
         for (ObjectMap.Entry<FileHandle, HGModel> entry: eng.hgModels) {
-            HGVisLabelTreeNode node;
-            assetsModelsTreeNode.add(node = new HGVisLabelTreeNode(new VisLabel(entry.key.nameWithoutExtension(), Color.BLACK)));
-            node.add(new HGVisLabelTreeNode(new VisLabel(entry.key.path(), Color.BLACK)));
+            HGVisTableTreeNode node;
+            assetsModelsTreeNode.add(node = new HGVisTableTreeNode(new HGVisTable(entry.key.nameWithoutExtension(), Color.BLACK)));
+            node.add(new HGVisTableTreeNode(new HGVisTable(entry.key.path(), Color.BLACK)));
         }
 
         assetsImagesTreeNode.clearChildren();
         for (ObjectMap.Entry<FileHandle, HGTexture> entry: eng.hgTextures) {
-            HGVisLabelTreeNode node;
-            assetsImagesTreeNode.add(node = new HGVisLabelTreeNode(new VisLabel(entry.key.nameWithoutExtension(), Color.BLACK)));
-            node.add(new HGVisLabelTreeNode(new VisLabel(entry.key.path(), Color.BLACK)));
+            HGVisTableTreeNode node;
+            assetsImagesTreeNode.add(node = new HGVisTableTreeNode(new HGVisTable(entry.key.nameWithoutExtension(), Color.BLACK)));
+            node.add(new HGVisTableTreeNode(new HGVisTable(entry.key.path(), Color.BLACK)));
         }
     }
 
@@ -109,12 +135,39 @@ public class ProjectManagerTable extends ManagerTable {
         Class<?> assetClass = eng.getAssetClass(fileHandle);
         FileHandle parent = fileHandle.parent();
 
-        HGVisLabelTreeNode treeNode = fh2treeNode.get(parent);
+        HGVisTableTreeNode treeNode = fh2treeNode.get(parent);
         if (treeNode == null) {
-            treeNode = new HGVisLabelTreeNode(new VisLabel(parent.file().getAbsolutePath(), Color.BLACK));
-            if (assetClass.equals(Model.class)) { assetsModelsTreeNode.add(treeNode); }
-            else if (assetClass.equals(Texture.class)) { assetsImagesTreeNode.add(treeNode); }
-            else { return; }
+            treeNode = new HGVisTableTreeNode(new HGVisTable(parent.file().getAbsolutePath(), Color.BLACK, parent));
+            if (assetClass.equals(Model.class)) {
+                VisTextButton createMisTB = new VisTextButton("create instances");
+                createMisTB.addListener(new InputListener(){
+                    @Override
+                    public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                        Array<FileHandle> fhs;
+                        // by this time fh2treeNode.get(parent) should return a real node
+                        fhs = Arrays.stream(fh2treeNode.get(parent).getChildren().toArray()) // Array<HGVisTableTreeNode> -> HGVisTableTreeNode[]
+                                .map(Tree.Node::getActor)                                    // HGVisTableTreeNode -> HGVisTable
+                                .map(HGVisTable::getFileHandle)                              // HGVisTable -> FileHandle
+                                .collect(Array::new, Array::add, Array::addAll);             // -> Array<FileHandle>
+                        stage.addModelInstances(fhs);
+                        stage.afterCurrentModelInstanceChanged();
+                        return super.touchDown(event, x, y, pointer, button);
+                    }
+                });
+                VisTextButton unloadTB = new VisTextButton("unload");
+                unloadTB.addListener(new InputListener(){
+                    @Override
+                    public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                        return super.touchDown(event, x, y, pointer, button);
+                    }
+                });
+                treeNode.getActor().setCell1(createMisTB).setCell2(unloadTB);
+                assetsModelsTreeNode.add(treeNode);
+            } else if (assetClass.equals(Texture.class)) {
+                assetsImagesTreeNode.add(treeNode);
+            } else {
+                return;
+            }
 
             fh2treeNode.put(parent, treeNode);
             treeNode2fh.put(treeNode, parent);
@@ -141,11 +194,11 @@ public class ProjectManagerTable extends ManagerTable {
             //Gdx.app.debug("project", "" + " commonPath: " + commonPath);
         }
 
-        for (ObjectMap.Entry<FileHandle, HGVisLabelTreeNode> entry: fh2treeNode) {
+        for (ObjectMap.Entry<FileHandle, HGVisTableTreeNode> entry: fh2treeNode) {
             FileHandle fh = entry.key;
-            HGVisLabelTreeNode tn = entry.value;
+            HGVisTableTreeNode tn = entry.value;
 
-            tn.getActor().setText(fh.file().getAbsolutePath().replace(commonPath.file().getAbsolutePath(), ""));
+            tn.getActor().label.setText(fh.file().getAbsolutePath().replace(commonPath.file().getAbsolutePath(), ""));
         }
 
         if (assetClass == Model.class) {
@@ -155,16 +208,34 @@ public class ProjectManagerTable extends ManagerTable {
         }
     }
 
-    public void addModelAssetTreeNode(FileHandle fileHandle, HGVisLabelTreeNode treeNode) {
-        HGVisLabelTreeNode node;
-        treeNode.add(node = new HGVisLabelTreeNode(new VisLabel(fileHandle.name(), Color.BLACK)));
-        node.add(new HGVisLabelTreeNode(new VisLabel(fileHandle.file().getAbsolutePath(), Color.BLACK)));
+    public void addModelAssetTreeNode(final FileHandle fileHandle, HGVisTableTreeNode treeNode) {
+        HGVisTableTreeNode node;
+
+        VisTextButton createMisTB = new VisTextButton("create instance");
+        createMisTB.addListener(new InputListener(){
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                stage.addModelInstance(fileHandle);
+                stage.afterCurrentModelInstanceChanged();
+                return super.touchDown(event, x, y, pointer, button);
+            }
+        });
+        VisTextButton unloadTB = new VisTextButton("unload");
+        unloadTB.addListener(new InputListener(){
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                return super.touchDown(event, x, y, pointer, button);
+            }
+        });
+        treeNode.add(node = new HGVisTableTreeNode(new HGVisTable(fileHandle.name(), Color.BLACK, fileHandle)
+                .setCell1(createMisTB).setCell2(unloadTB)));
+        node.add(new HGVisTableTreeNode(new HGVisTable(fileHandle.file().getAbsolutePath(), Color.BLACK)));
     }
 
-    public void addImageAssetTreeNode(FileHandle fileHandle, HGVisLabelTreeNode treeNode) {
-        HGVisLabelTreeNode node;
-        treeNode.add(node = new HGVisLabelTreeNode(new VisLabel(fileHandle.name(), Color.BLACK)));
-        node.add(new HGVisLabelTreeNode(new VisLabel(fileHandle.file().getAbsolutePath(), Color.BLACK)));
+    public void addImageAssetTreeNode(FileHandle fileHandle, HGVisTableTreeNode treeNode) {
+        HGVisTableTreeNode node;
+        treeNode.add(node = new HGVisTableTreeNode(new HGVisTable(fileHandle.name(), Color.BLACK, fileHandle)));
+        node.add(new HGVisTableTreeNode(new HGVisTable(fileHandle.file().getAbsolutePath(), Color.BLACK)));
     }
 
     @Override
