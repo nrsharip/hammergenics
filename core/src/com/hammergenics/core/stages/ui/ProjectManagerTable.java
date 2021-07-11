@@ -38,6 +38,7 @@ import com.kotcrab.vis.ui.widget.VisScrollPane;
 import com.kotcrab.vis.ui.widget.VisTable;
 import com.kotcrab.vis.ui.widget.VisTextButton;
 import com.kotcrab.vis.ui.widget.VisTree;
+import com.kotcrab.vis.ui.widget.VisWindow;
 
 import java.io.File;
 import java.util.Arrays;
@@ -74,14 +75,14 @@ public class ProjectManagerTable extends ManagerTable {
     protected void init() {
         // https://github.com/kotcrab/vis-ui/blob/master/ui/src/test/java/com/kotcrab/vis/ui/test/manual/TestTree.java#L75
         projectTree = new VisTree<>();
-        projectTree.add(assetsTreeNode = new HGVisTableTreeNode(new HGVisTable("Assets", Color.BLACK)));
-        projectTree.add(modelInstancesTreeNode = new HGVisTableTreeNode(new HGVisTable("Model Instances", Color.BLACK)));
-        projectTree.add(envTreeNode = new HGVisTableTreeNode(new HGVisTable("Environment", Color.BLACK)));
+        projectTree.add(assetsTreeNode = new HGVisTableTreeNode(new HGVisTable("Assets")));
+        projectTree.add(modelInstancesTreeNode = new HGVisTableTreeNode(new HGVisTable("Model Instances")));
+        projectTree.add(envTreeNode = new HGVisTableTreeNode(new HGVisTable("Environment")));
 
-        assetsTreeNode.add(assetsModelsTreeNode = new HGVisTableTreeNode(new HGVisTable("Models", Color.BLACK)));
-        assetsTreeNode.add(assetsImagesTreeNode = new HGVisTableTreeNode(new HGVisTable("Images", Color.BLACK)));
-        assetsTreeNode.add(assetsSoundsTreeNode = new HGVisTableTreeNode(new HGVisTable("Sounds", Color.BLACK)));
-        assetsTreeNode.add(assetsFontsTreeNode = new HGVisTableTreeNode(new HGVisTable("Fonts", Color.BLACK)));
+        assetsTreeNode.add(assetsModelsTreeNode = new HGVisTableTreeNode(new HGVisTable("Models")));
+        assetsTreeNode.add(assetsImagesTreeNode = new HGVisTableTreeNode(new HGVisTable("Images")));
+        assetsTreeNode.add(assetsSoundsTreeNode = new HGVisTableTreeNode(new HGVisTable("Sounds")));
+        assetsTreeNode.add(assetsFontsTreeNode = new HGVisTableTreeNode(new HGVisTable("Fonts")));
 
         projectTreeScrollPane = new VisScrollPane(projectTree);
     }
@@ -95,6 +96,8 @@ public class ProjectManagerTable extends ManagerTable {
         public VisLabel label;
         public FileHandle fileHandle;
 
+        public HGVisTable(CharSequence text) { this(text, Color.WHITE, null); }
+        public HGVisTable(CharSequence text, FileHandle fileHandle) { this(text, Color.WHITE, fileHandle); }
         public HGVisTable(CharSequence text, Color textColor) { this(text, textColor, null); }
 
         public HGVisTable(CharSequence text, Color textColor, FileHandle fileHandle) {
@@ -117,15 +120,15 @@ public class ProjectManagerTable extends ManagerTable {
         assetsModelsTreeNode.clearChildren();
         for (ObjectMap.Entry<FileHandle, HGModel> entry: eng.hgModels) {
             HGVisTableTreeNode node;
-            assetsModelsTreeNode.add(node = new HGVisTableTreeNode(new HGVisTable(entry.key.nameWithoutExtension(), Color.BLACK)));
-            node.add(new HGVisTableTreeNode(new HGVisTable(entry.key.path(), Color.BLACK)));
+            assetsModelsTreeNode.add(node = new HGVisTableTreeNode(new HGVisTable(entry.key.nameWithoutExtension())));
+            node.add(new HGVisTableTreeNode(new HGVisTable(entry.key.path())));
         }
 
         assetsImagesTreeNode.clearChildren();
         for (ObjectMap.Entry<FileHandle, HGTexture> entry: eng.hgTextures) {
             HGVisTableTreeNode node;
-            assetsImagesTreeNode.add(node = new HGVisTableTreeNode(new HGVisTable(entry.key.nameWithoutExtension(), Color.BLACK)));
-            node.add(new HGVisTableTreeNode(new HGVisTable(entry.key.path(), Color.BLACK)));
+            assetsImagesTreeNode.add(node = new HGVisTableTreeNode(new HGVisTable(entry.key.nameWithoutExtension())));
+            node.add(new HGVisTableTreeNode(new HGVisTable(entry.key.path())));
         }
     }
 
@@ -137,7 +140,7 @@ public class ProjectManagerTable extends ManagerTable {
 
         HGVisTableTreeNode treeNode = fh2treeNode.get(parent);
         if (treeNode == null) {
-            treeNode = new HGVisTableTreeNode(new HGVisTable(parent.file().getAbsolutePath(), Color.BLACK, parent));
+            treeNode = new HGVisTableTreeNode(new HGVisTable(parent.file().getAbsolutePath(), parent));
             if (assetClass.equals(Model.class)) {
                 VisTextButton createMisTB = new VisTextButton("create instances");
                 createMisTB.addListener(new InputListener(){
@@ -227,15 +230,15 @@ public class ProjectManagerTable extends ManagerTable {
                 return super.touchDown(event, x, y, pointer, button);
             }
         });
-        treeNode.add(node = new HGVisTableTreeNode(new HGVisTable(fileHandle.name(), Color.BLACK, fileHandle)
+        treeNode.add(node = new HGVisTableTreeNode(new HGVisTable(fileHandle.name(), fileHandle)
                 .setCell1(createMisTB).setCell2(unloadTB)));
-        node.add(new HGVisTableTreeNode(new HGVisTable(fileHandle.file().getAbsolutePath(), Color.BLACK)));
+        node.add(new HGVisTableTreeNode(new HGVisTable(fileHandle.file().getAbsolutePath())));
     }
 
     public void addImageAssetTreeNode(FileHandle fileHandle, HGVisTableTreeNode treeNode) {
         HGVisTableTreeNode node;
-        treeNode.add(node = new HGVisTableTreeNode(new HGVisTable(fileHandle.name(), Color.BLACK, fileHandle)));
-        node.add(new HGVisTableTreeNode(new HGVisTable(fileHandle.file().getAbsolutePath(), Color.BLACK)));
+        treeNode.add(node = new HGVisTableTreeNode(new HGVisTable(fileHandle.name(), fileHandle)));
+        node.add(new HGVisTableTreeNode(new HGVisTable(fileHandle.file().getAbsolutePath())));
     }
 
     @Override
@@ -248,9 +251,14 @@ public class ProjectManagerTable extends ManagerTable {
         super.resetActors();
 
         VisTable table = new VisTable();
-        table.add(projectTreeScrollPane).expand().fill();
-        table.add().expand().fill();
-        stage.infoTCell.setActor(table);
+        VisWindow window = new VisWindow("Project");
+        window.setResizable(true);
+        window.addCloseButton();
+        window.setMovable(false);
+
+        window.add(projectTreeScrollPane).expand().fill().padRight(5f);
+        table.add(window).expand().fillY().left();
+        stage.leftPaneCell.setActor(table);
     }
 
     @Override

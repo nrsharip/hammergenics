@@ -104,6 +104,7 @@ public class ModelEditStage extends Stage {
     // 2D Stage Layout:
     public VisTable rootTable;
     public MenuBar menuBar;
+    public Cell<?> leftPaneCell;
     public Cell<?> infoTCell;
     public Cell<?> infoBCell;
     public Cell<?> editCell;
@@ -477,8 +478,8 @@ public class ModelEditStage extends Stage {
         loadProgressWindow.row();
         loadProgressWindow.add(cancelTextButton).expandX().fillX().padTop(5f);
 
-        loadProgressWindow.setHeight(3*loadProgressBar.getHeight() + cancelTextButton.getHeight());
-        loadProgressWindow.setWidth(2*loadProgressBar.getWidth());
+        loadProgressWindow.pack();
+        loadProgressWindow.setWidth(3 * loadProgressBar.getWidth());
     }
 
     public void applyLocale(I18NBundlesEnum language) {
@@ -924,7 +925,8 @@ public class ModelEditStage extends Stage {
         // https://github.com/libgdx/libgdx/wiki/Table#debugging
         rootTable.setDebug(false);
 
-        rootTable.add(menuBar.getTable()).colspan(3).expandX().fillX().row();
+        rootTable.add(menuBar.getTable()).colspan(4).expandX().fillX();
+        rootTable.row();
 
         // https://github.com/libgdx/libgdx/wiki/Table#adding-cells
         VisTable upperPanel = new VisTable();
@@ -936,10 +938,11 @@ public class ModelEditStage extends Stage {
         upperPanel.add(nodeSelectBox).padLeft(5f).left();
         upperPanel.add().expandX();
 
-        rootTable.add();
-        rootTable.add(upperPanel).colspan(2).expandX().left();
+        //rootTable.add();
+        //rootTable.add(upperPanel).colspan(2).expandX().left();
+        //rootTable.row();
 
-        rootTable.row();
+        leftPaneCell = rootTable.add().fill();
 
         VisTable leftPanel = new VisTable();
         leftPanel.add(projTextButton).pad(1f).padLeft(0f).fillX();
@@ -988,7 +991,7 @@ public class ModelEditStage extends Stage {
         lowerPanel.add(deleteCurrModelTextButton).pad(3f);
         lowerPanel.add(clearModelsTextButton).pad(3f);
 
-        rootTable.add(lowerPanel).colspan(3).center().expandX().fillX();
+        rootTable.add(lowerPanel).colspan(4).center().expandX().fillX();
 
         addActor(rootTable);
     }
@@ -1066,6 +1069,7 @@ public class ModelEditStage extends Stage {
         }
 
         if (!isAnyButtonPressed()) {
+            leftPaneCell.clearActor();
             infoTCell.clearActor();
             infoBCell.clearActor();
             editCell.clearActor();
