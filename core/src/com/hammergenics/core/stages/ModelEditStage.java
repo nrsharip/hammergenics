@@ -20,6 +20,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
@@ -47,13 +48,14 @@ import com.hammergenics.core.graphics.g3d.HGModel;
 import com.hammergenics.core.stages.ui.AIManagerTable;
 import com.hammergenics.core.stages.ui.AggregatedAttributesManagerTable;
 import com.hammergenics.core.stages.ui.AnimationsManagerTable;
-import com.hammergenics.core.stages.ui.auxiliary.ImageChooser;
 import com.hammergenics.core.stages.ui.MapGenerationTable;
 import com.hammergenics.core.stages.ui.PhysicsManagerTable;
 import com.hammergenics.core.stages.ui.ProjectManagerTable;
 import com.hammergenics.core.stages.ui.attributes.AttributesManagerTable;
 import com.hammergenics.core.stages.ui.attributes.BaseAttributeTable;
 import com.hammergenics.core.stages.ui.attributes.BaseAttributeTable.EventType;
+import com.hammergenics.core.stages.ui.auxiliary.HGImageVisWindow;
+import com.hammergenics.core.stages.ui.auxiliary.ImageChooser;
 import com.hammergenics.utils.HGUtils;
 import com.kotcrab.vis.ui.VisUI;
 import com.kotcrab.vis.ui.i18n.BundleText;
@@ -123,6 +125,9 @@ public class ModelEditStage extends Stage {
     public FileChooser fileChooser;
     public VisWindow loadProgressWindow;
     public VisProgressBar loadProgressBar;
+
+    public HGImageVisWindow imagePreviewWindow;
+    public Cell<HGImageVisWindow> loadImagePreviewCell;
 
     public VisLabel miLabel;  // Model Instance Info
     public VisLabel envLabel; // Environment Info
@@ -278,6 +283,13 @@ public class ModelEditStage extends Stage {
                         modelES.eng.loadQueue.clear();
 
                         loadProgressBar.setValue(0f);
+                        imagePreviewWindow.table.clearImage();
+                        imagePreviewWindow.table.cell
+                                .minWidth(Gdx.graphics.getWidth()/2f).minHeight(Gdx.graphics.getHeight()/2f)
+                                .maxWidth(Gdx.graphics.getWidth()/2f).maxHeight(Gdx.graphics.getHeight()/2f);
+                        loadImagePreviewCell.expand(false, false).clearActor();
+                        loadProgressWindow.pack();
+                        loadProgressWindow.centerWindow();
                         addActor(loadProgressWindow.fadeIn());
 
                         for (FileHandle fh: fileHandles) {
@@ -475,12 +487,28 @@ public class ModelEditStage extends Stage {
             }
         });
 
-        loadProgressWindow.add(loadProgressBar).expandX().fillX();
+        imagePreviewWindow = new HGImageVisWindow(false);
+
+        loadProgressWindow.add(loadProgressBar).expandX().fillX().minWidth(3 * loadProgressBar.getWidth());
+        loadProgressWindow.add(cancelTextButton).fillX().pad(5f);
         loadProgressWindow.row();
-        loadProgressWindow.add(cancelTextButton).expandX().fillX().padTop(5f);
+        loadImagePreviewCell = loadProgressWindow.add(imagePreviewWindow).colspan(2).fill();
 
         loadProgressWindow.pack();
-        loadProgressWindow.setWidth(3 * loadProgressBar.getWidth());
+    }
+
+    public void loadShowPreviewImage(FileHandle fileHandle) {
+        imagePreviewWindow.table.setImage(modelES.eng.getAsset(fileHandle, Texture.class));
+        loadImagePreviewCell.expand().setActor(imagePreviewWindow);
+        loadProgressWindow.pack();
+        loadProgressWindow.centerWindow();
+    }
+
+    public void loadClearPreviewImage() {
+        imagePreviewWindow.table.clearImage();
+        loadImagePreviewCell.expand(false, false).clearActor();
+        loadProgressWindow.pack();
+        loadProgressWindow.centerWindow();
     }
 
     public void applyLocale(I18NBundlesEnum language) {

@@ -542,6 +542,11 @@ public class HGEngine implements Disposable {
         return null;
     }
 
+    public <T> T getAsset(FileHandle fileHandle, Class<T> type) {
+        FileHandle tmp = new FileHandle(fileHandle.file().getAbsolutePath());
+        return assetManager.get(tmp.path(), type);
+    }
+
     public void addAsset(FileHandle fileHandle) {
         if (fileHandle == null) { return; }
         Class<?> assetClass = getAssetClass(fileHandle);

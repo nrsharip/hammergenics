@@ -24,6 +24,7 @@ import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelCache;
@@ -149,6 +150,12 @@ public class ModelEditScreen extends ScreenAdapter {
             if (eng.loaded != null) {
                 stage.projManagerTable.addAssetTreeNode(eng.loaded);
                 stage.loadProgressWindow.getTitleLabel().setText("Loading... (" + eng.loaded.name() + ")");
+
+                if (HGEngine.getAssetClass(eng.loaded).equals(Texture.class)) {
+                    stage.loadShowPreviewImage(eng.loaded);
+                } else {
+                    stage.loadClearPreviewImage();
+                }
             }
         }
 

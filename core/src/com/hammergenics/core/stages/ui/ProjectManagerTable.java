@@ -17,6 +17,7 @@
 package com.hammergenics.core.stages.ui;
 
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -79,10 +80,10 @@ public class ProjectManagerTable extends ManagerTable {
         projectTree.add(modelInstancesTreeNode = new HGTreeVisTableNode(new HGTreeVisTable("Model Instances")));
         projectTree.add(envTreeNode = new HGTreeVisTableNode(new HGTreeVisTable("Environment")));
 
-        assetsTreeNode.add(assetsModelsTreeNode = new HGTreeVisTableNode(new HGTreeVisTable("Models")));
-        assetsTreeNode.add(assetsImagesTreeNode = new HGTreeVisTableNode(new HGTreeVisTable("Images")));
-        assetsTreeNode.add(assetsSoundsTreeNode = new HGTreeVisTableNode(new HGTreeVisTable("Sounds")));
-        assetsTreeNode.add(assetsFontsTreeNode = new HGTreeVisTableNode(new HGTreeVisTable("Fonts")));
+        assetsTreeNode.add(assetsModelsTreeNode = new HGTreeVisTableNode(new HGTreeVisTable("Models", Color.CYAN)));
+        assetsTreeNode.add(assetsImagesTreeNode = new HGTreeVisTableNode(new HGTreeVisTable("Images", Color.CHARTREUSE)));
+        assetsTreeNode.add(assetsSoundsTreeNode = new HGTreeVisTableNode(new HGTreeVisTable("Sounds", Color.GOLD)));
+        assetsTreeNode.add(assetsFontsTreeNode = new HGTreeVisTableNode(new HGTreeVisTable("Fonts", Color.CORAL)));
 
         projectTreeScrollPane = new VisScrollPane(projectTree);
     }
@@ -159,7 +160,11 @@ public class ProjectManagerTable extends ManagerTable {
 
         HGTreeVisTableNode treeNode = map.get(parent);
         if (treeNode == null) {
-            treeNode = new HGTreeVisTableNode(new HGTreeVisTable(parentAbsPath, parent));
+            Color clr = Color.WHITE;
+            if (assetClass.equals(Model.class)) { clr = Color.CYAN; }
+            else if (assetClass.equals(Texture.class)) { clr = Color.CHARTREUSE; }
+
+            treeNode = new HGTreeVisTableNode(new HGTreeVisTable(parentAbsPath, clr, parent));
             map.put(parent, treeNode);
         }
 
@@ -245,7 +250,7 @@ public class ProjectManagerTable extends ManagerTable {
                 return super.touchDown(event, x, y, pointer, button);
             }
         });
-        treeNode.add(node = new HGTreeVisTableNode(new HGTreeVisTable(fileHandle.name(), fileHandle)
+        treeNode.add(node = new HGTreeVisTableNode(new HGTreeVisTable(fileHandle.name(), Color.CYAN, fileHandle)
                 .setCell1(createMisTB).setCell2(unloadTB)));
         //node.add(new HGTreeVisTableNode(new HGTreeVisTable(fileHandle.file().getAbsolutePath())));
     }
@@ -257,7 +262,7 @@ public class ProjectManagerTable extends ManagerTable {
 
     public void addImageAssetTreeNode(FileHandle fileHandle, HGTreeVisTableNode treeNode) {
         HGTreeVisTableNode node;
-        treeNode.add(node = new HGTreeVisTableNode(new HGTreeVisTable(fileHandle.name(), fileHandle)));
+        treeNode.add(node = new HGTreeVisTableNode(new HGTreeVisTable(fileHandle.name(), Color.CHARTREUSE, fileHandle)));
         //node.add(new HGTreeVisTableNode(new HGTreeVisTable(fileHandle.file().getAbsolutePath())));
     }
 
@@ -272,7 +277,7 @@ public class ProjectManagerTable extends ManagerTable {
 
         VisTable table = new VisTable();
         VisWindow window = new VisWindow("Project");
-        window.setResizable(true);
+        window.setResizable(false);
         window.addCloseButton();
         window.setMovable(false);
 
