@@ -16,11 +16,9 @@
 
 package com.hammergenics.core.stages.ui.attributes;
 
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.hammergenics.core.ModelEditScreen;
-import com.kotcrab.vis.ui.widget.VisLabel;
 
 /**
  * Add description here
@@ -34,22 +32,10 @@ public class ColorAttributesTable extends AttributesTable<ColorAttribute, ColorA
      */
     public ColorAttributesTable(Attributes container, ModelEditScreen modelES) {
         super(container, modelES, ColorAttribute.class);
+    }
 
-        // START - Candidate for move to AttributesTable
-        t2a.forEach((entry) -> {
-            ColorAttributeTable table = new ColorAttributeTable(container, modelES);
-            t2Table.put(entry.key, table);   // type to table
-            a2Table.put(entry.value, table); // alias to table
-        });
-
-        resetAttributes();
-
-        a2Table.forEach((entry) -> {
-            add(new VisLabel(entry.key + ":", Color.BLACK)).right();
-            add(entry.value).left();
-            add().expandX();
-            row();
-        });
-        // END - Candidate for move to AttributesTable
+    @Override
+    protected ColorAttributeTable createTable(Attributes container, ModelEditScreen modelES) {
+        return new ColorAttributeTable(container, modelES);
     }
 }

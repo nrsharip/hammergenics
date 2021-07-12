@@ -18,12 +18,16 @@ package com.hammergenics.core.stages.ui.auxiliary;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.InputListener;
+import com.badlogic.gdx.scenes.scene2d.ui.Cell;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Array;
 import com.hammergenics.HGEngine;
 import com.hammergenics.core.stages.ModelEditStage;
+import com.kotcrab.vis.ui.util.dialog.ConfirmDialogListener;
+import com.kotcrab.vis.ui.widget.ButtonBar;
 import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisScrollPane;
 import com.kotcrab.vis.ui.widget.VisTextButton;
@@ -42,6 +46,9 @@ public class ImageChooser extends VisWindow {
     public VisTree<HGTreeVisTableNode, VisLabel> imageTree;
     public VisScrollPane imageTreeScrollPane;
     public VisTextButton chooseFileTB;
+    public Cell<VisScrollPane> scrollPaneCell;
+
+    public ConfirmDialogListener<FileHandle> listener;
 
     public ImageChooser(HGEngine engine, ModelEditStage stage) {
         super("Choose Image");
@@ -66,10 +73,19 @@ public class ImageChooser extends VisWindow {
 
         imageTreeScrollPane = new VisScrollPane(imageTree);
 
-        chooseFileTB = new VisTextButton("Load File(s)...");
-        chooseFileTB.addListener(new InputListener() {
+        ButtonBar btnBar = new ButtonBar();
+        ChangeListener okBtnListener = new ChangeListener() {
+            @Override public void changed (ChangeEvent event, Actor actor) {
+                if (listener != null) { listener.result(imageTree.getSelectedNode().getActor().fileHandle); }
+                fadeOut();
+            }
+        };
+        ChangeListener cancelBtnListener = new ChangeListener() {
+            @Override public void changed (ChangeEvent event, Actor actor) { fadeOut(); }
+        };
+        ChangeListener fileBtnListener = new ChangeListener() {
             @Override
-            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+            public void changed (ChangeEvent event, Actor actor) {
                 // https://github.com/kotcrab/vis-ui/wiki/File-chooser#typefilters
                 // FileTypeFilter allows user to filter file chooser list by given set of extension. If type filter is set
                 // for chooser then below file path select box with possible extensions is displayed. If user switches filter
@@ -124,16 +140,19 @@ public class ImageChooser extends VisWindow {
 
                 //displaying chooser with fade in animation
                 stage.addActor(stage.fileChooser.fadeIn());
-
-                return super.touchDown(event, x, y, pointer, button);
             }
-        });
+        };
 
-        add(imageTreeScrollPane).fill().expand().colspan(3)
+        chooseFileTB = new VisTextButton("Choose Image File(s)...");
+        btnBar.setButton(ButtonBar.ButtonType.LEFT, chooseFileTB, fileBtnListener);
+        btnBar.setButton(ButtonBar.ButtonType.OK, okBtnListener);
+        btnBar.setButton(ButtonBar.ButtonType.CANCEL, cancelBtnListener);
+
+        scrollPaneCell = add(imageTreeScrollPane).fill().expand().colspan(3)
                 .minWidth(Gdx.graphics.getWidth()/4f).minHeight(Gdx.graphics.getHeight()/4f)
                 .maxWidth(Gdx.graphics.getWidth()/2f).maxHeight(Gdx.graphics.getHeight()/2f);
         row();
-        add(chooseFileTB).expandX().fillX();
+        add(btnBar.createTable()).expandX().fillX();
 
         pack();
         centerWindow();
@@ -148,7 +167,14 @@ public class ImageChooser extends VisWindow {
         imageTree.add(imagesNode);
         stage.projManagerTable.fillTreeNodesWithAssets(null, imagesNode);
         imagesNode.expandTo();
+        if (scrollPaneCell != null) {
+            scrollPaneCell.minWidth(Gdx.graphics.getWidth() / 4f).minHeight(Gdx.graphics.getHeight() / 4f)
+                          .maxWidth(Gdx.graphics.getWidth() / 2f).maxHeight(Gdx.graphics.getHeight() / 2f);
+        }
         pack();
         centerWindow();
     }
+
+    public void setListener(ConfirmDialogListener<FileHandle> listener) { this.listener = listener; }
+    public void clearListener() { this.listener = null; }
 }

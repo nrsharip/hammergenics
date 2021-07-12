@@ -124,6 +124,7 @@ public class ModelEditStage extends Stage {
     // 2D Stage Widgets:
     public ColorPicker colorPicker;
     public FileChooser fileChooser;
+    public ImageChooser imageChooser;
     public VisWindow loadProgressWindow;
     public VisProgressBar loadProgressBar;
 
@@ -190,6 +191,8 @@ public class ModelEditStage extends Stage {
         mapGenerationTable = new MapGenerationTable(modelES, this);
         aiManagerTable = new AIManagerTable(modelES, this);
         physManagerTable = new PhysicsManagerTable(modelES, this);
+
+        imageChooser = new ImageChooser(modelES.eng, this);
 
         pressButton(projTextButton, true);
         resetTables();
@@ -1129,8 +1132,6 @@ public class ModelEditStage extends Stage {
             textureImage.setDrawable(null);
         }
     }
-
-    public void showImageChooser() { addActor(new ImageChooser(modelES.eng, this)); }
 
     public enum TextButtonsTextEnum implements BundleText {
         PROJECT("textButton.project"),

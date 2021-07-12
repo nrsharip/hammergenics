@@ -16,12 +16,10 @@
 
 package com.hammergenics.core.stages.ui.attributes;
 
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.PointLight;
 import com.hammergenics.core.ModelEditScreen;
-import com.kotcrab.vis.ui.widget.VisLabel;
 
 /**
  * Add description here
@@ -33,22 +31,10 @@ public class PointLightsAttributesTable
 
     public PointLightsAttributesTable(Attributes container, ModelEditScreen modelES) {
         super(container, modelES, PointLightsAttribute.class);
+    }
 
-        // START - Candidate for move to AttributesTable
-        t2a.forEach((entry) -> {
-            PointLightsAttributeTable table = new PointLightsAttributeTable(container, modelES);
-            t2Table.put(entry.key, table);   // type to table
-            a2Table.put(entry.value, table); // alias to table
-        });
-
-        resetAttributes();
-
-        a2Table.forEach((entry) -> {
-            add(new VisLabel(entry.key + ":", Color.BLACK)).right();
-            add(entry.value).left();
-            add().expandX();
-            row();
-        });
-        // END - Candidate for move to AttributesTable
+    @Override
+    protected BaseLightsAttributeTable<PointLightsAttribute, PointLight> createTable(Attributes container, ModelEditScreen modelES) {
+        return new PointLightsAttributeTable(container, modelES);
     }
 }

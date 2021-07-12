@@ -32,6 +32,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.utils.HGUtils;
+import com.kotcrab.vis.ui.util.dialog.ConfirmDialogListener;
 import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisSelectBox;
 import com.kotcrab.vis.ui.widget.VisTextButton;
@@ -67,8 +68,10 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
     // TODO: one more parameter is currently missing: uvIndex (see TextureAttribute)
     private VisSelectBox<String> textureSelectBox = null;
 
-    private Array<String> itemsTextureFilter;
-    private Array<String> itemsTextureWrap;
+    private FileHandle textureFileHandle = null;
+
+    private final Array<String> itemsTextureFilter;
+    private final Array<String> itemsTextureWrap;
 
     private VisTextField.TextFieldListener paramTextFieldListener;
     private ChangeListener paramSelectBoxListener;
@@ -93,6 +96,11 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
         scaleVTF.setTextFieldListener(paramTextFieldListener);
 
         itemsTextureFilter = Arrays.stream(Texture.TextureFilter.values()).map(String::valueOf)
+                .map(filter -> filter
+                        .replace("NearestNearest", "NN")
+                        .replace("NearestLinear", "NL")
+                        .replace("LinearNearest", "LN")
+                        .replace("LinearLinear", "LL"))
                 .collect(Array::new, Array::add, Array::addAll);
         itemsTextureWrap = Arrays.stream(Texture.TextureWrap.values()).map(String::valueOf)
                 .collect(Array::new, Array::add, Array::addAll);
@@ -127,6 +135,30 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
             uWrapSB.setItems(itemsTextureWrap);
             vWrapSB.setItems(itemsTextureWrap);
         }
+
+        VisTextButton chooseImageTB = new VisTextButton("image");
+        chooseImageTB.addListener(new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                modelES.stage.imageChooser.updateImageTree();
+                modelES.stage.imageChooser.setListener(new ConfirmDialogListener<FileHandle>() {
+                    @Override
+                    public void result(FileHandle result) {
+                        modelES.stage.imageChooser.clearListener();
+                        if (container != null && currentType != 0) {
+                            textureFileHandle = new FileHandle(result.file().getAbsolutePath());
+                            enabledCheckBox.setChecked(false);    // relying on 'enabled' check box event processing
+                            if (result != null && result.exists()) {
+                                enabledCheckBox.setChecked(true); // relying on 'enabled' check box event processing
+                            }
+                            if (listener != null) { listener.onAttributeChange(container, currentType, currentTypeAlias); }
+                        }
+                    }
+                });
+                modelES.stage.addActor(modelES.stage.imageChooser.fadeIn());
+                return super.touchDown(event, x, y, pointer, button);
+            }
+        });
 
         // Select Box: Textures
         textureSelectBox = new VisSelectBox<>();
@@ -163,42 +195,24 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
         add(enabledCheckBox);
         add(new VisLabel("offsetU:", Color.BLACK)).right();
         add(offsetUTF).width(40).maxWidth(40);
-        add(new VisLabel("minFilter:", Color.BLACK)).right();
-        add(minFilterSB).fillX();
-        row();
-
-        add();
-        add(new VisLabel("offsetV:", Color.BLACK)).right();
-        add(offsetVTF).width(40).maxWidth(40);
-        add(new VisLabel("magFilter:", Color.BLACK)).right();
-        add(magFilterSB).fillX();
-        row();
-
-        add();
         add(new VisLabel("scaleU:", Color.BLACK)).right();
         add(scaleUTF).width(40).maxWidth(40);
+        add(new VisLabel("minFilter:", Color.BLACK)).right();
+        add(minFilterSB).fillX();
         add(new VisLabel("uWrap:", Color.BLACK)).right();
         add(uWrapSB).fillX();
-        row();
-
-        add();
-        add(new VisLabel("scaleV:", Color.BLACK)).right();
-        add(scaleVTF).width(40).maxWidth(40);
-        add(new VisLabel("vWrap:", Color.BLACK)).right();
-        add(vWrapSB).fillX();
-        row();
-
-        VisTextButton chooseImageTB = new VisTextButton("image");
-        chooseImageTB.addListener(new InputListener() {
-            @Override
-            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                modelES.stage.showImageChooser();
-                return super.touchDown(event, x, y, pointer, button);
-            }
-        });
+        row().pad(0.5f);
 
         add(chooseImageTB).fillX();
-        add(textureSelectBox).colspan(4).fillX();
+        add(new VisLabel("offsetV:", Color.BLACK)).right();
+        add(offsetVTF).width(40).maxWidth(40);
+        add(new VisLabel("scaleV:", Color.BLACK)).right();
+        add(scaleVTF).width(40).maxWidth(40);
+        add(new VisLabel("magFilter:", Color.BLACK)).right();
+        add(magFilterSB).fillX();
+        add(new VisLabel("vWrap:", Color.BLACK)).right();
+        add(vWrapSB).fillX();
+        row().pad(0.5f);
     }
 
     private Array<FileHandle> texturesLookUp (FileHandle assetFileHandle) {
@@ -350,8 +364,7 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
 
     @Override
     protected boolean preCreateAttr() {
-        if (textureSelectBox == null) { return false; }
-        if (textureSelectBox.getSelectedIndex() == 0) {
+        if (textureFileHandle == null) {
             texture = null;
             enabledCheckBox.setProgrammaticChangeEvents(false); // making sure no events fired during setChecked()
             enabledCheckBox.setChecked(false);                  // no texture attribute gets enabled without the texture selected first
@@ -360,7 +373,7 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
                     + Long.toHexString(currentType) + " alias = " + currentTypeAlias);
             return false;
         } else {
-            if (!modelES.eng.assetManager.contains(textureSelectBox.getSelected())) {
+            if (!modelES.eng.assetManager.contains(textureFileHandle.path())) {
                 Gdx.app.debug("enabledCheckBox", "Texture is not loaded from: " + textureSelectBox.getSelected()
                         + " (attribute: type = 0x" + Long.toHexString(currentType) + " alias = " + currentTypeAlias + ")");
                 enabledCheckBox.setProgrammaticChangeEvents(false); // making sure no events fired during setChecked()
@@ -368,7 +381,7 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
                 enabledCheckBox.setProgrammaticChangeEvents(true);  // enabling events back
                 return false;
             }
-            texture = modelES.eng.assetManager.get(textureSelectBox.getSelected(), Texture.class);
+            texture = modelES.eng.assetManager.get(textureFileHandle.path(), Texture.class);
         }
         return true;
     }
@@ -391,14 +404,10 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
         if (vWrapSB != null) { vWrapSB.setSelected(attr.textureDescription.vWrap.name()); }
         // TODO: one more parameter is currently missing: uvIndex (see TextureAttribute)
 
-        if (textureSelectBox != null) {
-            textureSelectBox.getSelection().setProgrammaticChangeEvents(false); // disabling events
-            if (attr.textureDescription.texture.getTextureData() instanceof FileTextureData) {
-                textureSelectBox.setSelected(attr.textureDescription.texture.toString());
-            } else {
-                textureSelectBox.setSelectedIndex(0);
-            }
-            textureSelectBox.getSelection().setProgrammaticChangeEvents(true);  // enabling events
+        if (attr.textureDescription.texture.getTextureData() instanceof FileTextureData) {
+            textureFileHandle = new FileHandle(attr.textureDescription.texture.toString());
+        } else {
+            textureFileHandle = null;
         }
 
         preCreateAttr(); // to setup a texture
@@ -419,6 +428,6 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
         if (uWrapSB != null) { uWrapSB.setSelected(itemsTextureWrap.get(0)); }
         if (vWrapSB != null) { vWrapSB.setSelected(itemsTextureWrap.get(0)); }
         // TODO: one more parameter is currently missing: uvIndex (see TextureAttribute)
-        if (textureSelectBox != null) { textureSelectBox.setSelectedIndex(0); }
+        textureFileHandle = null;
     }
 }

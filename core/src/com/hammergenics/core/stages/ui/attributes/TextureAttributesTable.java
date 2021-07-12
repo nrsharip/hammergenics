@@ -16,13 +16,9 @@
 
 package com.hammergenics.core.stages.ui.attributes;
 
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
-import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.hammergenics.core.ModelEditScreen;
-import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisSelectBox;
 
 /**
@@ -31,50 +27,15 @@ import com.kotcrab.vis.ui.widget.VisSelectBox;
  * @author nrsharip
  */
 public class TextureAttributesTable extends AttributesTable<TextureAttribute, TextureAttributeTable> {
-    // Texture Attribute related
-    // https://github.com/libgdx/libgdx/wiki/Scene2d.ui#textfield
-    private VisSelectBox<String> textureAttributeSelectBox;
-    private TextureAttributeTable currentTextureAttributeTable;
-
     /**
      * @param container
      */
     public TextureAttributesTable(Attributes container, ModelEditScreen modelES) {
         super(container, modelES, TextureAttribute.class);
-
-        textureAttributeSelectBox = new VisSelectBox<String>();
-        textureAttributeSelectBox.clearItems();
-        textureAttributeSelectBox.setItems(t2a.values().toArray());
-        textureAttributeSelectBox.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                String alias = textureAttributeSelectBox.getSelected();
-                currentTextureAttributeTable.fetchWidgetsFromContainer(a2t.get(alias), alias);
-            }
-        });
-
-        add(new VisLabel("Texture Type: ", Color.BLACK)).right();
-        add(textureAttributeSelectBox).left();
-        add().expandX();
-        row();
-        add(currentTextureAttributeTable = new TextureAttributeTable(container, modelES)).colspan(3).fillX();
     }
 
-    /**
-     *
-     */
     @Override
-    public void resetAttributes() {
-        String alias = textureAttributeSelectBox.getSelected();
-        currentTextureAttributeTable.fetchWidgetsFromContainer(a2t.get(alias), alias);
-    }
-
-    /**
-     * @param listener
-     */
-    @Override
-    public void setListener(EventListener listener) {
-        this.listener = listener;
-        currentTextureAttributeTable.setListener(listener);
+    protected TextureAttributeTable createTable(Attributes container, ModelEditScreen modelES) {
+        return new TextureAttributeTable(container, modelES);
     }
 }

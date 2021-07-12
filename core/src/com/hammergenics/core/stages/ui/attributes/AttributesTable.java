@@ -17,11 +17,13 @@
 package com.hammergenics.core.stages.ui.attributes;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Attribute;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.utils.HGUtils;
+import com.kotcrab.vis.ui.widget.VisLabel;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -59,7 +61,24 @@ public abstract class AttributesTable<T extends Attribute, Q extends AttributeTa
         t2a = new ArrayMap<>();
         a2t = new ArrayMap<>();
         traverse();
+
+        t2a.forEach((entry) -> {
+            Q table = createTable(container, modelES);
+            t2Table.put(entry.key, table);   // type to table
+            a2Table.put(entry.value, table); // alias to table
+        });
+
+        resetAttributes();
+
+        a2Table.forEach((entry) -> {
+            add(new VisLabel(entry.key + ":", Color.BLACK)).right();
+            add(entry.value).left();
+            add().expandX();
+            row().pad(0.5f);
+        });
     }
+
+    protected abstract Q createTable(Attributes container, ModelEditScreen modelES);
 
     /**
      *
