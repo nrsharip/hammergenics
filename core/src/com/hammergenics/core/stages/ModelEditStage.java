@@ -47,6 +47,7 @@ import com.hammergenics.core.graphics.g3d.HGModel;
 import com.hammergenics.core.stages.ui.AIManagerTable;
 import com.hammergenics.core.stages.ui.AggregatedAttributesManagerTable;
 import com.hammergenics.core.stages.ui.AnimationsManagerTable;
+import com.hammergenics.core.stages.ui.auxiliary.ImageChooser;
 import com.hammergenics.core.stages.ui.MapGenerationTable;
 import com.hammergenics.core.stages.ui.PhysicsManagerTable;
 import com.hammergenics.core.stages.ui.ProjectManagerTable;
@@ -1076,6 +1077,8 @@ public class ModelEditStage extends Stage {
             textureImage.setDrawable(null);
         }
     }
+
+    public void showImageChooser() { addActor(new ImageChooser(modelES.eng, this)); }
 
     public enum TextButtonsTextEnum implements BundleText {
         PROJECT("textButton.project"),

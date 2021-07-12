@@ -519,7 +519,7 @@ public class HGEngine implements Disposable {
         }
     }
 
-    public Class<?> getAssetClass(FileHandle fileHandle) {
+    public static Class<?> getAssetClass(FileHandle fileHandle) {
         if (fileHandle == null) { return null; }
         switch (fileHandle.extension().toLowerCase()) {
 //              case "3ds":  // converted to G3DB with fbx-conv
@@ -537,8 +537,7 @@ public class HGEngine implements Disposable {
             case "XXX": // for testing purposes
                 return ParticleEffect.class;
             default:
-                Gdx.app.error(getClass().getSimpleName(),
-                        "Unexpected file extension: " + fileHandle.extension());
+                Gdx.app.error("engine", "Unexpected file extension: " + fileHandle.extension());
         }
         return null;
     }

@@ -25,6 +25,8 @@ import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.glutils.FileTextureData;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
@@ -32,6 +34,7 @@ import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.utils.HGUtils;
 import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisSelectBox;
+import com.kotcrab.vis.ui.widget.VisTextButton;
 import com.kotcrab.vis.ui.widget.VisTextField;
 
 import java.util.Arrays;
@@ -185,7 +188,17 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
         add(vWrapSB).fillX();
         row();
 
-        add(textureSelectBox).colspan(5).fillX();
+        VisTextButton chooseImageTB = new VisTextButton("image");
+        chooseImageTB.addListener(new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                modelES.stage.showImageChooser();
+                return super.touchDown(event, x, y, pointer, button);
+            }
+        });
+
+        add(chooseImageTB).fillX();
+        add(textureSelectBox).colspan(4).fillX();
     }
 
     private Array<FileHandle> texturesLookUp (FileHandle assetFileHandle) {
