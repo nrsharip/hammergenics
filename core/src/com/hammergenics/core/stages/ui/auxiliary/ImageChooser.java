@@ -55,22 +55,18 @@ public class ImageChooser extends VisWindow {
         setMovable(true);
 
         imageTree = new VisTree<>();
-        HGTreeVisTableNode imagesNode = new HGTreeVisTableNode(new HGTreeVisTableNode.HGTreeVisTable("Images"));
-        imageTree.add(imagesNode);
+        updateImageTree();
         imageTree.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 super.clicked(event, x, y);
                 pack();
-                centerWindow();
             }
         });
-        stage.projManagerTable.fillTreeNodesWithAssets(null, imagesNode);
-        imageTree.expandAll();
 
         imageTreeScrollPane = new VisScrollPane(imageTree);
 
-        chooseFileTB = new VisTextButton("Load File...");
+        chooseFileTB = new VisTextButton("Load File(s)...");
         chooseFileTB.addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -90,8 +86,9 @@ public class ImageChooser extends VisWindow {
 
                 // https://github.com/kotcrab/vis-ui/wiki/File-chooser#multiple-selection
                 // Chooser allow to select multiple files. It is disabled by default, to enable it call:
-                stage.fileChooser.setMultiSelectionEnabled(false);
+                stage.fileChooser.setMultiSelectionEnabled(true);
 
+                // this event fires on file actually selected in file chooser
                 stage.fileChooser.setListener(new FileChooserAdapter() {
                     @Override
                     public void selected (Array<FileHandle> fileHandles) {
@@ -100,11 +97,27 @@ public class ImageChooser extends VisWindow {
                         if (engine.assetManager.getQueuedAssets() > 0) { return; } // another load is in progress
                         engine.loadQueue.clear();
 
+                        engine.addLoadListener(new HGEngine.LoadListener.LoadAdapter() {
+                            @Override
+                            public void update(boolean result) {
+                                // waiting until the asset manager finishes the load
+                                if (result) {
+                                    updateImageTree();
+                                    engine.removeLoadListener(this);
+                                }
+                                super.update(result);
+                            }
+                        });
+
                         stage.loadProgressBar.setValue(0f);
                         stage.addActor(stage.loadProgressWindow.fadeIn());
 
                         for (FileHandle fh: fileHandles) {
-                            if (!fh.isDirectory()) { engine.queueAsset(fh); }
+                            // TODO: FILES_AND_DIRECTORIES mode is disabled.
+                            // queueAssets(...) currently uses ALL_FILES.getFileFilter(), so all files are being loaded
+                            // with no regards to stage.fileChooser.getActiveFileTypeFilterRule()
+                            if (fh.isDirectory()) { engine.queueAssets(fh, stage.fileChooser.getActiveFileTypeFilterRule()); }
+                            else { engine.queueAsset(fh); }
                         }
                     }
                 });
@@ -116,13 +129,26 @@ public class ImageChooser extends VisWindow {
             }
         });
 
-        add(imageTreeScrollPane).fill().expand().maxWidth(Gdx.graphics.getWidth()/2f).maxHeight(Gdx.graphics.getHeight()/2f);
+        add(imageTreeScrollPane).fill().expand().colspan(3)
+                .minWidth(Gdx.graphics.getWidth()/4f).minHeight(Gdx.graphics.getHeight()/4f)
+                .maxWidth(Gdx.graphics.getWidth()/2f).maxHeight(Gdx.graphics.getHeight()/2f);
         row();
-        add(chooseFileTB);
+        add(chooseFileTB).expandX().fillX();
 
         pack();
         centerWindow();
 
         fadeIn();
+    }
+
+    public void updateImageTree() {
+        imageTree.clearChildren();
+        HGTreeVisTableNode imagesNode = new HGTreeVisTableNode(new HGTreeVisTableNode.HGTreeVisTable("Images"));
+        imagesNode.setExpanded(true);
+        imageTree.add(imagesNode);
+        stage.projManagerTable.fillTreeNodesWithAssets(null, imagesNode);
+        imagesNode.expandTo();
+        pack();
+        centerWindow();
     }
 }

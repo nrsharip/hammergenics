@@ -53,14 +53,11 @@ import com.badlogic.gdx.physics.bullet.collision.btCollisionDispatcher;
 import com.badlogic.gdx.physics.bullet.collision.btDbvtBroadphase;
 import com.badlogic.gdx.physics.bullet.collision.btDefaultCollisionConfiguration;
 import com.badlogic.gdx.physics.bullet.collision.btDispatcher;
-import com.badlogic.gdx.physics.bullet.dynamics.btConstraintSolver;
-import com.badlogic.gdx.physics.bullet.dynamics.btConstraintSolverType;
 import com.badlogic.gdx.physics.bullet.dynamics.btDantzigSolver;
 import com.badlogic.gdx.physics.bullet.dynamics.btDiscreteDynamicsWorld;
 import com.badlogic.gdx.physics.bullet.dynamics.btDynamicsWorld;
 import com.badlogic.gdx.physics.bullet.dynamics.btLemkeSolver;
 import com.badlogic.gdx.physics.bullet.dynamics.btMLCPSolver;
-import com.badlogic.gdx.physics.bullet.dynamics.btMLCPSolverInterface;
 import com.badlogic.gdx.physics.bullet.dynamics.btMultiBodyConstraintSolver;
 import com.badlogic.gdx.physics.bullet.dynamics.btNNCGConstraintSolver;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
@@ -124,24 +121,31 @@ public class HGEngine implements Disposable {
     public ArrayMap<FileHandle, Array<FileHandle>> folder2models;
 
     public final HGGame game;
-    public final AssetManager assetManager = new HGAssetManager();
+    public final HGAssetManager assetManager = new HGAssetManager();
     public boolean assetsLoaded = true;
     public G3dModelSaver g3dSaver = new G3dModelSaver();
 
     public final Array<FileHandle> loadQueue = new Array<>(true, 16, FileHandle.class);
     public FileHandle loaded;
     public FileHandle failed;
+
+    public Array<LoadListener> loadListeners = new Array<>(true, 16, LoadListener.class);
+    public void addLoadListener(LoadListener listener) { loadListeners.add(listener); }
+    public void removeLoadListener(LoadListener listener) { loadListeners.removeValue(listener, false); }
     public class HGAssetManager extends AssetManager {
         @Override public synchronized <T> void load(String fileName, Class<T> type, AssetLoaderParameters<T> parameter) {
             //Gdx.app.debug("asset manager", "load: " + " fileName: " + fileName + " type: " + type.getSimpleName());
             loadQueue.add(getFileHandleResolver().resolve(fileName));
             super.load(fileName, type, parameter);
+            loadListeners.forEach(loadListener -> loadListener.load(fileName, type, parameter));
         }
         @Override public synchronized boolean update() {
             //Gdx.app.debug("asset manager", "update");
             loaded = null;
             failed = null;
-            return super.update();
+            assetsLoaded = super.update();
+            loadListeners.forEach(loadListener -> loadListener.update(assetsLoaded));
+            return assetsLoaded;
         }
         @Override protected <T> void addAsset(String fileName, Class<T> type, T asset) {
             loaded = getFileHandleResolver().resolve(fileName);
@@ -149,6 +153,8 @@ public class HGEngine implements Disposable {
             //        + " fileName: " + fileName + " loaded: " + loaded + " type: " + type.getSimpleName());
             loadQueue.removeValue(loaded, false);
             super.addAsset(fileName, type, asset);
+            HGEngine.this.addAsset(loaded);
+            loadListeners.forEach(loadListener -> loadListener.addAsset(fileName, type, asset));
         }
         @Override protected void taskFailed(AssetDescriptor assetDesc, RuntimeException ex) {
             failed = getFileHandleResolver().resolve(assetDesc.fileName);
@@ -156,6 +162,21 @@ public class HGEngine implements Disposable {
             //        + " fileName: " + assetDesc.fileName + " failed: " + failed);
             loadQueue.removeValue(failed, false);
             super.taskFailed(assetDesc, ex);
+            loadListeners.forEach(loadListener -> loadListener.taskFailed(assetDesc, ex));
+        }
+    }
+
+    public interface LoadListener {
+        <T> void load(String fileName, Class<T> type, AssetLoaderParameters<T> parameter);
+        void update(boolean result);
+        <T> void addAsset(String fileName, Class<T> type, T asset);
+        void taskFailed(AssetDescriptor assetDesc, RuntimeException ex);
+
+        class LoadAdapter implements LoadListener {
+            @Override public <T> void load(String fileName, Class<T> type, AssetLoaderParameters<T> parameter) { }
+            @Override public void update(boolean result) { }
+            @Override public <T> void addAsset(String fileName, Class<T> type, T asset) { }
+            @Override public void taskFailed(AssetDescriptor assetDesc, RuntimeException ex) { }
         }
     }
 
@@ -550,6 +571,7 @@ public class HGEngine implements Disposable {
     public void addAsset(FileHandle fileHandle) {
         if (fileHandle == null) { return; }
         Class<?> assetClass = getAssetClass(fileHandle);
+        if (assetClass == null) { return; }
         //Gdx.app.debug("engine", "add asset:" + " fileHandle: " + fileHandle + " assetClass: " + assetClass.getSimpleName());
         if (assetClass.equals(Model.class)) {
             //Gdx.app.debug("engine", "add asset:" + " Model");
@@ -563,10 +585,7 @@ public class HGEngine implements Disposable {
     }
 
     public boolean updateLoad() {
-        if (!assetsLoaded) {
-            if (assetManager.update()) { assetsLoaded = true; }
-            addAsset(loaded);
-        }
+        if (!assetsLoaded) { assetManager.update(); }
         return assetsLoaded;
     }
 
