@@ -20,9 +20,11 @@ import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Tree;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.ObjectMap;
@@ -34,6 +36,7 @@ import com.hammergenics.core.graphics.g3d.HGModel;
 import com.hammergenics.core.stages.ModelEditStage;
 import com.hammergenics.core.stages.ui.auxiliary.HGTreeVisTableNode;
 import com.hammergenics.core.stages.ui.auxiliary.HGTreeVisTableNode.HGTreeVisTable;
+import com.kotcrab.vis.ui.widget.VisImageButton;
 import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisScrollPane;
 import com.kotcrab.vis.ui.widget.VisTable;
@@ -85,6 +88,7 @@ public class ProjectManagerTable extends ManagerTable {
         assetsTreeNode.add(assetsSoundsTreeNode = new HGTreeVisTableNode(new HGTreeVisTable("Sounds", Color.GOLD)));
         assetsTreeNode.add(assetsFontsTreeNode = new HGTreeVisTableNode(new HGTreeVisTable("Fonts", Color.CORAL)));
 
+        projectTree.expandAll();
         projectTreeScrollPane = new VisScrollPane(projectTree);
     }
 
@@ -282,6 +286,21 @@ public class ProjectManagerTable extends ManagerTable {
         window.setMovable(false);
 
         window.add(projectTreeScrollPane).expand().fill().padRight(5f);
+
+        VisImageButton closeTB = null;
+        for (Actor actor: window.getTitleTable().getChildren()) {
+            if (actor instanceof VisImageButton) { closeTB = (VisImageButton) actor; break; }
+        }
+        if (closeTB != null) {
+            closeTB.addListener(new ChangeListener() {
+                @Override
+                public void changed(ChangeEvent event, Actor actor) {
+                    stage.unpressButton(stage.projTextButton, true);
+                    stage.resetTables();
+                }
+            });
+        }
+
         table.add(window).expand().fillY().left();
         stage.leftPaneCell.setActor(table);
     }

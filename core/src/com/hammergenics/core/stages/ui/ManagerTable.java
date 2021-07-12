@@ -46,7 +46,6 @@ public abstract class ManagerTable extends VisTable {
     public void setDbgModelInstance(EditableModelInstance mi) { this.dbgModelInstance = mi; }
 
     public void resetActors() {
-        stage.leftPaneCell.clearActor();
         stage.leftPaneCell.expand(false, false);
         stage.infoTCell.clearActor();
         stage.infoBCell.clearActor();

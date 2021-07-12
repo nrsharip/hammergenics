@@ -40,6 +40,7 @@ import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Scaling;
+import com.badlogic.gdx.utils.StringBuilder;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.hammergenics.HGGame;
 import com.hammergenics.HGGame.I18NBundlesEnum;
@@ -189,6 +190,9 @@ public class ModelEditStage extends Stage {
         mapGenerationTable = new MapGenerationTable(modelES, this);
         aiManagerTable = new AIManagerTable(modelES, this);
         physManagerTable = new PhysicsManagerTable(modelES, this);
+
+        pressButton(projTextButton, true);
+        resetTables();
     }
 
     @Override
@@ -470,6 +474,7 @@ public class ModelEditStage extends Stage {
     public void initProgressBar() {
         loadProgressWindow = new VisWindow("");
         loadProgressWindow.getTitleLabel().setText("Loading...");
+        loadProgressWindow.setMovable(false);
         loadProgressWindow.centerWindow();
 
         loadProgressBar = new VisProgressBar(0f, 1f, 0.001f, false);
@@ -669,10 +674,9 @@ public class ModelEditStage extends Stage {
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 editCell.clearActor();
                 if (!isPressed(projTextButton)) {
-                    unpressAllButtons();
-                    pressButton(projTextButton);
+                    pressButton(projTextButton, true);
                 } else {
-                    unpressButton(projTextButton);
+                    unpressButton(projTextButton, true);
                 }
                 resetTables();
                 return super.touchDown(event, x, y, pointer, button); // false
@@ -974,7 +978,7 @@ public class ModelEditStage extends Stage {
         leftPaneCell = rootTable.add().fill();
 
         VisTable leftPanel = new VisTable();
-        leftPanel.add(projTextButton).pad(1f).padLeft(0f).fillX();
+        leftPanel.add(projTextButton).pad(1f).padLeft(0f).fillX().expandY().top();
         leftPanel.row();
         leftPanel.add(attrTextButton).pad(1f).padLeft(0f).fillX();
         leftPanel.row();
@@ -986,8 +990,9 @@ public class ModelEditStage extends Stage {
         leftPanel.row();
         leftPanel.add(aiTextButton).pad(1f).padLeft(0f).fillX();
         leftPanel.row();
+        leftPanel.add().pad(1f).padLeft(0f).fillX().expandY().center();
 
-        rootTable.add(leftPanel).center();
+        rootTable.add(leftPanel).expandY().fillY().center();
 
         VisTable infoTable = new VisTable();
         infoTCell = infoTable.add().expand().fill().top().left();
@@ -1026,7 +1031,6 @@ public class ModelEditStage extends Stage {
     }
 
     public void unpressAllButtons() {
-        unpressButton(projTextButton);
         unpressButton(attrTextButton);
         unpressButton(animTextButton);
         unpressButton(mapTextButton);
@@ -1037,8 +1041,26 @@ public class ModelEditStage extends Stage {
         return isPressed(projTextButton) || isPressed(attrTextButton) || isPressed(animTextButton)
                 || isPressed(mapTextButton) || isPressed(aiTextButton) || isPressed(physTextButton);
     }
-    public void unpressButton(VisTextButton btn) { btn.setStyle(tbStyleDefault); }
-    public void pressButton(VisTextButton btn) { btn.setStyle(tbStyleBlue); }
+    public void unpressButton(VisTextButton btn) { unpressButton(btn, false); }
+    public void unpressButton(VisTextButton btn, boolean arrowPrefix) {
+        btn.setStyle(tbStyleDefault);
+        if (arrowPrefix) {
+            StringBuilder text = (StringBuilder)btn.getText();
+            char first = text.charAt(0);
+            if (first == '<' || first == '>') { text.setCharAt(0, '>'); }
+            else { text.insert(0, "> "); }
+        }
+    }
+    public void pressButton(VisTextButton btn) { pressButton(btn, false); }
+    public void pressButton(VisTextButton btn, boolean arrowPrefix) {
+        btn.setStyle(tbStyleBlue);
+        if (arrowPrefix) {
+            StringBuilder text = (StringBuilder)btn.getText();
+            char first = text.charAt(0);
+            if (first == '<' || first == '>') { text.setCharAt(0, '<'); }
+            else { text.insert(0, "< "); }
+        }
+    }
     public void disableButton(VisTextButton btn) { btn.setDisabled(true); }
     public void enableButton(VisTextButton btn) { btn.setDisabled(false); }
     public boolean isPressed(VisTextButton btn) { return btn.getStyle().equals(tbStyleBlue); }
@@ -1070,6 +1092,8 @@ public class ModelEditStage extends Stage {
         if (isPressed(projTextButton)) {
             projManagerTable.setDbgModelInstance(modelES.eng.currMI);
             projManagerTable.resetActors();
+        } else {
+            leftPaneCell.clearActor();
         }
 
         if (isPressed(attrTextButton)) {
