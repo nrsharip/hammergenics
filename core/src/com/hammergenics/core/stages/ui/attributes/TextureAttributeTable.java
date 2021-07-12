@@ -66,7 +66,6 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
     private VisSelectBox<String> uWrapSB = null;
     private VisSelectBox<String> vWrapSB = null;
     // TODO: one more parameter is currently missing: uvIndex (see TextureAttribute)
-    private VisSelectBox<String> textureSelectBox = null;
 
     private FileHandle textureFileHandle = null;
 
@@ -75,7 +74,6 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
 
     private VisTextField.TextFieldListener paramTextFieldListener;
     private ChangeListener paramSelectBoxListener;
-    private ChangeListener textureSelectBoxListener;
 
     private Texture texture;
 
@@ -160,37 +158,10 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
             }
         });
 
-        // Select Box: Textures
-        textureSelectBox = new VisSelectBox<>();
-        Array<String> itemsTexture = new Array<>();
-        itemsTexture.add("No Texture Selected");
-
-        // All PNG files in the same directory and direct subdirecories the asset is located
-        FileHandle assetFileHandle = modelES.stage.modelSelectBox.getSelected();
-        Array<FileHandle> textureFileHandleArray = texturesLookUp(assetFileHandle);
-
-        if (textureFileHandleArray != null && textureFileHandleArray.size > 0) {
-            itemsTexture.addAll(textureFileHandleArray.toString(";").split(";"));
-        }
-
-        //[switchModelInstance] before clear
-        //[textureSelectBox.changed] -1
-        //[textureSelectBox.changed] null
-        //[switchModelInstance] after clear/before set
-        //[textureSelectBox.changed] 0
-        //[textureSelectBox.changed] No Texture
-        //[switchModelInstance] after set
-
-        if (textureSelectBox != null) {
-            textureSelectBox.clearItems();
-            textureSelectBox.setItems(itemsTexture);
-        }
-
         minFilterSB.addListener(paramSelectBoxListener);
         magFilterSB.addListener(paramSelectBoxListener);
         uWrapSB.addListener(paramSelectBoxListener);
         vWrapSB.addListener(paramSelectBoxListener);
-        textureSelectBox.addListener(textureSelectBoxListener);
 
         add(enabledCheckBox);
         add(new VisLabel("offsetU:", Color.BLACK)).right();
@@ -213,28 +184,6 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
         add(new VisLabel("vWrap:", Color.BLACK)).right();
         add(vWrapSB).fillX();
         row().pad(0.5f);
-    }
-
-    private Array<FileHandle> texturesLookUp (FileHandle assetFileHandle) {
-        if (assetFileHandle == null) { return null; }
-        Array<FileHandle> textureFileHandleArray = HGUtils.traversFileHandle(assetFileHandle.parent(), IMAGE_FILES.fileFilter);
-
-        // TODO: Add unified convention like "textures | skins" to specify all folders at once
-        // All texture files in the "textures" directory and subdirectories (if any) on asset's path
-        textureFileHandleArray = HGUtils.traversFileHandle(
-                // starting at parent() since we already traversed current folder/subfolders above
-                HGUtils.fileOnPath(assetFileHandle.parent(), "textures"),
-                IMAGE_FILES.fileFilter,
-                textureFileHandleArray
-        );
-        // All texture files in the "skins" directory and subdirectories (if any) on asset's path
-        textureFileHandleArray = HGUtils.traversFileHandle(
-                // starting at parent() since we already traversed current folder/subfolders above
-                HGUtils.fileOnPath(assetFileHandle.parent(), "skins"),
-                IMAGE_FILES.fileFilter,
-                textureFileHandleArray
-        );
-        return textureFileHandleArray;
     }
 
     // long Diffuse
@@ -347,19 +296,6 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
                 }
             }
         };
-
-        textureSelectBoxListener = new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                if (container != null && currentType != 0) {
-                    enabledCheckBox.setChecked(false);              // relying on 'enabled' check box event processing
-                    if (textureSelectBox.getSelectedIndex() != 0) { // == 0 - 'No Texture Selected'
-                        enabledCheckBox.setChecked(true);           // relying on 'enabled' check box event processing
-                    }
-                    if (listener != null) { listener.onAttributeChange(container, currentType, currentTypeAlias); }
-                }
-            }
-        };
     }
 
     @Override
@@ -374,7 +310,7 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
             return false;
         } else {
             if (!modelES.eng.assetManager.contains(textureFileHandle.path())) {
-                Gdx.app.debug("enabledCheckBox", "Texture is not loaded from: " + textureSelectBox.getSelected()
+                Gdx.app.debug("enabledCheckBox", "Texture is not loaded from: " + textureFileHandle.path()
                         + " (attribute: type = 0x" + Long.toHexString(currentType) + " alias = " + currentTypeAlias + ")");
                 enabledCheckBox.setProgrammaticChangeEvents(false); // making sure no events fired during setChecked()
                 enabledCheckBox.setChecked(false);                  // no texture attribute gets enabled without the texture selected first

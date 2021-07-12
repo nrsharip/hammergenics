@@ -30,23 +30,23 @@ public class AttributesManagerTable extends VisTable {
     protected BaseAttributeTable.EventListener listener = null;
     protected ModelEditScreen modelES;
 
-    public ColorAttributesTable colorAttrTable;
-    public TextureAttributesTable textureAttrTable;
-    public BlendingAttributesTable blendingAttrTable;
-    public DirectionalLightsAttributesTable dlAttrTable;
-    public PointLightsAttributesTable plAttrTable;
-    public SpotLightsAttributesTable slAttrTable;
+    public AttributesTable.Color colorAttrTable;
+    public AttributesTable.Texture textureAttrTable;
+    public AttributesTable.Blending blendingAttrTable;
+    public AttributesTable.DirectionalLights dlAttrTable;
+    public AttributesTable.PointLights plAttrTable;
+    public AttributesTable.SpotLights slAttrTable;
 
     public AttributesManagerTable(Attributes container, ModelEditScreen modelES) {
         this.container = container;
         this.modelES = modelES;
 
-        textureAttrTable = new TextureAttributesTable(container, modelES);
-        colorAttrTable = new ColorAttributesTable(container, modelES);
-        blendingAttrTable = new BlendingAttributesTable(container, modelES);
-        dlAttrTable = new DirectionalLightsAttributesTable(container, modelES);
-        plAttrTable = new PointLightsAttributesTable(container, modelES);
-        slAttrTable = new SpotLightsAttributesTable(container, modelES);
+        textureAttrTable = new AttributesTable.Texture(container, modelES);
+        colorAttrTable = new AttributesTable.Color(container, modelES);
+        blendingAttrTable = new AttributesTable.Blending(container, modelES);
+        dlAttrTable = new AttributesTable.DirectionalLights(container, modelES);
+        plAttrTable = new AttributesTable.PointLights(container, modelES);
+        slAttrTable = new AttributesTable.SpotLights(container, modelES);
 
         textureAttrTable.resetAttributes();
         colorAttrTable.resetAttributes();

@@ -20,6 +20,15 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Attribute;
 import com.badlogic.gdx.graphics.g3d.Attributes;
+import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.SpotLightsAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
+import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
+import com.badlogic.gdx.graphics.g3d.environment.PointLight;
+import com.badlogic.gdx.graphics.g3d.environment.SpotLight;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.utils.HGUtils;
@@ -71,7 +80,7 @@ public abstract class AttributesTable<T extends Attribute, Q extends AttributeTa
         resetAttributes();
 
         a2Table.forEach((entry) -> {
-            add(new VisLabel(entry.key + ":", Color.BLACK)).right();
+            add(new VisLabel(entry.key + ":", com.badlogic.gdx.graphics.Color.BLACK)).right();
             add(entry.value).left();
             add().expandX();
             row().pad(0.5f);
@@ -126,5 +135,84 @@ public abstract class AttributesTable<T extends Attribute, Q extends AttributeTa
     public void setListener(EventListener listener) {
         this.listener = listener;
         t2Table.forEach((entry) -> entry.value.setListener(listener));
+    }
+
+    public static class Blending extends AttributesTable<BlendingAttribute, BlendingAttributeTable> {
+        public Blending(Attributes container, ModelEditScreen modelES) {
+            super(container, modelES, BlendingAttribute.class);
+        }
+
+        @Override
+        protected BlendingAttributeTable createTable(Attributes container, ModelEditScreen modelES) {
+            return new BlendingAttributeTable(container, modelES);
+        }
+    }
+
+    public static class Color extends AttributesTable<ColorAttribute, ColorAttributeTable> {
+        /**
+         * @param container
+         * @param modelES
+         */
+        public Color(Attributes container, ModelEditScreen modelES) {
+            super(container, modelES, ColorAttribute.class);
+        }
+
+        @Override
+        protected ColorAttributeTable createTable(Attributes container, ModelEditScreen modelES) {
+            return new ColorAttributeTable(container, modelES);
+        }
+    }
+
+    public static class DirectionalLights
+            extends AttributesTable<DirectionalLightsAttribute, BaseLightsAttributeTable<DirectionalLightsAttribute, DirectionalLight>> {
+
+        public DirectionalLights(Attributes container, ModelEditScreen modelES) {
+            super(container, modelES, DirectionalLightsAttribute.class);
+        }
+
+        @Override
+        protected BaseLightsAttributeTable<DirectionalLightsAttribute, DirectionalLight> createTable(Attributes container, ModelEditScreen modelES) {
+            return new DirectionalLightsAttributeTable(container, modelES);
+        }
+    }
+
+    public static class PointLights
+            extends AttributesTable<PointLightsAttribute, BaseLightsAttributeTable<PointLightsAttribute, PointLight>> {
+
+        public PointLights(Attributes container, ModelEditScreen modelES) {
+            super(container, modelES, PointLightsAttribute.class);
+        }
+
+        @Override
+        protected BaseLightsAttributeTable<PointLightsAttribute, PointLight> createTable(Attributes container, ModelEditScreen modelES) {
+            return new PointLightsAttributeTable(container, modelES);
+        }
+    }
+
+    public static class SpotLights
+            extends AttributesTable<SpotLightsAttribute, BaseLightsAttributeTable<SpotLightsAttribute, SpotLight>> {
+
+        public SpotLights(Attributes container, ModelEditScreen modelES) {
+            super(container, modelES, SpotLightsAttribute.class);
+        }
+
+        @Override
+        protected BaseLightsAttributeTable<SpotLightsAttribute, SpotLight> createTable(Attributes container, ModelEditScreen modelES) {
+            return new SpotLightsAttributeTable(container, modelES);
+        }
+    }
+
+    public static class Texture extends AttributesTable<TextureAttribute, TextureAttributeTable> {
+        /**
+         * @param container
+         */
+        public Texture(Attributes container, ModelEditScreen modelES) {
+            super(container, modelES, TextureAttribute.class);
+        }
+
+        @Override
+        protected TextureAttributeTable createTable(Attributes container, ModelEditScreen modelES) {
+            return new TextureAttributeTable(container, modelES);
+        }
     }
 }
