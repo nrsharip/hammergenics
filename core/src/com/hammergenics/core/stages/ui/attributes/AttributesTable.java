@@ -17,7 +17,6 @@
 package com.hammergenics.core.stages.ui.attributes;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Attribute;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
@@ -33,6 +32,7 @@ import com.badlogic.gdx.utils.ArrayMap;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.utils.HGUtils;
 import com.kotcrab.vis.ui.widget.VisLabel;
+import com.kotcrab.vis.ui.widget.VisWindow;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -61,18 +61,27 @@ public abstract class AttributesTable<T extends Attribute, Q extends AttributeTa
      */
     public ArrayMap<String, Long> a2t;
 
+    final VisWindow window;
+
+    public AttributesTable(String title, Attributes container, ModelEditScreen modelES, Class<T> aClass) {
+        this(title, true, container, modelES, aClass);
+    }
     /**
      * @param container
      */
-    public AttributesTable(Attributes container, ModelEditScreen modelES, Class<T> aClass) {
-        super(container, modelES, aClass);
+    public AttributesTable(String title, boolean addLabel, Attributes container, ModelEditScreen modelES, Class<T> aClass) {
+        super(container, modelES, aClass, null);
+
+        window = new VisWindow(title);
+        //window.setBackground((Drawable)null);
+        window.add(this).expand().fill();
 
         t2a = new ArrayMap<>();
         a2t = new ArrayMap<>();
         traverse();
 
         t2a.forEach((entry) -> {
-            Q table = createTable(container, modelES);
+            Q table = createTable(container, modelES, window, entry.key, entry.value);
             t2Table.put(entry.key, table);   // type to table
             a2Table.put(entry.value, table); // alias to table
         });
@@ -80,14 +89,13 @@ public abstract class AttributesTable<T extends Attribute, Q extends AttributeTa
         resetAttributes();
 
         a2Table.forEach((entry) -> {
-            add(new VisLabel(entry.key + ":", com.badlogic.gdx.graphics.Color.BLACK)).right();
-            add(entry.value).left();
-            add().expandX();
+            if (addLabel) { add(new VisLabel(entry.key + ":")).right(); }
+            add(entry.value).expand().fill().right();
             row().pad(0.5f);
         });
     }
 
-    protected abstract Q createTable(Attributes container, ModelEditScreen modelES);
+    protected abstract Q createTable(Attributes container, ModelEditScreen modelES, VisWindow window, Long type, String alias);
 
     /**
      *
@@ -139,12 +147,12 @@ public abstract class AttributesTable<T extends Attribute, Q extends AttributeTa
 
     public static class Blending extends AttributesTable<BlendingAttribute, BlendingAttributeTable> {
         public Blending(Attributes container, ModelEditScreen modelES) {
-            super(container, modelES, BlendingAttribute.class);
+            super("Blending Attributes", false, container, modelES, BlendingAttribute.class);
         }
 
         @Override
-        protected BlendingAttributeTable createTable(Attributes container, ModelEditScreen modelES) {
-            return new BlendingAttributeTable(container, modelES);
+        protected BlendingAttributeTable createTable(Attributes container, ModelEditScreen modelES, VisWindow window, Long type, String alias) {
+            return new BlendingAttributeTable(container, modelES, window, type, alias);
         }
     }
 
@@ -154,12 +162,12 @@ public abstract class AttributesTable<T extends Attribute, Q extends AttributeTa
          * @param modelES
          */
         public Color(Attributes container, ModelEditScreen modelES) {
-            super(container, modelES, ColorAttribute.class);
+            super("Color Attributes", container, modelES, ColorAttribute.class);
         }
 
         @Override
-        protected ColorAttributeTable createTable(Attributes container, ModelEditScreen modelES) {
-            return new ColorAttributeTable(container, modelES);
+        protected ColorAttributeTable createTable(Attributes container, ModelEditScreen modelES, VisWindow window, Long type, String alias) {
+            return new ColorAttributeTable(container, modelES, window, type, alias);
         }
     }
 
@@ -167,12 +175,12 @@ public abstract class AttributesTable<T extends Attribute, Q extends AttributeTa
             extends AttributesTable<DirectionalLightsAttribute, BaseLightsAttributeTable<DirectionalLightsAttribute, DirectionalLight>> {
 
         public DirectionalLights(Attributes container, ModelEditScreen modelES) {
-            super(container, modelES, DirectionalLightsAttribute.class);
+            super("Directional Lights Attributes", false, container, modelES, DirectionalLightsAttribute.class);
         }
 
         @Override
-        protected BaseLightsAttributeTable<DirectionalLightsAttribute, DirectionalLight> createTable(Attributes container, ModelEditScreen modelES) {
-            return new DirectionalLightsAttributeTable(container, modelES);
+        protected BaseLightsAttributeTable<DirectionalLightsAttribute, DirectionalLight> createTable(Attributes container, ModelEditScreen modelES, VisWindow window, Long type, String alias) {
+            return new DirectionalLightsAttributeTable(container, modelES, window, type, alias);
         }
     }
 
@@ -180,12 +188,12 @@ public abstract class AttributesTable<T extends Attribute, Q extends AttributeTa
             extends AttributesTable<PointLightsAttribute, BaseLightsAttributeTable<PointLightsAttribute, PointLight>> {
 
         public PointLights(Attributes container, ModelEditScreen modelES) {
-            super(container, modelES, PointLightsAttribute.class);
+            super("Point Lights Attributes", false, container, modelES, PointLightsAttribute.class);
         }
 
         @Override
-        protected BaseLightsAttributeTable<PointLightsAttribute, PointLight> createTable(Attributes container, ModelEditScreen modelES) {
-            return new PointLightsAttributeTable(container, modelES);
+        protected BaseLightsAttributeTable<PointLightsAttribute, PointLight> createTable(Attributes container, ModelEditScreen modelES, VisWindow window, Long type, String alias) {
+            return new PointLightsAttributeTable(container, modelES, window, type, alias);
         }
     }
 
@@ -193,12 +201,12 @@ public abstract class AttributesTable<T extends Attribute, Q extends AttributeTa
             extends AttributesTable<SpotLightsAttribute, BaseLightsAttributeTable<SpotLightsAttribute, SpotLight>> {
 
         public SpotLights(Attributes container, ModelEditScreen modelES) {
-            super(container, modelES, SpotLightsAttribute.class);
+            super("Spot Lights Attributes", false, container, modelES, SpotLightsAttribute.class);
         }
 
         @Override
-        protected BaseLightsAttributeTable<SpotLightsAttribute, SpotLight> createTable(Attributes container, ModelEditScreen modelES) {
-            return new SpotLightsAttributeTable(container, modelES);
+        protected BaseLightsAttributeTable<SpotLightsAttribute, SpotLight> createTable(Attributes container, ModelEditScreen modelES, VisWindow window, Long type, String alias) {
+            return new SpotLightsAttributeTable(container, modelES, window, type, alias);
         }
     }
 
@@ -207,12 +215,12 @@ public abstract class AttributesTable<T extends Attribute, Q extends AttributeTa
          * @param container
          */
         public Texture(Attributes container, ModelEditScreen modelES) {
-            super(container, modelES, TextureAttribute.class);
+            super("Texture Attributes", false, container, modelES, TextureAttribute.class);
         }
 
         @Override
-        protected TextureAttributeTable createTable(Attributes container, ModelEditScreen modelES) {
-            return new TextureAttributeTable(container, modelES);
+        protected TextureAttributeTable createTable(Attributes container, ModelEditScreen modelES, VisWindow window, Long type, String alias) {
+            return new TextureAttributeTable(container, modelES, window, type, alias);
         }
     }
 }

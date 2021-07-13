@@ -25,9 +25,9 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.hammergenics.core.ModelEditScreen;
 import com.kotcrab.vis.ui.widget.VisLabel;
-import com.kotcrab.vis.ui.widget.VisTable;
 import com.kotcrab.vis.ui.widget.VisTextButton;
 import com.kotcrab.vis.ui.widget.VisTextField;
+import com.kotcrab.vis.ui.widget.VisWindow;
 
 /**
  * Add description here
@@ -48,8 +48,8 @@ public class DirectionalLightsAttributeTable extends BaseLightsAttributeTable<Di
     private VisTextField.TextFieldListener xyzTextFieldListener;
     private InputListener setInputListener;
 
-    public DirectionalLightsAttributeTable(Attributes container, ModelEditScreen modelES) {
-        super(container, modelES, DirectionalLightsAttribute.class, DirectionalLight.class);
+    public DirectionalLightsAttributeTable(Attributes container, ModelEditScreen modelES, VisWindow window, Long type, String alias) {
+        super(container, modelES, DirectionalLightsAttribute.class, DirectionalLight.class, window, type, alias);
 
         createListeners();
 
@@ -64,16 +64,13 @@ public class DirectionalLightsAttributeTable extends BaseLightsAttributeTable<Di
         zTF.setTextFieldListener(xyzTextFieldListener);
         setTB.addListener(setInputListener);
 
-        VisTable line = new VisTable();
-        line.add(new VisLabel("dir x:", Color.BLACK)).right();
-        line.add(xTF).width(100).maxWidth(100);
-        line.add(new VisLabel("dir y:", Color.BLACK)).right();
-        line.add(yTF).width(100).maxWidth(100);
-        line.add(new VisLabel("dir z:", Color.BLACK)).right();
-        line.add(zTF).width(100).maxWidth(100);
-        line.add(setTB).padLeft(10f);
-        line.add().expandX();
-        add(line).fillX();
+        cell11.setActor(new VisLabel("dir x:")).right();
+        cell12.setActor(xTF).width(100).maxWidth(100);
+        cell21.setActor(new VisLabel("dir y:")).right();
+        cell22.setActor(yTF).width(100).maxWidth(100);
+        cell31.setActor(new VisLabel("dir z:")).right();
+        cell32.setActor(zTF).width(100).maxWidth(100);
+        cell41.setActor(setTB).padLeft(10f);
     }
 
     private void createListeners() {

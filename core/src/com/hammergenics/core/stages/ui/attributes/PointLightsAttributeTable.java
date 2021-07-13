@@ -27,6 +27,7 @@ import com.hammergenics.core.ModelEditScreen;
 import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisTable;
 import com.kotcrab.vis.ui.widget.VisTextField;
+import com.kotcrab.vis.ui.widget.VisWindow;
 
 /**
  * Add description here
@@ -48,8 +49,8 @@ public class PointLightsAttributeTable extends BaseLightsAttributeTable<PointLig
 
     private VisTextField.TextFieldListener xyziTextFieldListener;
 
-    public PointLightsAttributeTable(Attributes container, ModelEditScreen modelES) {
-        super(container, modelES, PointLightsAttribute.class, PointLight.class);
+    public PointLightsAttributeTable(Attributes container, ModelEditScreen modelES, VisWindow window, Long type, String alias) {
+        super(container, modelES, PointLightsAttribute.class, PointLight.class, window, type, alias);
 
         createListeners();
 
@@ -65,16 +66,14 @@ public class PointLightsAttributeTable extends BaseLightsAttributeTable<PointLig
         iTF.setTextFieldListener(xyziTextFieldListener);
 
         VisTable line = new VisTable();
-        line.add(new VisLabel("x:", Color.BLACK)).right();
-        line.add(xTF).width(100).maxWidth(100);
-        line.add(new VisLabel("y:", Color.BLACK)).right();
-        line.add(yTF).width(100).maxWidth(100);
-        line.add(new VisLabel("z:", Color.BLACK)).right();
-        line.add(zTF).width(100).maxWidth(100);
-        line.add(new VisLabel("intensity:", Color.BLACK)).right();
-        line.add(iTF).width(100).maxWidth(100);
-        line.add().expandX();
-        add(line).fillX();
+        cell11.setActor(new VisLabel("x:")).right();
+        cell12.setActor(xTF).width(100).maxWidth(100);
+        cell21.setActor(new VisLabel("y:")).right();
+        cell22.setActor(yTF).width(100).maxWidth(100);
+        cell31.setActor(new VisLabel("z:")).right();
+        cell32.setActor(zTF).width(100).maxWidth(100);
+        cell41.setActor(new VisLabel("intensity:")).right();
+        cell42.setActor(iTF).width(100).maxWidth(100);
     }
 
     private void createListeners() {

@@ -20,6 +20,7 @@ import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.attributes.SpotLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.SpotLight;
 import com.hammergenics.core.ModelEditScreen;
+import com.kotcrab.vis.ui.widget.VisWindow;
 
 /**
  * Add description here
@@ -32,8 +33,8 @@ public class SpotLightsAttributeTable extends BaseLightsAttributeTable<SpotLight
     // IMPORTANT: Note that the default shader doesn't support spot lights,
     //            you'll have to supply your own shader to use this class.
 
-    public SpotLightsAttributeTable(Attributes container, ModelEditScreen modelES) {
-        super(container, modelES, SpotLightsAttribute.class, SpotLight.class);
+    public SpotLightsAttributeTable(Attributes container, ModelEditScreen modelES, VisWindow window, Long type, String alias) {
+        super(container, modelES, SpotLightsAttribute.class, SpotLight.class, window, type, alias);
     }
 
     @Override

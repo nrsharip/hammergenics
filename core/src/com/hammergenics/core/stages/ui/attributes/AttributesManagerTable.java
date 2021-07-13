@@ -55,20 +55,17 @@ public class AttributesManagerTable extends VisTable {
         plAttrTable.resetAttributes();
         slAttrTable.resetAttributes();
 
-        clear();
-        add(colorAttrTable).padTop(10f).top().left().fillX();
+        add(colorAttrTable.window).expand().top().left();
+        add(textureAttrTable.window).expand().top().right();
+
+        VisTable lights = new VisTable();
+        lights.add(dlAttrTable.window);
+        lights.add(plAttrTable.window);
+        lights.add(slAttrTable.window);
+
         row();
-        add(textureAttrTable).padTop(10f).top().left().fillX();
-        row();
-        add(blendingAttrTable).padTop(10f).top().left().fillX();
-        row();
-        add(dlAttrTable).padTop(10f).top().left().fillX();
-        row();
-        add(plAttrTable).padTop(10f).top().left().fillX();
-        row();
-        add(slAttrTable).padTop(10f).top().left().fillX();
-        row();
-        add().expandY();
+        add(lights).expand().bottom().left();
+        add(blendingAttrTable.window).expand().bottom().right();
     }
 
     public void setListener(BaseAttributeTable.EventListener listener) {

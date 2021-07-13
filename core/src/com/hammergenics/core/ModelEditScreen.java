@@ -288,6 +288,7 @@ public class ModelEditScreen extends ScreenAdapter {
         }
         if (stage != null) {
             stage.getViewport().update(width, height, true);
+            stage.projManagerTable.resetActors();
         }
     }
 

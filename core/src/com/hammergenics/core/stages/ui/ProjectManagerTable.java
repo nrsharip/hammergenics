@@ -16,6 +16,7 @@
 
 package com.hammergenics.core.stages.ui;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
@@ -285,7 +286,7 @@ public class ProjectManagerTable extends ManagerTable {
         window.addCloseButton();
         window.setMovable(false);
 
-        window.add(projectTreeScrollPane).expand().fill().padRight(5f);
+        window.add(projectTreeScrollPane).expand().fill().padRight(5f).minWidth(Gdx.graphics.getWidth()/8f);
 
         VisImageButton closeTB = null;
         for (Actor actor: window.getTitleTable().getChildren()) {

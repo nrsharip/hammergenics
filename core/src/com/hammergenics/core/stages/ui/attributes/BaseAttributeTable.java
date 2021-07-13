@@ -20,6 +20,7 @@ import com.badlogic.gdx.graphics.g3d.Attribute;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.hammergenics.core.ModelEditScreen;
 import com.kotcrab.vis.ui.widget.VisTable;
+import com.kotcrab.vis.ui.widget.VisWindow;
 
 /**
  * Add description here
@@ -31,11 +32,13 @@ public abstract class BaseAttributeTable<T extends Attribute> extends VisTable {
     public Class<T> attributeClass;
     protected EventListener listener = null;
     protected ModelEditScreen modelES;
+    protected VisWindow window;
 
-    public BaseAttributeTable(Attributes container, ModelEditScreen modelES, Class<T> aClass) {
+    public BaseAttributeTable(Attributes container, ModelEditScreen modelES, Class<T> aClass, VisWindow window) {
         this.modelES = modelES;
         this.attributeClass = aClass;
         this.container = container;
+        this.window = window;
     }
 
     public abstract void setListener(EventListener listener);

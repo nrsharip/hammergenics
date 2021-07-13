@@ -78,7 +78,7 @@ public class ImageChooser extends VisWindow {
         chooserTable.row();
         chooserTable.add(btnBar.createTable()).expandX().fillX();
 
-        add(chooserTable).fill().expand();
+        add(chooserTable).expand().fill();
         imagePreviewCell = add(imagePreviewWindow);
 
         hideImagePreview();
@@ -149,8 +149,9 @@ public class ImageChooser extends VisWindow {
 
         imagesNode.expandTo();
         if (scrollPaneCell != null) {
-            scrollPaneCell.minWidth(Gdx.graphics.getWidth()/5f).minHeight(Gdx.graphics.getHeight()/3f)
-                          .maxWidth(Gdx.graphics.getWidth()/5f).maxHeight(Gdx.graphics.getHeight()/3f);
+            scrollPaneCell
+                    .minWidth(Gdx.graphics.getWidth()/5f).minHeight(Gdx.graphics.getHeight()/3f)
+                    .maxWidth(Gdx.graphics.getWidth()/5f).maxHeight(Gdx.graphics.getHeight()/3f);
         }
         pack();
         centerWindow();
@@ -230,8 +231,7 @@ public class ImageChooser extends VisWindow {
                             }
                         });
 
-                        stage.loadProgressBar.setValue(0f);
-                        stage.addActor(stage.loadProgressWindow.fadeIn());
+                        stage.prepProgressBarForLoad();
 
                         for (FileHandle fh: fileHandles) {
                             // TODO: FILES_AND_DIRECTORIES mode is disabled.

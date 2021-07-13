@@ -24,6 +24,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.SpotLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.BaseLight;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.ui.Cell;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Array;
 import com.hammergenics.core.ModelEditScreen;
@@ -32,6 +33,8 @@ import com.kotcrab.vis.ui.widget.VisSelectBox;
 import com.kotcrab.vis.ui.widget.VisTable;
 import com.kotcrab.vis.ui.widget.VisTextButton;
 import com.kotcrab.vis.ui.widget.VisTextField;
+import com.kotcrab.vis.ui.widget.VisWindow;
+import com.kotcrab.vis.ui.widget.color.ColorPickerListener;
 
 import static com.hammergenics.core.stages.ui.attributes.ColorAttributeTable.*;
 import static com.hammergenics.utils.HGUtils.color_s2c;
@@ -55,11 +58,17 @@ public abstract class BaseLightsAttributeTable<T extends Attribute, L extends Ba
     protected VisTextField aTF = null;
     // color select box
     protected VisSelectBox<String> colorSB = null;
+    protected VisTextButton selectColorTB = null;
+    private ColorPickerListener colorPickerListener;
+
     // + and - buttons
     protected VisTextButton plsTextButton = null;
     protected VisTextButton mnsTextButton = null;
     // table to contain the indexed buttons (1, 2, 3 etc.)
     protected VisTable indexedTBTable = new VisTable();
+
+    public Cell<?> cell11, cell12, cell21, cell22;
+    public Cell<?> cell31, cell32, cell41, cell42;
 
     private VisTextField.TextFieldListener rgbaTextFieldListener;
     private ChangeListener colorSelectBoxListener;
@@ -69,8 +78,9 @@ public abstract class BaseLightsAttributeTable<T extends Attribute, L extends Ba
 
     protected abstract L createLight();
 
-    public BaseLightsAttributeTable(Attributes container, ModelEditScreen modelES, Class<T> aClass, Class<L> lightClass) {
-        super(container, modelES, aClass);
+    public BaseLightsAttributeTable(Attributes container, ModelEditScreen modelES, Class<T> aClass,
+                                    Class<L> lightClass, VisWindow window, Long type, String alias) {
+        super(container, modelES, aClass, window, type, alias);
         this.lightClass = lightClass;
         lights = new Array<>(lightClass);
 
@@ -147,33 +157,61 @@ public abstract class BaseLightsAttributeTable<T extends Attribute, L extends Ba
         if (color_s2c != null && color_s2c.size > 0) { colorSB.setItems(color_s2c.keys().toArray()); }
         colorSB.addListener(colorSelectBoxListener);
 
+        selectColorTB = new VisTextButton("select");
+        selectColorTB.addListener(new ChangeListener() {
+            @Override
+            public void changed (ChangeEvent event, Actor actor) {
+                modelES.stage.colorPicker.setListener(colorPickerListener);
+                modelES.stage.colorPicker.getPicker().setColor(color);
+                //displaying picker with fade in animation
+                getStage().addActor(modelES.stage.colorPicker.fadeIn());
+            }
+        });
+
+        window.getTitleTable().add(enabledCheckBox).padLeft(10f);
+
         // Standard Color Layout:
         VisTable line1 = new VisTable();
         VisTable line2 = new VisTable();
+        VisTable line3 = new VisTable();
 
-        line1.add(enabledCheckBox);
-        line1.add(new VisLabel("lights:", Color.BLACK)).right();
-        line1.add(mnsTextButton).width(20f).maxWidth(20f);
+        line1.add(new VisLabel("lights:")).padRight(5f).right();
+        line1.add(mnsTextButton).width(20f).maxWidth(20f).padRight(1f);
         line1.add(plsTextButton).width(20f).maxWidth(20f);
-        line1.add(indexedTBTable);
-        line1.add().expandX();
+        line1.add(indexedTBTable).expandX().left();
 
-        line2.add(new VisLabel("r:", Color.BLACK)).right();
+        line2.add(new VisLabel("r:")).padRight(5f).right();
         line2.add(rTF).width(40).maxWidth(40);
-        line2.add(new VisLabel("g:", Color.BLACK)).right();
-        line2.add(gTF).width(40).maxWidth(40);
-        line2.add(new VisLabel("b:", Color.BLACK)).right();
-        line2.add(bTF).width(40).maxWidth(40);
-        line2.add(new VisLabel("a:", Color.BLACK)).right();
-        line2.add(aTF).width(40).maxWidth(40);
-        line2.add(new VisLabel("color:", Color.BLACK)).right();
-        line2.add(colorSB).fillX();
-        line2.add().expandX();
+        cell11 = line2.add();
+        cell12 = line2.add();
 
-        add(line1).fillX();
+        line2.row();
+        line2.add(new VisLabel("g:")).padRight(5f).right();
+        line2.add(gTF).width(40).maxWidth(40);
+        cell21 = line2.add();
+        cell22 = line2.add();
+
+        line2.row();
+        line2.add(new VisLabel("b:")).padRight(5f).right();
+        line2.add(bTF).width(40).maxWidth(40);
+        cell31 = line2.add();
+        cell32 = line2.add();
+
+        line2.row();
+        line2.add(new VisLabel("a:")).padRight(5f).right();
+        line2.add(aTF).width(40).maxWidth(40);
+        cell41 = line2.add();
+        cell42 = line2.add();
+
+        line3.add(new VisLabel("color:")).colspan(2).padRight(5f).right();
+        line3.add(selectColorTB).fillX();
+        line3.add(colorSB).fillX();
+
+        add(line1).expandX().fillX().left();
         row();
-        add(line2).fillX();
+        add(line2).expandX().fillX().center();
         row();
+        add(line3).expandX().fillX().center();
     }
 
     private void createListeners() {
@@ -243,36 +281,59 @@ public abstract class BaseLightsAttributeTable<T extends Attribute, L extends Ba
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 if (container != null && currentType != 0) {
-                    color.set(color_s2c.get(colorSB.getSelected()));
-
-                    //if (enabledCheckBox != null && !enabledCheckBox.isChecked()) { enabledCheckBox.setChecked(true); }
-                    if (rTF != null) { rTF.setText(String.valueOf((int)(color.r * 255))); } // extending the range from [0:1] to [0:255]
-                    if (gTF != null) { gTF.setText(String.valueOf((int)(color.g * 255))); } // extending the range from [0:1] to [0:255]
-                    if (bTF != null) { bTF.setText(String.valueOf((int)(color.b * 255))); } // extending the range from [0:1] to [0:255]
-                    if (aTF != null) { aTF.setText(String.valueOf((int)(color.a * 255))); } // extending the range from [0:1] to [0:255]
-
-                    T attr = null;
-                    attr = container.get(attributeClass, currentType);
-
-                    if (attr != null && index >= 0) {
-                        if (attr instanceof DirectionalLightsAttribute) {
-                            DirectionalLightsAttribute attrTyped = (DirectionalLightsAttribute)attr;
-                            if (index < attrTyped.lights.size) { attrTyped.lights.get(index).color.set(color); }
-                        }
-                        if (attr instanceof PointLightsAttribute) {
-                            PointLightsAttribute attrTyped = (PointLightsAttribute)attr;
-                            if (index < attrTyped.lights.size) { attrTyped.lights.get(index).color.set(color); }
-                        }
-                        if (attr instanceof SpotLightsAttribute) {
-                            SpotLightsAttribute attrTyped = (SpotLightsAttribute)attr;
-                            if (index < attrTyped.lights.size) { attrTyped.lights.get(index).color.set(color); }
-                        }
-                    }
-
-                    if (listener != null) { listener.onAttributeChange(container, currentType, currentTypeAlias); }
+                    setAttributeColor(color_s2c.get(colorSB.getSelected()));
                 }
             }
         };
+
+        colorPickerListener = new ColorPickerListener() {
+            @Override public void canceled(Color oldColor) {
+                if (enabledCheckBox != null && !enabledCheckBox.isChecked()) { enabledCheckBox.setChecked(true); }
+                setAttributeColor(oldColor);
+            }
+            @Override public void changed(Color newColor) {
+                if (enabledCheckBox != null && !enabledCheckBox.isChecked()) { enabledCheckBox.setChecked(true); }
+                setAttributeColor(newColor);
+            }
+            @Override public void reset(Color previousColor, Color newColor) {
+                if (enabledCheckBox != null && !enabledCheckBox.isChecked()) { enabledCheckBox.setChecked(true); }
+                setAttributeColor(newColor);
+            }
+            @Override public void finished(Color newColor) {
+                if (enabledCheckBox != null && !enabledCheckBox.isChecked()) { enabledCheckBox.setChecked(true); }
+                setAttributeColor(newColor);
+            }
+        };
+    }
+
+    public void setAttributeColor(Color color) {
+        this.color.set(color);
+
+        //if (enabledCheckBox != null && !enabledCheckBox.isChecked()) { enabledCheckBox.setChecked(true); }
+        if (rTF != null) { rTF.setText(String.valueOf((int)(color.r * 255))); } // extending the range from [0:1] to [0:255]
+        if (gTF != null) { gTF.setText(String.valueOf((int)(color.g * 255))); } // extending the range from [0:1] to [0:255]
+        if (bTF != null) { bTF.setText(String.valueOf((int)(color.b * 255))); } // extending the range from [0:1] to [0:255]
+        if (aTF != null) { aTF.setText(String.valueOf((int)(color.a * 255))); } // extending the range from [0:1] to [0:255]
+
+        T attr = null;
+        attr = container.get(attributeClass, currentType);
+
+        if (attr != null && index >= 0) {
+            if (attr instanceof DirectionalLightsAttribute) {
+                DirectionalLightsAttribute attrTyped = (DirectionalLightsAttribute)attr;
+                if (index < attrTyped.lights.size) { attrTyped.lights.get(index).color.set(color); }
+            }
+            if (attr instanceof PointLightsAttribute) {
+                PointLightsAttribute attrTyped = (PointLightsAttribute)attr;
+                if (index < attrTyped.lights.size) { attrTyped.lights.get(index).color.set(color); }
+            }
+            if (attr instanceof SpotLightsAttribute) {
+                SpotLightsAttribute attrTyped = (SpotLightsAttribute)attr;
+                if (index < attrTyped.lights.size) { attrTyped.lights.get(index).color.set(color); }
+            }
+        }
+
+        if (listener != null) { listener.onAttributeChange(container, currentType, currentTypeAlias); }
     }
 
     protected abstract void postButtonAdd();

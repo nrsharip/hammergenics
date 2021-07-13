@@ -30,6 +30,7 @@ import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisSelectBox;
 import com.kotcrab.vis.ui.widget.VisTable;
 import com.kotcrab.vis.ui.widget.VisTextField;
+import com.kotcrab.vis.ui.widget.VisWindow;
 
 import static com.hammergenics.utils.HGUtils.gl20_i2s;
 import static com.hammergenics.utils.HGUtils.gl20_s2i;
@@ -61,8 +62,8 @@ public class BlendingAttributeTable extends AttributeTable<BlendingAttribute> {
     private ChangeListener selectBoxListener = null;
     private ChangeListener blendedCBListener = null;
 
-    public BlendingAttributeTable(Attributes container, ModelEditScreen modelES) {
-        super(container, modelES, BlendingAttribute.class);
+    public BlendingAttributeTable(Attributes container, ModelEditScreen modelES, VisWindow window, Long type, String alias) {
+        super(container, modelES, BlendingAttribute.class, window, type, alias);
 
         createListeners();
 
@@ -99,15 +100,15 @@ public class BlendingAttributeTable extends AttributeTable<BlendingAttribute> {
         VisTable line2 = new VisTable();
 
         line1.add(enabledCheckBox);
-        line1.add(new VisLabel("opacity:", Color.BLACK)).right();
+        line1.add(new VisLabel("opacity:")).right();
         line1.add(opacityTF).width(80).maxWidth(80).padRight(5f);
         line1.add(blendedCB).padRight(5f);
         line1.add(mapSrc2DstCB).padRight(5f);
         line1.add().expandX();
 
-        line2.add(new VisLabel("src:", Color.BLACK)).right();
+        line2.add(new VisLabel("src:")).right();
         line2.add(srcFuncSB);
-        line2.add(new VisLabel("dst:", Color.BLACK)).right();
+        line2.add(new VisLabel("dst:")).right();
         line2.add(dstFuncSB);
 
         add(line1).fillX();

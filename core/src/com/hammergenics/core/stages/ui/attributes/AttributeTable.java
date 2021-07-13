@@ -23,6 +23,7 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.hammergenics.core.ModelEditScreen;
 import com.kotcrab.vis.ui.widget.VisCheckBox;
+import com.kotcrab.vis.ui.widget.VisWindow;
 
 /**
  * Add description here
@@ -37,8 +38,11 @@ public abstract class AttributeTable<T extends Attribute> extends BaseAttributeT
 
     protected ChangeListener checkBoxListener;
 
-    public AttributeTable(Attributes container, ModelEditScreen modelES, Class<T> aClass) {
-        super(container, modelES, aClass);
+    public AttributeTable(Attributes container, ModelEditScreen modelES, Class<T> aClass, VisWindow window, Long type, String alias) {
+        super(container, modelES, aClass, window);
+
+        currentType = type;
+        currentTypeAlias = alias;
 
         enabledCheckBox = new VisCheckBox("enabled");
 

@@ -45,18 +45,18 @@ public class AggregatedAttributesManagerTable extends ManagerTable {
         super(modelES, stage);
 
         VisTable topPanel = new VisTable();
-        topPanel.add(envTextButton).padRight(5f);
-        topPanel.add(mtlTextButton).padRight(5f);
-        topPanel.add(mtlSelectBox);
+        topPanel.add(envTextButton).pad(1f).padRight(5f);
+        topPanel.add(mtlTextButton).pad(1f).padRight(5f);
+        topPanel.add(mtlSelectBox).padBottom(1f);
         topPanel.add().expandX();
-        add(topPanel).fillX();
+        add(topPanel).expandX().fillX().right();
         row();
-        attrTableCell = add();
+        attrTableCell = add().expand().fill().left();
     }
 
     @Override
     protected void init() {
-        mtlTextButton = new VisTextButton("MTL");
+        mtlTextButton = new VisTextButton("Material");
         stage.unpressButton(mtlTextButton);
         mtlTextButton.addListener(new InputListener() {
             @Override
@@ -66,7 +66,7 @@ public class AggregatedAttributesManagerTable extends ManagerTable {
             }
         });
 
-        envTextButton = new VisTextButton("ENV");
+        envTextButton = new VisTextButton("Environment");
         stage.unpressButton(envTextButton);
         envTextButton.addListener(new InputListener() {
             @Override
@@ -119,6 +119,8 @@ public class AggregatedAttributesManagerTable extends ManagerTable {
     public void resetActors() {
         super.resetActors();
 
+        stage.editCell.expand().fill().right();
+
         if (!isAnyButtonPressed()) { pressEnv(); }
 
         if (stage.isPressed(envTextButton) && modelES.environment != null) {
@@ -126,7 +128,7 @@ public class AggregatedAttributesManagerTable extends ManagerTable {
 
             stage.envLabel.setText("Environment:\n" + HGUtils.extractAttributes(modelES.environment,"", ""));
 
-            stage.infoTCell.setActor(stage.envLabel);
+            //stage.infoTCell.setActor(stage.envLabel);
         }
 
         if (stage.isPressed(mtlTextButton) && dbgModelInstance != null) {
@@ -135,8 +137,8 @@ public class AggregatedAttributesManagerTable extends ManagerTable {
 
             stage.miLabel.setText(HGUtils.getModelInstanceInfo(modelES.eng.currMI));
 
-            stage.infoTCell.setActor(stage.miLabel);
-            stage.infoBCell.setActor(stage.textureImage);
+            //stage.infoTCell.setActor(stage.miLabel);
+            //stage.infoBCell.setActor(stage.textureImage);
         } else if (stage.isPressed(mtlTextButton)) {
             pressEnv();
         }

@@ -26,6 +26,7 @@ import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisSelectBox;
 import com.kotcrab.vis.ui.widget.VisTextButton;
 import com.kotcrab.vis.ui.widget.VisTextField;
+import com.kotcrab.vis.ui.widget.VisWindow;
 import com.kotcrab.vis.ui.widget.color.ColorPickerListener;
 
 import static com.hammergenics.utils.HGUtils.color_c2s;
@@ -56,8 +57,8 @@ public class ColorAttributeTable extends AttributeTable<ColorAttribute> {
 
     private Color color = new Color(Color.GRAY);
 
-    public ColorAttributeTable(Attributes container, ModelEditScreen modelES) {
-        super(container, modelES, ColorAttribute.class);
+    public ColorAttributeTable(Attributes container, ModelEditScreen modelES, VisWindow window, Long type, String alias) {
+        super(container, modelES, ColorAttribute.class, window, type, alias);
 
         createListeners();
 
@@ -98,23 +99,23 @@ public class ColorAttributeTable extends AttributeTable<ColorAttribute> {
         selectColorTB.addListener(new ChangeListener() {
             @Override
             public void changed (ChangeEvent event, Actor actor) {
-                modelES.stage.colorPicker.getPicker().setColor(color);
                 modelES.stage.colorPicker.setListener(colorPickerListener);
+                modelES.stage.colorPicker.getPicker().setColor(color);
                 //displaying picker with fade in animation
                 getStage().addActor(modelES.stage.colorPicker.fadeIn());
             }
         });
 
         add(enabledCheckBox).expandX().left().padLeft(5f).padRight(5f);
-        add(new VisLabel("r:", Color.BLACK)).right();
+        add(new VisLabel("r:")).right();
         add(rTF).pad(1f).width(40).maxWidth(40);
-        add(new VisLabel("g:", Color.BLACK)).right();
+        add(new VisLabel("g:")).right();
         add(gTF).pad(1f).width(40).maxWidth(40);
-        add(new VisLabel("b:", Color.BLACK)).right();
+        add(new VisLabel("b:")).right();
         add(bTF).pad(1f).width(40).maxWidth(40);
-        add(new VisLabel("a:", Color.BLACK)).right();
+        add(new VisLabel("a:")).right();
         add(aTF).pad(1f).width(40).maxWidth(40);
-        add(new VisLabel("color:", Color.BLACK)).right();
+        add(new VisLabel("color:")).right();
         add(colorSB).pad(1f).fillX();
         add(selectColorTB).fillX();
         add().expandX();
@@ -134,8 +135,7 @@ public class ColorAttributeTable extends AttributeTable<ColorAttribute> {
         return null;
     }
 
-    @Override
-    public void setColor(Color color) {
+    public void setAttributeColor(Color color) {
         if (container != null && currentType != 0) {
             ColorAttribute attr = container.get(ColorAttribute.class, currentType);
             if (attr != null) {
@@ -150,19 +150,19 @@ public class ColorAttributeTable extends AttributeTable<ColorAttribute> {
         colorPickerListener = new ColorPickerListener() {
             @Override public void canceled(Color oldColor) {
                 if (enabledCheckBox != null && !enabledCheckBox.isChecked()) { enabledCheckBox.setChecked(true); }
-                setColor(oldColor);
+                setAttributeColor(oldColor);
             }
             @Override public void changed(Color newColor) {
                 if (enabledCheckBox != null && !enabledCheckBox.isChecked()) { enabledCheckBox.setChecked(true); }
-                setColor(newColor);
+                setAttributeColor(newColor);
             }
             @Override public void reset(Color previousColor, Color newColor) {
                 if (enabledCheckBox != null && !enabledCheckBox.isChecked()) { enabledCheckBox.setChecked(true); }
-                setColor(newColor);
+                setAttributeColor(newColor);
             }
             @Override public void finished(Color newColor) {
                 if (enabledCheckBox != null && !enabledCheckBox.isChecked()) { enabledCheckBox.setChecked(true); }
-                setColor(newColor);
+                setAttributeColor(newColor);
             }
         };
 
@@ -187,7 +187,7 @@ public class ColorAttributeTable extends AttributeTable<ColorAttribute> {
                             case ACTOR_B: tmp.b = value; break;
                             case ACTOR_A: tmp.a = value; break;
                         }
-                        setColor(tmp);
+                        setAttributeColor(tmp);
                     }
                     textField.getColor().set(Color.WHITE);
                 } catch (NumberFormatException e) {
@@ -206,7 +206,7 @@ public class ColorAttributeTable extends AttributeTable<ColorAttribute> {
 
                     if (enabledCheckBox != null && !enabledCheckBox.isChecked()) { enabledCheckBox.setChecked(true); }
 
-                    setColor(color);
+                    setAttributeColor(color);
                 }
             }
         };

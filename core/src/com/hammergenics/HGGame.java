@@ -114,8 +114,8 @@ public class HGGame extends Game {
 
         // https://github.com/kotcrab/vis-ui#usage
         VisUI.load();
-        VisUI.getSkin().get(VisCheckBox.VisCheckBoxStyle.class).fontColor = Color.BLACK.cpy();
-        VisUI.getSkin().get(VisTextButton.VisTextButtonStyle.class).fontColor = Color.WHITE.cpy();
+        //VisUI.getSkin().get(VisCheckBox.VisCheckBoxStyle.class).fontColor = Color.BLACK.cpy();
+        //VisUI.getSkin().get(VisTextButton.VisTextButtonStyle.class).fontColor = Color.WHITE.cpy();
 
         ENGLISH.apply(engine.assetManager);
 

@@ -31,16 +31,14 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
 import com.hammergenics.core.ModelEditScreen;
-import com.hammergenics.utils.HGUtils;
 import com.kotcrab.vis.ui.util.dialog.ConfirmDialogListener;
 import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisSelectBox;
 import com.kotcrab.vis.ui.widget.VisTextButton;
 import com.kotcrab.vis.ui.widget.VisTextField;
+import com.kotcrab.vis.ui.widget.VisWindow;
 
 import java.util.Arrays;
-
-import static com.hammergenics.core.stages.ui.file.TypeFilterRulesEnum.IMAGE_FILES;
 
 /**
  * Add description here
@@ -77,8 +75,8 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
 
     private Texture texture;
 
-    public TextureAttributeTable(Attributes container, ModelEditScreen modelES) {
-        super(container, modelES, TextureAttribute.class);
+    public TextureAttributeTable(Attributes container, ModelEditScreen modelES, VisWindow window, Long type, String alias) {
+        super(container, modelES, TextureAttribute.class, window, type, alias);
 
         createListeners();
 
@@ -94,11 +92,11 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
         scaleVTF.setTextFieldListener(paramTextFieldListener);
 
         itemsTextureFilter = Arrays.stream(Texture.TextureFilter.values()).map(String::valueOf)
-                .map(filter -> filter
-                        .replace("NearestNearest", "NN")
-                        .replace("NearestLinear", "NL")
-                        .replace("LinearNearest", "LN")
-                        .replace("LinearLinear", "LL"))
+                //.map(filter -> filter
+                //        .replace("NearestNearest", "NN")
+                //        .replace("NearestLinear", "NL")
+                //        .replace("LinearNearest", "LN")
+                //        .replace("LinearLinear", "LL"))
                 .collect(Array::new, Array::add, Array::addAll);
         itemsTextureWrap = Arrays.stream(Texture.TextureWrap.values()).map(String::valueOf)
                 .collect(Array::new, Array::add, Array::addAll);
@@ -162,27 +160,32 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
         uWrapSB.addListener(paramSelectBoxListener);
         vWrapSB.addListener(paramSelectBoxListener);
 
-        add(enabledCheckBox);
-        add(new VisLabel("offsetU:", Color.BLACK)).right();
+        add(new VisLabel(alias)).expandX().padRight(5f).center();
+        add(new VisLabel("offsetU:")).padRight(5f).right();
         add(offsetUTF).width(40).maxWidth(40);
-        add(new VisLabel("scaleU:", Color.BLACK)).right();
-        add(scaleUTF).width(40).maxWidth(40);
-        add(new VisLabel("minFilter:", Color.BLACK)).right();
+        add(new VisLabel("minFilter:")).padRight(5f).right();
         add(minFilterSB).fillX();
-        add(new VisLabel("uWrap:", Color.BLACK)).right();
-        add(uWrapSB).fillX();
-        row().pad(0.5f);
 
-        add(chooseImageTB).fillX();
-        add(new VisLabel("offsetV:", Color.BLACK)).right();
-        add(offsetVTF).width(40).maxWidth(40);
-        add(new VisLabel("scaleV:", Color.BLACK)).right();
-        add(scaleVTF).width(40).maxWidth(40);
-        add(new VisLabel("magFilter:", Color.BLACK)).right();
-        add(magFilterSB).fillX();
-        add(new VisLabel("vWrap:", Color.BLACK)).right();
-        add(vWrapSB).fillX();
         row().pad(0.5f);
+        add(enabledCheckBox).padRight(5f);
+        add(new VisLabel("offsetV:")).padRight(5f).right();
+        add(offsetVTF).width(40).maxWidth(40);
+        add(new VisLabel("magFilter:")).padRight(5f).right();
+        add(magFilterSB).fillX();
+
+        row().pad(0.5f);
+        add(chooseImageTB).fillX();
+        add(new VisLabel("scaleU:")).padRight(5f).right();
+        add(scaleUTF).width(40).maxWidth(40);
+        add(new VisLabel("uWrap:")).padRight(5f).right();
+        add(uWrapSB).fillX();
+
+        row().pad(0.5f);
+        add();
+        add(new VisLabel("scaleV:")).padRight(5f).right();
+        add(scaleVTF).width(40).maxWidth(40);
+        add(new VisLabel("vWrap:")).padRight(5f).right();
+        add(vWrapSB).fillX();
     }
 
     // long Diffuse

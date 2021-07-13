@@ -288,15 +288,7 @@ public class ModelEditStage extends Stage {
                         if (modelES.eng.assetManager.getQueuedAssets() > 0) { return; } // another load is in progress
                         modelES.eng.loadQueue.clear();
 
-                        loadProgressBar.setValue(0f);
-                        loadImagePreviewWindow.table.clearImage();
-                        loadImagePreviewWindow.table.cell
-                                .minWidth(Gdx.graphics.getWidth()/2f).minHeight(Gdx.graphics.getHeight()/2f)
-                                .maxWidth(Gdx.graphics.getWidth()/2f).maxHeight(Gdx.graphics.getHeight()/2f);
-                        loadImagePreviewCell.expand(false, false).clearActor();
-                        loadProgressWindow.pack();
-                        loadProgressWindow.centerWindow();
-                        addActor(loadProgressWindow.fadeIn());
+                        prepProgressBarForLoad();
 
                         for (FileHandle fh: fileHandles) {
                             if (fh.isDirectory()) {
@@ -504,9 +496,21 @@ public class ModelEditStage extends Stage {
         loadProgressWindow.pack();
     }
 
+    public void prepProgressBarForLoad() {
+        loadProgressBar.setValue(0f);
+        loadImagePreviewWindow.table.clearImage();
+        loadImagePreviewWindow.table.cell
+                .minWidth(Gdx.graphics.getWidth()/2f).minHeight(Gdx.graphics.getHeight()/2f)
+                .maxWidth(Gdx.graphics.getWidth()/2f).maxHeight(Gdx.graphics.getHeight()/2f);
+        loadImagePreviewCell.expand(false, false).clearActor();
+        loadProgressWindow.pack();
+        loadProgressWindow.centerWindow();
+        addActor(loadProgressWindow.fadeIn());
+    }
+
     public void loadShowPreviewImage(FileHandle fileHandle) {
         loadImagePreviewWindow.table.setImage(modelES.eng.getAsset(fileHandle, Texture.class));
-        loadImagePreviewCell.expand().setActor(loadImagePreviewWindow);
+        loadImagePreviewCell.setActor(loadImagePreviewWindow).expand();
         loadProgressWindow.pack();
         loadProgressWindow.centerWindow();
     }
@@ -1001,8 +1005,8 @@ public class ModelEditStage extends Stage {
         infoTable.row();
         infoBCell = infoTable.add().expand().fill().bottom().left().maxWidth(512).maxHeight(512);
 
-        rootTable.add(infoTable).expand().fill().left().pad(10f);
-        editCell = rootTable.add().expand().right().top().pad(10f);
+        rootTable.add(infoTable).fill().left();
+        editCell = rootTable.add().expand().fill().right().top();
 
         rootTable.row();
 
