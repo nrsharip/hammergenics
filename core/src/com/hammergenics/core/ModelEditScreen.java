@@ -154,7 +154,7 @@ public class ModelEditScreen extends ScreenAdapter {
                 if (HGEngine.getAssetClass(eng.loaded).equals(Texture.class)) {
                     stage.loadShowPreviewImage(eng.loaded);
                 } else {
-                    stage.loadClearPreviewImage();
+                    stage.loadHidePreviewImage();
                 }
             }
         }

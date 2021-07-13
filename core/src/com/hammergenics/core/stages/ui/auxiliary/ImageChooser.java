@@ -18,9 +18,11 @@ package com.hammergenics.core.stages.ui.auxiliary;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.ui.Cell;
+import com.badlogic.gdx.scenes.scene2d.utils.ActorGestureListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Array;
@@ -28,8 +30,10 @@ import com.hammergenics.HGEngine;
 import com.hammergenics.core.stages.ModelEditStage;
 import com.kotcrab.vis.ui.util.dialog.ConfirmDialogListener;
 import com.kotcrab.vis.ui.widget.ButtonBar;
+import com.kotcrab.vis.ui.widget.VisImageButton;
 import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisScrollPane;
+import com.kotcrab.vis.ui.widget.VisTable;
 import com.kotcrab.vis.ui.widget.VisTextButton;
 import com.kotcrab.vis.ui.widget.VisTree;
 import com.kotcrab.vis.ui.widget.VisWindow;
@@ -43,12 +47,20 @@ public class ImageChooser extends VisWindow {
     public HGEngine engine;
     public ModelEditStage stage;
 
+    // chooser part
     public VisTree<HGTreeVisTableNode, VisLabel> imageTree;
     public VisScrollPane imageTreeScrollPane;
+    public VisTextButton okTextButton;
+    public VisTextButton cancelTextButton;
     public VisTextButton chooseFileTB;
     public Cell<VisScrollPane> scrollPaneCell;
+    public ButtonBar btnBar;
 
     public ConfirmDialogListener<FileHandle> listener;
+
+    // image preview part
+    public HGImageVisWindow imagePreviewWindow;
+    public Cell<HGImageVisWindow> imagePreviewCell;
 
     public ImageChooser(HGEngine engine, ModelEditStage stage) {
         super("Choose Image");
@@ -56,6 +68,95 @@ public class ImageChooser extends VisWindow {
         this.engine = engine;
         this.stage = stage;
 
+        imagePreviewWindow = new HGImageVisWindow(false);
+        imagePreviewWindow.table.clearImage();
+
+        initChooser();
+
+        VisTable chooserTable = new VisTable();
+        scrollPaneCell = chooserTable.add(imageTreeScrollPane).fill().expand();
+        chooserTable.row();
+        chooserTable.add(btnBar.createTable()).expandX().fillX();
+
+        add(chooserTable).fill().expand();
+        imagePreviewCell = add(imagePreviewWindow);
+
+        hideImagePreview();
+
+        pack();
+        centerWindow();
+    }
+
+    public void showImagePreview(FileHandle fileHandle) {
+        imagePreviewWindow.table.setImage(engine.getAsset(fileHandle, Texture.class));
+        imagePreviewCell.expand().setActor(imagePreviewWindow);
+        imagePreviewCell.minWidth(Gdx.graphics.getWidth()/5f).minHeight(Gdx.graphics.getHeight()/3f)
+                        .maxWidth(Gdx.graphics.getWidth()/5f).maxHeight(Gdx.graphics.getHeight()/3f);
+        pack();
+        //centerWindow();
+    }
+
+    public void hideImagePreview() {
+        imagePreviewWindow.table.clearImage();
+        imagePreviewCell.expand(false, false).clearActor();
+        imagePreviewCell.minWidth(0f).minHeight(0f);
+
+        pack();
+        //centerWindow();
+    }
+
+    public void updateImageTree() {
+        imageTree.clearChildren();
+
+        ActorGestureListener nonSelectListener = new ActorGestureListener() {
+            @Override
+            public void tap(InputEvent event, float x, float y, int count, int button) {
+                okTextButton.setDisabled(true);
+                hideImagePreview();
+                super.tap(event, x, y, count, button);
+            }
+        };
+
+        ActorGestureListener selectListener = new ActorGestureListener() {
+            @Override
+            public void tap(InputEvent event, float x, float y, int count, int button) {
+                okTextButton.setDisabled(false);
+                if (count == 1) { // single click
+                    Gdx.app.debug("image chooser", "select: tap 1");
+                    showImagePreview(((HGTreeVisTableNode.HGTreeVisTable)event.getTarget().getParent()).fileHandle);
+                } else if ( count == 2 ) { // double click
+                    Gdx.app.debug("image chooser", "select: tap 2");
+                    if (listener != null) { listener.result(imageTree.getSelectedNode().getActor().fileHandle); }
+                }
+                super.tap(event, x, y, count, button);
+            }
+        };
+
+        HGTreeVisTableNode imagesNode = new HGTreeVisTableNode(new HGTreeVisTableNode.HGTreeVisTable("Images"));
+        imagesNode.setExpanded(true);
+        imagesNode.getActor().addListener(nonSelectListener);
+        imageTree.add(imagesNode);
+        if (stage.projManagerTable != null) {
+            stage.projManagerTable.fillTreeNodesWithAssets(null, imagesNode);
+        }
+
+        for (HGTreeVisTableNode node1: imagesNode.getChildren()) {
+            node1.getActor().addListener(nonSelectListener);
+            for (HGTreeVisTableNode node2: node1.getChildren()) {
+                node2.getActor().addListener(selectListener);
+            }
+        }
+
+        imagesNode.expandTo();
+        if (scrollPaneCell != null) {
+            scrollPaneCell.minWidth(Gdx.graphics.getWidth()/5f).minHeight(Gdx.graphics.getHeight()/3f)
+                          .maxWidth(Gdx.graphics.getWidth()/5f).maxHeight(Gdx.graphics.getHeight()/3f);
+        }
+        pack();
+        centerWindow();
+    }
+
+    public void initChooser() {
         setResizable(true);
         closeOnEscape();
         addCloseButton();
@@ -73,15 +174,19 @@ public class ImageChooser extends VisWindow {
 
         imageTreeScrollPane = new VisScrollPane(imageTree);
 
-        ButtonBar btnBar = new ButtonBar();
+        btnBar = new ButtonBar();
         ChangeListener okBtnListener = new ChangeListener() {
             @Override public void changed (ChangeEvent event, Actor actor) {
                 if (listener != null) { listener.result(imageTree.getSelectedNode().getActor().fileHandle); }
+                clearListener();
                 fadeOut();
             }
         };
         ChangeListener cancelBtnListener = new ChangeListener() {
-            @Override public void changed (ChangeEvent event, Actor actor) { fadeOut(); }
+            @Override public void changed (ChangeEvent event, Actor actor) {
+                clearListener();
+                fadeOut();
+            }
         };
         ChangeListener fileBtnListener = new ChangeListener() {
             @Override
@@ -143,36 +248,25 @@ public class ImageChooser extends VisWindow {
             }
         };
 
+        okTextButton = new VisTextButton("OK");
+        cancelTextButton = new VisTextButton("Cancel");
         chooseFileTB = new VisTextButton("Choose Image File(s)...");
         btnBar.setButton(ButtonBar.ButtonType.LEFT, chooseFileTB, fileBtnListener);
-        btnBar.setButton(ButtonBar.ButtonType.OK, okBtnListener);
-        btnBar.setButton(ButtonBar.ButtonType.CANCEL, cancelBtnListener);
+        btnBar.setButton(ButtonBar.ButtonType.OK, okTextButton, okBtnListener);
+        btnBar.setButton(ButtonBar.ButtonType.CANCEL, cancelTextButton, cancelBtnListener);
 
-        scrollPaneCell = add(imageTreeScrollPane).fill().expand().colspan(3)
-                .minWidth(Gdx.graphics.getWidth()/4f).minHeight(Gdx.graphics.getHeight()/4f)
-                .maxWidth(Gdx.graphics.getWidth()/2f).maxHeight(Gdx.graphics.getHeight()/2f);
-        row();
-        add(btnBar.createTable()).expandX().fillX();
-
-        pack();
-        centerWindow();
-
-        fadeIn();
-    }
-
-    public void updateImageTree() {
-        imageTree.clearChildren();
-        HGTreeVisTableNode imagesNode = new HGTreeVisTableNode(new HGTreeVisTableNode.HGTreeVisTable("Images"));
-        imagesNode.setExpanded(true);
-        imageTree.add(imagesNode);
-        stage.projManagerTable.fillTreeNodesWithAssets(null, imagesNode);
-        imagesNode.expandTo();
-        if (scrollPaneCell != null) {
-            scrollPaneCell.minWidth(Gdx.graphics.getWidth() / 4f).minHeight(Gdx.graphics.getHeight() / 4f)
-                          .maxWidth(Gdx.graphics.getWidth() / 2f).maxHeight(Gdx.graphics.getHeight() / 2f);
+        VisImageButton closeTB = null;
+        for (Actor actor: getTitleTable().getChildren()) {
+            if (actor instanceof VisImageButton) { closeTB = (VisImageButton) actor; break; }
         }
-        pack();
-        centerWindow();
+        if (closeTB != null) {
+            closeTB.addListener(new ChangeListener() {
+                @Override
+                public void changed(ChangeEvent event, Actor actor) {
+                    clearListener();
+                }
+            });
+        }
     }
 
     public void setListener(ConfirmDialogListener<FileHandle> listener) { this.listener = listener; }

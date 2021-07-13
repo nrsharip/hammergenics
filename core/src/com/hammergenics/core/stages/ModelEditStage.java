@@ -128,7 +128,7 @@ public class ModelEditStage extends Stage {
     public VisWindow loadProgressWindow;
     public VisProgressBar loadProgressBar;
 
-    public HGImageVisWindow imagePreviewWindow;
+    public HGImageVisWindow loadImagePreviewWindow;
     public Cell<HGImageVisWindow> loadImagePreviewCell;
 
     public VisLabel miLabel;  // Model Instance Info
@@ -174,6 +174,7 @@ public class ModelEditStage extends Stage {
         initFileChooser();
         initMenuBar();
         initProgressBar();
+        imageChooser = new ImageChooser(modelES.eng, this);
 
         setup2DStageWidgets();
         setup2DStageLayout();
@@ -191,8 +192,6 @@ public class ModelEditStage extends Stage {
         mapGenerationTable = new MapGenerationTable(modelES, this);
         aiManagerTable = new AIManagerTable(modelES, this);
         physManagerTable = new PhysicsManagerTable(modelES, this);
-
-        imageChooser = new ImageChooser(modelES.eng, this);
 
         pressButton(projTextButton, true);
         resetTables();
@@ -290,8 +289,8 @@ public class ModelEditStage extends Stage {
                         modelES.eng.loadQueue.clear();
 
                         loadProgressBar.setValue(0f);
-                        imagePreviewWindow.table.clearImage();
-                        imagePreviewWindow.table.cell
+                        loadImagePreviewWindow.table.clearImage();
+                        loadImagePreviewWindow.table.cell
                                 .minWidth(Gdx.graphics.getWidth()/2f).minHeight(Gdx.graphics.getHeight()/2f)
                                 .maxWidth(Gdx.graphics.getWidth()/2f).maxHeight(Gdx.graphics.getHeight()/2f);
                         loadImagePreviewCell.expand(false, false).clearActor();
@@ -495,25 +494,25 @@ public class ModelEditStage extends Stage {
             }
         });
 
-        imagePreviewWindow = new HGImageVisWindow(false);
+        loadImagePreviewWindow = new HGImageVisWindow(false);
 
         loadProgressWindow.add(loadProgressBar).expandX().fillX().minWidth(3 * loadProgressBar.getWidth());
         loadProgressWindow.add(cancelTextButton).fillX().pad(5f);
         loadProgressWindow.row();
-        loadImagePreviewCell = loadProgressWindow.add(imagePreviewWindow).colspan(2).fill();
+        loadImagePreviewCell = loadProgressWindow.add(loadImagePreviewWindow).colspan(2).fill();
 
         loadProgressWindow.pack();
     }
 
     public void loadShowPreviewImage(FileHandle fileHandle) {
-        imagePreviewWindow.table.setImage(modelES.eng.getAsset(fileHandle, Texture.class));
-        loadImagePreviewCell.expand().setActor(imagePreviewWindow);
+        loadImagePreviewWindow.table.setImage(modelES.eng.getAsset(fileHandle, Texture.class));
+        loadImagePreviewCell.expand().setActor(loadImagePreviewWindow);
         loadProgressWindow.pack();
         loadProgressWindow.centerWindow();
     }
 
-    public void loadClearPreviewImage() {
-        imagePreviewWindow.table.clearImage();
+    public void loadHidePreviewImage() {
+        loadImagePreviewWindow.table.clearImage();
         loadImagePreviewCell.expand(false, false).clearActor();
         loadProgressWindow.pack();
         loadProgressWindow.centerWindow();

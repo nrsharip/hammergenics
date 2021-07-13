@@ -142,7 +142,6 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
                 modelES.stage.imageChooser.setListener(new ConfirmDialogListener<FileHandle>() {
                     @Override
                     public void result(FileHandle result) {
-                        modelES.stage.imageChooser.clearListener();
                         if (container != null && currentType != 0) {
                             textureFileHandle = new FileHandle(result.file().getAbsolutePath());
                             enabledCheckBox.setChecked(false);    // relying on 'enabled' check box event processing
