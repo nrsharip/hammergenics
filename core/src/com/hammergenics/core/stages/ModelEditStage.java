@@ -42,6 +42,7 @@ import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.StringBuilder;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import com.hammergenics.HGEngine;
 import com.hammergenics.HGGame;
 import com.hammergenics.HGGame.I18NBundlesEnum;
 import com.hammergenics.core.ModelEditScreen;
@@ -57,6 +58,7 @@ import com.hammergenics.core.stages.ui.attributes.BaseAttributeTable;
 import com.hammergenics.core.stages.ui.attributes.BaseAttributeTable.EventType;
 import com.hammergenics.core.stages.ui.auxiliary.HGImageVisWindow;
 import com.hammergenics.core.stages.ui.auxiliary.ImageChooser;
+import com.hammergenics.core.stages.ui.auxiliary.ModelChooser;
 import com.hammergenics.utils.HGUtils;
 import com.kotcrab.vis.ui.VisUI;
 import com.kotcrab.vis.ui.i18n.BundleText;
@@ -125,6 +127,7 @@ public class ModelEditStage extends Stage {
     public ColorPicker colorPicker;
     public FileChooser fileChooser;
     public ImageChooser imageChooser;
+    public ModelChooser modelChooser;
     public VisWindow loadProgressWindow;
     public VisProgressBar loadProgressBar;
 
@@ -175,6 +178,7 @@ public class ModelEditStage extends Stage {
         initMenuBar();
         initProgressBar();
         imageChooser = new ImageChooser(modelES.eng, this);
+        modelChooser = new ModelChooser(modelES.eng, this);
 
         setup2DStageWidgets();
         setup2DStageLayout();
@@ -497,6 +501,19 @@ public class ModelEditStage extends Stage {
     }
 
     public void prepProgressBarForLoad() {
+        modelES.eng.addLoadListener(new HGEngine.LoadListener.LoadAdapter() {
+            @Override
+            public void update(boolean result) {
+                // waiting until the asset manager finishes the load
+                if (result) {
+                    modelChooser.updateAssetsTree();
+                    imageChooser.updateAssetsTree();
+                    modelES.eng.removeLoadListener(this);
+                }
+                super.update(result);
+            }
+        });
+
         loadProgressBar.setValue(0f);
         loadImagePreviewWindow.table.clearImage();
         loadImagePreviewWindow.table.cell

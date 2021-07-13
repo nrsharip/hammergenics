@@ -136,7 +136,7 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
         chooseImageTB.addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                modelES.stage.imageChooser.updateImageTree();
+                modelES.stage.imageChooser.updateAssetsTree();
                 modelES.stage.imageChooser.setListener(new ConfirmDialogListener<FileHandle>() {
                     @Override
                     public void result(FileHandle result) {
