@@ -140,13 +140,16 @@ public enum TerrainPartsEnum {
 
     public boolean processFileHandle(AssetManager am, FileHandle fh) {
         HGModel model;
+        //Gdx.app.debug("terrain part","" + " desc: " + description + " file: " + fh);
         if (am == null || fh == null || !am.contains(fh.path())) { return false; }
+        //Gdx.app.debug("terrain part","check 1");
         model = new HGModel(am.get(fh.path(), Model.class), fh);
         if (!model.hasMeshes()) { return false; }
+        //Gdx.app.debug("terrain part","check 2");
         HGModelInstance sample = new HGModelInstance(model);
 
         if (!parseMesh(model, sample)) { return false; }
-
+        //Gdx.app.debug("terrain part","check 3");
         this.fh = fh;
         this.model = model;
         this.sample = sample;

@@ -27,6 +27,7 @@ import com.hammergenics.HGEngine;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.stages.ModelEditStage;
 import com.hammergenics.map.TerrainPartsEnum;
+import com.kotcrab.vis.ui.util.dialog.ConfirmDialogListener;
 import com.kotcrab.vis.ui.widget.VisCheckBox;
 import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisSelectBox;
@@ -49,13 +50,28 @@ public class TerrainVisWindow extends VisWindow {
     public VisTextButton clearTerrainTextButton;
     public ArrayMap<TerrainPartsEnum, VisSelectBox<FileHandle>> trrnSelectBoxes =
             new ArrayMap<>(true, 16, TerrainPartsEnum.class, VisSelectBox.class);
-
+    public ArrayMap<TerrainPartsEnum, FileHandle> trrnPart2fileHandle =
+            new ArrayMap<>(true, 16, TerrainPartsEnum.class, FileHandle.class);
+    public ArrayMap<TerrainPartsEnum, VisLabel> trrnPart2label =
+            new ArrayMap<>(true, 16, TerrainPartsEnum.class, VisLabel.class);
     public TerrainVisWindow(ModelEditScreen modelES, ModelEditStage stage) {
         super("Terrain");
 
         this.modelES = modelES;
         this.stage = stage;
         this.eng = modelES.eng;
+
+        // NOTE: It is safe to feed null's along with the terrain parts to the engine. The actual check of null
+        //       happens on the path HGEngine.applyTerrainParts -> TerrainPartsEnum.processFileHandle
+        trrnPart2fileHandle.put(TRRN_FLAT, null);
+        trrnPart2fileHandle.put(TRRN_SIDE, null);
+        trrnPart2fileHandle.put(TRRN_CORN_INN, null);
+        trrnPart2fileHandle.put(TRRN_CORN_OUT, null);
+
+        trrnPart2label.put(TRRN_FLAT, new VisLabel("No model selected"));
+        trrnPart2label.put(TRRN_SIDE, new VisLabel("No model selected"));
+        trrnPart2label.put(TRRN_CORN_INN, new VisLabel("No model selected"));
+        trrnPart2label.put(TRRN_CORN_OUT, new VisLabel("No model selected"));
 
         trrnSelectBoxes.put(TRRN_FLAT, new VisSelectBox<>());
         trrnSelectBoxes.put(TRRN_SIDE, new VisSelectBox<>());
@@ -72,17 +88,10 @@ public class TerrainVisWindow extends VisWindow {
         applyTerrainTextButton.addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                ArrayMap<TerrainPartsEnum, FileHandle> tp2fh =
-                        new ArrayMap<>(true, 16, TerrainPartsEnum.class, FileHandle.class);
-                for (ObjectMap.Entry<TerrainPartsEnum, VisSelectBox<FileHandle>> entry: trrnSelectBoxes) {
-                    TerrainPartsEnum part = entry.key;
-                    VisSelectBox<FileHandle> sb = entry.value;
-
-                    if (sb.getItems().size == 0 || sb.getSelectedIndex() == 0) { continue; }
-                    tp2fh.put(part, sb.getSelected());
-                }
-
-                eng.applyTerrainParts(tp2fh);
+                //Gdx.app.debug("terrain","" + " map: " + trrnPart2fileHandle.toString());
+                // NOTE: It is safe to feed null's along with the terrain parts to the engine. The actual check of null
+                //       happens on the path HGEngine.applyTerrainParts -> TerrainPartsEnum.processFileHandle
+                eng.applyTerrainParts(trrnPart2fileHandle);
 
                 return super.touchDown(event, x, y, pointer, button); // false
                 // If true is returned, this listener will have touch focus, so it will receive all
@@ -109,12 +118,34 @@ public class TerrainVisWindow extends VisWindow {
         previewTerrain.setChecked(true);
 
         VisTable trrnPartTable = new VisTable();
-        for (ObjectMap.Entry<TerrainPartsEnum, VisSelectBox<FileHandle>> entry: trrnSelectBoxes) {
+        for (ObjectMap.Entry<TerrainPartsEnum, FileHandle> entry: trrnPart2fileHandle) {
             TerrainPartsEnum part = entry.key;
-            VisSelectBox<FileHandle> sb = entry.value;
 
-            trrnPartTable.add(new VisLabel(part.description + ":")).right();
-            trrnPartTable.add(sb).center().expandX().fillX();
+            VisTextButton chooseModelTB = new VisTextButton("select");
+            chooseModelTB.addListener(new InputListener() {
+                @Override
+                public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                    modelES.stage.modelChooser.updateAssetsTree();
+                    modelES.stage.modelChooser.setListener(new ConfirmDialogListener<FileHandle>() {
+                        @Override
+                        public void result(FileHandle result) {
+                            FileHandle fileHandle = new FileHandle(result.file().getAbsolutePath());
+                            //Gdx.app.debug("terrain","" + " tp: " + part.description + " filehandle: " + fileHandle);
+                            if (fileHandle.exists()) {
+                                //Gdx.app.debug("terrain","exists");
+                                trrnPart2fileHandle.put(part, fileHandle);
+                                trrnPart2label.get(part).setText(fileHandle.name());
+                            }
+                        }
+                    });
+                    modelES.stage.addActor(modelES.stage.modelChooser.fadeIn());
+                    return super.touchDown(event, x, y, pointer, button);
+                }
+            });
+
+            trrnPartTable.add(new VisLabel(part.description + ":")).padRight(5f).right();
+            trrnPartTable.add(chooseModelTB).padRight(5f).fillX();
+            trrnPartTable.add(trrnPart2label.get(part)).padRight(5f).expandX().fillX().left();
             trrnPartTable.row().pad(0.5f);
         }
         add(trrnPartTable).center().expandX().fillX();
