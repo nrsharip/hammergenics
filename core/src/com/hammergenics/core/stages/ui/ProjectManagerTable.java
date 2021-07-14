@@ -25,6 +25,7 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Tree;
+import com.badlogic.gdx.scenes.scene2d.utils.ActorGestureListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
@@ -73,6 +74,9 @@ public class ProjectManagerTable extends ManagerTable {
 
     public final ArrayMap<String, HGTreeVisTableNode> extension2treeNode = new ArrayMap<>(String.class, HGTreeVisTableNode.class);
 
+    public ActorGestureListener nonSelectListener;
+    public ActorGestureListener selectListener;
+
     public ProjectManagerTable(ModelEditScreen modelES, ModelEditStage stage) {
         super(modelES, stage);
     }
@@ -92,6 +96,100 @@ public class ProjectManagerTable extends ManagerTable {
 
         projectTree.expandAll();
         projectTreeScrollPane = new VisScrollPane(projectTree);
+
+        nonSelectListener = new ActorGestureListener() {
+            @Override
+            public void tap(InputEvent event, float x, float y, int count, int button) {
+                Gdx.app.debug("project", "GLOBAL non-select");
+                handleNonSelect(event, x, y, count, button);
+                super.tap(event, x, y, count, button);
+            }
+        };
+        selectListener = new ActorGestureListener() {
+            @Override
+            public void tap(InputEvent event, float x, float y, int count, int button) {
+                if (count == 1) { // single click
+                    Gdx.app.debug("project", "GLOBAL select: tap 1");
+                    tap1(event, x, y, count, button);
+                } else if ( count == 2 ) { // double click
+                    Gdx.app.debug("project", "GLOBAL select: tap 2");
+                    tap2(event, x, y, count, button);
+                }
+                super.tap(event, x, y, count, button);
+            }
+        };
+
+        applyListeners();
+    }
+
+    public void tap1(InputEvent event, float x, float y, int count, int button) { }
+    public void tap2(InputEvent event, float x, float y, int count, int button) { }
+    public void handleNonSelect(InputEvent event, float x, float y, int count, int button) { }
+
+    public void applyListeners() {
+        applyListeners(assetsTreeNode);
+        applyListeners(modelInstancesTreeNode);
+        applyListeners(envTreeNode);
+
+        applyListeners(fh2imagesTreeNode,
+                new ActorGestureListener() {
+                    @Override
+                    public void tap(InputEvent event, float x, float y, int count, int button) {
+                        Gdx.app.debug("project", "IMAGE non-select");
+                        handleNonSelect(event, x, y, count, button);
+                        super.tap(event, x, y, count, button);
+                    }
+                }, new ActorGestureListener() {
+                    @Override
+                    public void tap(InputEvent event, float x, float y, int count, int button) {
+                        if (count == 1) { // single click
+                            Gdx.app.debug("project", "IMAGE select: tap 1");
+                            tap1(event, x, y, count, button);
+                        } else if ( count == 2 ) { // double click
+                            Gdx.app.debug("project", "IMAGE select: tap 2");
+                            tap2(event, x, y, count, button);
+                        }
+                        super.tap(event, x, y, count, button);
+                    }
+                });
+    }
+
+    public void applyListeners(HGTreeVisTableNode rootNode) {
+        rootNode.getActor().clearListeners();
+        rootNode.getActor().addListener(nonSelectListener);
+
+        for (HGTreeVisTableNode node1 : rootNode.getChildren()) {      // "Models", "Images", "Sounds"...
+            node1.getActor().clearListeners();
+            node1.getActor().addListener(nonSelectListener);
+            for (HGTreeVisTableNode node2 : node1.getChildren()) {     // parent folders
+                node2.getActor().clearListeners();
+                node2.getActor().addListener(nonSelectListener);
+                for (HGTreeVisTableNode node3 : node2.getChildren()) { // actual asset
+                    node3.getActor().clearListeners();
+                    node3.getActor().addListener(selectListener);
+                }
+            }
+        }
+    }
+
+    public void applyListeners(final ArrayMap<FileHandle, HGTreeVisTableNode> map,
+                               ActorGestureListener nonSelectListener,
+                               ActorGestureListener selectListener) {
+        if (map == null) { return; }
+        for (ObjectMap.Entry<FileHandle, HGTreeVisTableNode> entry: map) {
+            FileHandle parent = entry.key;
+            HGTreeVisTableNode tn = entry.value;
+
+            // the listeners should already be cleared
+            //tn.getActor().clearListeners();
+            tn.getActor().addListener(nonSelectListener);
+
+            for (HGTreeVisTableNode node1: tn.getChildren()) { // actual asset
+                // the listeners should already be cleared
+                //node1.getActor().clearListeners();
+                node1.getActor().addListener(selectListener);
+            }
+        }
     }
 
     public void updateAssetsTree() {

@@ -518,9 +518,10 @@ public class ModelEditStage extends Stage {
             public void update(boolean result) {
                 // waiting until the asset manager finishes the load
                 if (result) {
+                    modelES.eng.removeLoadListener(this);
                     modelChooser.updateAssetsTree();
                     imageChooser.updateAssetsTree();
-                    modelES.eng.removeLoadListener(this);
+                    projManagerTable.applyListeners();
                 }
                 super.update(result);
             }
