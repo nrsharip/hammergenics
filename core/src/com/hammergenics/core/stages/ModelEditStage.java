@@ -291,6 +291,18 @@ public class ModelEditStage extends Stage {
 
                         if (modelES.eng.assetManager.getQueuedAssets() > 0) { return; } // another load is in progress
                         modelES.eng.loadQueue.clear();
+                        modelES.eng.clearLoadListeners();
+                        modelES.eng.addLoadListener(new HGEngine.LoadListener.LoadAdapter() {
+                            @Override
+                            public void update(boolean result) {
+                                // waiting until the asset manager finishes the load
+                                if (result) {
+                                    // IMPORTANT: updateAssetsTree is performed by the root listener of the
+                                    //            load progress bar of the stage (see stage.prepProgressBarForLoad())
+                                }
+                                super.update(result);
+                            }
+                        });
 
                         prepProgressBarForLoad();
 
@@ -513,7 +525,7 @@ public class ModelEditStage extends Stage {
                 super.update(result);
             }
         });
-
+        Gdx.app.debug("stage", " load listeners: " + modelES.eng.loadListeners.size);
         loadProgressBar.setValue(0f);
         loadImagePreviewWindow.table.clearImage();
         loadImagePreviewWindow.table.cell

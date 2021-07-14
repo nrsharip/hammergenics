@@ -68,7 +68,8 @@ public class ProjectManagerTable extends ManagerTable {
 
     public FileHandle commonPath = null;
     public final ArrayMap<HGTreeVisTableNode, FileHandle> treeNode2fh = new ArrayMap<>(HGTreeVisTableNode.class, FileHandle.class);
-    public final ArrayMap<FileHandle, HGTreeVisTableNode> fh2treeNode = new ArrayMap<>(FileHandle.class, HGTreeVisTableNode.class);
+    public final ArrayMap<FileHandle, HGTreeVisTableNode> fh2modelsTreeNode = new ArrayMap<>(FileHandle.class, HGTreeVisTableNode.class);
+    public final ArrayMap<FileHandle, HGTreeVisTableNode> fh2imagesTreeNode = new ArrayMap<>(FileHandle.class, HGTreeVisTableNode.class);
 
     public final ArrayMap<String, HGTreeVisTableNode> extension2treeNode = new ArrayMap<>(String.class, HGTreeVisTableNode.class);
 
@@ -110,44 +111,48 @@ public class ProjectManagerTable extends ManagerTable {
     }
 
     public void fillTreeNodesWithAssets(HGTreeVisTableNode rootModelsTreeNode, HGTreeVisTableNode rootImagesTreeNode) {
-        final ArrayMap<FileHandle, HGTreeVisTableNode> tmp = new ArrayMap<>(FileHandle.class, HGTreeVisTableNode.class);
+        final ArrayMap<FileHandle, HGTreeVisTableNode> tmpModels = new ArrayMap<>(FileHandle.class, HGTreeVisTableNode.class);
+        final ArrayMap<FileHandle, HGTreeVisTableNode> tmpImages = new ArrayMap<>(FileHandle.class, HGTreeVisTableNode.class);
 
         if (rootModelsTreeNode != null) {
             for (ObjectMap.Entry<FileHandle, HGModel> entry: eng.hgModels) {
-                addAssetTreeNode(entry.key, rootModelsTreeNode, rootImagesTreeNode, tmp);
+                addAssetTreeNode(entry.key, rootModelsTreeNode, rootImagesTreeNode, tmpModels, tmpImages);
             }
         }
 
         if (rootImagesTreeNode != null) {
             for (ObjectMap.Entry<FileHandle, HGTexture> entry: eng.hgTextures) {
-                addAssetTreeNode(entry.key, rootModelsTreeNode, rootImagesTreeNode, tmp);
+                addAssetTreeNode(entry.key, rootModelsTreeNode, rootImagesTreeNode, tmpModels, tmpImages);
             }
         }
     }
 
     public void addAssetTreeNode(FileHandle fileHandle) {
-        addAssetTreeNode(fileHandle, assetsModelsTreeNode, assetsImagesTreeNode, fh2treeNode);
+        addAssetTreeNode(fileHandle, assetsModelsTreeNode, assetsImagesTreeNode, fh2modelsTreeNode, fh2imagesTreeNode);
     }
 
     public void addAssetTreeNode(FileHandle fileHandle,
                                  HGTreeVisTableNode rootModelsTreeNode,
                                  HGTreeVisTableNode rootImagesTreeNode,
-                                 final ArrayMap<FileHandle, HGTreeVisTableNode> map) {
-        if (fileHandle == null || fileHandle.isDirectory() || map == null) { return; }
+                                 final ArrayMap<FileHandle, HGTreeVisTableNode> mapModels,
+                                 final ArrayMap<FileHandle, HGTreeVisTableNode> mapImages) {
+        if (fileHandle == null || fileHandle.isDirectory()) { return; }
 
         Class<?> assetClass = HGEngine.getAssetClass(fileHandle);
 
-        boolean parentPresent = map.containsKey(fileHandle.parent());
-        HGTreeVisTableNode treeNode = getAssetParentFolderTreeNode(fileHandle, assetClass, map);
+        boolean parentPresent;
+        HGTreeVisTableNode treeNode;
         // adding the parent folder node first (if not existed before)
-        if (!parentPresent) {
-            if (assetClass.equals(Model.class) && rootModelsTreeNode != null) {
-                addModelAssetParentFolderTreeNode(fileHandle, treeNode, rootModelsTreeNode);
-            } else if (assetClass.equals(Texture.class) && rootImagesTreeNode != null) {
-                addImageAssetParentFolderTreeNode(fileHandle, treeNode, rootImagesTreeNode);
-            } else {
-                return;
-            }
+        if (assetClass.equals(Model.class) && rootModelsTreeNode != null) {
+            parentPresent = mapModels.containsKey(fileHandle.parent());
+            treeNode = getAssetParentFolderTreeNode(fileHandle, assetClass, mapModels);
+            if (!parentPresent) { addModelAssetParentFolderTreeNode(fileHandle, treeNode, rootModelsTreeNode); }
+        } else if (assetClass.equals(Texture.class) && rootImagesTreeNode != null) {
+            parentPresent = mapImages.containsKey(fileHandle.parent());
+            treeNode = getAssetParentFolderTreeNode(fileHandle, assetClass, mapImages);
+            if (!parentPresent) { addImageAssetParentFolderTreeNode(fileHandle, treeNode, rootImagesTreeNode); }
+        } else {
+            return;
         }
 
         // then adding the child node - the asset itself
@@ -216,10 +221,10 @@ public class ProjectManagerTable extends ManagerTable {
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 Array<FileHandle> fhs;
                 // by this time fh2treeNode.get(parent) should return a real node
-                fhs = Arrays.stream(fh2treeNode.get(parent).getChildren().toArray()) // Array<HGTreeVisTableNode> -> HGTreeVisTableNode[]
-                        .map(Tree.Node::getActor)                                        // HGTreeVisTableNode -> HGTreeVisTable
-                        .map(HGTreeVisTable::getFileHandle)                              // HGTreeVisTable -> FileHandle
-                        .collect(Array::new, Array::add, Array::addAll);                 // -> Array<FileHandle>
+                fhs = Arrays.stream(fh2modelsTreeNode.get(parent).getChildren().toArray()) // Array<HGTreeVisTableNode> -> HGTreeVisTableNode[]
+                        .map(Tree.Node::getActor)                                    // HGTreeVisTableNode -> HGTreeVisTable
+                        .map(HGTreeVisTable::getFileHandle)                          // HGTreeVisTable -> FileHandle
+                        .collect(Array::new, Array::add, Array::addAll);             // -> Array<FileHandle>
                 stage.addModelInstances(fhs);
                 stage.afterCurrentModelInstanceChanged();
                 return super.touchDown(event, x, y, pointer, button);

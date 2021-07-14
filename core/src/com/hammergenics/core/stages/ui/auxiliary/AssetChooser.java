@@ -58,6 +58,9 @@ public abstract class AssetChooser extends VisWindow {
 
     public ConfirmDialogListener<FileHandle> listener;
 
+    public ActorGestureListener nonSelectListener;
+    public ActorGestureListener selectListener;
+
     public AssetChooser(HGEngine engine, ModelEditStage stage) {
         super("Choose Asset");
 
@@ -84,31 +87,6 @@ public abstract class AssetChooser extends VisWindow {
     public void updateAssetsTree() {
         assetsTree.clearChildren();
 
-        ActorGestureListener nonSelectListener = new ActorGestureListener() {
-            @Override
-            public void tap(InputEvent event, float x, float y, int count, int button) {
-                okTextButton.setDisabled(true);
-                handleNonSelect(event, x, y, count, button);
-                super.tap(event, x, y, count, button);
-            }
-        };
-
-        ActorGestureListener selectListener = new ActorGestureListener() {
-            @Override
-            public void tap(InputEvent event, float x, float y, int count, int button) {
-                okTextButton.setDisabled(false);
-                if (count == 1) { // single click
-                    Gdx.app.debug("asset chooser", "select: tap 1");
-                    tap1(event, x, y, count, button);
-                } else if ( count == 2 ) { // double click
-                    Gdx.app.debug("asset chooser", "select: tap 2");
-                    tap2(event, x, y, count, button);
-                    if (listener != null) { listener.result(assetsTree.getSelectedNode().getActor().fileHandle); }
-                }
-                super.tap(event, x, y, count, button);
-            }
-        };
-
         HGTreeVisTableNode assetsNode = getAssetsNode();
         assetsNode.setExpanded(true);
         assetsNode.getActor().addListener(nonSelectListener);
@@ -125,7 +103,7 @@ public abstract class AssetChooser extends VisWindow {
         if (scrollPaneCell != null) {
             scrollPaneCell
                     .minWidth(Gdx.graphics.getWidth()/5f).minHeight(Gdx.graphics.getHeight()/3f)
-                    .maxWidth(Gdx.graphics.getWidth()/5f).maxHeight(Gdx.graphics.getHeight()/3f);
+                    .maxWidth(Gdx.graphics.getWidth()/2f).maxHeight(Gdx.graphics.getHeight()/3f);
         }
         pack();
         centerWindow();
@@ -141,7 +119,6 @@ public abstract class AssetChooser extends VisWindow {
         setMovable(true);
 
         assetsTree = new VisTree<>();
-        updateAssetsTree();
         assetsTree.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -149,8 +126,33 @@ public abstract class AssetChooser extends VisWindow {
                 pack();
             }
         });
-
         assetsTreeScrollPane = new VisScrollPane(assetsTree);
+
+        nonSelectListener = new ActorGestureListener() {
+            @Override
+            public void tap(InputEvent event, float x, float y, int count, int button) {
+                okTextButton.setDisabled(true);
+                handleNonSelect(event, x, y, count, button);
+                super.tap(event, x, y, count, button);
+                pack();
+            }
+        };
+        selectListener = new ActorGestureListener() {
+            @Override
+            public void tap(InputEvent event, float x, float y, int count, int button) {
+                okTextButton.setDisabled(false);
+                if (count == 1) { // single click
+                    Gdx.app.debug("asset chooser", "select: tap 1");
+                    tap1(event, x, y, count, button);
+                } else if ( count == 2 ) { // double click
+                    Gdx.app.debug("asset chooser", "select: tap 2");
+                    tap2(event, x, y, count, button);
+                    if (listener != null) { listener.result(assetsTree.getSelectedNode().getActor().fileHandle); }
+                }
+                super.tap(event, x, y, count, button);
+                pack();
+            }
+        };
 
         btnBar = new ButtonBar();
         ChangeListener okBtnListener = new ChangeListener() {
@@ -195,7 +197,7 @@ public abstract class AssetChooser extends VisWindow {
 
                         if (engine.assetManager.getQueuedAssets() > 0) { return; } // another load is in progress
                         engine.loadQueue.clear();
-
+                        engine.clearLoadListeners();
                         engine.addLoadListener(new HGEngine.LoadListener.LoadAdapter() {
                             @Override
                             public void update(boolean result) {

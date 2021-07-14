@@ -132,6 +132,7 @@ public class HGEngine implements Disposable {
     public Array<LoadListener> loadListeners = new Array<>(true, 16, LoadListener.class);
     public void addLoadListener(LoadListener listener) { loadListeners.add(listener); }
     public void removeLoadListener(LoadListener listener) { loadListeners.removeValue(listener, false); }
+    public void clearLoadListeners() { loadListeners.clear(); }
     public class HGAssetManager extends AssetManager {
         @Override public synchronized <T> void load(String fileName, Class<T> type, AssetLoaderParameters<T> parameter) {
             //Gdx.app.debug("asset manager", "load: " + " fileName: " + fileName + " type: " + type.getSimpleName());
