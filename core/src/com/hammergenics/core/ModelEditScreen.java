@@ -19,12 +19,12 @@ package com.hammergenics.core;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.ScreenAdapter;
-import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelCache;
@@ -35,21 +35,19 @@ import com.badlogic.gdx.graphics.g3d.attributes.SpotLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.DebugDrawer;
-import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.hammergenics.HGEngine;
 import com.hammergenics.HGGame;
-import com.hammergenics.map.TerrainChunk;
 import com.hammergenics.core.graphics.g3d.HGModelInstance;
 import com.hammergenics.core.graphics.g3d.utils.ModelEditInputController;
 import com.hammergenics.core.graphics.glutils.HGImmediateModeRenderer20;
 import com.hammergenics.core.stages.ModelEditStage;
 import com.hammergenics.core.stages.ui.attributes.AttributesManagerTable;
-import com.hammergenics.utils.HGUtils;
+import com.hammergenics.map.TerrainChunk;
+
+import io.anuke.gif.GifRecorder;
 
 import static com.badlogic.gdx.physics.bullet.linearmath.btIDebugDraw.DebugDrawModes.DBG_NoDebug;
-import static com.hammergenics.core.stages.ui.file.TypeFilterRulesEnum.MODEL_FILES;
 
 /**
  * Add description here
@@ -60,6 +58,9 @@ public class ModelEditScreen extends ScreenAdapter {
     public final HGGame game;
     private final ModelBatch modelBatch;
     private final ModelCache modelCache;
+    private final SpriteBatch spriteBatch;
+    // https://github.com/Anuken/GDXGifRecorder
+    public final GifRecorder recorder;
 
     public final PerspectiveCamera perspectiveCamera;
     private final ModelEditInputController meic;
@@ -88,6 +89,9 @@ public class ModelEditScreen extends ScreenAdapter {
         this.eng = engine;
         this.modelBatch = mb; // https://github.com/libgdx/libgdx/wiki/ModelBatch
         this.modelCache = mc; // https://github.com/libgdx/libgdx/wiki/ModelBatch
+        this.spriteBatch = game.spriteBatch;
+        // https://github.com/Anuken/GDXGifRecorder
+        recorder = new GifRecorder(spriteBatch);
 
         immediateModeRenderer = new HGImmediateModeRenderer20(10*Short.MAX_VALUE, false, true, 0);
 
@@ -268,6 +272,9 @@ public class ModelEditScreen extends ScreenAdapter {
         eng.dynamicsWorld.debugDrawWorld();
         btDebugDrawer.end();
 
+        // https://github.com/Anuken/GDXGifRecorder
+        recorder.update();
+
         checkTimerEvents(delta);
 
         stage.act(delta);
@@ -290,6 +297,8 @@ public class ModelEditScreen extends ScreenAdapter {
             stage.getViewport().update(width, height, true);
             stage.projManagerTable.resetActors();
         }
+        // https://github.com/Anuken/GDXGifRecorder
+        recorder.setBounds(-width/2f, -height/2f, width, height);
     }
 
     /**

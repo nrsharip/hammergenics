@@ -161,5 +161,7 @@ project(":core") {
         api 'com.github.czyzby:noise4j:0.1.0'
         api "com.kotcrab.vis:vis-ui:1.5.0"
         api "com.github.mgsx-dev.gdx-gltf:gltf:$gltfVersion"
+        // https://jitpack.io/#Anuken/GdxGifRecorder/1.4
+        api 'com.github.Anuken:GdxGifRecorder:1.4'
     }
 }

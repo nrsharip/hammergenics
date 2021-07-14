@@ -316,7 +316,7 @@ public class HGEngine implements Disposable {
         BT_LEMKE.dispose();
         BT_GAUSS_SEIDEL.dispose();
 
-        contactListener.dispose();
+        //contactListener.dispose();
         broadPhase.dispose();
         collisionConfig.dispose();
         dispatcher.dispose();

@@ -129,10 +129,11 @@ public class ModelEditStage extends Stage {
     public FileChooser fileChooser;
     public ImageChooser imageChooser;
     public ModelChooser modelChooser;
+
     public VisWindow loadProgressWindow;
     public VisProgressBar loadProgressBar;
-
     public HGImageVisWindow loadImagePreviewWindow;
+
     public HGImageVisWindow imagePreviewWindow = null;
 
     public VisLabel miLabel;  // Model Instance Info

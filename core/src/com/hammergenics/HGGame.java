@@ -22,6 +22,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.assets.loaders.I18NBundleLoader.I18NBundleParameter;
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelCache;
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
@@ -51,7 +52,7 @@ public class HGGame extends Game {
     public HGEngine engine;
     public ModelBatch modelBatch;
     public ModelCache modelCache;
-
+    public SpriteBatch spriteBatch;
     /**
      *
      */
@@ -131,6 +132,8 @@ public class HGGame extends Game {
 
         // see: https://github.com/libgdx/libgdx/wiki/ModelCache#using-modelcache
         modelCache = new ModelCache();
+
+        spriteBatch = new SpriteBatch();
 
         // https://github.com/kotcrab/vis-ui#usage
         VisUI.load();
@@ -250,6 +253,8 @@ public class HGGame extends Game {
         // ModelCache owns several native resources.
         // Therefore you should dispose() the cache when no longer needed.
         modelCache.dispose();
+
+        spriteBatch.dispose();
 
         HGEngine.gridHgModel.dispose();
         HGEngine.lightsHgModel.dispose();
