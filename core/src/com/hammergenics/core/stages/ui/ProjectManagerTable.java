@@ -155,6 +155,9 @@ public class ProjectManagerTable extends ManagerTable {
             return;
         }
 
+        applyCommonPathToParentTreeNodes(mapModels);
+        applyCommonPathToParentTreeNodes(mapImages);
+
         // then adding the child node - the asset itself
         if (assetClass == Model.class) {
             addModelAssetTreeNode(fileHandle, treeNode);
@@ -179,20 +182,28 @@ public class ProjectManagerTable extends ManagerTable {
         }
 
         if (commonPath == null) { commonPath = parent; }
-        String commonAbsPath = commonPath.file().getAbsolutePath();
 
-        if (!parentAbsPath.startsWith(commonAbsPath)) {
+        // checking the actual common folder's absolute path
+        if (!parentAbsPath.startsWith(commonPath.file().getAbsolutePath())) {
             recalculateCommonPath(parent);
-            commonAbsPath = commonPath.file().getAbsolutePath();
-        }
-
-        for (ObjectMap.Entry<FileHandle, HGTreeVisTableNode> entry: map) {
-            FileHandle fh = entry.key;
-            HGTreeVisTableNode tn = entry.value;
-
-            tn.getActor().label.setText(fh.file().getAbsolutePath().replace(commonAbsPath, ""));
         }
         return treeNode;
+    }
+
+    public void applyCommonPathToParentTreeNodes(final ArrayMap<FileHandle, HGTreeVisTableNode> map) {
+        // taking the common path's parent folder's absolute path
+        // to have 1 level more to avoid the empty tree node label
+        String commonAbsPath = commonPath.parent().file().getAbsolutePath();
+        for (ObjectMap.Entry<FileHandle, HGTreeVisTableNode> entry: map) {
+            FileHandle parent = entry.key;
+            String parentAbsPath = parent.file().getAbsolutePath();
+            HGTreeVisTableNode tn = entry.value;
+            //Gdx.app.debug("project", "" + " common.fh: " + commonPath);
+            //Gdx.app.debug("project", "" + " common: " + commonPath.file().getAbsolutePath());
+            //Gdx.app.debug("project", "" + " common.parent: " + commonAbsPath);
+            //Gdx.app.debug("project", "" + " parent: " + parentAbsPath);
+            tn.getActor().label.setText(parentAbsPath.replace(commonAbsPath, ""));
+        }
     }
 
     public void recalculateCommonPath(FileHandle parent) {
@@ -208,6 +219,7 @@ public class ProjectManagerTable extends ManagerTable {
         //Gdx.app.debug("project", "" + " folders2: " + folders2.toString("|"));
         int i = 0;
         while((i < folders1.size) && (i < folders2.size) && folders1.get(i).equals(folders2.get(i++)));
+        // i-1 should be taken to get the actual common array (one extra i++ is done at the end of the loop)
         commonPath = new FileHandle(String.join(File.separator, Arrays.copyOfRange(folders1.toArray(), 0, i-1)));
         //Gdx.app.debug("project", "" + " commonPath: " + commonPath);
     }
