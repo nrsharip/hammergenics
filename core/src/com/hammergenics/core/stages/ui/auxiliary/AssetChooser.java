@@ -117,6 +117,7 @@ public abstract class AssetChooser extends VisWindow {
         closeOnEscape();
         addCloseButton();
         setMovable(true);
+        setResizeBorder(16);
 
         assetsTree = new VisTree<>();
         assetsTree.addListener(new ClickListener() {

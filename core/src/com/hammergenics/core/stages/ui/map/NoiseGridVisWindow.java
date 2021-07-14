@@ -37,8 +37,6 @@ import com.kotcrab.vis.ui.widget.VisWindow;
 
 import java.util.Arrays;
 
-import static com.hammergenics.core.stages.ui.MapGenerationTable.imageGrid;
-
 public class NoiseGridVisWindow extends VisWindow {
     public ModelEditScreen modelES;
     public ModelEditStage stage;
@@ -93,7 +91,7 @@ public class NoiseGridVisWindow extends VisWindow {
 
                 Array<HGGrid> grids = Arrays.stream(eng.chunks.toArray())
                         .map(TerrainChunk::getGridNoise).collect(Array::new, Array::add, Array::addAll);
-                textureNoise = imageGrid(grids);
+                textureNoise = stage.mapGenerationTable.imageGrid("Noise Grid Preview", grids);
                 return super.touchDown(event, x, y, pointer, button); // false
                 // If true is returned, this listener will have touch focus, so it will receive all
                 // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
@@ -110,7 +108,7 @@ public class NoiseGridVisWindow extends VisWindow {
 
                 Array<HGGrid> grids = Arrays.stream(eng.chunks.toArray())
                         .map(TerrainChunk::getGridNoise).collect(Array::new, Array::add, Array::addAll);
-                textureNoise = imageGrid(grids);
+                textureNoise = stage.mapGenerationTable.imageGrid("Noise Grid Preview - round step: " + noiseStep, grids);
                 return super.touchDown(event, x, y, pointer, button); // false
                 // If true is returned, this listener will have touch focus, so it will receive all
                 // touchDragged and touchUp events, even those not over this actor, until touchUp is received.

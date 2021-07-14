@@ -27,8 +27,6 @@ import com.hammergenics.map.HGGrid;
 import com.kotcrab.vis.ui.widget.VisTextButton;
 import com.kotcrab.vis.ui.widget.VisWindow;
 
-import static com.hammergenics.core.stages.ui.MapGenerationTable.imageGrid;
-
 public class DungeonGridVisWindow extends VisWindow {
     public ModelEditScreen modelES;
     public ModelEditStage stage;
@@ -50,7 +48,7 @@ public class DungeonGridVisWindow extends VisWindow {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 eng.generateDungeon();
-                textureDungeon = imageGrid(new Array<>(new HGGrid[]{eng.gridDungeon}));
+                textureDungeon = stage.mapGenerationTable.imageGrid("Dungeon Grid Preview", new Array<>(new HGGrid[]{eng.gridDungeon}));
                 return super.touchDown(event, x, y, pointer, button); // false
                 // If true is returned, this listener will have touch focus, so it will receive all
                 // touchDragged and touchUp events, even those not over this actor, until touchUp is received.

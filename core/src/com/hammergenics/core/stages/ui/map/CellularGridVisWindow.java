@@ -27,8 +27,6 @@ import com.hammergenics.map.HGGrid;
 import com.kotcrab.vis.ui.widget.VisTextButton;
 import com.kotcrab.vis.ui.widget.VisWindow;
 
-import static com.hammergenics.core.stages.ui.MapGenerationTable.imageGrid;
-
 public class CellularGridVisWindow extends VisWindow {
     public ModelEditScreen modelES;
     public ModelEditStage stage;
@@ -50,7 +48,7 @@ public class CellularGridVisWindow extends VisWindow {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 eng.generateCellular();
-                textureCellular = imageGrid(new Array<>(new HGGrid[]{eng.gridCellular}));
+                textureCellular = stage.mapGenerationTable.imageGrid("Cellular Grid Preview", new Array<>(new HGGrid[]{eng.gridCellular}));
                 return super.touchDown(event, x, y, pointer, button); // false
                 // If true is returned, this listener will have touch focus, so it will receive all
                 // touchDragged and touchUp events, even those not over this actor, until touchUp is received.

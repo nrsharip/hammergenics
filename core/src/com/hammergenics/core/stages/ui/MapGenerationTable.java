@@ -24,6 +24,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.stages.ModelEditStage;
+import com.hammergenics.core.stages.ui.auxiliary.HGImageVisWindow;
 import com.hammergenics.core.stages.ui.map.CellularGridVisWindow;
 import com.hammergenics.core.stages.ui.map.DungeonGridVisWindow;
 import com.hammergenics.core.stages.ui.map.NoiseGridVisWindow;
@@ -41,6 +42,7 @@ public class MapGenerationTable extends ManagerTable {
     public CellularGridVisWindow cellularGridVisWindow;
     public DungeonGridVisWindow dungeonGridVisWindow;
     public TerrainVisWindow terrainVisWindow;
+    public final HGImageVisWindow imagePreviewWindow;
 
     public MapGenerationTable(ModelEditScreen modelES, ModelEditStage stage) {
         super(modelES, stage);
@@ -49,6 +51,8 @@ public class MapGenerationTable extends ManagerTable {
         cellularGridVisWindow = new CellularGridVisWindow(modelES, stage);
         dungeonGridVisWindow = new DungeonGridVisWindow(modelES, stage);
         terrainVisWindow = new TerrainVisWindow(modelES, stage);
+
+        imagePreviewWindow = new HGImageVisWindow(true);
 
         VisTable windows = new VisTable();
 
@@ -69,8 +73,22 @@ public class MapGenerationTable extends ManagerTable {
 
     }
 
+    public void showPreviewImage(String title, Texture texture) {
+        imagePreviewWindow.getTitleLabel().setText(title);
+        if (imagePreviewWindow.shown) {
+            imagePreviewWindow.updateImage(texture);
+        } else {
+            imagePreviewWindow.fit(Gdx.graphics.getWidth()/2.5f, Gdx.graphics.getHeight()/2.5f);
+            stage.addActor(imagePreviewWindow.showImageWindow(texture));
+        }
+    }
+
+    public void hidePreviewImage() {
+        imagePreviewWindow.hideImageWindow();
+    }
+
     // see: https://github.com/czyzby/noise4j
-    public static Texture imageGrid(Array<HGGrid> grids) {
+    public Texture imageGrid(String title, Array<HGGrid> grids) {
 
         Rectangle combined = HGGrid.getCombinedBounds(grids, new Rectangle());
         Gdx.app.debug("image", ""
@@ -110,8 +128,7 @@ public class MapGenerationTable extends ManagerTable {
         Texture texture = new Texture(map);
         map.dispose();
 
-        // see Image (Texture texture) for example on how to convert Texture to Image
-        //stage.textureImage.setDrawable(new TextureRegionDrawable(new TextureRegion(texture)));
+        showPreviewImage(title, texture);
 
         return texture;
     }
