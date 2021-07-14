@@ -152,9 +152,9 @@ public class NoiseGridVisWindow extends VisWindow {
             @Override
             public void changed (ChangeEvent event, Actor actor) {
                 if (previewNoiseImage.isChecked()) {
-                    stage.infoBCell.setActor(stage.textureImage);
+                    stage.imagePreviewCell.setActor(stage.textureImage);
                 } else {
-                    stage.infoBCell.clearActor();
+                    stage.imagePreviewCell.clearActor();
                 }
             }
         });

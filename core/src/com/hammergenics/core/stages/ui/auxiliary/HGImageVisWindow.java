@@ -36,6 +36,7 @@ public class HGImageVisWindow extends VisWindow {
         super("");
         getTitleLabel().setText("Image Preview");
         setResizable(true);
+        setResizeBorder(16);
         if (close) { addCloseButton(); }
         setMovable(false);
         cell = add(table = new HGImageVisTable()).expand().fill();

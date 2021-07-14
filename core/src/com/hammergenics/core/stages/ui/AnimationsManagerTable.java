@@ -357,7 +357,7 @@ public class AnimationsManagerTable extends ManagerTable {
     public void resetActors() {
         super.resetActors();
 
-        stage.infoTCell.setActor(animInfoLabel);
+        stage.infoCell.setActor(animInfoLabel);
     }
 
     public void applyLocale() {

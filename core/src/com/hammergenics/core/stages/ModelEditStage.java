@@ -111,9 +111,10 @@ public class ModelEditStage extends Stage {
     public VisTable rootTable;
     public MenuBar menuBar;
     public Cell<?> leftPaneCell;
-    public Cell<?> infoTCell;
-    public Cell<?> infoBCell;
+    public Cell<?> infoCell;
+    public Cell<?> imagePreviewCell;
     public Cell<?> editCell;
+    public Cell<?> loadImagePreviewCell;
 
     public ProjectManagerTable projManagerTable;
     public AttributesManagerTable envAttrTable;
@@ -132,7 +133,7 @@ public class ModelEditStage extends Stage {
     public VisProgressBar loadProgressBar;
 
     public HGImageVisWindow loadImagePreviewWindow;
-    public Cell<HGImageVisWindow> loadImagePreviewCell;
+    public HGImageVisWindow imagePreviewWindow;
 
     public VisLabel miLabel;  // Model Instance Info
     public VisLabel envLabel; // Environment Info
@@ -179,6 +180,8 @@ public class ModelEditStage extends Stage {
         initProgressBar();
         imageChooser = new ImageChooser(modelES.eng, this);
         modelChooser = new ModelChooser(modelES.eng, this);
+        imagePreviewWindow = new HGImageVisWindow(true);
+        imagePreviewWindow.setMovable(true);
 
         setup2DStageWidgets();
         setup2DStageLayout();
@@ -536,6 +539,22 @@ public class ModelEditStage extends Stage {
         loadProgressWindow.pack();
         loadProgressWindow.centerWindow();
         addActor(loadProgressWindow.fadeIn());
+    }
+
+    public void showPreviewImage(FileHandle fileHandle) {
+        imagePreviewWindow.table.clearImage();
+        imagePreviewWindow.table.setImage(modelES.eng.getAsset(fileHandle, Texture.class));
+        imagePreviewWindow.pack();
+        imagePreviewCell.minWidth(Gdx.graphics.getWidth()/2f).minHeight(Gdx.graphics.getHeight()/2f)
+                        .maxWidth(Gdx.graphics.getWidth()/2f).maxHeight(Gdx.graphics.getHeight()/2f);
+        imagePreviewCell.setActor(imagePreviewWindow).expand();
+    }
+
+    public void hidePreviewImage() {
+        imagePreviewWindow.table.clearImage();
+        imagePreviewWindow.pack();
+        imagePreviewCell.expand(false, false).clearActor();
+        imagePreviewCell.clearActor();
     }
 
     public void loadShowPreviewImage(FileHandle fileHandle) {
@@ -1031,9 +1050,9 @@ public class ModelEditStage extends Stage {
         rootTable.add(leftPanel).expandY().fillY().center();
 
         VisTable infoTable = new VisTable();
-        infoTCell = infoTable.add().expand().fill().top().left();
+        infoCell = infoTable.add().expand().fill().top().left();
         infoTable.row();
-        infoBCell = infoTable.add().expand().fill().bottom().left().maxWidth(512).maxHeight(512);
+        imagePreviewCell = infoTable.add().expand().fill().bottom().left();
 
         rootTable.add(infoTable).fill().left();
         editCell = rootTable.add().expand().fill().right().top();
@@ -1159,8 +1178,8 @@ public class ModelEditStage extends Stage {
 
         if (!isAnyButtonPressed()) {
             leftPaneCell.clearActor();
-            infoTCell.clearActor();
-            infoBCell.clearActor();
+            infoCell.clearActor();
+            imagePreviewCell.clearActor();
             editCell.clearActor();
             textureImage.setDrawable(null);
         }

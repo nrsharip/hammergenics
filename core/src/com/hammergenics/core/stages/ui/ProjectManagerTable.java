@@ -141,6 +141,11 @@ public class ProjectManagerTable extends ManagerTable {
                     }
                 }, new ActorGestureListener() {
                     @Override
+                    public void touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                        stage.showPreviewImage(((HGTreeVisTableNode.HGTreeVisTable)event.getTarget().getParent()).fileHandle);
+                        super.touchDown(event, x, y, pointer, button);
+                    }
+                    @Override
                     public void tap(InputEvent event, float x, float y, int count, int button) {
                         if (count == 1) { // single click
                             Gdx.app.debug("project", "IMAGE select: tap 1");

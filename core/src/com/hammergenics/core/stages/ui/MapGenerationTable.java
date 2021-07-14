@@ -120,7 +120,7 @@ public class MapGenerationTable extends ManagerTable {
     public void resetActors() {
         super.resetActors();
 
-        stage.infoBCell.setActor(stage.textureImage);
+        stage.imagePreviewCell.setActor(stage.textureImage);
     }
 
     public void applyLocale() {

@@ -47,8 +47,8 @@ public abstract class ManagerTable extends VisTable {
 
     public void resetActors() {
         stage.leftPaneCell.expand(false, false);
-        stage.infoTCell.clearActor();
-        stage.infoBCell.clearActor();
+        stage.infoCell.clearActor();
+        stage.imagePreviewCell.clearActor();
         stage.editCell.clearActor();
 
         stage.editCell.setActor(this);
