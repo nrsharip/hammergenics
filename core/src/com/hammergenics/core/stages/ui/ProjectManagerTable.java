@@ -74,8 +74,8 @@ public class ProjectManagerTable extends ManagerTable {
 
     public final ArrayMap<String, HGTreeVisTableNode> extension2treeNode = new ArrayMap<>(String.class, HGTreeVisTableNode.class);
 
-    public ActorGestureListener nonSelectListener;
-    public ActorGestureListener selectListener;
+    public ActorGestureListener globalNonSelectListener;
+    public ActorGestureListener globalSelectListener;
 
     public ProjectManagerTable(ModelEditScreen modelES, ModelEditStage stage) {
         super(modelES, stage);
@@ -97,23 +97,23 @@ public class ProjectManagerTable extends ManagerTable {
         projectTree.expandAll();
         projectTreeScrollPane = new VisScrollPane(projectTree);
 
-        nonSelectListener = new ActorGestureListener() {
+        globalNonSelectListener = new ActorGestureListener() {
             @Override
             public void tap(InputEvent event, float x, float y, int count, int button) {
                 Gdx.app.debug("project", "GLOBAL non-select");
-                handleNonSelect(event, x, y, count, button);
+                handleNonSelectTap(event, x, y, count, button);
                 super.tap(event, x, y, count, button);
             }
         };
-        selectListener = new ActorGestureListener() {
+        globalSelectListener = new ActorGestureListener() {
             @Override
             public void tap(InputEvent event, float x, float y, int count, int button) {
                 if (count == 1) { // single click
                     Gdx.app.debug("project", "GLOBAL select: tap 1");
-                    tap1(event, x, y, count, button);
+                    handleSelectTap1(event, x, y, count, button);
                 } else if ( count == 2 ) { // double click
                     Gdx.app.debug("project", "GLOBAL select: tap 2");
-                    tap2(event, x, y, count, button);
+                    handleSelectTap2(event, x, y, count, button);
                 }
                 super.tap(event, x, y, count, button);
             }
@@ -122,9 +122,11 @@ public class ProjectManagerTable extends ManagerTable {
         applyListeners();
     }
 
-    public void tap1(InputEvent event, float x, float y, int count, int button) { }
-    public void tap2(InputEvent event, float x, float y, int count, int button) { }
-    public void handleNonSelect(InputEvent event, float x, float y, int count, int button) { }
+    public void handleSelectTap1(InputEvent event, float x, float y, int count, int button) { }
+    public void handleSelectTap2(InputEvent event, float x, float y, int count, int button) { }
+    public void handleSelectTouchDown(InputEvent event, float x, float y, int pointer, int button) { }
+    public void handleNonSelectTouchDown(InputEvent event, float x, float y, int pointer, int button) { }
+    public void handleNonSelectTap(InputEvent event, float x, float y, int count, int button) { }
 
     public void applyListeners() {
         applyListeners(assetsTreeNode);
@@ -134,25 +136,34 @@ public class ProjectManagerTable extends ManagerTable {
         applyListeners(fh2imagesTreeNode,
                 new ActorGestureListener() {
                     @Override
+                    public void touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                        Gdx.app.debug("project", "IMAGE non-select: touchDown");
+                        handleNonSelectTouchDown(event, x, y, pointer, button);
+                        super.touchDown(event, x, y, pointer, button);
+                    }
+                    @Override
                     public void tap(InputEvent event, float x, float y, int count, int button) {
-                        Gdx.app.debug("project", "IMAGE non-select");
-                        handleNonSelect(event, x, y, count, button);
+                        Gdx.app.debug("project", "IMAGE non-select: tap");
+                        handleNonSelectTap(event, x, y, count, button);
                         super.tap(event, x, y, count, button);
                     }
                 }, new ActorGestureListener() {
                     @Override
                     public void touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                        Gdx.app.debug("project", "IMAGE select: touchDown");
+                        stage.hidePreviewImage();
                         stage.showPreviewImage(((HGTreeVisTableNode.HGTreeVisTable)event.getTarget().getParent()).fileHandle);
+                        handleSelectTouchDown(event, x, y, pointer, button);
                         super.touchDown(event, x, y, pointer, button);
                     }
                     @Override
                     public void tap(InputEvent event, float x, float y, int count, int button) {
                         if (count == 1) { // single click
                             Gdx.app.debug("project", "IMAGE select: tap 1");
-                            tap1(event, x, y, count, button);
+                            handleSelectTap1(event, x, y, count, button);
                         } else if ( count == 2 ) { // double click
                             Gdx.app.debug("project", "IMAGE select: tap 2");
-                            tap2(event, x, y, count, button);
+                            handleSelectTap2(event, x, y, count, button);
                         }
                         super.tap(event, x, y, count, button);
                     }
@@ -161,17 +172,17 @@ public class ProjectManagerTable extends ManagerTable {
 
     public void applyListeners(HGTreeVisTableNode rootNode) {
         rootNode.getActor().clearListeners();
-        rootNode.getActor().addListener(nonSelectListener);
+        rootNode.getActor().addListener(globalNonSelectListener);
 
         for (HGTreeVisTableNode node1 : rootNode.getChildren()) {      // "Models", "Images", "Sounds"...
             node1.getActor().clearListeners();
-            node1.getActor().addListener(nonSelectListener);
+            node1.getActor().addListener(globalNonSelectListener);
             for (HGTreeVisTableNode node2 : node1.getChildren()) {     // parent folders
                 node2.getActor().clearListeners();
-                node2.getActor().addListener(nonSelectListener);
+                node2.getActor().addListener(globalNonSelectListener);
                 for (HGTreeVisTableNode node3 : node2.getChildren()) { // actual asset
                     node3.getActor().clearListeners();
-                    node3.getActor().addListener(selectListener);
+                    node3.getActor().addListener(globalSelectListener);
                 }
             }
         }

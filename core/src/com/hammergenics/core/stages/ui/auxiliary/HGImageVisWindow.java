@@ -16,6 +16,7 @@
 
 package com.hammergenics.core.stages.ui.auxiliary;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.ui.Cell;
@@ -58,5 +59,29 @@ public class HGImageVisWindow extends VisWindow {
             image.setDrawable(new TextureRegionDrawable(new TextureRegion(texture)));
         }
         public void clearImage() { image.setDrawable(null); }
+    }
+
+    public VisWindow showImageWindow(Texture texture) {
+        table.clearImage();
+        table.setImage(texture);
+
+        int width = texture.getWidth();
+        int height = texture.getHeight();
+        float scaleX = (Gdx.graphics.getWidth()/1.5f) / width;
+        float scaleY = (Gdx.graphics.getHeight()/1.5f) / height;
+        float scale = Math.min(scaleX, scaleY);
+
+        setMovable(true);
+        setWidth(scale * texture.getWidth());
+        setHeight(scale * texture.getHeight());
+
+        centerWindow();
+        return fadeIn();
+    }
+
+    public void hideImageWindow() {
+        table.clearImage();
+        pack();
+        fadeOut();
     }
 }

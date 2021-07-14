@@ -133,7 +133,7 @@ public class ModelEditStage extends Stage {
     public VisProgressBar loadProgressBar;
 
     public HGImageVisWindow loadImagePreviewWindow;
-    public HGImageVisWindow imagePreviewWindow;
+    public HGImageVisWindow imagePreviewWindow = null;
 
     public VisLabel miLabel;  // Model Instance Info
     public VisLabel envLabel; // Environment Info
@@ -180,8 +180,6 @@ public class ModelEditStage extends Stage {
         initProgressBar();
         imageChooser = new ImageChooser(modelES.eng, this);
         modelChooser = new ModelChooser(modelES.eng, this);
-        imagePreviewWindow = new HGImageVisWindow(true);
-        imagePreviewWindow.setMovable(true);
 
         setup2DStageWidgets();
         setup2DStageLayout();
@@ -542,19 +540,14 @@ public class ModelEditStage extends Stage {
     }
 
     public void showPreviewImage(FileHandle fileHandle) {
-        imagePreviewWindow.table.clearImage();
-        imagePreviewWindow.table.setImage(modelES.eng.getAsset(fileHandle, Texture.class));
-        imagePreviewWindow.pack();
-        imagePreviewCell.minWidth(Gdx.graphics.getWidth()/2f).minHeight(Gdx.graphics.getHeight()/2f)
-                        .maxWidth(Gdx.graphics.getWidth()/2f).maxHeight(Gdx.graphics.getHeight()/2f);
-        imagePreviewCell.setActor(imagePreviewWindow).expand();
+        imagePreviewWindow = new HGImageVisWindow(true);
+        addActor(imagePreviewWindow.showImageWindow(modelES.eng.getAsset(fileHandle, Texture.class)));
     }
 
     public void hidePreviewImage() {
-        imagePreviewWindow.table.clearImage();
-        imagePreviewWindow.pack();
-        imagePreviewCell.expand(false, false).clearActor();
-        imagePreviewCell.clearActor();
+        if (imagePreviewWindow == null) { return; }
+        imagePreviewWindow.hideImageWindow();
+        imagePreviewWindow = null;
     }
 
     public void loadShowPreviewImage(FileHandle fileHandle) {
