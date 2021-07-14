@@ -163,5 +163,6 @@ project(":core") {
         api "com.github.mgsx-dev.gdx-gltf:gltf:$gltfVersion"
         // https://jitpack.io/#Anuken/GdxGifRecorder/1.4
         api 'com.github.Anuken:GdxGifRecorder:1.4'
+        api "com.strongjoshua:libgdx-inGameConsole:1.0.0"
     }
 }

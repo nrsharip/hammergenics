@@ -134,11 +134,12 @@ public class ModelEditScreen extends ScreenAdapter {
 
         InputMultiplexer inputMultiplexer = new InputMultiplexer();
         // order of addProcessor matter
+        inputMultiplexer.addProcessor(stage.console.getInputProcessor());
         inputMultiplexer.addProcessor(stage);
         inputMultiplexer.addProcessor(meic);
         Gdx.input.setInputProcessor(inputMultiplexer);
 
-        stage.addModelInstance(eng.sphereHgModel);
+        stage.addModelInstance(HGEngine.sphereHgModel);
         stage.afterCurrentModelInstanceChanged();
     }
 
@@ -272,8 +273,13 @@ public class ModelEditScreen extends ScreenAdapter {
         eng.dynamicsWorld.debugDrawWorld();
         btDebugDrawer.end();
 
-        // https://github.com/Anuken/GDXGifRecorder
-        recorder.update();
+        // https://github.com/StrongJoshua/libgdx-inGameConsole
+        stage.console.draw();
+
+        if (!stage.console.isVisible()) {
+            // https://github.com/Anuken/GDXGifRecorder
+            recorder.update();
+        }
 
         checkTimerEvents(delta);
 
@@ -296,6 +302,9 @@ public class ModelEditScreen extends ScreenAdapter {
         if (stage != null) {
             stage.getViewport().update(width, height, true);
             stage.projManagerTable.resetActors();
+            // https://github.com/StrongJoshua/libgdx-inGameConsole
+            stage.console.refresh(true);
+            //stage.console.setSizePercent(100, 100);
         }
         // https://github.com/Anuken/GDXGifRecorder
         recorder.setBounds(-width/2f, -height/2f, width, height);

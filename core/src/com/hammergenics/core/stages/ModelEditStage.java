@@ -35,6 +35,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle;
+import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
@@ -70,6 +71,7 @@ import com.kotcrab.vis.ui.widget.PopupMenu;
 import com.kotcrab.vis.ui.widget.VisCheckBox;
 import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisProgressBar;
+import com.kotcrab.vis.ui.widget.VisScrollPane;
 import com.kotcrab.vis.ui.widget.VisSelectBox;
 import com.kotcrab.vis.ui.widget.VisTable;
 import com.kotcrab.vis.ui.widget.VisTextButton;
@@ -80,6 +82,9 @@ import com.kotcrab.vis.ui.widget.file.FileChooser.DefaultFileIconProvider;
 import com.kotcrab.vis.ui.widget.file.FileChooser.FileIconProvider;
 import com.kotcrab.vis.ui.widget.file.FileChooserAdapter;
 import com.kotcrab.vis.ui.widget.file.FileTypeFilter;
+import com.strongjoshua.console.CommandExecutor;
+import com.strongjoshua.console.GUIConsole;
+import com.strongjoshua.console.LogLevel;
 
 import static com.hammergenics.core.stages.ModelEditStage.MenuItemsTextEnum.*;
 import static com.hammergenics.core.stages.ModelEditStage.TextButtonsTextEnum.*;
@@ -129,6 +134,8 @@ public class ModelEditStage extends Stage {
     public FileChooser fileChooser;
     public ImageChooser imageChooser;
     public ModelChooser modelChooser;
+    // https://github.com/StrongJoshua/libgdx-inGameConsole
+    public GUIConsole console;
 
     public VisWindow loadProgressWindow;
     public VisProgressBar loadProgressBar;
@@ -179,6 +186,7 @@ public class ModelEditStage extends Stage {
         initFileChooser();
         initMenuBar();
         initProgressBar();
+        initConsole();
         imageChooser = new ImageChooser(modelES.eng, this);
         modelChooser = new ModelChooser(modelES.eng, this);
 
@@ -210,6 +218,8 @@ public class ModelEditStage extends Stage {
         // VisUI widgets must be disposed (by calling picker.dispose()) when no longer needed.
         //picker creation
         colorPicker.dispose();
+        // https://github.com/StrongJoshua/libgdx-inGameConsole
+        console.dispose();
         super.dispose();
     }
 
@@ -563,6 +573,34 @@ public class ModelEditStage extends Stage {
         loadImagePreviewCell.expand(false, false).clearActor();
         loadProgressWindow.pack();
         loadProgressWindow.centerWindow();
+    }
+
+    public void initConsole() {
+        // https://github.com/StrongJoshua/libgdx-inGameConsole
+        console = new GUIConsole(VisUI.getSkin(), true, Keys.GRAVE, VisWindow.class,
+                VisTable.class, "window", TextField.class,
+                VisTextButton.class, VisLabel.class, VisScrollPane.class);
+
+        Gdx.app.debug("stage", " console.isVisible: " + console.isVisible());
+        Gdx.app.debug("stage", " console.isDisabled: " + console.isDisabled());
+        Gdx.app.debug("stage", " console.isDisplayHiddenCommandsEnabled: " + console.isDisplayHiddenCommandsEnabled());
+        Gdx.app.debug("stage", " console.isExecuteHiddenCommandsEnabled: " + console.isExecuteHiddenCommandsEnabled());
+        Gdx.app.debug("stage", " console.getDisplayKeyID: " + console.getDisplayKeyID());
+
+        // https://github.com/StrongJoshua/libgdx-inGameConsole/blob/master/test/tests/VisUITest.java#L28
+        console.setCommandExecutor(new CommandExecutor() {
+            public void defaultt() { console.log("DEFAULT", LogLevel.DEFAULT); }
+            public void error() { console.log("ERROR", LogLevel.ERROR); }
+            public void success() { console.log("SUCCESS", LogLevel.SUCCESS); }
+            public void command() { console.log("COMMAND", LogLevel.COMMAND); }
+        });
+        console.setSizePercent(50, 50);
+        //console.setPosition(0, 0);
+        ((VisWindow)console.getWindow()).centerWindow();
+        //((VisWindow)console.getWindow()).addCloseButton();
+        console.setVisible(false);
+        console.enableSubmitButton(true);
+        //console.resetInputProcessing();
     }
 
     public void applyLocale(I18NBundlesEnum language) {
