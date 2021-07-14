@@ -84,9 +84,9 @@ public class HGContactListener extends ContactListener {
 //        Gdx.app.debug(getTag(), ""
 //                + " rb0: " + Integer.toHexString(rb0.hashCode())
 //                + " rb1: " + Integer.toHexString(rb1.hashCode()));
-        Gdx.app.debug(getTag(), ""
-                + " mi0: " + mi0.nodes.get(0).id
-                + " mi1: " + mi1.nodes.get(0).id);
+//        Gdx.app.debug(getTag(), ""
+//                + " mi0: " + mi0.nodes.get(0).id
+//                + " mi1: " + mi1.nodes.get(0).id);
 //        Gdx.app.debug(getTag(), ""  + " rb0 world transform:\n" + rb0.getWorldTransform());
 //        Gdx.app.debug(getTag(), ""  + " rb1 world transform:\n" + rb1.getWorldTransform());
 

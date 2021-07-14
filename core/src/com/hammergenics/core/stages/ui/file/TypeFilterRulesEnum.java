@@ -24,11 +24,12 @@ public enum TypeFilterRulesEnum {
     HG_FILES("Save files", file -> file.isDirectory()
             || file.getName().toLowerCase().endsWith(".hg"), "hg"),
     MODEL_FILES("Model files", file -> file.isDirectory()
-            //|| file.getName().toLowerCase().endsWith(".3ds")  // converted to G3DB with fbx-conv
-            || file.getName().toLowerCase().endsWith(".g3db") // binary
-            || file.getName().toLowerCase().endsWith(".g3dj") // json
-            //|| file.getName().toLowerCase().endsWith(".gltf") // see for support: https://github.com/mgsx-dev/gdx-gltf
-            || file.getName().toLowerCase().endsWith(".obj"), "obj", "g3dj", "g3db"),
+            //|| file.getName().toLowerCase().endsWith(".3ds") // converted to G3DB with fbx-conv
+            || file.getName().toLowerCase().endsWith(".g3db")  // binary
+            || file.getName().toLowerCase().endsWith(".g3dj")  // json
+            || file.getName().toLowerCase().endsWith(".glb")   //
+            || file.getName().toLowerCase().endsWith(".gltf")  //
+            || file.getName().toLowerCase().endsWith(".obj"), "obj", "gltf", "glb", "g3dj", "g3db"),
     IMAGE_FILES("Image files", file -> file.isDirectory()
             || file.getName().toLowerCase().endsWith(".bmp")  // textures in BMP
             || file.getName().toLowerCase().endsWith(".png")  // textures in PNG

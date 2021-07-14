@@ -84,9 +84,13 @@ import com.hammergenics.map.HGGrid;
 import com.hammergenics.map.HGGrid.NoiseStageInfo;
 import com.hammergenics.map.TerrainChunk;
 import com.hammergenics.map.TerrainPartsEnum;
-import com.hammergenics.physics.bullet.collision.HGContactListener;
 import com.hammergenics.utils.HGUtils;
 import com.kotcrab.vis.ui.widget.file.FileTypeFilter;
+
+import net.mgsx.gltf.loaders.glb.GLBAssetLoader;
+import net.mgsx.gltf.loaders.gltf.GLTFAssetLoader;
+import net.mgsx.gltf.loaders.shared.SceneAssetLoaderParameters;
+import net.mgsx.gltf.scene3d.scene.SceneAsset;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -259,6 +263,8 @@ public class HGEngine implements Disposable {
     public HGEngine(HGGame game) {
         this.game = game;
         assetManager.getLogger().setLevel(Logger.DEBUG);
+        assetManager.setLoader(SceneAsset.class, ".gltf", new GLTFAssetLoader());
+        assetManager.setLoader(SceneAsset.class, ".glb", new GLBAssetLoader());
 
         initBullet();
 
@@ -373,7 +379,7 @@ public class HGEngine implements Disposable {
         // In most scenario’s this implementation should suffice.
         broadPhase = new btDbvtBroadphase();
         dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadPhase, null, collisionConfig);
-        contactListener = new HGContactListener(this);
+        //contactListener = new HGContactListener(this);
     }
 
     public void generateNoise(float yScale, Array<NoiseStageInfo> stages) {
@@ -515,26 +521,31 @@ public class HGEngine implements Disposable {
 
     // See TextureLoader loadAsync() and loadSync() methods for use of this parameter
     private final TextureLoader.TextureParameter textureParameter = new TextureLoader.TextureParameter();
+    private final SceneAssetLoaderParameters sceneAssetLoaderParameters = new SceneAssetLoaderParameters();
 
     public void queueAsset(FileHandle fileHandle) {
         if (fileHandle == null) { return; }
         assetsLoaded = false;
-        // See TextureLoader loadAsync() and loadSync() methods for use of this parameter
-        // ATTENTION: 'gdx-1.10.0.jar' and 'gdx-backend-gwt-1.10.0.jar' both have
-        //            com.badlogic.gdx.assets.loaders.TextureLoader inside (seemingly with different code)
-        // textureParameter.format;                                // default = null  (the format of the final Texture. Uses the source images format if null)
-        // textureParameter.genMipMaps;                            // default = false (whether to generate mipmaps)
-        // textureParameter.texture;                               // default = null  (The texture to put the TextureData in, optional)
-        // textureParameter.textureData;                           // default = null  (TextureData for textures created on the fly, optional.
-        //                                                         //                 When set, all format and genMipMaps are ignored)
-        // Using TextureProvider.FileTextureProvider defaults:
-        textureParameter.minFilter = Texture.TextureFilter.Linear; // default = TextureFilter.Nearest
-        textureParameter.magFilter = Texture.TextureFilter.Linear; // default = TextureFilter.Nearest
-        textureParameter.wrapU = Texture.TextureWrap.Repeat;       // default = TextureWrap.ClampToEdge
-        textureParameter.wrapV = Texture.TextureWrap.Repeat;       // default = TextureWrap.ClampToEdge
 
         Class<?> assetClass = getAssetClass(fileHandle);
-        if (assetClass.equals(Texture.class)) {
+        if (assetClass.equals(SceneAsset.class)) {
+            // See GLBAssetLoader (or GLTFAssetLoader) loadAsync() and loadSync() methods for use of this parameter
+            sceneAssetLoaderParameters.withData = true;
+            assetManager.load(fileHandle.path(), SceneAsset.class, sceneAssetLoaderParameters);
+        } else if (assetClass.equals(Texture.class)) {
+            // See TextureLoader loadAsync() and loadSync() methods for use of this parameter
+            // ATTENTION: 'gdx-1.10.0.jar' and 'gdx-backend-gwt-1.10.0.jar' both have
+            //            com.badlogic.gdx.assets.loaders.TextureLoader inside (seemingly with different code)
+            // textureParameter.format;                                // default = null  (the format of the final Texture. Uses the source images format if null)
+            // textureParameter.genMipMaps;                            // default = false (whether to generate mipmaps)
+            // textureParameter.texture;                               // default = null  (The texture to put the TextureData in, optional)
+            // textureParameter.textureData;                           // default = null  (TextureData for textures created on the fly, optional.
+            //                                                         //                 When set, all format and genMipMaps are ignored)
+            // Using TextureProvider.FileTextureProvider defaults:
+            textureParameter.minFilter = Texture.TextureFilter.Linear; // default = TextureFilter.Nearest
+            textureParameter.magFilter = Texture.TextureFilter.Linear; // default = TextureFilter.Nearest
+            textureParameter.wrapU = Texture.TextureWrap.Repeat;       // default = TextureWrap.ClampToEdge
+            textureParameter.wrapV = Texture.TextureWrap.Repeat;       // default = TextureWrap.ClampToEdge
             assetManager.load(fileHandle.path(), Texture.class, textureParameter);
         } else {
             assetManager.load(fileHandle.path(), assetClass, null);
@@ -546,10 +557,12 @@ public class HGEngine implements Disposable {
         switch (fileHandle.extension().toLowerCase()) {
 //              case "3ds":  // converted to G3DB with fbx-conv
             case "obj":
-//              case "gltf": // see for support: https://github.com/mgsx-dev/gdx-gltf
             case "g3db":
             case "g3dj":
                 return Model.class;
+            case "gltf":
+            case "glb":
+                return SceneAsset.class;
             case "tga":
             case "png":
             case "bmp":
@@ -575,11 +588,15 @@ public class HGEngine implements Disposable {
         if (assetClass == null) { return; }
         //Gdx.app.debug("engine", "add asset:" + " fileHandle: " + fileHandle + " assetClass: " + assetClass.getSimpleName());
         if (assetClass.equals(Model.class)) {
-            //Gdx.app.debug("engine", "add asset:" + " Model");
+            //Gdx.app.debug("engine", " add asset: " + " Model ");
             Model model = assetManager.get(fileHandle.path(), Model.class);
             this.hgModels.put(fileHandle, new HGModel(model, fileHandle));
+        } else if (assetClass.equals(SceneAsset.class)) {
+            //Gdx.app.debug("engine", " add asset: " + " SceneAsset ");
+            SceneAsset sceneAsset = assetManager.get(fileHandle.path(), SceneAsset.class);
+            this.hgModels.put(fileHandle, new HGModel(sceneAsset.scene.model, fileHandle));
         } else if (assetClass.equals(Texture.class)) {
-            //Gdx.app.debug("engine", "add asset:" + " Texture");
+            //Gdx.app.debug("engine", " add asset: " + " Texture ");
             Texture texture = assetManager.get(fileHandle.path(), Texture.class);
             this.hgTextures.put(fileHandle, new HGTexture(texture, fileHandle));
         }
@@ -622,7 +639,16 @@ public class HGEngine implements Disposable {
     public boolean addModelInstance(FileHandle assetFL, String nodeId, int nodeIndex) {
         if (assetFL == null) { return false; }
         if (!assetManager.contains(assetFL.path())) { return false; }
-        HGModel hgModel = new HGModel(assetManager.get(assetFL.path(), Model.class), assetFL);
+
+        Class<?> assetClass = getAssetClass(assetFL);
+        HGModel hgModel;
+        if (assetClass.equals(Model.class)) {
+            hgModel = new HGModel(assetManager.get(assetFL.path(), Model.class), assetFL);
+        } else if (assetClass.equals(SceneAsset.class)) {
+            SceneAsset sceneAsset = assetManager.get(assetFL.path(), SceneAsset.class);
+            hgModel = new HGModel(sceneAsset.scene.model, assetFL);
+        } else { return false; }
+
         return addModelInstance(hgModel, nodeId, nodeIndex);
     }
 

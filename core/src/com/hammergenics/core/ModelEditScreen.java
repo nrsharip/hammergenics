@@ -321,13 +321,13 @@ public class ModelEditScreen extends ScreenAdapter {
 
             // check if there're changes made in the root directory
             // the map should be ordered: see resetFolderSelectBoxItems
-            ArrayMap<FileHandle, Array<FileHandle>> f2m = new ArrayMap<>(true, 16, FileHandle.class, Array.class);
-            HGUtils.traversFileHandle(Gdx.files.internal("root"), MODEL_FILES.fileFilter, f2m); // syncup: asset manager
+            //ArrayMap<FileHandle, Array<FileHandle>> f2m = new ArrayMap<>(true, 16, FileHandle.class, Array.class);
+            //HGUtils.traversFileHandle(Gdx.files.internal("root"), MODEL_FILES.fileFilter, f2m); // syncup: asset manager
 
-            if (!eng.folder2models.equals(f2m)) {
-                eng.folder2models = f2m;
-                stage.resetFolderSelectBoxItems(f2m);
-            }
+            //if (!eng.folder2models.equals(f2m)) {
+            //    eng.folder2models = f2m;
+            //    stage.resetFolderSelectBoxItems(f2m);
+            //}
 
             clock1s = 0;
         }

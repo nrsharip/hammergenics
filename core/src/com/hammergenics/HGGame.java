@@ -22,7 +22,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.assets.loaders.I18NBundleLoader.I18NBundleParameter;
 import com.badlogic.gdx.files.FileHandle;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelCache;
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
@@ -34,8 +33,8 @@ import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.utils.HGUtils;
 import com.kotcrab.vis.ui.Locales;
 import com.kotcrab.vis.ui.VisUI;
-import com.kotcrab.vis.ui.widget.VisCheckBox;
-import com.kotcrab.vis.ui.widget.VisTextButton;
+
+import net.mgsx.gltf.scene3d.shaders.PBRShaderConfig;
 
 import java.nio.charset.Charset;
 import java.util.Locale;
@@ -94,20 +93,41 @@ public class HGGame extends Game {
         // The behavior of DefaultShader class is configurable by supplying
         // a DefaultShader.Config instance to the DefaultShaderProvider.
 
-        DefaultShader.Config config = new DefaultShader.Config();
-//        config.vertexShader;         // String = null - The uber vertex shader to use, null to use the default vertex shader.
-//        config.fragmentShader;       // String = null - The uber fragment shader to use, null to use the default fragment shader.
-//        config.numDirectionalLights; // int = 2 The number of directional lights to use
-//        config.numPointLights;       // int = 5 The number of point lights to use
-//        config.numSpotLights;        // int = 0 The number of spot lights to use
-//        config.numBones;             // int = 12 The number of bones to use
-//        config.ignoreUnimplemented;  // boolean = true
-//        config.defaultCullFace;      // int = -1 Set to 0 to disable culling, -1 to inherit from {@link DefaultShader#defaultCullFace}
-//        config.defaultDepthFunc;     // int = -1 Set to 0 to disable depth test, -1 to inherit from {@link DefaultShader#defaultDepthFunc}
+        DefaultShader.Config configDefault = new DefaultShader.Config();
+//        configDefault.vertexShader = null;        // The uber vertex shader to use, null to use the default vertex shader.
+//        configDefault.fragmentShader = null;      // The uber fragment shader to use, null to use the default fragment shader.
+//        configDefault.numDirectionalLights = 2;   // The number of directional lights to use
+//        configDefault.numPointLights = 5;         // The number of point lights to use
+//        configDefault.numSpotLights = 0;          // The number of spot lights to use
+//        configDefault.numBones = 12;              // The number of bones to use
+//        configDefault.ignoreUnimplemented = true; //
+//        configDefault.defaultCullFace = -1;       // Set to 0 to disable culling, -1 to inherit from {@link DefaultShader#defaultCullFace}
+//        configDefault.defaultDepthFunc = -1;      // Set to 0 to disable depth test, -1 to inherit from {@link DefaultShader#defaultDepthFunc}
+
+        PBRShaderConfig configPBR = new PBRShaderConfig();
+//        configPBR.manualSRGB = PBRShaderConfig.SRGB.ACCURATE;
+//        configPBR.glslVersion = null;     // string to prepend to shaders (version), automatic if null
+//        configPBR.numVertexColors = 1;    // Max vertex color layers. Default PBRShader only use 1 layer,
+//                                          // custom shaders can implements more
+//        configPBR.useTangentSpace = true; // Whether shaders will use tangent space.
+//                                          // If true, mesh require tangent vertex attribute to work on all platforms.
+//                                          // You typically set it to false when your custom shaders don't use tangents and normal matrix.
 
         // https://github.com/libgdx/libgdx/wiki/ModelBatch
         // You'd typically create a ModelBatch in the create() method.
-        modelBatch = new ModelBatch(new DefaultShaderProvider(config));
+
+        modelBatch = new ModelBatch(new DefaultShaderProvider(configDefault));
+
+        // Enable PBR Shader. see: https://github.com/mgsx-dev/gdx-gltf
+        // IMPORTANT: the model instances need to have environment provided while rendered otherwise:
+        // Exception in thread "LWJGL Application" java.lang.NullPointerException
+        //        [ renderable.environment.has(FogAttribute.FogEquation) ]
+        //        at net.mgsx.gltf.scene3d.shaders.PBRShaderProvider.createShader(PBRShaderProvider.java:245)
+        //        at com.badlogic.gdx.graphics.g3d.utils.BaseShaderProvider.getShader(BaseShaderProvider.java:34)
+        //        at com.badlogic.gdx.graphics.g3d.ModelBatch.render(ModelBatch.java:238)
+        //        at com.hammergenics.core.ModelEditScreen.render(ModelEditScreen.java:228)
+        // modelBatch = new ModelBatch(new PBRShaderProvider(configPBR));
+
 
         // see: https://github.com/libgdx/libgdx/wiki/ModelCache#using-modelcache
         modelCache = new ModelCache();

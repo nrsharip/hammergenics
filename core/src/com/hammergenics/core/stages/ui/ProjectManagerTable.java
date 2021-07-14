@@ -46,6 +46,8 @@ import com.kotcrab.vis.ui.widget.VisTextButton;
 import com.kotcrab.vis.ui.widget.VisTree;
 import com.kotcrab.vis.ui.widget.VisWindow;
 
+import net.mgsx.gltf.scene3d.scene.SceneAsset;
+
 import java.io.File;
 import java.util.Arrays;
 import java.util.regex.Pattern;
@@ -257,7 +259,7 @@ public class ProjectManagerTable extends ManagerTable {
         boolean parentPresent;
         HGTreeVisTableNode treeNode;
         // adding the parent folder node first (if not existed before)
-        if (assetClass.equals(Model.class) && rootModelsTreeNode != null) {
+        if ((assetClass.equals(Model.class) || assetClass.equals(SceneAsset.class)) && rootModelsTreeNode != null) {
             parentPresent = mapModels.containsKey(fileHandle.parent());
             treeNode = getAssetParentFolderTreeNode(fileHandle, assetClass, mapModels);
             if (!parentPresent) { addModelAssetParentFolderTreeNode(fileHandle, treeNode, rootModelsTreeNode); }
@@ -273,9 +275,9 @@ public class ProjectManagerTable extends ManagerTable {
         applyCommonPathToParentTreeNodes(mapImages);
 
         // then adding the child node - the asset itself
-        if (assetClass == Model.class) {
+        if (assetClass.equals(Model.class) || assetClass.equals(SceneAsset.class)) {
             addModelAssetTreeNode(fileHandle, treeNode);
-        } else if (assetClass == Texture.class) {
+        } else if (assetClass.equals(Texture.class)) {
             addImageAssetTreeNode(fileHandle, treeNode);
         }
     }
@@ -288,7 +290,7 @@ public class ProjectManagerTable extends ManagerTable {
         HGTreeVisTableNode treeNode = map.get(parent);
         if (treeNode == null) {
             Color clr = Color.WHITE;
-            if (assetClass.equals(Model.class)) { clr = Color.CYAN; }
+            if (assetClass.equals(Model.class) || assetClass.equals(SceneAsset.class)) { clr = Color.CYAN; }
             else if (assetClass.equals(Texture.class)) { clr = Color.CHARTREUSE; }
 
             treeNode = new HGTreeVisTableNode(new HGTreeVisTable(parentAbsPath, clr, parent));

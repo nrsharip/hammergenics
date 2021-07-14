@@ -11,7 +11,7 @@
 	<inherits name='com.kotcrab.vis.vis-ui' />
 
     <inherits name='com.hammergenics.GdxDefinition' />
-    
+	<inherits name='GLTF' />
     <collapse-all-properties />
     
 	<add-linker name="xsiframe"/>	
