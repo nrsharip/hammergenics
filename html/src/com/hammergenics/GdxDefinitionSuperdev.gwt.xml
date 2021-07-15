@@ -12,6 +12,8 @@
 
     <inherits name='com.hammergenics.GdxDefinition' />
 	<inherits name='GLTF' />
+	<inherits name='com.gempukku.libgdx.graph'/>
+
     <collapse-all-properties />
     
 	<add-linker name="xsiframe"/>	

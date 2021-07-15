@@ -1,0 +1,80 @@
+{
+  "version": "0.5.0",
+  "nodes": [
+    {
+      "type": "PipelineStart",
+      "id": "start",
+      "x": 320,
+      "y": 240
+    },
+    {
+      "type": "PipelineEnd",
+      "id": "end",
+      "x": 640,
+      "y": 480
+    },
+    {
+      "type": "Property",
+      "id": "property_background_color",
+      "x": 240,
+      "y": 320,
+      "data": {
+        "name": "Background Color",
+        "type": "Color"
+      }
+    }
+  ],
+  "connections": [
+    {
+      "fromNode": "start",
+      "fromField": "output",
+      "toField": "input",
+      "toNode": "end"
+    },
+    {
+      "fromNode": "property_background_color",
+      "fromField": "value",
+      "toField": "background",
+      "toNode": "start"
+    }
+  ],
+  "properties": [
+    {
+      "type": "Color",
+      "name": "Background Color",
+      "data": {
+        "color": "00000000"
+      }
+    }
+  ],
+  "groups": [],
+
+  "__comments":
+  {
+    "comment1": "see RendererPipelineConfiguration: static {...}",
+    "comment2": "see NodeConfiguration: getType(), getName(), getMenuLocation(), getNodeInputs(), getNodeOutputs(), isValid()",
+
+    "comment3": "see GraphLoader.loadGraph",
+    "comment31": "graph.get(\"nodes\")",
+    "comment311": "object.getString(\"type\")",
+    "comment312": "object.getString(\"id\")",
+    "comment313": "object.getFloat(\"x\")",
+    "comment314": "object.getFloat(\"y\")",
+    "comment315": "object.get(\"data\")",
+    "comment32": "graph.get(\"connections\")",
+    "comment33": "graph.get(\"properties\")",
+    "comment34": "graph.get(\"groups\")",
+
+    "comment9": "issues",
+    "comment901": "error connector: field id: input node id: end",
+    "comment9011": "see GraphValidator.validateNode",
+    "comment9012": "    if (input.isRequired() && !validatedFields.contains(input.getFieldId())) -> ERROR",
+    "comment9013": "see EndPipelineNodeConfiguration.<init>:",
+    "comment9014": "    addNodeInput(new GraphNodeInputImpl<PipelineFieldType>(\"input\", \"Input\", true, true, RenderPipeline));",
+    "comment9015": "SOLUTION: added PipelineStart(id: start) node. added connection start.output -> end.input",
+    "comment9016": "see StartPipelineNodeConfiguration.<init>:",
+    "comment9017": "    addNodeInput(new GraphNodeInputImpl<PipelineFieldType>(\"background\", \"Background color\", Color));",
+    "comment9018": "    addNodeInput(new GraphNodeInputImpl<PipelineFieldType>(\"size\", \"Size\", Vector2));",
+    "comment9019": "    addNodeOutput(new GraphNodeOutputImpl<PipelineFieldType>(\"output\", \"Output\", true, RenderPipeline));"
+  }
+}

@@ -32,6 +32,9 @@ allprojects {
         gdxControllersVersion = '2.1.0'
         // https://jitpack.io/#mgsx-dev/gdx-gltf
         gltfVersion = '1.0.0'
+        // https://github.com/MarcinSc/libgdx-graph/wiki/Pipeline-basics
+        // https://mvnrepository.com/artifact/com.gempukku.libgdx.graph/libgdx-graph
+        gdxGraphVersion='0.6.1'
     }
 
     repositories {
@@ -132,6 +135,8 @@ project(":html") {
         api "com.badlogicgames.box2dlights:box2dlights:$box2DLightsVersion:sources"
         api "com.kotcrab.vis:vis-ui:1.5.0:sources"
         api "com.github.mgsx-dev.gdx-gltf:gltf:$gltfVersion:sources"
+        // https://github.com/MarcinSc/libgdx-graph/wiki/Pipeline-basics
+        implementation "com.gempukku.libgdx.graph:libgdx-graph:$gdxGraphVersion:sources"
     }
 }
 
@@ -164,5 +169,8 @@ project(":core") {
         // https://jitpack.io/#Anuken/GdxGifRecorder/1.4
         api 'com.github.Anuken:GdxGifRecorder:1.4'
         api "com.strongjoshua:libgdx-inGameConsole:1.0.0"
+        // https://github.com/MarcinSc/libgdx-graph/wiki/Pipeline-basics
+        //api "com.gempukku.libgdx.graph:libgdx-graph:$gdxGraphVersion"
+        api 'com.github.MarcinSc:libgdx-graph:9f6c886795ad1a201e3140fef262ee5a86f0cac1'
     }
 }

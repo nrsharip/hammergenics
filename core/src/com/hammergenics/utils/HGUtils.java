@@ -45,7 +45,68 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.linearmath.btIDebugDraw;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
+import com.badlogic.gdx.utils.JsonValue;
 import com.badlogic.gdx.utils.ObjectMap;
+import com.gempukku.libgdx.graph.data.NodeConfiguration;
+import com.gempukku.libgdx.graph.pipeline.PipelineFieldType;
+import com.gempukku.libgdx.graph.pipeline.producer.math.arithmetic.AddPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.arithmetic.DividePipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.arithmetic.MultiplyPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.arithmetic.OneMinusPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.arithmetic.ReciprocalPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.arithmetic.SubtractPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.common.AbsPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.common.CeilingPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.common.ClampPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.common.FloorPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.common.FractionalPartPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.common.LerpPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.common.MaximumPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.common.MinimumPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.common.ModuloPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.common.SaturatePipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.common.SignPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.common.SmoothstepPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.common.StepPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.exponential.ExponentialBase2PipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.exponential.ExponentialPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.exponential.InverseSquareRootPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.exponential.LogarithmBase2PipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.exponential.NaturalLogarithmPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.exponential.PowerPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.exponential.SquareRootPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.geometric.CrossProductPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.geometric.DistancePipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.geometric.DotProductPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.geometric.LengthPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.geometric.NormalizePipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.trigonometry.ArccosPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.trigonometry.ArcsinPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.trigonometry.ArctanPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.trigonometry.CosPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.trigonometry.DegreesPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.trigonometry.RadiansPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.trigonometry.SinPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.trigonometry.TanPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.value.MergePipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.math.value.SplitPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.node.PipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.postprocessor.BloomPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.postprocessor.DepthOfFieldPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.postprocessor.GammaCorrectionPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.postprocessor.GaussianBlurPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.property.PropertyPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.provided.RenderSizePipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.provided.TimePipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.rendering.producer.CustomRendererPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.rendering.producer.EndPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.rendering.producer.PipelineRendererNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.rendering.producer.StartPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.value.producer.ValueBooleanPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.value.producer.ValueColorPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.value.producer.ValueFloatPipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.value.producer.ValueVector2PipelineNodeProducer;
+import com.gempukku.libgdx.graph.pipeline.producer.value.producer.ValueVector3PipelineNodeProducer;
 import com.hammergenics.config.Conventions;
 import com.hammergenics.core.graphics.g3d.HGModelInstance;
 
@@ -943,5 +1004,103 @@ public class HGUtils {
             for (j = 0; j < i; j++) { if (tmp.equals(inout)) { return inout.add(0, 1); } tmp.add(0, 1); }
             for (j = 0; j < i; j++) { if (tmp.equals(inout)) { return inout.add(1, 0); } tmp.add(1, 0); }
         }
+    }
+
+    public static String getLibgdxGraph_NodeConfigurationsInfo() {
+        StringBuilder sb = new StringBuilder();
+
+        // ATTENTION: PipelineNodeProducerImpl.createNode -> SingleParamMathFunctionPipelineNodeProducerImpl.createNodeForSingleInputs:
+        //            produces a disposable OncePerFrameJobPipelineNode. The dispose() method is empty and no nodes are created by
+        //            the producers listed below, they are used just for the purpose of reading the configuration.
+        getLibgdxGraph_NodeConfigurationInfo(new StartPipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new EndPipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new CustomRendererPipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new PipelineRendererNodeProducer(), sb);
+        sb.append("\n");
+        getLibgdxGraph_NodeConfigurationInfo(new ValueFloatPipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new ValueVector2PipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new ValueVector3PipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new ValueColorPipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new ValueBooleanPipelineNodeProducer(), sb);
+        sb.append("\n");
+        getLibgdxGraph_NodeConfigurationInfo(new RenderSizePipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new TimePipelineNodeProducer(), sb);
+        sb.append("\n");
+        getLibgdxGraph_NodeConfigurationInfo(new AddPipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new DividePipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new MultiplyPipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new OneMinusPipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new ReciprocalPipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new SubtractPipelineNodeProducer(), sb);
+        sb.append("\n");
+        getLibgdxGraph_NodeConfigurationInfo(new AbsPipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new CeilingPipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new ClampPipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new FloorPipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new FractionalPartPipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new LerpPipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new MaximumPipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new MinimumPipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new ModuloPipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new SaturatePipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new SignPipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new SmoothstepPipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new StepPipelineNodeProducer(), sb);
+        sb.append("\n");
+        getLibgdxGraph_NodeConfigurationInfo(new ExponentialBase2PipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new ExponentialPipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new InverseSquareRootPipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new LogarithmBase2PipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new NaturalLogarithmPipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new PowerPipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new SquareRootPipelineNodeProducer(), sb);
+        sb.append("\n");
+        getLibgdxGraph_NodeConfigurationInfo(new CrossProductPipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new DistancePipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new DotProductPipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new LengthPipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new NormalizePipelineNodeProducer(), sb);
+        sb.append("\n");
+        getLibgdxGraph_NodeConfigurationInfo(new ArccosPipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new ArcsinPipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new ArctanPipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new CosPipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new DegreesPipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new RadiansPipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new SinPipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new TanPipelineNodeProducer(), sb);
+        sb.append("\n");
+        getLibgdxGraph_NodeConfigurationInfo(new MergePipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new SplitPipelineNodeProducer(), sb);
+        sb.append("\n");
+        getLibgdxGraph_NodeConfigurationInfo(new PropertyPipelineNodeProducer(), sb);
+        sb.append("\n");
+        getLibgdxGraph_NodeConfigurationInfo(new BloomPipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new GaussianBlurPipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new DepthOfFieldPipelineNodeProducer(), sb);
+        getLibgdxGraph_NodeConfigurationInfo(new GammaCorrectionPipelineNodeProducer(), sb);
+
+        return sb.toString();
+    }
+
+    public static StringBuilder getLibgdxGraph_NodeConfigurationInfo(PipelineNodeProducer producer, StringBuilder out) {
+        // see PropertyPipelineNodeProducer.getConfiguration for the use of JsonValue
+        NodeConfiguration<PipelineFieldType> config = producer.getConfiguration(new JsonValue(""));
+
+        // uncomment in case you have fixed width mono type font installed or would like to copy the console output
+//        out.append(String.format("%45s = type: %20s | name: %20s | menu location: %20s\n",
+//                // %40s -> //producer.getClass().getSimpleName(),
+//                config.getClass().getSimpleName(),
+//                config.getType(),
+//                config.getName(),
+//                config.getMenuLocation()));
+
+//        out.append(producer.getClass().getSimpleName()).append(" -> ");
+        out.append(config.getClass().getSimpleName()).append(":");
+        out.append(" type: ").append(config.getType());
+        out.append(" name: ").append(config.getName());
+        out.append(" menu location: ").append(config.getMenuLocation());
+        out.append("\n");
+        return out;
     }
 }

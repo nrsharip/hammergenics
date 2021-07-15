@@ -57,7 +57,8 @@ sourceCompatibility = JavaVersion.VERSION_1_8 // https://docs.gradle.org/6.7.1/j
 //                       Deletes files created by the specified task. For example, cleanJar will delete the JAR file created
 //                       by the jar task and cleanTest will delete the test results created by the test task.
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
-
+// TODO: fix the unchecked generic array creation
+compileJava.options.compilerArgs += ["-Xlint:unchecked"]
 // https://docs.gradle.org/6.7.1/userguide/java_plugin.html#java_source_set_tasks
 // For each source set you add to the project, the Java plugin adds the following tasks:
 //      compile<SourceSet>Java — JavaCompile (https://docs.gradle.org/6.7.1/dsl/org.gradle.api.tasks.compile.JavaCompile.html)

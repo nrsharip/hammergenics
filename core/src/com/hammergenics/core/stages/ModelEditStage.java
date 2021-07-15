@@ -43,6 +43,7 @@ import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.StringBuilder;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import com.gempukku.libgdx.graph.util.WhitePixel;
 import com.hammergenics.HGEngine;
 import com.hammergenics.HGGame;
 import com.hammergenics.HGGame.I18NBundlesEnum;
@@ -60,6 +61,7 @@ import com.hammergenics.core.stages.ui.attributes.BaseAttributeTable.EventType;
 import com.hammergenics.core.stages.ui.auxiliary.HGImageVisWindow;
 import com.hammergenics.core.stages.ui.auxiliary.ImageChooser;
 import com.hammergenics.core.stages.ui.auxiliary.ModelChooser;
+import com.hammergenics.graph.pipeline.LibgdxGraphVisWindow;
 import com.hammergenics.utils.HGUtils;
 import com.kotcrab.vis.ui.VisUI;
 import com.kotcrab.vis.ui.i18n.BundleText;
@@ -95,6 +97,7 @@ import static com.hammergenics.core.stages.ui.file.TypeFilterRulesEnum.FONT_FILE
 import static com.hammergenics.core.stages.ui.file.TypeFilterRulesEnum.HG_FILES;
 import static com.hammergenics.core.stages.ui.file.TypeFilterRulesEnum.IMAGE_FILES;
 import static com.hammergenics.core.stages.ui.file.TypeFilterRulesEnum.MODEL_FILES;
+import static com.hammergenics.utils.HGUtils.getLibgdxGraph_NodeConfigurationsInfo;
 
 /**
  * Add description here
@@ -189,6 +192,7 @@ public class ModelEditStage extends Stage {
         initConsole();
         imageChooser = new ImageChooser(modelES.eng, this);
         modelChooser = new ModelChooser(modelES.eng, this);
+        WhitePixel.initializeShared();
 
         setup2DStageWidgets();
         setup2DStageLayout();
@@ -220,6 +224,7 @@ public class ModelEditStage extends Stage {
         colorPicker.dispose();
         // https://github.com/StrongJoshua/libgdx-inGameConsole
         console.dispose();
+        WhitePixel.disposeShared();
         super.dispose();
     }
 
@@ -247,6 +252,12 @@ public class ModelEditStage extends Stage {
         Menu helpMenu = new Menu("Help"); MENU_BAR_HELP.seize(helpMenu.openButton);
 
         MenuItem newMenuItem = new MenuItem("New").setShortcut("Ctrl + N"); MENU_ITEM_NEW.seize(newMenuItem);
+        newMenuItem.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                addActor(new LibgdxGraphVisWindow("libgdx-graph").fadeIn());
+            }
+        });
         MenuItem openMenuItem = new MenuItem("Open").setShortcut("Ctrl + O"); MENU_ITEM_OPEN.seize(openMenuItem);
 
         openMenuItem.addListener(new ChangeListener() {
@@ -593,6 +604,10 @@ public class ModelEditStage extends Stage {
             public void error() { console.log("ERROR", LogLevel.ERROR); }
             public void success() { console.log("SUCCESS", LogLevel.SUCCESS); }
             public void command() { console.log("COMMAND", LogLevel.COMMAND); }
+
+            public void libgdx_graph_node_configurations() {
+                console.log(getLibgdxGraph_NodeConfigurationsInfo(), LogLevel.SUCCESS);
+            }
         });
         console.setSizePercent(50, 50);
         //console.setPosition(0, 0);
