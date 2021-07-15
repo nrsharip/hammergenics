@@ -40,6 +40,9 @@ import net.mgsx.gltf.scene3d.shaders.PBRShaderConfig;
 import java.nio.charset.Charset;
 import java.util.Locale;
 
+import groovy.lang.Binding;
+import groovy.lang.GroovyShell;
+
 import static com.hammergenics.HGGame.I18NBundlesEnum.ENGLISH;
 import static com.hammergenics.core.stages.ui.file.TypeFilterRulesEnum.MODEL_FILES;
 
@@ -53,6 +56,7 @@ public class HGGame extends Game {
     public ModelBatch modelBatch;
     public ModelCache modelCache;
     public SpriteBatch spriteBatch;
+    public GroovyShell groovyShell;
     /**
      *
      */
@@ -142,7 +146,16 @@ public class HGGame extends Game {
 
         ENGLISH.apply(engine.assetManager);
 
-        this.setScreen(new ModelEditScreen(this, engine, modelBatch, modelCache));
+        ModelEditScreen screen = new ModelEditScreen(this, engine, modelBatch, modelCache);
+
+        Binding sharedData = new Binding();
+
+        sharedData.setProperty("engine", engine);
+        sharedData.setProperty("screen", screen);
+        sharedData.setProperty("stage", screen.stage);
+        groovyShell = new GroovyShell(sharedData);
+
+        this.setScreen(screen);
     }
 
     // see java.util.LocaleISOData.java : isoLanguageTable

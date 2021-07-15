@@ -88,6 +88,8 @@ import com.strongjoshua.console.CommandExecutor;
 import com.strongjoshua.console.GUIConsole;
 import com.strongjoshua.console.LogLevel;
 
+import org.codehaus.groovy.control.CompilationFailedException;
+
 import static com.hammergenics.core.stages.ModelEditStage.MenuItemsTextEnum.*;
 import static com.hammergenics.core.stages.ModelEditStage.TextButtonsTextEnum.*;
 import static com.hammergenics.core.stages.ui.attributes.BaseAttributeTable.EventType.ATTR_CHANGED;
@@ -607,6 +609,29 @@ public class ModelEditStage extends Stage {
 
             public void libgdx_graph_node_configurations() {
                 console.log(getLibgdxGraph_NodeConfigurationsInfo(), LogLevel.SUCCESS);
+            }
+
+            public void groovy(String scriptText) {
+                try {
+                    // > groovy engine.editableMIs.get(0).transform
+                    // [1.0|0.0|0.0|0.0]
+                    // [0.0|1.0|0.0|0.5]
+                    // [0.0|0.0|1.0|0.0]
+                    // [0.0|0.0|0.0|1.0]
+                    // > groovy stage.physManagerTable.dynamicsCheckBox.setChecked(true)
+                    // > groovy screen.perspectiveCamera.position
+                    // (1.5773501,2.0773501,1.5773501)
+                    // > groovy engine.editableMIs.toString("\n")
+                    // com.hammergenics.core.graphics.g3d.EditableModelInstance@1fc61435
+                    // com.hammergenics.core.graphics.g3d.EditableModelInstance@53aee46d
+                    // ...
+                    Object result = game.groovyShell.evaluate(scriptText);
+                    console.log("" + result, LogLevel.SUCCESS);
+                } catch (CompilationFailedException e) {
+                    console.log(e.getMessage(), LogLevel.ERROR);
+                    console.log(new Array<>(e.getStackTrace()).toString("\n"), LogLevel.ERROR);
+                    e.printStackTrace();
+                }
             }
         });
         console.setSizePercent(50, 50);

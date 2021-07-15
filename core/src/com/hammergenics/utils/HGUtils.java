@@ -1073,7 +1073,7 @@ public class HGUtils {
         getLibgdxGraph_NodeConfigurationInfo(new MergePipelineNodeProducer(), sb);
         getLibgdxGraph_NodeConfigurationInfo(new SplitPipelineNodeProducer(), sb);
         sb.append("\n");
-        getLibgdxGraph_NodeConfigurationInfo(new PropertyPipelineNodeProducer(), sb);
+        //getLibgdxGraph_NodeConfigurationInfo(new PropertyPipelineNodeProducer(), sb);
         sb.append("\n");
         getLibgdxGraph_NodeConfigurationInfo(new BloomPipelineNodeProducer(), sb);
         getLibgdxGraph_NodeConfigurationInfo(new GaussianBlurPipelineNodeProducer(), sb);
