@@ -66,17 +66,19 @@ public class Matrix3VisTable extends VisTable {
         M22TF = new VisTextField(Float.toString(this.matrix3.val[M22]));
 
         valueT = new VisTable();
-        valueT.add(M00TF).width(120).maxWidth(120).expandX().center().pad(0.5f);
-        valueT.add(M01TF).width(120).maxWidth(120).expandX().center().pad(0.5f);
-        valueT.add(M02TF).width(120).maxWidth(120).expandX().center().pad(0.5f);
-        valueT.row();
-        valueT.add(M10TF).width(120).maxWidth(120).expandX().center().pad(0.5f);
-        valueT.add(M11TF).width(120).maxWidth(120).expandX().center().pad(0.5f);
-        valueT.add(M12TF).width(120).maxWidth(120).expandX().center().pad(0.5f);
-        valueT.row();
-        valueT.add(M20TF).width(120).maxWidth(120).expandX().center().pad(0.5f);
-        valueT.add(M21TF).width(120).maxWidth(120).expandX().center().pad(0.5f);
-        valueT.add(M22TF).width(120).maxWidth(120).expandX().center().pad(0.5f);
+        VisTable tmp = new VisTable();
+        tmp.add(new VisLabel("00: ")).right(); tmp.add(M00TF).width(94).maxWidth(94).pad(0.5f);
+        tmp.add(new VisLabel("01: ")).right(); tmp.add(M01TF).width(94).maxWidth(94).pad(0.5f);
+        tmp.add(new VisLabel("02: ")).right(); tmp.add(M02TF).width(94).maxWidth(94).pad(0.5f);
+        tmp.row();
+        tmp.add(new VisLabel("10: ")).right(); tmp.add(M10TF).width(94).maxWidth(94).pad(0.5f);
+        tmp.add(new VisLabel("11: ")).right(); tmp.add(M11TF).width(94).maxWidth(94).pad(0.5f);
+        tmp.add(new VisLabel("12: ")).right(); tmp.add(M12TF).width(94).maxWidth(94).pad(0.5f);
+        tmp.row();
+        tmp.add(new VisLabel("20: ")).right(); tmp.add(M20TF).width(94).maxWidth(94).pad(0.5f);
+        tmp.add(new VisLabel("21: ")).right(); tmp.add(M21TF).width(94).maxWidth(94).pad(0.5f);
+        tmp.add(new VisLabel("22: ")).right(); tmp.add(M22TF).width(94).maxWidth(94).pad(0.5f);
+        valueT.add(tmp);
 
         if (title) { add(this.titleL).padRight(5f).right(); };
         add(valueT).expandX().fillX();
