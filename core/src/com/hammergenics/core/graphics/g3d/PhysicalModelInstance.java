@@ -33,6 +33,8 @@ import com.badlogic.gdx.utils.Disposable;
 import com.hammergenics.core.graphics.glutils.HGImmediateModeRenderer20;
 import com.hammergenics.physics.bullet.dynamics.btRigidBodyProxy;
 
+import static com.hammergenics.physics.bullet.collision.btCollisionObjectProxy.coActivationStatesEnum.ACTIVE_TAG;
+
 /**
  * Add description here
  *
@@ -147,6 +149,16 @@ public class PhysicalModelInstance extends HGModelInstance implements Disposable
         }
 
         rigidBody.proceedToTransform(tmpM4);
+        // we moved the rigid body - set the activation state to ACTIVE_TAG
+        // https://github.com/libgdx/libgdx/blob/024282e47e9b5d8ec25373d3e1e5ddfe55122596/extensions/gdx-bullet/jni/src/bullet/BulletCollision/CollisionDispatch/btCollisionObject.h#L21
+        // #define ACTIVE_TAG 1
+        // #define ISLAND_SLEEPING 2
+        // #define WANTS_DEACTIVATION 3
+        // #define DISABLE_DEACTIVATION 4
+        // #define DISABLE_SIMULATION 5
+        // https://github.com/bulletphysics/bullet3/blob/master/src/BulletCollision/CollisionDispatch/btCollisionObject.h#L21
+        // #define FIXED_BASE_MULTI_BODY 6
+        rigidBody.setActivationState(ACTIVE_TAG.define);
     }
 
     public enum ShapesEnum {

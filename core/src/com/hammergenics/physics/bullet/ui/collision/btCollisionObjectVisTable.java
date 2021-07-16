@@ -29,6 +29,7 @@ import com.hammergenics.core.stages.ui.auxiliary.types.Vector3VisTable;
 import com.hammergenics.physics.bullet.collision.btCollisionObjectProxy;
 import com.hammergenics.physics.bullet.dynamics.btRigidBodyProxy;
 import com.kotcrab.vis.ui.widget.VisLabel;
+import com.kotcrab.vis.ui.widget.VisSelectBox;
 import com.kotcrab.vis.ui.widget.VisTable;
 
 public class btCollisionObjectVisTable extends VisTable {
@@ -40,6 +41,7 @@ public class btCollisionObjectVisTable extends VisTable {
     public btCollisionObjectProxy cop;
 
     public IntVisTable coActivationStateVisTable;
+    public VisSelectBox<btCollisionObjectProxy.coActivationStatesEnum> coActivationStateSelectBox;
     public Vector3VisTable coAnisotropicFrictionVisTable;
     public FloatVisTable coCcdMotionThresholdVisTable;
     public FloatVisTable coCcdSquareMotionThresholdVisTable;
@@ -87,7 +89,7 @@ public class btCollisionObjectVisTable extends VisTable {
         init();
 
         add(coActivationStateVisTable.titleL).padRight(5f).right();
-        add(coActivationStateVisTable.valueT).expandX().fillX().row();
+        add(coActivationStateSelectBox).expandX().left().row();
         add(coAnisotropicFrictionVisTable.titleL).padRight(5f).right();
         add(coAnisotropicFrictionVisTable.valueT).expandX().fillX().row();
         add(coCcdMotionThresholdVisTable.titleL).padRight(5f).right();
@@ -166,6 +168,8 @@ public class btCollisionObjectVisTable extends VisTable {
 
     public void init() {
         coActivationStateVisTable = new IntVisTable(true, new VisLabel("Activation State: "));
+        coActivationStateSelectBox = new VisSelectBox<>();
+        coActivationStateSelectBox.setItems(btCollisionObjectProxy.coActivationStatesEnum.values());
         coAnisotropicFrictionVisTable = new Vector3VisTable(false, true, true, new VisLabel("Anisotropic Friction: "));
         coCcdMotionThresholdVisTable = new FloatVisTable(true, new VisLabel("Ccd Motion Threshold: "));
         coCcdSquareMotionThresholdVisTable = new FloatVisTable(true, new VisLabel("Ccd Square Motion Threshold: "));
@@ -217,6 +221,7 @@ public class btCollisionObjectVisTable extends VisTable {
             cop.update();
 
             coActivationStateVisTable.setInt(cop.coActivationState);
+            coActivationStateSelectBox.setSelected(btCollisionObjectProxy.coActivationStatesEnum.findByDefine(cop.coActivationState));
             coAnisotropicFrictionVisTable.setVector3(cop.coAnisotropicFriction);
             coCcdMotionThresholdVisTable.setFloat(cop.coCcdMotionThreshold);
             coCcdSquareMotionThresholdVisTable.setFloat(cop.coCcdSquareMotionThreshold);
@@ -257,6 +262,7 @@ public class btCollisionObjectVisTable extends VisTable {
             mergesSimulationIslandsVisTable.setBoolean(cop.mergesSimulationIslands);
         } else {
             coActivationStateVisTable.setInt(0);
+            coActivationStateSelectBox.setSelectedIndex(0);
             coAnisotropicFrictionVisTable.setVector3(null);
             coCcdMotionThresholdVisTable.setFloat(0f);
             coCcdSquareMotionThresholdVisTable.setFloat(0f);

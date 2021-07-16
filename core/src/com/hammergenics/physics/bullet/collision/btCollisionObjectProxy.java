@@ -37,6 +37,31 @@ public class btCollisionObjectProxy {
 
     public void setInstance(btCollisionObject instance) { this.instance = instance; }
 
+    // https://github.com/libgdx/libgdx/blob/024282e47e9b5d8ec25373d3e1e5ddfe55122596/extensions/gdx-bullet/jni/src/bullet/BulletCollision/CollisionDispatch/btCollisionObject.h#L21
+    // #define ACTIVE_TAG 1
+    // #define ISLAND_SLEEPING 2
+    // #define WANTS_DEACTIVATION 3
+    // #define DISABLE_DEACTIVATION 4
+    // #define DISABLE_SIMULATION 5
+    // https://github.com/bulletphysics/bullet3/blob/master/src/BulletCollision/CollisionDispatch/btCollisionObject.h#L21
+    // #define FIXED_BASE_MULTI_BODY 6
+    public enum coActivationStatesEnum {
+        ACTIVE_TAG(1),
+        ISLAND_SLEEPING(2),
+        WANTS_DEACTIVATION(3),
+        DISABLE_DEACTIVATION(4),
+        DISABLE_SIMULATION(5);
+        public final int define;
+        coActivationStatesEnum(int define) { this.define = define; }
+
+        public static coActivationStatesEnum findByDefine(int define) {
+            for (coActivationStatesEnum as: coActivationStatesEnum.values()) {
+                if (as.define == define) { return as; }
+            }
+            return null;
+        }
+    }
+
     public void update() {
         if (instance == null) { return; }
 
