@@ -87,6 +87,7 @@ import com.kotcrab.vis.ui.widget.file.FileTypeFilter;
 import com.strongjoshua.console.CommandExecutor;
 import com.strongjoshua.console.GUIConsole;
 import com.strongjoshua.console.LogLevel;
+import com.strongjoshua.console.annotation.ConsoleDoc;
 
 import org.codehaus.groovy.control.CompilationFailedException;
 
@@ -611,6 +612,7 @@ public class ModelEditStage extends Stage {
                 console.log(getLibgdxGraph_NodeConfigurationsInfo(), LogLevel.SUCCESS);
             }
 
+            @ConsoleDoc(description = "Runtime Groovy Shell. Run 'groovy game.help()' for additional info.")
             public void groovy(String scriptText) {
                 try {
                     // > groovy engine.editableMIs.get(0).transform

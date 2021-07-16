@@ -37,8 +37,10 @@ import com.kotcrab.vis.ui.VisUI;
 
 import net.mgsx.gltf.scene3d.shaders.PBRShaderConfig;
 
+import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.util.Locale;
+import java.util.Map;
 
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
@@ -57,6 +59,7 @@ public class HGGame extends Game {
     public ModelCache modelCache;
     public SpriteBatch spriteBatch;
     public GroovyShell groovyShell;
+    public Binding sharedData;
     /**
      *
      */
@@ -148,14 +151,42 @@ public class HGGame extends Game {
 
         ModelEditScreen screen = new ModelEditScreen(this, engine, modelBatch, modelCache);
 
-        Binding sharedData = new Binding();
+        sharedData = new Binding();
 
+        sharedData.setProperty("game", this);
         sharedData.setProperty("engine", engine);
         sharedData.setProperty("screen", screen);
         sharedData.setProperty("stage", screen.stage);
         groovyShell = new GroovyShell(sharedData);
 
         this.setScreen(screen);
+    }
+
+    public String help() {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("\nAvailable Variables:\n");
+
+        ((Map<String, ?>)sharedData.getVariables()).forEach((k, v) -> {
+            //String.format("%15s:%20s\n", k, v.getClass().getSimpleName());
+            sb.append(k).append(": ").append(v.getClass().getSimpleName()).append("\n");
+        });
+
+        sb.append("\nFor additional info run 'groovy game.help(\"<variable>\")', e.g.: groovy game.help(\"engine\")\n");
+
+        return sb.toString();
+    }
+
+    public String help(String variable) {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("Variable: ").append(variable).append("\n\n");
+
+        for (Field field: HGUtils.scanPublicFields(sharedData.getVariable(variable).getClass())) {
+            sb.append("Field: ").append(field.getName()).append("\n");
+        }
+
+        return sb.toString();
     }
 
     // see java.util.LocaleISOData.java : isoLanguageTable

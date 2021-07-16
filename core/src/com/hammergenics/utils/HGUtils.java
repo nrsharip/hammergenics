@@ -273,15 +273,26 @@ public class HGUtils {
     }
 
     public static Field[] scanPublicStaticFinalFields(Class<?> scanned, Class<?> scanFor) {
-        Field[] fields = Arrays.stream(scanned.getFields())                           // getting all accessible public fields
-                            .filter(field -> field.getType().equals(scanFor))         // taking only fields of type 'int'
-                            .filter(field -> Modifier.isFinal(field.getModifiers()))  // taking only final fields
-                            .filter(field -> Modifier.isStatic(field.getModifiers())) // taking only static fields
-                            .toArray(Field[]::new);                                   // retrieving the array
+        return scanPublicFields(scanned, true, true, scanFor);
+    }
+    public static Field[] scanPublicFields(Class<?> scanned) {
+        return scanPublicFields(scanned, false, false, null);
+    }
+    public static Field[] scanPublicFields(Class<?> scanned, boolean staticc, boolean finall) {
+        return scanPublicFields(scanned, staticc, finall, null);
+    }
+    public static Field[] scanPublicFields(Class<?> scanned, boolean staticc, boolean finall, Class<?> scanFor) {
+        Field[] fields = Arrays.stream(scanned.getFields())                          // getting all accessible public fields
+                .filter(field -> scanFor == null || field.getType().equals(scanFor)) // taking only fields of type 'int'
+                .filter(field -> !staticc || Modifier.isFinal(field.getModifiers())) // taking only final fields
+                .filter(field -> !finall || Modifier.isStatic(field.getModifiers())) // taking only static fields
+                .toArray(Field[]::new);                                              // retrieving the array
 
         if (fields.length == 0) {
-            Gdx.app.debug(getTag(),
-                    "WARNING: no fields of type '" + scanFor.getSimpleName() + "' found in: " + scanned.getName());
+            Gdx.app.debug(getTag(), "WARNING:"
+                    + " no public " + (staticc ? " static " : "") + (finall ? " final " : "")
+                    + " fields " + (scanFor != null ? " of type '" + scanFor.getSimpleName() + "' " : "")
+                    + " found in: " + scanned.getName());
         }
         return fields;
     }
