@@ -174,7 +174,7 @@ public class ModelEditScreen extends ScreenAdapter {
         meic.update(delta);
         eng.update(delta,
                 stage.aiManagerTable.steerCheckBox.isChecked(),
-                stage.physManagerTable.dynamicsCheckBox.isChecked()
+                stage.physManagerTable.dynamicsWindow.dynamicsCheckBox.isChecked()
         );
         if (stage.isPressed(stage.aiTextButton) && stage.aiManagerTable.dbgModelInstance != null) {
             stage.aiManagerTable.updateSteerable();
@@ -239,7 +239,7 @@ public class ModelEditScreen extends ScreenAdapter {
                 if (tc.yLinesHGModelInstance != null) { modelBatch.render(tc.yLinesHGModelInstance); }
             }
         }
-        if (stage.physManagerTable.groundCheckBox.isChecked()) {
+        if (stage.physManagerTable.dynamicsWindow.groundCheckBox.isChecked()) {
             for (TerrainChunk tc: eng.chunks) {
                 if (tc.noiseTrianglesPhysModelInstance != null) {
                     modelBatch.render(tc.noiseTrianglesPhysModelInstance, environment);
@@ -264,7 +264,7 @@ public class ModelEditScreen extends ScreenAdapter {
         if (stage.meshPartsCheckBox.isChecked()) { eng.editableMIs.forEach(hgMI -> hgMI.addMeshPartsToRenderer(immediateModeRenderer)); }
         if (stage.bonesCheckBox.isChecked()) { eng.editableMIs.forEach(hgMI ->
                 hgMI.addBonesToRenderer(immediateModeRenderer, stage.invertBonesCheckBox.isChecked())); }
-        if (stage.physManagerTable.rbCheckBox.isChecked()) { eng.editableMIs.forEach(mi -> mi.addRBShapeToRenderer(immediateModeRenderer)); }
+        if (stage.physManagerTable.dynamicsWindow.rbCheckBox.isChecked()) { eng.editableMIs.forEach(mi -> mi.addRBShapeToRenderer(immediateModeRenderer)); }
         if (stage.verticesCheckBox.isChecked()) { eng.editableMIs.forEach(mi -> mi.addVerticesToRenderer(immediateModeRenderer)); }
         if (stage.closestCheckBox.isChecked()) { eng.editableMIs.forEach(mi -> mi.addClosestVerticesToRenderer(immediateModeRenderer)); }
         immediateModeRenderer.end();
