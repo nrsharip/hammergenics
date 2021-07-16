@@ -21,6 +21,8 @@ import com.hammergenics.HGEngine;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.graphics.g3d.EditableModelInstance;
 import com.hammergenics.core.stages.ModelEditStage;
+import com.hammergenics.physics.bullet.ui.collision.btCollisionObjectVisTable;
+import com.kotcrab.vis.ui.VisUI;
 import com.kotcrab.vis.ui.widget.VisScrollPane;
 import com.kotcrab.vis.ui.widget.VisTable;
 import com.kotcrab.vis.ui.widget.VisWindow;
@@ -35,6 +37,7 @@ public class btRigidBodyVisWindow extends VisWindow {
 
     public VisTable mainTabbedPaneTable;
     public btRigidBodyVisTable rbTable;
+    public btCollisionObjectVisTable coTable;
 
     public btRigidBodyVisWindow(ModelEditScreen modelES, ModelEditStage stage) {
         super("Rigid Body");
@@ -46,7 +49,8 @@ public class btRigidBodyVisWindow extends VisWindow {
         init();
 
         mainTabbedPaneTable = new VisTable();
-        TabbedPane tabbedPane = new TabbedPane();
+        TabbedPane.TabbedPaneStyle style = VisUI.getSkin().get("default", TabbedPane.TabbedPaneStyle.class);
+        TabbedPane tabbedPane = new TabbedPane(style);
         tabbedPane.addListener(new TabbedPaneAdapter() {
             @Override
             public void switchedTab (Tab tab) {
@@ -59,19 +63,26 @@ public class btRigidBodyVisWindow extends VisWindow {
         VisTable rbScrollPaneTable = new VisTable();
         rbScrollPaneTable.add(rbScrollPane);
 
+        VisScrollPane coScrollPane = new VisScrollPane(coTable);
+        VisTable coScrollPaneTable = new VisTable();
+        coScrollPaneTable.add(coScrollPane);
+
+        tabbedPane.add(new rbTab("Collision Object", coScrollPaneTable));
         tabbedPane.add(new rbTab("Rigid Body", rbScrollPaneTable));
 
-        add(tabbedPane.getTable()).expandX().left();
+        add(tabbedPane.getTable()).expandX().fillX();
         row();
         add(mainTabbedPaneTable).expandX().center();
     }
 
     public void init() {
         rbTable = new btRigidBodyVisTable(modelES, stage);
+        coTable = new btCollisionObjectVisTable(modelES, stage);
     }
 
     public void updateRigidBody(EditableModelInstance mi) {
         rbTable.updateRigidBody(mi);
+        coTable.updateCollisionObject(mi);
     }
 
     public static class rbTab extends Tab {
