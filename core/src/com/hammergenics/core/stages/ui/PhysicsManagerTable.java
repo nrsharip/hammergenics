@@ -41,11 +41,10 @@ public class PhysicsManagerTable extends ManagerTable {
 
         VisTable windows = new VisTable();
 
-        windows.add(dynamicsWindow).expandX().fillX();
-        windows.row();
-        windows.add(rigidBodyWindow).expandX().fillX();
+        windows.add(dynamicsWindow).expand().top().left();
+        windows.add(rigidBodyWindow).expand().top().right();
 
-        add(windows).expand().top().right();
+        add(windows).expand().fill();
 
         dynamicsWindow.updateDynamicsWorld();
     }
