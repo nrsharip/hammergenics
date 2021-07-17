@@ -217,7 +217,11 @@ public class PhysicalModelInstance extends HGModelInstance implements Disposable
     }
 
     public int createRigidBody() {
-        if (rigidBody != null) { rigidBody.dispose(); rigidBody = null; }
+        if (rigidBody != null) {
+            btDynamicsWorldTypesEnum.selected.dynamicsWorld.removeRigidBody(rigidBody);
+            rigidBody.dispose();
+            rigidBody = null;
+        }
         if (rbConstructionInfo != null) {
             rbConstructionInfo.dispose();
             rbConstructionInfo = null;
