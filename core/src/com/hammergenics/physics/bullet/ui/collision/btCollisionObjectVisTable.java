@@ -213,10 +213,10 @@ public class btCollisionObjectVisTable extends VisTable {
         cop = null;
         if (mi != null && mi.rigidBody != null) {
             co = mi.rigidBody;
-            if (mi.rigidBodyProxy == null) {
-                mi.rigidBodyProxy = new btRigidBodyProxy(mi.rigidBody);
+            if (mi.rbProxy == null) {
+                mi.rbProxy = new btRigidBodyProxy(mi.rigidBody);
             }
-            cop = mi.rigidBodyProxy;
+            cop = mi.rbProxy;
             cop.setInstance(co); // reassuring that collision object is legitimate
             cop.update();
 

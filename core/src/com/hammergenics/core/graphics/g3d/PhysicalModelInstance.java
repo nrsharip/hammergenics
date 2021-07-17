@@ -29,6 +29,8 @@ import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.physics.bullet.linearmath.btMotionState;
+import com.badlogic.gdx.physics.bullet.softbody.btSoftBody;
+import com.badlogic.gdx.physics.bullet.softbody.btSoftBodyWorldInfo;
 import com.badlogic.gdx.utils.Disposable;
 import com.hammergenics.core.graphics.glutils.HGImmediateModeRenderer20;
 import com.hammergenics.physics.bullet.dynamics.btRigidBodyProxy;
@@ -42,15 +44,19 @@ import static com.hammergenics.physics.bullet.collision.btCollisionObjectProxy.c
  */
 public class PhysicalModelInstance extends HGModelInstance implements Disposable {
     public btRigidBody rigidBody;
-    public btRigidBodyProxy rigidBodyProxy = null;
-    public btRigidBody.btRigidBodyConstructionInfo rigidBodyConstructionInfo;
-    public btCollisionShape collisionShape;
-    public btMotionState motionState;
-    public ShapesEnum shapeType;
-    public Vector3 localInertia = Vector3.Zero.cpy();
-    public float mass;
+    public btRigidBodyProxy rbProxy = null;
+    public btRigidBody.btRigidBodyConstructionInfo rbConstructionInfo;
+    public btCollisionShape rbCollisionShape;
+    public btMotionState rbMotionState;
+    public ShapesEnum rbShapeType;
+    public Vector3 rbLocalInertia = Vector3.Zero.cpy();
+    public float rbMass;
+
+    public btSoftBody softBody;
+    public btSoftBodyWorldInfo sbWorldInfo;
 
     public int rbHashCode = -1;
+    public int sbHashCode = -1;
 
     private final Vector3 translation = new Vector3();
     private final Quaternion rotation = new Quaternion();
@@ -88,17 +94,17 @@ public class PhysicalModelInstance extends HGModelInstance implements Disposable
         }
     }
 
-    public PhysicalModelInstance(Model model, float mass, ShapesEnum shapeType) { this(new HGModel(model), null, mass, shapeType, (String[])null); }
-    public PhysicalModelInstance(Model model, float mass, ShapesEnum shapeType, String... rootNodeIds) { this(new HGModel(model), null, mass, shapeType, rootNodeIds); }
-    public PhysicalModelInstance(HGModel hgModel, float mass, ShapesEnum shapeType) { this(hgModel, null, mass, shapeType, (String[])null); }
-    public PhysicalModelInstance(HGModel hgModel, float mass, ShapesEnum shapeType, String... rootNodeIds) { this(hgModel, null, mass, shapeType, rootNodeIds); }
-    public PhysicalModelInstance(HGModel hgModel, FileHandle assetFL, float mass, ShapesEnum shapeType) { this(hgModel, assetFL, mass, shapeType, (String[])null); }
-    public PhysicalModelInstance(HGModel hgModel, FileHandle assetFL, float mass, ShapesEnum shapeType, String... rootNodeIds) {
+    public PhysicalModelInstance(Model model, float rbMass, ShapesEnum rbShapeType) { this(new HGModel(model), null, rbMass, rbShapeType, (String[])null); }
+    public PhysicalModelInstance(Model model, float rbMass, ShapesEnum rbShapeType, String... rootNodeIds) { this(new HGModel(model), null, rbMass, rbShapeType, rootNodeIds); }
+    public PhysicalModelInstance(HGModel hgModel, float rbMass, ShapesEnum rbShapeType) { this(hgModel, null, rbMass, rbShapeType, (String[])null); }
+    public PhysicalModelInstance(HGModel hgModel, float rbMass, ShapesEnum rbShapeType, String... rootNodeIds) { this(hgModel, null, rbMass, rbShapeType, rootNodeIds); }
+    public PhysicalModelInstance(HGModel hgModel, FileHandle assetFL, float rbMass, ShapesEnum rbShapeType) { this(hgModel, assetFL, rbMass, rbShapeType, (String[])null); }
+    public PhysicalModelInstance(HGModel hgModel, FileHandle assetFL, float rbMass, ShapesEnum rbShapeType, String... rootNodeIds) {
         super(hgModel, assetFL, rootNodeIds);
-        this.mass = mass;
-        this.shapeType = shapeType;
+        this.rbMass = rbMass;
+        this.rbShapeType = rbShapeType;
         createRigidBody();
-        setMotionState(new HGbtMotionState(this));
+        setRbMotionState(new HGbtMotionState(this));
     }
 
     @Override
@@ -110,13 +116,16 @@ public class PhysicalModelInstance extends HGModelInstance implements Disposable
         // You’re probably already familiar with this cconcept, because the same goes for a texture, model, model batch, shader etc.
         // Because of this, you have to manually dispose the object when you no longer need it.
         if (rigidBody != null) { rigidBody.dispose(); rigidBody = null; }
-        if (rigidBodyConstructionInfo != null) { rigidBodyConstructionInfo.dispose(); rigidBodyConstructionInfo = null; }
-        if (collisionShape != null) {
-            collisionShape.release();
-            collisionShape.dispose();
-            collisionShape = null;
+        if (rbConstructionInfo != null) { rbConstructionInfo.dispose(); rbConstructionInfo = null; }
+        if (rbCollisionShape != null) {
+            rbCollisionShape.release();
+            rbCollisionShape.dispose();
+            rbCollisionShape = null;
         }
-        if (motionState != null) { motionState.dispose(); motionState = null; }
+        if (rbMotionState != null) { rbMotionState.dispose(); rbMotionState = null; }
+
+        if (softBody != null) { softBody.dispose(); softBody = null; }
+        if (sbWorldInfo != null) { sbWorldInfo.dispose(); sbWorldInfo = null; }
         super.dispose();
     }
 
@@ -145,7 +154,7 @@ public class PhysicalModelInstance extends HGModelInstance implements Disposable
         if (resetShape) {
             transform.getScale(scale);
             resetRigidBodyShape(scale);
-            rigidBody.setCollisionShape(collisionShape);
+            rigidBody.setCollisionShape(rbCollisionShape);
         }
 
         rigidBody.proceedToTransform(tmpM4);
@@ -161,21 +170,43 @@ public class PhysicalModelInstance extends HGModelInstance implements Disposable
         rigidBody.setActivationState(ACTIVE_TAG.define);
     }
 
+    // btBox2dShape btBoxShape btBvhTriangleMeshShape
+    // btCapsuleShape btCapsuleShapeData btCapsuleShapeX btCapsuleShapeZ
+    // btCollisionShape btCollisionShapeData
+    // btCompoundFromGimpactShape btCompoundShape btCompoundShapeChild btCompoundShapeChildData btCompoundShapeData
+    // btConcaveShape
+    // btConeShape btConeShapeData btConeShapeX btConeShapeZ
+    // btConvex2dShape
+    // btConvexHullShape btConvexHullShapeData
+    // btConvexInternalAabbCachingShape btConvexInternalShape btConvexInternalShapeData
+    // btConvexPointCloudShape btConvexShape btConvexTriangleMeshShape
+    // btCylinderShape btCylinderShapeData btCylinderShapeX btCylinderShapeZ
+    // btEmptyShape
+    // btGImpactCompoundShape btGImpactMeshShape btGImpactMeshShapeData btGImpactMeshShapePart btGImpactShapeInterface
+    // btHeightfieldTerrainShape btMinkowskiSumShape btMultimaterialTriangleMeshShape
+    // btMultiSphereShape btMultiSphereShapeData
+    // btPolyhedralConvexAabbCachingShape btPolyhedralConvexShape
+    // btScaledBvhTriangleMeshShape btScaledTriangleMeshShapeData
+    // btShapeHull btSphereShape
+    // btStaticPlaneShape btStaticPlaneShapeData
+    // btTetrahedronShapeEx
+    // btTriangleMeshShape btTriangleMeshShapeData
+    // btTriangleShape btTriangleShapeEx btUniformScalingShape
     public enum ShapesEnum {
         BOX, MESH
     }
 
-    public void setMotionState(btMotionState motionState) {
-        if (this.motionState != null) { this.motionState.dispose(); this.motionState = null; }
-        this.motionState = motionState;
-        rigidBody.setMotionState(motionState);
+    public void setRbMotionState(btMotionState rbMotionState) {
+        if (this.rbMotionState != null) { this.rbMotionState.dispose(); this.rbMotionState = null; }
+        this.rbMotionState = rbMotionState;
+        rigidBody.setMotionState(rbMotionState);
     }
 
     public int createRigidBody() {
         if (rigidBody != null) { rigidBody.dispose(); rigidBody = null; }
-        if (rigidBodyConstructionInfo != null) {
-            rigidBodyConstructionInfo.dispose();
-            rigidBodyConstructionInfo = null;
+        if (rbConstructionInfo != null) {
+            rbConstructionInfo.dispose();
+            rbConstructionInfo = null;
         }
 
         transform.getTranslation(translation);
@@ -184,8 +215,8 @@ public class PhysicalModelInstance extends HGModelInstance implements Disposable
 
         resetRigidBodyShape(scale);
 
-        rigidBodyConstructionInfo = new btRigidBody.btRigidBodyConstructionInfo(mass, null, collisionShape, localInertia);
-        rigidBody = new btRigidBody(rigidBodyConstructionInfo);
+        rbConstructionInfo = new btRigidBody.btRigidBodyConstructionInfo(rbMass, null, rbCollisionShape, rbLocalInertia);
+        rigidBody = new btRigidBody(rbConstructionInfo);
         rbHashCode = rigidBody.hashCode();
 
         // IMPORTANT: see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/
@@ -207,24 +238,24 @@ public class PhysicalModelInstance extends HGModelInstance implements Disposable
     }
 
     public void resetRigidBodyShape(Vector3 scale) {
-        if (collisionShape != null) { collisionShape.dispose(); collisionShape = null; }
+        if (rbCollisionShape != null) { rbCollisionShape.dispose(); rbCollisionShape = null; }
         Vector3 dims = getBB(false).getDimensions(new Vector3()).scl(scale);
         // models are assumed to be centered to origin (see HGModel::centerToOrigin),
         // otherwise an offset to the model's bounding box center should be taken into account
-        switch (shapeType) {
+        switch (rbShapeType) {
             case BOX:
-                collisionShape = new btBoxShape(dims.scl(0.5f));
-                collisionShape.calculateLocalInertia(mass, localInertia);
+                rbCollisionShape = new btBoxShape(dims.scl(0.5f));
+                rbCollisionShape.calculateLocalInertia(rbMass, rbLocalInertia);
                 break; // scl(0.5f) so we get half-extents
             case MESH:
-                collisionShape = btBvhTriangleMeshShape.obtain(hgModel.obj.meshParts);
+                rbCollisionShape = btBvhTriangleMeshShape.obtain(hgModel.obj.meshParts);
                 // libgdx\extensions\gdx-bullet\jni\src\bullet\bulletcollision\collisionshapes\bttrianglemeshshape.cpp:184
                 // btTriangleMeshShape::calculateLocalInertia
                 //	 //moving concave objects not supported
                 //	 btAssert(0);
                 break;
             default:
-                Gdx.app.error(getClass().getSimpleName(), "ERROR: unknown shape type: " + shapeType.name());
+                Gdx.app.error(getClass().getSimpleName(), "ERROR: unknown shape type: " + rbShapeType.name());
                 return;
         }
     }

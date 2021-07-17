@@ -179,10 +179,10 @@ public class btRigidBodyVisTable extends VisTable {
         rbp = null;
         if (mi != null && mi.rigidBody != null) {
             rb = mi.rigidBody;
-            if (mi.rigidBodyProxy == null) {
-                mi.rigidBodyProxy = new btRigidBodyProxy(mi.rigidBody);
+            if (mi.rbProxy == null) {
+                mi.rbProxy = new btRigidBodyProxy(mi.rigidBody);
             }
-            rbp = mi.rigidBodyProxy;
+            rbp = mi.rbProxy;
             rbp.setInstance(rb); // reassuring that rigid body is legitimate
             rbp.update();
 

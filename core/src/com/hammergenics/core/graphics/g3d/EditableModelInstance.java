@@ -111,7 +111,7 @@ public class EditableModelInstance extends SteerableModelInstance implements Dis
         checkMaterials();
         checkAnimations();
 
-        setMotionState(new EditableBtMotionState(this));
+        setRbMotionState(new EditableBtMotionState(this));
     }
 
     @Override

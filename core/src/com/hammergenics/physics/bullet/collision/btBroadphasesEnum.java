@@ -29,6 +29,7 @@ public enum btBroadphasesEnum implements Disposable {
     BT_32BIT_AXIS_SWEEP_3 {
         @Override
         public btBroadphaseInterface getInstance() {
+            // https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/bullet/SoftBodyTest.java#L61
             Vector3 worldAabbMin = new Vector3(-1000, -1000, -1000);
             Vector3 worldAabbMax = new Vector3(1000, 1000, 1000);
             int maxHandles = 1024;
@@ -39,6 +40,7 @@ public enum btBroadphasesEnum implements Disposable {
     BT_AXIS_SWEEP_3 {
         @Override
         public btBroadphaseInterface getInstance() {
+            // https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/bullet/SoftBodyTest.java#L61
             Vector3 worldAabbMin = new Vector3(-1000, -1000, -1000);
             Vector3 worldAabbMax = new Vector3(1000, 1000, 1000);
             int maxHandles = 1024;
