@@ -25,8 +25,6 @@ import com.badlogic.gdx.physics.bullet.collision.ContactListener;
 import com.badlogic.gdx.physics.bullet.collision.btBroadphaseInterface;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionConfiguration;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionDispatcher;
-import com.badlogic.gdx.physics.bullet.collision.btDbvtBroadphase;
-import com.badlogic.gdx.physics.bullet.collision.btDefaultCollisionConfiguration;
 import com.badlogic.gdx.physics.bullet.collision.btDispatcher;
 import com.badlogic.gdx.physics.bullet.dynamics.btDiscreteDynamicsWorld;
 import com.badlogic.gdx.physics.bullet.dynamics.btDynamicsWorld;
@@ -35,7 +33,12 @@ import com.badlogic.gdx.physics.bullet.linearmath.LinearMath;
 import com.badlogic.gdx.physics.bullet.softbody.btSoftMultiBodyDynamicsWorld;
 import com.badlogic.gdx.physics.bullet.softbody.btSoftRigidDynamicsWorld;
 import com.badlogic.gdx.utils.Disposable;
+import com.hammergenics.physics.bullet.collision.btBroadphasesEnum;
+import com.hammergenics.physics.bullet.collision.btCollisionConfigurationsEnum;
 
+import static com.hammergenics.physics.bullet.collision.btBroadphasesEnum.BT_DBVT_BROADPHASE;
+import static com.hammergenics.physics.bullet.collision.btCollisionConfigurationsEnum.BT_DEFAULT_COLLISION_CONFIGURATION;
+import static com.hammergenics.physics.bullet.collision.btCollisionConfigurationsEnum.BT_SOFTBODY_RIGIDBODY_COLLISION_CONFIGURATION;
 import static com.hammergenics.physics.bullet.dynamics.btConstraintSolversEnum.BT_SEQUENTIAL_IMPULSE_SOLVER;
 
 // https://github.com/bulletphysics/bullet3/blob/master/src/BulletDynamics/Dynamics/btDynamicsWorld.h#L30
@@ -63,6 +66,17 @@ public enum btDynamicsWorldTypesEnum implements Disposable {
     BT_SIMPLE_DYNAMICS_WORLD(1) {
         @Override
         public btDynamicsWorld createBtDynamicsWorld() {
+            collisionConfig = BT_DEFAULT_COLLISION_CONFIGURATION.getInstance();
+            // CustomCollisionDispatcher
+            // btCollisionDispatcher
+            // btCollisionDispatcherMt
+            dispatcher = new btCollisionDispatcher(collisionConfig);
+
+            // see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/
+            // For the broad phase I’ve chosen the btDbvtBroadphase implementation,
+            // which is a Dynamic Bounding Volume Tree implementation.
+            // In most scenario’s this implementation should suffice.
+            broadPhase = BT_DBVT_BROADPHASE.getInstance();
             return new btSimpleDynamicsWorld(dispatcher, broadPhase, null, collisionConfig);
         }
 
@@ -72,6 +86,17 @@ public enum btDynamicsWorldTypesEnum implements Disposable {
     BT_DISCRETE_DYNAMICS_WORLD(2) {
         @Override
         public btDynamicsWorld createBtDynamicsWorld() {
+            collisionConfig = BT_DEFAULT_COLLISION_CONFIGURATION.getInstance();
+            // CustomCollisionDispatcher
+            // btCollisionDispatcher
+            // btCollisionDispatcherMt
+            dispatcher = new btCollisionDispatcher(collisionConfig);
+
+            // see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/
+            // For the broad phase I’ve chosen the btDbvtBroadphase implementation,
+            // which is a Dynamic Bounding Volume Tree implementation.
+            // In most scenario’s this implementation should suffice.
+            broadPhase = BT_DBVT_BROADPHASE.getInstance();
             return new btDiscreteDynamicsWorld(dispatcher, broadPhase, null, collisionConfig);
         }
 
@@ -93,6 +118,17 @@ public enum btDynamicsWorldTypesEnum implements Disposable {
     BT_SOFT_RIGID_DYNAMICS_WORLD(4) {
         @Override
         public btDynamicsWorld createBtDynamicsWorld() {
+            collisionConfig = BT_SOFTBODY_RIGIDBODY_COLLISION_CONFIGURATION.getInstance();
+            // CustomCollisionDispatcher
+            // btCollisionDispatcher
+            // btCollisionDispatcherMt
+            dispatcher = new btCollisionDispatcher(collisionConfig);
+
+            // see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/
+            // For the broad phase I’ve chosen the btDbvtBroadphase implementation,
+            // which is a Dynamic Bounding Volume Tree implementation.
+            // In most scenario’s this implementation should suffice.
+            broadPhase = BT_DBVT_BROADPHASE.getInstance();
             return new btSoftRigidDynamicsWorld(dispatcher, broadPhase, null, collisionConfig);
         }
 
@@ -109,6 +145,17 @@ public enum btDynamicsWorldTypesEnum implements Disposable {
     BT_SOFT_MULTIBODY_DYNAMICS_WORLD(6) {
         @Override
         public btDynamicsWorld createBtDynamicsWorld() {
+            collisionConfig = BT_SOFTBODY_RIGIDBODY_COLLISION_CONFIGURATION.getInstance();
+            // CustomCollisionDispatcher
+            // btCollisionDispatcher
+            // btCollisionDispatcherMt
+            dispatcher = new btCollisionDispatcher(collisionConfig);
+
+            // see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/
+            // For the broad phase I’ve chosen the btDbvtBroadphase implementation,
+            // which is a Dynamic Bounding Volume Tree implementation.
+            // In most scenario’s this implementation should suffice.
+            broadPhase = BT_DBVT_BROADPHASE.getInstance();
             return new btSoftMultiBodyDynamicsWorld(dispatcher, broadPhase, null, collisionConfig);
         }
 
@@ -154,31 +201,20 @@ public enum btDynamicsWorldTypesEnum implements Disposable {
 
         initBullet();
 
-        // btDefaultCollisionConfiguration
-        // btSoftBodyRigidBodyCollisionConfiguration
-        collisionConfig = new btDefaultCollisionConfiguration();
-        dispatcher = new btCollisionDispatcher(collisionConfig);
-
-        // bt32BitAxisSweep3
-        // btAxisSweep3
-        // btAxisSweep3InternalInt
-        // btAxisSweep3InternalShort
-        // btDbvtBroadphase
-        // btSimpleBroadphase
-        // see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/
-        // For the broad phase I’ve chosen the btDbvtBroadphase implementation,
-        // which is a Dynamic Bounding Volume Tree implementation.
-        // In most scenario’s this implementation should suffice.
-        broadPhase = new btDbvtBroadphase();
         dynamicsWorld = createBtDynamicsWorld();
     }
 
     public abstract btDynamicsWorld createBtDynamicsWorld();
     public abstract void resetBtDynamicsWorld(float scale);
+    public static void resetAllBtDynamicsWorlds(float scale) {
+        for (btDynamicsWorldTypesEnum dwt: btDynamicsWorldTypesEnum.values()) {
+            dwt.resetBtDynamicsWorld(scale);
+        }
+    }
 
     public static btDynamicsWorldTypesEnum findByType(int type) {
-        for (btDynamicsWorldTypesEnum dw: btDynamicsWorldTypesEnum.values()) {
-            if (dw.type == type) { return dw; }
+        for (btDynamicsWorldTypesEnum dwt: btDynamicsWorldTypesEnum.values()) {
+            if (dwt.type == type) { return dwt; }
         }
         Gdx.app.error("bullet", "ERROR: undefined dynamics world type " + type);
         return null;
@@ -196,10 +232,9 @@ public enum btDynamicsWorldTypesEnum implements Disposable {
         // You’re probably already familiar with this cconcept, because the same goes for a texture, model, model batch, shader etc.
         // Because of this, you have to manually dispose the object when you no longer need it.
         if (dynamicsWorld != null) { dynamicsWorld.dispose(); }
-        //contactListener.dispose();
-        broadPhase.dispose();
-        collisionConfig.dispose();
-        dispatcher.dispose();
+        //if (collisionConfig != null) { collisionConfig.dispose(); }
+        if (dispatcher != null) { dispatcher.dispose(); }
+        //if (broadPhase != null) { broadPhase.dispose(); }
     }
 
     public static void disposeAll() {
@@ -207,6 +242,9 @@ public enum btDynamicsWorldTypesEnum implements Disposable {
 
         btConstraintSolversEnum.disposeAll();
         btMLCPSolversEnum.disposeAll();
+        btCollisionConfigurationsEnum.disposeAll();
+        btBroadphasesEnum.disposeAll();
+        //contactListener.dispose();
     }
 
     // see: https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Debugging#loading-the-correct-dll

@@ -298,7 +298,7 @@ public class HGEngine implements Disposable {
     }
 
     public void resetDynamicsWorld(float scale) {
-        BT_DISCRETE_DYNAMICS_WORLD.resetBtDynamicsWorld(scale);
+        btDynamicsWorldTypesEnum.resetAllBtDynamicsWorlds(scale);
     }
 
     public void queueAssets(FileHandle rootFileHandle, FileTypeFilter.Rule rule) {
