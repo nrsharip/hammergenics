@@ -19,6 +19,7 @@ package com.hammergenics.physics.bullet.dynamics;
 
 import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.physics.bullet.collision.ContactListener;
 import com.badlogic.gdx.physics.bullet.collision.btBroadphaseInterface;
@@ -27,28 +28,15 @@ import com.badlogic.gdx.physics.bullet.collision.btCollisionDispatcher;
 import com.badlogic.gdx.physics.bullet.collision.btDbvtBroadphase;
 import com.badlogic.gdx.physics.bullet.collision.btDefaultCollisionConfiguration;
 import com.badlogic.gdx.physics.bullet.collision.btDispatcher;
-import com.badlogic.gdx.physics.bullet.dynamics.btDantzigSolver;
 import com.badlogic.gdx.physics.bullet.dynamics.btDiscreteDynamicsWorld;
 import com.badlogic.gdx.physics.bullet.dynamics.btDynamicsWorld;
-import com.badlogic.gdx.physics.bullet.dynamics.btLemkeSolver;
-import com.badlogic.gdx.physics.bullet.dynamics.btMLCPSolver;
-import com.badlogic.gdx.physics.bullet.dynamics.btMultiBodyConstraintSolver;
-import com.badlogic.gdx.physics.bullet.dynamics.btNNCGConstraintSolver;
-import com.badlogic.gdx.physics.bullet.dynamics.btSequentialImpulseConstraintSolver;
 import com.badlogic.gdx.physics.bullet.dynamics.btSimpleDynamicsWorld;
-import com.badlogic.gdx.physics.bullet.dynamics.btSolveProjectedGaussSeidel;
 import com.badlogic.gdx.physics.bullet.linearmath.LinearMath;
 import com.badlogic.gdx.physics.bullet.softbody.btSoftMultiBodyDynamicsWorld;
 import com.badlogic.gdx.physics.bullet.softbody.btSoftRigidDynamicsWorld;
 import com.badlogic.gdx.utils.Disposable;
 
-import static com.hammergenics.physics.bullet.dynamics.btConstraintSolversEnum.BT_MLCP_SOLVER;
-import static com.hammergenics.physics.bullet.dynamics.btConstraintSolversEnum.BT_MULTIBODY_SOLVER;
-import static com.hammergenics.physics.bullet.dynamics.btConstraintSolversEnum.BT_NNCG_SOLVER;
 import static com.hammergenics.physics.bullet.dynamics.btConstraintSolversEnum.BT_SEQUENTIAL_IMPULSE_SOLVER;
-import static com.hammergenics.physics.bullet.dynamics.btMLCPSolversEnum.BT_DANTZIG;
-import static com.hammergenics.physics.bullet.dynamics.btMLCPSolversEnum.BT_GAUSS_SEIDEL;
-import static com.hammergenics.physics.bullet.dynamics.btMLCPSolversEnum.BT_LEMKE;
 
 // https://github.com/bulletphysics/bullet3/blob/master/src/BulletDynamics/Dynamics/btDynamicsWorld.h#L30
 // enum btDynamicsWorldType
@@ -77,11 +65,20 @@ public enum btDynamicsWorldTypesEnum implements Disposable {
         public btDynamicsWorld createBtDynamicsWorld() {
             return new btSimpleDynamicsWorld(dispatcher, broadPhase, null, collisionConfig);
         }
+
+        @Override
+        public void resetBtDynamicsWorld(float scale) { }
     },
     BT_DISCRETE_DYNAMICS_WORLD(2) {
         @Override
         public btDynamicsWorld createBtDynamicsWorld() {
             return new btDiscreteDynamicsWorld(dispatcher, broadPhase, null, collisionConfig);
+        }
+
+        @Override
+        public void resetBtDynamicsWorld(float scale) {
+            dynamicsWorld.setGravity(Vector3.Y.cpy().scl(-10f * scale));
+            dynamicsWorld.setConstraintSolver(BT_SEQUENTIAL_IMPULSE_SOLVER.getInstance());
         }
     },
     BT_CONTINUOUS_DYNAMICS_WORLD(3) {
@@ -89,24 +86,34 @@ public enum btDynamicsWorldTypesEnum implements Disposable {
         public btDynamicsWorld createBtDynamicsWorld() {
             return null;
         }
+
+        @Override
+        public void resetBtDynamicsWorld(float scale) { }
     },
     BT_SOFT_RIGID_DYNAMICS_WORLD(4) {
         @Override
         public btDynamicsWorld createBtDynamicsWorld() {
             return new btSoftRigidDynamicsWorld(dispatcher, broadPhase, null, collisionConfig);
         }
+
+        @Override
+        public void resetBtDynamicsWorld(float scale) { }
     },
     BT_GPU_DYNAMICS_WORLD(5) {
         @Override
-        public btDynamicsWorld createBtDynamicsWorld() {
-            return null;
-        }
+        public btDynamicsWorld createBtDynamicsWorld() { return null; }
+
+        @Override
+        public void resetBtDynamicsWorld(float scale) { }
     },
     BT_SOFT_MULTIBODY_DYNAMICS_WORLD(6) {
         @Override
         public btDynamicsWorld createBtDynamicsWorld() {
             return new btSoftMultiBodyDynamicsWorld(dispatcher, broadPhase, null, collisionConfig);
         }
+
+        @Override
+        public void resetBtDynamicsWorld(float scale) { }
     };
 
     int type;
@@ -147,8 +154,17 @@ public enum btDynamicsWorldTypesEnum implements Disposable {
 
         initBullet();
 
+        // btDefaultCollisionConfiguration
+        // btSoftBodyRigidBodyCollisionConfiguration
         collisionConfig = new btDefaultCollisionConfiguration();
         dispatcher = new btCollisionDispatcher(collisionConfig);
+
+        // bt32BitAxisSweep3
+        // btAxisSweep3
+        // btAxisSweep3InternalInt
+        // btAxisSweep3InternalShort
+        // btDbvtBroadphase
+        // btSimpleBroadphase
         // see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/
         // For the broad phase I’ve chosen the btDbvtBroadphase implementation,
         // which is a Dynamic Bounding Volume Tree implementation.
@@ -158,6 +174,7 @@ public enum btDynamicsWorldTypesEnum implements Disposable {
     }
 
     public abstract btDynamicsWorld createBtDynamicsWorld();
+    public abstract void resetBtDynamicsWorld(float scale);
 
     public static btDynamicsWorldTypesEnum findByType(int type) {
         for (btDynamicsWorldTypesEnum dw: btDynamicsWorldTypesEnum.values()) {
@@ -241,15 +258,6 @@ public enum btDynamicsWorldTypesEnum implements Disposable {
         // Bullet Github: https://github.com/bulletphysics/bullet3/blob/master/src/LinearMath/btScalar.h#L28
         // #define BT_BULLET_VERSION 317
         // see: https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Debugging#debugging
-
-        BT_DANTZIG.setInstance(new btDantzigSolver());
-        BT_LEMKE.setInstance(new btLemkeSolver());
-        BT_GAUSS_SEIDEL.setInstance(new btSolveProjectedGaussSeidel());
-
-        BT_SEQUENTIAL_IMPULSE_SOLVER.setInstance(new btSequentialImpulseConstraintSolver());
-        BT_MLCP_SOLVER.setInstance(new btMLCPSolver(BT_DANTZIG.apply()));
-        BT_NNCG_SOLVER.setInstance(new btNNCGConstraintSolver());
-        BT_MULTIBODY_SOLVER.setInstance(new btMultiBodyConstraintSolver());
 
         //contactListener = new HGContactListener(this);
         bulletLoaded = true;

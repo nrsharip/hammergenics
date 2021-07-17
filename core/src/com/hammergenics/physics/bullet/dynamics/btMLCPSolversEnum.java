@@ -16,7 +16,10 @@
 
 package com.hammergenics.physics.bullet.dynamics;
 
+import com.badlogic.gdx.physics.bullet.dynamics.btDantzigSolver;
+import com.badlogic.gdx.physics.bullet.dynamics.btLemkeSolver;
 import com.badlogic.gdx.physics.bullet.dynamics.btMLCPSolverInterface;
+import com.badlogic.gdx.physics.bullet.dynamics.btSolveProjectedGaussSeidel;
 import com.badlogic.gdx.utils.Disposable;
 
 public enum btMLCPSolversEnum implements Disposable {
@@ -28,6 +31,12 @@ public enum btMLCPSolversEnum implements Disposable {
     // This solver is mainly for debug/learning purposes: it is functionally equivalent to the
     // btSequentialImpulseConstraintSolver solver, but much slower (it builds the full LCP matrix)
     BT_GAUSS_SEIDEL("Gauss–Seidel");
+
+    static {
+        BT_DANTZIG.setInstance(new btDantzigSolver());
+        BT_LEMKE.setInstance(new btLemkeSolver());
+        BT_GAUSS_SEIDEL.setInstance(new btSolveProjectedGaussSeidel());
+    }
 
     private boolean isApplied = false;
     public final String fullName;

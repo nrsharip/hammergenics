@@ -84,7 +84,6 @@ import static com.hammergenics.core.graphics.g3d.utils.Models.createLightsModel;
 import static com.hammergenics.core.graphics.g3d.utils.Models.createTestBox;
 import static com.hammergenics.core.graphics.g3d.utils.Models.createTestSphere;
 import static com.hammergenics.core.stages.ui.file.TypeFilterRulesEnum.ALL_FILES;
-import static com.hammergenics.physics.bullet.dynamics.btConstraintSolversEnum.BT_SEQUENTIAL_IMPULSE_SOLVER;
 import static com.hammergenics.physics.bullet.dynamics.btDynamicsWorldTypesEnum.BT_DISCRETE_DYNAMICS_WORLD;
 import static com.hammergenics.physics.bullet.dynamics.btDynamicsWorldTypesEnum.FLAG_ALL;
 import static com.hammergenics.physics.bullet.dynamics.btDynamicsWorldTypesEnum.FLAG_GROUND;
@@ -299,8 +298,7 @@ public class HGEngine implements Disposable {
     }
 
     public void resetDynamicsWorld(float scale) {
-        BT_DISCRETE_DYNAMICS_WORLD.dynamicsWorld.setGravity(Vector3.Y.cpy().scl(-10f * scale));
-        BT_DISCRETE_DYNAMICS_WORLD.dynamicsWorld.setConstraintSolver(BT_SEQUENTIAL_IMPULSE_SOLVER.getInstance());
+        BT_DISCRETE_DYNAMICS_WORLD.resetBtDynamicsWorld(scale);
     }
 
     public void queueAssets(FileHandle rootFileHandle, FileTypeFilter.Rule rule) {

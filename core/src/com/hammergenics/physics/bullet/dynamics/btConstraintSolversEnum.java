@@ -19,7 +19,13 @@ package com.hammergenics.physics.bullet.dynamics;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.physics.bullet.dynamics.btConstraintSolver;
 import com.badlogic.gdx.physics.bullet.dynamics.btConstraintSolverType;
+import com.badlogic.gdx.physics.bullet.dynamics.btMLCPSolver;
+import com.badlogic.gdx.physics.bullet.dynamics.btMultiBodyConstraintSolver;
+import com.badlogic.gdx.physics.bullet.dynamics.btNNCGConstraintSolver;
+import com.badlogic.gdx.physics.bullet.dynamics.btSequentialImpulseConstraintSolver;
 import com.badlogic.gdx.utils.Disposable;
+
+import static com.hammergenics.physics.bullet.dynamics.btMLCPSolversEnum.BT_DANTZIG;
 
 // CONSTRAINT SOLVERS:
 // https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part2/
@@ -50,6 +56,13 @@ public enum btConstraintSolversEnum implements Disposable {
     BT_MULTIBODY_SOLVER(8, "Multi-Body", "MB");
     // https://github.com/bulletphysics/bullet3/blob/master/src/BulletDynamics/Dynamics/btDiscreteDynamicsWorldMt.h#L24
     // TODO: look into multi-threaded solvers' pooling
+
+    static {
+        BT_SEQUENTIAL_IMPULSE_SOLVER.setInstance(new btSequentialImpulseConstraintSolver());
+        BT_MLCP_SOLVER.setInstance(new btMLCPSolver(BT_DANTZIG.apply()));
+        BT_NNCG_SOLVER.setInstance(new btNNCGConstraintSolver());
+        BT_MULTIBODY_SOLVER.setInstance(new btMultiBodyConstraintSolver());
+    }
 
     public final int type;
     public final String fullName;
