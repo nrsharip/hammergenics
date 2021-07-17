@@ -78,8 +78,9 @@ public class MapGenerationTable extends ManagerTable {
         if (imagePreviewWindow.shown) {
             imagePreviewWindow.updateImage(texture);
         } else {
-            imagePreviewWindow.fit(Gdx.graphics.getWidth()/2.5f, Gdx.graphics.getHeight()/2.5f);
+            imagePreviewWindow.fit(Gdx.graphics.getWidth()/2f, Gdx.graphics.getHeight()/2f);
             stage.addActor(imagePreviewWindow.showImageWindow(texture));
+            imagePreviewWindow.setPosition(0f, 0f);
         }
     }
 

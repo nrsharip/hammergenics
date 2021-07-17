@@ -16,7 +16,6 @@
 
 package com.hammergenics;
 
-import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetDescriptor;
 import com.badlogic.gdx.assets.AssetLoaderParameters;
@@ -45,25 +44,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
-import com.badlogic.gdx.physics.bullet.Bullet;
-import com.badlogic.gdx.physics.bullet.collision.ContactListener;
-import com.badlogic.gdx.physics.bullet.collision.btBroadphaseInterface;
-import com.badlogic.gdx.physics.bullet.collision.btCollisionConfiguration;
-import com.badlogic.gdx.physics.bullet.collision.btCollisionDispatcher;
-import com.badlogic.gdx.physics.bullet.collision.btDbvtBroadphase;
-import com.badlogic.gdx.physics.bullet.collision.btDefaultCollisionConfiguration;
-import com.badlogic.gdx.physics.bullet.collision.btDispatcher;
-import com.badlogic.gdx.physics.bullet.dynamics.btDantzigSolver;
-import com.badlogic.gdx.physics.bullet.dynamics.btDiscreteDynamicsWorld;
-import com.badlogic.gdx.physics.bullet.dynamics.btDynamicsWorld;
-import com.badlogic.gdx.physics.bullet.dynamics.btLemkeSolver;
-import com.badlogic.gdx.physics.bullet.dynamics.btMLCPSolver;
-import com.badlogic.gdx.physics.bullet.dynamics.btMultiBodyConstraintSolver;
-import com.badlogic.gdx.physics.bullet.dynamics.btNNCGConstraintSolver;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
-import com.badlogic.gdx.physics.bullet.dynamics.btSequentialImpulseConstraintSolver;
-import com.badlogic.gdx.physics.bullet.dynamics.btSolveProjectedGaussSeidel;
-import com.badlogic.gdx.physics.bullet.linearmath.LinearMath;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Disposable;
@@ -84,6 +65,7 @@ import com.hammergenics.map.HGGrid;
 import com.hammergenics.map.HGGrid.NoiseStageInfo;
 import com.hammergenics.map.TerrainChunk;
 import com.hammergenics.map.TerrainPartsEnum;
+import com.hammergenics.physics.bullet.dynamics.btDynamicsWorldTypesEnum;
 import com.hammergenics.utils.HGUtils;
 import com.kotcrab.vis.ui.widget.file.FileTypeFilter;
 
@@ -102,13 +84,11 @@ import static com.hammergenics.core.graphics.g3d.utils.Models.createLightsModel;
 import static com.hammergenics.core.graphics.g3d.utils.Models.createTestBox;
 import static com.hammergenics.core.graphics.g3d.utils.Models.createTestSphere;
 import static com.hammergenics.core.stages.ui.file.TypeFilterRulesEnum.ALL_FILES;
-import static com.hammergenics.physics.bullet.dynamics.btConstraintSolversEnum.BT_MLCP_SOLVER;
-import static com.hammergenics.physics.bullet.dynamics.btConstraintSolversEnum.BT_MULTIBODY_SOLVER;
-import static com.hammergenics.physics.bullet.dynamics.btConstraintSolversEnum.BT_NNCG_SOLVER;
 import static com.hammergenics.physics.bullet.dynamics.btConstraintSolversEnum.BT_SEQUENTIAL_IMPULSE_SOLVER;
-import static com.hammergenics.physics.bullet.dynamics.btMLCPSolversEnum.BT_DANTZIG;
-import static com.hammergenics.physics.bullet.dynamics.btMLCPSolversEnum.BT_GAUSS_SEIDEL;
-import static com.hammergenics.physics.bullet.dynamics.btMLCPSolversEnum.BT_LEMKE;
+import static com.hammergenics.physics.bullet.dynamics.btDynamicsWorldTypesEnum.BT_DISCRETE_DYNAMICS_WORLD;
+import static com.hammergenics.physics.bullet.dynamics.btDynamicsWorldTypesEnum.FLAG_ALL;
+import static com.hammergenics.physics.bullet.dynamics.btDynamicsWorldTypesEnum.FLAG_GROUND;
+import static com.hammergenics.physics.bullet.dynamics.btDynamicsWorldTypesEnum.FLAG_OBJECT;
 
 /**
  * Add description here
@@ -210,43 +190,10 @@ public class HGEngine implements Disposable {
     public Vector2 currCell = Vector2.Zero.cpy();
 
     // Physics related:
-    // see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/
-    // https://pybullet.org/Bullet/phpBB3/viewtopic.php?t=5449#p19521
-    // it’s generally better to use bits which aren’t used for anything else.
-    public final static short FLAG_GROUND = 1<<8;
-    public final static short FLAG_OBJECT = 1<<9;
-    public final static short FLAG_ALL = -1;
-
     public final ArrayMap<PhysicalModelInstance, btRigidBody> mi2rb = new ArrayMap<>(PhysicalModelInstance.class, btRigidBody.class);
     public final ArrayMap<btRigidBody, PhysicalModelInstance> rb2mi = new ArrayMap<>(btRigidBody.class, PhysicalModelInstance.class);
     public final ArrayMap<Integer, btRigidBody> hc2rb = new ArrayMap<>(Integer.class, btRigidBody.class);
     public final ArrayMap<btRigidBody, Integer> rb2hc = new ArrayMap<>(btRigidBody.class, Integer.class);
-
-    public btDynamicsWorld dynamicsWorld;
-
-    // BROAD PHASE:
-    // IMPORTANT: see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/
-    // Ideally we’d first check if the two objects are near each other, for example using a bounding box or bounding sphere.
-    // And only if they are near each other, we’d use the more accurate specialized collision algorithm.
-
-    // The first phase, where we find collision objects that are near each other, is called the broad phase.
-    // It’s therefore crucial that the broad phase is highly optimized. Bullet does this by caching the collision information,
-    // so it doesn’t have to recalculate it every time. There are several implementations you can choose from,
-    // but in practice this is done in the form a tree. I’ll not go into detail about this, but if you want to know more
-    // about it, you can search for “axis aligned bounding box tree” or in short “AABB tree”.
-    public btBroadphaseInterface broadPhase;
-    // The second phase, where a more accurate specialized collision algorithm is used, is called the near phase.
-
-    // see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/
-    // Before we can start the actual collision detection we need a few helper classes.
-    public btCollisionConfiguration collisionConfig;
-    public btDispatcher dispatcher;
-
-    // IMPORTANT: see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/
-    // Because it’s not possible in Java to use global callback methods, the wrapper adds the ContactListener class
-    // to take care of that. This is also the reason that we don’t have to inform bullet to use our ContactListener,
-    // the wrapper takes care of that when you construct the ContactListener.
-    public ContactListener contactListener;
 
     // Map generation related:
     // taking size + 1 to have the actual [SIZE x SIZE] cells grid
@@ -266,16 +213,7 @@ public class HGEngine implements Disposable {
         assetManager.setLoader(SceneAsset.class, ".gltf", new GLTFAssetLoader());
         assetManager.setLoader(SceneAsset.class, ".glb", new GLBAssetLoader());
 
-        initBullet();
-
-        BT_DANTZIG.setInstance(new btDantzigSolver());
-        BT_LEMKE.setInstance(new btLemkeSolver());
-        BT_GAUSS_SEIDEL.setInstance(new btSolveProjectedGaussSeidel());
-
-        BT_SEQUENTIAL_IMPULSE_SOLVER.setInstance(new btSequentialImpulseConstraintSolver());
-        BT_MLCP_SOLVER.setInstance(new btMLCPSolver(BT_DANTZIG.apply()));
-        BT_NNCG_SOLVER.setInstance(new btNNCGConstraintSolver());
-        BT_MULTIBODY_SOLVER.setInstance(new btMultiBodyConstraintSolver());
+        btDynamicsWorldTypesEnum.initBullet();
 
         resetDynamicsWorld(1f);
 
@@ -299,87 +237,8 @@ public class HGEngine implements Disposable {
 
         for (EditableModelInstance mi: editableMIs) { mi.dispose(); }
 
-        // IMPORTANT: see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/
-        // Every time you construct a bullet class in java, the wrapper will also construct the same class
-        // in the native (C++) library. But while in java the garbage collector takes care of memory management and will
-        // free an object when you don’t use it anymore, in C++ you’re responsible for freeing the memory yourself.
-        // You’re probably already familiar with this cconcept, because the same goes for a texture, model, model batch, shader etc.
-        // Because of this, you have to manually dispose the object when you no longer need it.
-        dynamicsWorld.dispose();
-
-        BT_SEQUENTIAL_IMPULSE_SOLVER.dispose();
-        BT_MLCP_SOLVER.dispose();
-        BT_NNCG_SOLVER.dispose();
-        BT_MULTIBODY_SOLVER.dispose();
-
-        BT_DANTZIG.dispose();
-        BT_LEMKE.dispose();
-        BT_GAUSS_SEIDEL.dispose();
-
-        //contactListener.dispose();
-        broadPhase.dispose();
-        collisionConfig.dispose();
-        dispatcher.dispose();
+        btDynamicsWorldTypesEnum.disposeAll();
         assetManager.dispose();
-    }
-
-    // see: https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Debugging#loading-the-correct-dll
-    // Set this to the path of the lib to use it on desktop instead of the default lib.
-    private final static String customDesktopLib =
-            "E:\\...\\extensions\\gdx-bullet\\jni\\vs\\gdxBullet\\x64\\Debug\\gdxBullet.dll";
-    private final static boolean debugBullet = false;
-    public void initBullet() {
-        // see: https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Debugging#getting-the-sources
-        //   sources: libgdx-024282e47e9b5d8ec25373d3e1e5ddfe55122596.zip:
-        //      https://github.com/libgdx/libgdx/releases/tag/gdx-parent-1.10.0
-        //      https://github.com/libgdx/libgdx/tree/024282e47e9b5d8ec25373d3e1e5ddfe55122596
-        // see: https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Debugging#getting-the-compileride
-        // see: https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Debugging#building-the-debug-dll
-        //
-        //   ISSUE:
-        //      1>...\Platforms\Win32\PlatformToolsets\v141\Toolset.targets(34,5):
-        //      error MSB8036: The Windows SDK version 8.1 was not found.
-        //      Install the required version of Windows SDK or change the SDK version in the project property pages or by right-clicking the solution and selecting "Retarget solution".
-        //      SOLUTION: right-click VS solution -> Retarget Projects -> select the SDK
-        //   ISSUE:
-        //      1>------ Build started: Project: gdxBullet, Configuration: Debug x64 ------
-        //      1>softbody_wrap.cpp
-        //      1>...\gdx-bullet\jni\swig-src\softbody\softbody_wrap.cpp(179): fatal error C1083: Cannot open include file: 'jni.h': No such file or directory
-        //      ...
-        //      SOLUTION: right-click VS solution -> Properties -> Configuration: Debug, Platform: All Platforms -> C/C++ -> General -> Additional Include Directories
-        //                add the following directory: <path to JDK>/include
-        //   ISSUE:
-        //      1>------ Build started: Project: gdxBullet, Configuration: Debug Win32 ------
-        //      1>softbody_wrap.cpp
-        //      1>...\include\jni.h(45): fatal error C1083: Cannot open include file: 'jni_md.h': No such file or directory
-        //      ...
-        //      SOLUTION: right-click VS solution -> Properties -> Configuration: Debug, Platform: All Platforms -> C/C++ -> General -> Additional Include Directories
-        //                add the following directory: <path to JDK>/include/win32
-
-        // see: https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Debugging#loading-the-correct-dll
-        // Need to initialize bullet before using it.
-        if (Gdx.app.getType() == Application.ApplicationType.Desktop && debugBullet) {
-            System.load(customDesktopLib);
-        } else {
-            Bullet.init();
-        }
-        Gdx.app.log("bullet", "version: " + LinearMath.btGetVersion() + " debug: " + debugBullet);
-        // Release (gradle: libgdx-1.10.0):
-        // [Bullet] Version = 287
-        // Debug (https://github.com/libgdx/libgdx/tree/024282e47e9b5d8ec25373d3e1e5ddfe55122596):
-        // [Bullet] Version = 287
-        // see: https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Debugging#debugging
-
-        collisionConfig = new btDefaultCollisionConfiguration();
-        dispatcher = new btCollisionDispatcher(collisionConfig);
-
-        // see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/
-        // For the broad phase I’ve chosen the btDbvtBroadphase implementation,
-        // which is a Dynamic Bounding Volume Tree implementation.
-        // In most scenario’s this implementation should suffice.
-        broadPhase = new btDbvtBroadphase();
-        dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadPhase, null, collisionConfig);
-        //contactListener = new HGContactListener(this);
     }
 
     public void generateNoise(float yScale, Array<NoiseStageInfo> stages) {
@@ -440,8 +299,8 @@ public class HGEngine implements Disposable {
     }
 
     public void resetDynamicsWorld(float scale) {
-        dynamicsWorld.setGravity(Vector3.Y.cpy().scl(-10f * scale));
-        dynamicsWorld.setConstraintSolver(BT_SEQUENTIAL_IMPULSE_SOLVER.getInstance());
+        BT_DISCRETE_DYNAMICS_WORLD.dynamicsWorld.setGravity(Vector3.Y.cpy().scl(-10f * scale));
+        BT_DISCRETE_DYNAMICS_WORLD.dynamicsWorld.setConstraintSolver(BT_SEQUENTIAL_IMPULSE_SOLVER.getInstance());
     }
 
     public void queueAssets(FileHandle rootFileHandle, FileTypeFilter.Rule rule) {
@@ -828,7 +687,7 @@ public class HGEngine implements Disposable {
             rb2mi.put(mi.rigidBody, mi);
             hc2rb.put(mi.rbHashCode, mi.rigidBody);
             rb2hc.put(mi.rigidBody, mi.rbHashCode);
-            dynamicsWorld.addRigidBody(mi.rigidBody, group, mask);
+            BT_DISCRETE_DYNAMICS_WORLD.dynamicsWorld.addRigidBody(mi.rigidBody, group, mask);
             //Gdx.app.debug("add rb", (mi.hgModel.afh != null ? mi.hgModel.afh.name() : mi.nodes.get(0).id)
             //        + " size: " + mi2rb.size + " num: " + dynamicsWorld.getNumCollisionObjects()
             //        + " hc: " + mi.rbHashCode + " transform:\n" + mi.rigidBody.getWorldTransform()
@@ -842,7 +701,7 @@ public class HGEngine implements Disposable {
             rb2mi.removeKey(mi.rigidBody);
             hc2rb.removeKey(mi.rbHashCode);
             rb2hc.removeKey(mi.rigidBody);
-            dynamicsWorld.removeRigidBody(mi.rigidBody);
+            BT_DISCRETE_DYNAMICS_WORLD.dynamicsWorld.removeRigidBody(mi.rigidBody);
             //Gdx.app.debug("rem rb", (mi.hgModel.afh != null ? mi.hgModel.afh.name() : mi.nodes.get(0).id)
             //        + " size: " + mi2rb.size + " num: " + dynamicsWorld.getNumCollisionObjects()
             //        + " hc: " + mi.rbHashCode + " transform:\n" + mi.rigidBody.getWorldTransform()
@@ -1050,7 +909,7 @@ public class HGEngine implements Disposable {
             // then the calculation will be done multiple times.
             // The maximum number of times that this will be done (the maximum number of sub-steps) is specified
             // by the second argument.
-            dynamicsWorld.stepSimulation(delta, 5, 1f/60f);
+            BT_DISCRETE_DYNAMICS_WORLD.dynamicsWorld.stepSimulation(delta, 5, 1f/60f);
         }
     }
 }

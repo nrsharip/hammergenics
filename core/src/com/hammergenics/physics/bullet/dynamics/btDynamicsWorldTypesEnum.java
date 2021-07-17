@@ -17,7 +17,38 @@
 package com.hammergenics.physics.bullet.dynamics;
 
 
+import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.physics.bullet.Bullet;
+import com.badlogic.gdx.physics.bullet.collision.ContactListener;
+import com.badlogic.gdx.physics.bullet.collision.btBroadphaseInterface;
+import com.badlogic.gdx.physics.bullet.collision.btCollisionConfiguration;
+import com.badlogic.gdx.physics.bullet.collision.btCollisionDispatcher;
+import com.badlogic.gdx.physics.bullet.collision.btDbvtBroadphase;
+import com.badlogic.gdx.physics.bullet.collision.btDefaultCollisionConfiguration;
+import com.badlogic.gdx.physics.bullet.collision.btDispatcher;
+import com.badlogic.gdx.physics.bullet.dynamics.btDantzigSolver;
+import com.badlogic.gdx.physics.bullet.dynamics.btDiscreteDynamicsWorld;
+import com.badlogic.gdx.physics.bullet.dynamics.btDynamicsWorld;
+import com.badlogic.gdx.physics.bullet.dynamics.btLemkeSolver;
+import com.badlogic.gdx.physics.bullet.dynamics.btMLCPSolver;
+import com.badlogic.gdx.physics.bullet.dynamics.btMultiBodyConstraintSolver;
+import com.badlogic.gdx.physics.bullet.dynamics.btNNCGConstraintSolver;
+import com.badlogic.gdx.physics.bullet.dynamics.btSequentialImpulseConstraintSolver;
+import com.badlogic.gdx.physics.bullet.dynamics.btSimpleDynamicsWorld;
+import com.badlogic.gdx.physics.bullet.dynamics.btSolveProjectedGaussSeidel;
+import com.badlogic.gdx.physics.bullet.linearmath.LinearMath;
+import com.badlogic.gdx.physics.bullet.softbody.btSoftMultiBodyDynamicsWorld;
+import com.badlogic.gdx.physics.bullet.softbody.btSoftRigidDynamicsWorld;
+import com.badlogic.gdx.utils.Disposable;
+
+import static com.hammergenics.physics.bullet.dynamics.btConstraintSolversEnum.BT_MLCP_SOLVER;
+import static com.hammergenics.physics.bullet.dynamics.btConstraintSolversEnum.BT_MULTIBODY_SOLVER;
+import static com.hammergenics.physics.bullet.dynamics.btConstraintSolversEnum.BT_NNCG_SOLVER;
+import static com.hammergenics.physics.bullet.dynamics.btConstraintSolversEnum.BT_SEQUENTIAL_IMPULSE_SOLVER;
+import static com.hammergenics.physics.bullet.dynamics.btMLCPSolversEnum.BT_DANTZIG;
+import static com.hammergenics.physics.bullet.dynamics.btMLCPSolversEnum.BT_GAUSS_SEIDEL;
+import static com.hammergenics.physics.bullet.dynamics.btMLCPSolversEnum.BT_LEMKE;
 
 // https://github.com/bulletphysics/bullet3/blob/master/src/BulletDynamics/Dynamics/btDynamicsWorld.h#L30
 // enum btDynamicsWorldType
@@ -40,16 +71,93 @@ import com.badlogic.gdx.Gdx;
 //     BT_GPU_DYNAMICS_WORLD=5,
 //     BT_SOFT_MULTIBODY_DYNAMICS_WORLD=6
 // };
-public enum btDynamicsWorldTypesEnum {
-    BT_SIMPLE_DYNAMICS_WORLD(1),
-    BT_DISCRETE_DYNAMICS_WORLD(2),
-    BT_CONTINUOUS_DYNAMICS_WORLD(3),
-    BT_SOFT_RIGID_DYNAMICS_WORLD(4),
-    BT_GPU_DYNAMICS_WORLD(5),
-    BT_SOFT_MULTIBODY_DYNAMICS_WORLD(6);
+public enum btDynamicsWorldTypesEnum implements Disposable {
+    BT_SIMPLE_DYNAMICS_WORLD(1) {
+        @Override
+        public btDynamicsWorld createBtDynamicsWorld() {
+            return new btSimpleDynamicsWorld(dispatcher, broadPhase, null, collisionConfig);
+        }
+    },
+    BT_DISCRETE_DYNAMICS_WORLD(2) {
+        @Override
+        public btDynamicsWorld createBtDynamicsWorld() {
+            return new btDiscreteDynamicsWorld(dispatcher, broadPhase, null, collisionConfig);
+        }
+    },
+    BT_CONTINUOUS_DYNAMICS_WORLD(3) {
+        @Override
+        public btDynamicsWorld createBtDynamicsWorld() {
+            return null;
+        }
+    },
+    BT_SOFT_RIGID_DYNAMICS_WORLD(4) {
+        @Override
+        public btDynamicsWorld createBtDynamicsWorld() {
+            return new btSoftRigidDynamicsWorld(dispatcher, broadPhase, null, collisionConfig);
+        }
+    },
+    BT_GPU_DYNAMICS_WORLD(5) {
+        @Override
+        public btDynamicsWorld createBtDynamicsWorld() {
+            return null;
+        }
+    },
+    BT_SOFT_MULTIBODY_DYNAMICS_WORLD(6) {
+        @Override
+        public btDynamicsWorld createBtDynamicsWorld() {
+            return new btSoftMultiBodyDynamicsWorld(dispatcher, broadPhase, null, collisionConfig);
+        }
+    };
 
     int type;
-    btDynamicsWorldTypesEnum(int type) { this.type = type; }
+    // see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/
+    // https://pybullet.org/Bullet/phpBB3/viewtopic.php?t=5449#p19521
+    // it’s generally better to use bits which aren’t used for anything else.
+    public final static short FLAG_GROUND = 1<<8;
+    public final static short FLAG_OBJECT = 1<<9;
+    public final static short FLAG_ALL = -1;
+
+    public btDynamicsWorld dynamicsWorld;
+    // BROAD PHASE:
+    // IMPORTANT: see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/
+    // Ideally we’d first check if the two objects are near each other, for example using a bounding box or bounding sphere.
+    // And only if they are near each other, we’d use the more accurate specialized collision algorithm.
+
+    // The first phase, where we find collision objects that are near each other, is called the broad phase.
+    // It’s therefore crucial that the broad phase is highly optimized. Bullet does this by caching the collision information,
+    // so it doesn’t have to recalculate it every time. There are several implementations you can choose from,
+    // but in practice this is done in the form a tree. I’ll not go into detail about this, but if you want to know more
+    // about it, you can search for “axis aligned bounding box tree” or in short “AABB tree”.
+    public btBroadphaseInterface broadPhase;
+    // The second phase, where a more accurate specialized collision algorithm is used, is called the near phase.
+
+    // see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/
+    // Before we can start the actual collision detection we need a few helper classes.
+    public btCollisionConfiguration collisionConfig;
+    public btDispatcher dispatcher;
+
+    // IMPORTANT: see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/
+    // Because it’s not possible in Java to use global callback methods, the wrapper adds the ContactListener class
+    // to take care of that. This is also the reason that we don’t have to inform bullet to use our ContactListener,
+    // the wrapper takes care of that when you construct the ContactListener.
+    public ContactListener contactListener;
+
+    btDynamicsWorldTypesEnum(int type) {
+        this.type = type;
+
+        initBullet();
+
+        collisionConfig = new btDefaultCollisionConfiguration();
+        dispatcher = new btCollisionDispatcher(collisionConfig);
+        // see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/
+        // For the broad phase I’ve chosen the btDbvtBroadphase implementation,
+        // which is a Dynamic Bounding Volume Tree implementation.
+        // In most scenario’s this implementation should suffice.
+        broadPhase = new btDbvtBroadphase();
+        dynamicsWorld = createBtDynamicsWorld();
+    }
+
+    public abstract btDynamicsWorld createBtDynamicsWorld();
 
     public static btDynamicsWorldTypesEnum findByType(int type) {
         for (btDynamicsWorldTypesEnum dw: btDynamicsWorldTypesEnum.values()) {
@@ -61,4 +169,89 @@ public enum btDynamicsWorldTypesEnum {
 
     @Override
     public String toString() { return this.name().replace("BT_", "").replace("_", " "); }
+
+    @Override
+    public void dispose() {
+        // IMPORTANT: see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/
+        // Every time you construct a bullet class in java, the wrapper will also construct the same class
+        // in the native (C++) library. But while in java the garbage collector takes care of memory management and will
+        // free an object when you don’t use it anymore, in C++ you’re responsible for freeing the memory yourself.
+        // You’re probably already familiar with this cconcept, because the same goes for a texture, model, model batch, shader etc.
+        // Because of this, you have to manually dispose the object when you no longer need it.
+        if (dynamicsWorld != null) { dynamicsWorld.dispose(); }
+        //contactListener.dispose();
+        broadPhase.dispose();
+        collisionConfig.dispose();
+        dispatcher.dispose();
+    }
+
+    public static void disposeAll() {
+        for (btDynamicsWorldTypesEnum dwt: btDynamicsWorldTypesEnum.values()) { dwt.dispose(); }
+
+        btConstraintSolversEnum.disposeAll();
+        btMLCPSolversEnum.disposeAll();
+    }
+
+    // see: https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Debugging#loading-the-correct-dll
+    // Set this to the path of the lib to use it on desktop instead of the default lib.
+    private final static String customDesktopLib = "E:\\...\\extensions\\gdx-bullet\\jni\\vs\\gdxBullet\\x64\\Debug\\gdxBullet.dll";
+    private final static boolean debugBullet = false;
+    private static boolean bulletLoaded = false;
+    public static void initBullet() {
+        if (bulletLoaded) { return; }
+        // see: https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Debugging#getting-the-sources
+        //   sources: libgdx-024282e47e9b5d8ec25373d3e1e5ddfe55122596.zip:
+        //      https://github.com/libgdx/libgdx/releases/tag/gdx-parent-1.10.0
+        //      https://github.com/libgdx/libgdx/tree/024282e47e9b5d8ec25373d3e1e5ddfe55122596
+        // see: https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Debugging#getting-the-compileride
+        // see: https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Debugging#building-the-debug-dll
+        //
+        //   ISSUE:
+        //      1>...\Platforms\Win32\PlatformToolsets\v141\Toolset.targets(34,5):
+        //      error MSB8036: The Windows SDK version 8.1 was not found.
+        //      Install the required version of Windows SDK or change the SDK version in the project property pages or by right-clicking the solution and selecting "Retarget solution".
+        //      SOLUTION: right-click VS solution -> Retarget Projects -> select the SDK
+        //   ISSUE:
+        //      1>------ Build started: Project: gdxBullet, Configuration: Debug x64 ------
+        //      1>softbody_wrap.cpp
+        //      1>...\gdx-bullet\jni\swig-src\softbody\softbody_wrap.cpp(179): fatal error C1083: Cannot open include file: 'jni.h': No such file or directory
+        //      ...
+        //      SOLUTION: right-click VS solution -> Properties -> Configuration: Debug, Platform: All Platforms -> C/C++ -> General -> Additional Include Directories
+        //                add the following directory: <path to JDK>/include
+        //   ISSUE:
+        //      1>------ Build started: Project: gdxBullet, Configuration: Debug Win32 ------
+        //      1>softbody_wrap.cpp
+        //      1>...\include\jni.h(45): fatal error C1083: Cannot open include file: 'jni_md.h': No such file or directory
+        //      ...
+        //      SOLUTION: right-click VS solution -> Properties -> Configuration: Debug, Platform: All Platforms -> C/C++ -> General -> Additional Include Directories
+        //                add the following directory: <path to JDK>/include/win32
+
+        // see: https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Debugging#loading-the-correct-dll
+        // Need to initialize bullet before using it.
+        if (Gdx.app.getType() == Application.ApplicationType.Desktop && debugBullet) {
+            System.load(customDesktopLib);
+        } else {
+            Bullet.init();
+        }
+        Gdx.app.log("bullet", "version: " + LinearMath.btGetVersion() + " debug: " + debugBullet);
+        // Release (gradle: libgdx-1.10.0):
+        // [Bullet] Version = 287
+        // Debug (https://github.com/libgdx/libgdx/tree/024282e47e9b5d8ec25373d3e1e5ddfe55122596):
+        // [Bullet] Version = 287
+        // Bullet Github: https://github.com/bulletphysics/bullet3/blob/master/src/LinearMath/btScalar.h#L28
+        // #define BT_BULLET_VERSION 317
+        // see: https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Debugging#debugging
+
+        BT_DANTZIG.setInstance(new btDantzigSolver());
+        BT_LEMKE.setInstance(new btLemkeSolver());
+        BT_GAUSS_SEIDEL.setInstance(new btSolveProjectedGaussSeidel());
+
+        BT_SEQUENTIAL_IMPULSE_SOLVER.setInstance(new btSequentialImpulseConstraintSolver());
+        BT_MLCP_SOLVER.setInstance(new btMLCPSolver(BT_DANTZIG.apply()));
+        BT_NNCG_SOLVER.setInstance(new btNNCGConstraintSolver());
+        BT_MULTIBODY_SOLVER.setInstance(new btMultiBodyConstraintSolver());
+
+        //contactListener = new HGContactListener(this);
+        bulletLoaded = true;
+    }
 }

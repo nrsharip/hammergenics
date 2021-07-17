@@ -47,6 +47,10 @@ public enum btMLCPSolversEnum implements Disposable {
     @Override public String toString() { return fullName; }
     @Override public void dispose() { if (instance != null) { instance.dispose(); } }
 
+    public static void disposeAll() {
+        for (btMLCPSolversEnum mlcps: btMLCPSolversEnum.values()) { mlcps.dispose(); }
+    }
+
     private static void unsetAll() {
         for (btMLCPSolversEnum solver: btMLCPSolversEnum.values()) { solver.isApplied = false; }
     }

@@ -81,4 +81,8 @@ public enum btConstraintSolversEnum implements Disposable {
 
     @Override
     public void dispose() { if (instance != null) { instance.dispose(); } }
+
+    public static void disposeAll() {
+        for (btConstraintSolversEnum cs: btConstraintSolversEnum.values()) { cs.dispose(); }
+    }
 }

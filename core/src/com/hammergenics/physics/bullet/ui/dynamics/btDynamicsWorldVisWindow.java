@@ -35,6 +35,7 @@ import com.kotcrab.vis.ui.widget.VisTextField;
 import com.kotcrab.vis.ui.widget.VisWindow;
 
 import static com.hammergenics.physics.bullet.dynamics.btConstraintSolversEnum.BT_MLCP_SOLVER;
+import static com.hammergenics.physics.bullet.dynamics.btDynamicsWorldTypesEnum.BT_DISCRETE_DYNAMICS_WORLD;
 import static com.hammergenics.utils.HGUtils.btDbgModes;
 
 public class btDynamicsWorldVisWindow extends VisWindow {
@@ -67,7 +68,7 @@ public class btDynamicsWorldVisWindow extends VisWindow {
         this.stage = stage;
         this.eng = modelES.eng;
 
-        this.dw = modelES.eng.dynamicsWorld;
+        this.dw = BT_DISCRETE_DYNAMICS_WORLD.dynamicsWorld;
 
         init();
 

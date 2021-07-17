@@ -48,6 +48,7 @@ import com.hammergenics.map.TerrainChunk;
 import io.anuke.gif.GifRecorder;
 
 import static com.badlogic.gdx.physics.bullet.linearmath.btIDebugDraw.DebugDrawModes.DBG_NoDebug;
+import static com.hammergenics.physics.bullet.dynamics.btDynamicsWorldTypesEnum.BT_DISCRETE_DYNAMICS_WORLD;
 
 /**
  * Add description here
@@ -120,7 +121,7 @@ public class ModelEditScreen extends ScreenAdapter {
         //     DBG_MAX_DEBUG_DRAW_MODE
         // };
         btDebugDrawer.setDebugMode(DBG_NoDebug);
-        eng.dynamicsWorld.setDebugDrawer(btDebugDrawer);
+        BT_DISCRETE_DYNAMICS_WORLD.dynamicsWorld.setDebugDrawer(btDebugDrawer);
 
         // Camera related
         perspectiveCamera = new PerspectiveCamera(70f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -270,7 +271,7 @@ public class ModelEditScreen extends ScreenAdapter {
         immediateModeRenderer.end();
 
         btDebugDrawer.begin(perspectiveCamera);
-        eng.dynamicsWorld.debugDrawWorld();
+        BT_DISCRETE_DYNAMICS_WORLD.dynamicsWorld.debugDrawWorld();
         btDebugDrawer.end();
 
         // https://github.com/StrongJoshua/libgdx-inGameConsole
@@ -334,7 +335,7 @@ public class ModelEditScreen extends ScreenAdapter {
             renderStringBuilder.append("FPS: ").append(fps);
             renderStringBuilder.append(" E: ").append(visibleEditables);
             renderStringBuilder.append(" TP: ").append(visibleTerrainParts);
-            renderStringBuilder.append(" DW.NC: ").append(eng.dynamicsWorld.getNumConstraints());
+            renderStringBuilder.append(" DW.NC: ").append(BT_DISCRETE_DYNAMICS_WORLD.dynamicsWorld.getNumConstraints());
             stage.fpsLabel.setText(renderStringBuilder);
 
             // check if there're changes made in the root directory
