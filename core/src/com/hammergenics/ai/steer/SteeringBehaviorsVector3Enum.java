@@ -31,10 +31,12 @@ import com.badlogic.gdx.ai.steer.behaviors.FollowFlowField;
 import com.badlogic.gdx.ai.steer.behaviors.FollowPath;
 import com.badlogic.gdx.ai.steer.behaviors.Hide;
 import com.badlogic.gdx.ai.steer.behaviors.Interpose;
+import com.badlogic.gdx.ai.steer.behaviors.Jump;
 import com.badlogic.gdx.ai.steer.behaviors.LookWhereYouAreGoing;
 import com.badlogic.gdx.ai.steer.behaviors.MatchVelocity;
 import com.badlogic.gdx.ai.steer.behaviors.PrioritySteering;
 import com.badlogic.gdx.ai.steer.behaviors.Pursue;
+import com.badlogic.gdx.ai.steer.behaviors.RaycastObstacleAvoidance;
 import com.badlogic.gdx.ai.steer.behaviors.ReachOrientation;
 import com.badlogic.gdx.ai.steer.behaviors.Seek;
 import com.badlogic.gdx.ai.steer.behaviors.Separation;
@@ -45,6 +47,8 @@ import com.badlogic.gdx.ai.steer.utils.paths.LinePath;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.hammergenics.HGEngine;
+import com.hammergenics.ai.utils.JumpCallbackAdapter;
+import com.hammergenics.ai.utils.Y3DGravityComponentHandler;
 import com.hammergenics.core.graphics.g3d.PhysicalModelInstance.ShapesEnum;
 import com.hammergenics.core.graphics.g3d.SteerableModelInstance;
 
@@ -152,14 +156,15 @@ public enum SteeringBehaviorsVector3Enum {
             return instance;
         }
     },
-    //JUMP(Jump.class) {
-    //    @Override
-    //    public SteeringBehavior<Vector3> getInstance() {
-    //        // single threaded processing is assumed: returning a singleton
-    //        if (instance == null) { instance = new Jump<>(); }
-    //        return instance;
-    //    }
-    //},
+    JUMP(Jump.class) {
+        @Override
+        public SteeringBehavior<Vector3> getInstance() {
+            // single threaded processing is assumed: returning a singleton
+            // FIXME: no setter for callback - stubJumpCallback should be replaced or avoided
+            if (instance == null) { instance = new Jump<>(stubOwner, stubJumpDescriptor, stubV1, stubY3DGravityComponentHandler, stubJumpCallback); }
+            return instance;
+        }
+    },
     LOOK_WHERE_YOU_ARE_GOING(LookWhereYouAreGoing.class) {
         @Override
         public SteeringBehavior<Vector3> getInstance() {
@@ -192,14 +197,14 @@ public enum SteeringBehaviorsVector3Enum {
             return instance;
         }
     },
-    //RAY_CAST_OBSTACLE_AVOIDANCE(RaycastObstacleAvoidance.class) {
-    //    @Override
-    //    public SteeringBehavior<Vector3> getInstance() {
-    //        // single threaded processing is assumed: returning a singleton
-    //        if (instance == null) { instance = new RaycastObstacleAvoidance<>(); }
-    //        return instance;
-    //    }
-    //},
+    RAY_CAST_OBSTACLE_AVOIDANCE(RaycastObstacleAvoidance.class) {
+        @Override
+        public SteeringBehavior<Vector3> getInstance() {
+            // single threaded processing is assumed: returning a singleton
+            if (instance == null) { instance = new RaycastObstacleAvoidance<>(stubOwner); }
+            return instance;
+        }
+    },
     REACH_ORIENTATION(ReachOrientation.class) {
         @Override
         public SteeringBehavior<Vector3> getInstance() {
@@ -242,6 +247,11 @@ public enum SteeringBehaviorsVector3Enum {
     public static final Steerable<Vector3> stubAgent2;
     public static final Proximity<Vector3> stubProximity;
     public static final Path<Vector3, LinePath.LinePathParam> stubPath;
+    public static final Jump.JumpDescriptor<Vector3> stubJumpDescriptor;
+    public static final Y3DGravityComponentHandler stubY3DGravityComponentHandler;
+    public static final JumpCallbackAdapter stubJumpCallback;
+    private static final Vector3 stubV1 = new Vector3();
+    private static final Vector3 stubV2 = new Vector3();
 
     static {
         stubOwner = new SteerableModelInstance(HGEngine.boxHgModel, 0f, ShapesEnum.BOX);
@@ -254,6 +264,9 @@ public enum SteeringBehaviorsVector3Enum {
         Array<Vector3> waypoints = new Array<>(Vector3.class);
         waypoints.addAll(Vector3.X.cpy(), Vector3.Y.cpy(), Vector3.Z.cpy(), Vector3.Zero.cpy());
         stubPath = new LinePath<>(waypoints);
+        stubJumpDescriptor = new Jump.JumpDescriptor<>(stubV1, stubV2);
+        stubY3DGravityComponentHandler = new Y3DGravityComponentHandler();
+        stubJumpCallback = new JumpCallbackAdapter();
     }
 
     public Class<?> clazz;
