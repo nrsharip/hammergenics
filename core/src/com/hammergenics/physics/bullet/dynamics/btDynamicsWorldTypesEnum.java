@@ -133,7 +133,10 @@ public enum btDynamicsWorldTypesEnum implements Disposable {
         }
 
         @Override
-        public void resetBtDynamicsWorld(float scale) { }
+        public void resetBtDynamicsWorld(float scale) {
+            dynamicsWorld.setGravity(Vector3.Y.cpy().scl(-10f * scale));
+            dynamicsWorld.setConstraintSolver(BT_SEQUENTIAL_IMPULSE_SOLVER.getInstance());
+        }
     },
     BT_GPU_DYNAMICS_WORLD(5) {
         @Override

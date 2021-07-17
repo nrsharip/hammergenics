@@ -23,6 +23,7 @@ import com.badlogic.gdx.physics.bullet.collision.btCollisionObjectWrapper;
 import com.badlogic.gdx.physics.bullet.collision.btManifoldPoint;
 import com.badlogic.gdx.physics.bullet.collision.btPersistentManifold;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
+import com.badlogic.gdx.utils.ArrayMap;
 import com.hammergenics.HGEngine;
 import com.hammergenics.core.graphics.g3d.PhysicalModelInstance;
 
@@ -60,6 +61,12 @@ public class HGContactListener extends ContactListener {
 
     public HGEngine eng;
 
+    // Physics related:
+    public final ArrayMap<PhysicalModelInstance, btRigidBody> mi2rb = new ArrayMap<>(PhysicalModelInstance.class, btRigidBody.class);
+    public final ArrayMap<btRigidBody, PhysicalModelInstance> rb2mi = new ArrayMap<>(btRigidBody.class, PhysicalModelInstance.class);
+    public final ArrayMap<Integer, btRigidBody> hc2rb = new ArrayMap<>(Integer.class, btRigidBody.class);
+    public final ArrayMap<btRigidBody, Integer> rb2hc = new ArrayMap<>(btRigidBody.class, Integer.class);
+
     public HGContactListener(HGEngine eng) { this.eng = eng; }
 
     //
@@ -73,10 +80,10 @@ public class HGContactListener extends ContactListener {
         int hc0 = colObj0Wrap.getCollisionObject().getUserValue();
         int hc1 = colObj1Wrap.getCollisionObject().getUserValue();
 
-        btRigidBody rb0 = eng.hc2rb.get(hc0);
-        btRigidBody rb1 = eng.hc2rb.get(hc1);
-        PhysicalModelInstance mi0 = eng.rb2mi.get(rb0);
-        PhysicalModelInstance mi1 = eng.rb2mi.get(rb1);
+        btRigidBody rb0 = hc2rb.get(hc0);
+        btRigidBody rb1 = hc2rb.get(hc1);
+        PhysicalModelInstance mi0 = rb2mi.get(rb0);
+        PhysicalModelInstance mi1 = rb2mi.get(rb1);
 
 //        Gdx.app.debug(getTag(), ""
 //                + " hc0: " + Integer.toHexString(hc0)

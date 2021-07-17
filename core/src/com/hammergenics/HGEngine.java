@@ -188,12 +188,6 @@ public class HGEngine implements Disposable {
     public final Array<EditableModelInstance> selectedMIs = new Array<>(EditableModelInstance.class);
     public Vector2 currCell = Vector2.Zero.cpy();
 
-    // Physics related:
-    public final ArrayMap<PhysicalModelInstance, btRigidBody> mi2rb = new ArrayMap<>(PhysicalModelInstance.class, btRigidBody.class);
-    public final ArrayMap<btRigidBody, PhysicalModelInstance> rb2mi = new ArrayMap<>(btRigidBody.class, PhysicalModelInstance.class);
-    public final ArrayMap<Integer, btRigidBody> hc2rb = new ArrayMap<>(Integer.class, btRigidBody.class);
-    public final ArrayMap<btRigidBody, Integer> rb2hc = new ArrayMap<>(btRigidBody.class, Integer.class);
-
     // Map generation related:
     // taking size + 1 to have the actual [SIZE x SIZE] cells grid
     // which will take [SIZE + 1 x SIZE + 1] vertex grid to define
@@ -232,8 +226,6 @@ public class HGEngine implements Disposable {
 
     @Override
     public void dispose() {
-        for (PhysicalModelInstance mi: mi2rb.keys()) { removeRigidBody(mi); }
-
         for (EditableModelInstance mi: editableMIs) { mi.dispose(); }
 
         btDynamicsWorldTypesEnum.disposeAll();
@@ -284,13 +276,12 @@ public class HGEngine implements Disposable {
                 .average().orElse(0f);
 
         for (TerrainChunk tc: chunks) {
-            removeRigidBody(tc.noiseTrianglesPhysModelInstance);
             tc.resetNoiseModelInstances(scale);
 
             tc.trnNoiseLinesHgModelInstance(0f, -mid * tc.gridNoise.yScale * scale, 0f);
             tc.trnNoiseTrianglesPhysModelInstance(0f, -mid * tc.gridNoise.yScale * scale, 0f);
 
-            addRigidBody(tc.noiseTrianglesPhysModelInstance, FLAG_GROUND, FLAG_ALL);
+            tc.noiseTrianglesPhysModelInstance.addRigidBodyToDynamicsWorld(FLAG_GROUND, FLAG_ALL);
 
             tc.applyTerrainParts(scale);
             tc.trnTerrain(0f, -mid * tc.gridNoise.yScale * scale, 0f);
@@ -572,7 +563,7 @@ public class HGEngine implements Disposable {
         }
 
         editableMIs.add(currMI);
-        addRigidBody(currMI, FLAG_OBJECT, FLAG_ALL);
+        currMI.addRigidBodyToDynamicsWorld(FLAG_OBJECT, FLAG_ALL);
 
         // ********************
         // **** ANIMATIONS ****
@@ -672,39 +663,6 @@ public class HGEngine implements Disposable {
         if (gridOHgModelInstance == null) { return; }
 
         gridOHgModelInstance.setToScaling(Vector3.Zero.cpy().add(unitSize/4f));
-    }
-
-    public void addRigidBody(PhysicalModelInstance mi, int group, int mask) {
-        if (mi == null || mi.rigidBody == null || btRigidBody.getCPtr(mi.rigidBody) == 0) {
-            Gdx.app.error(Thread.currentThread().getStackTrace()[1].getMethodName(),
-                    "ERROR: while adding the rigid body to dynamics world");
-            return;
-        }
-        if (!mi2rb.containsKey(mi)) {
-            mi2rb.put(mi, mi.rigidBody);
-            rb2mi.put(mi.rigidBody, mi);
-            hc2rb.put(mi.rbHashCode, mi.rigidBody);
-            rb2hc.put(mi.rigidBody, mi.rbHashCode);
-            btDynamicsWorldTypesEnum.selected.dynamicsWorld.addRigidBody(mi.rigidBody, group, mask);
-            //Gdx.app.debug("add rb", (mi.hgModel.afh != null ? mi.hgModel.afh.name() : mi.nodes.get(0).id)
-            //        + " size: " + mi2rb.size + " num: " + dynamicsWorld.getNumCollisionObjects()
-            //        + " hc: " + mi.rbHashCode + " transform:\n" + mi.rigidBody.getWorldTransform()
-            //);
-        }
-    }
-
-    public void removeRigidBody(PhysicalModelInstance mi) {
-        if (mi2rb.containsKey(mi)) {
-            mi2rb.removeKey(mi);
-            rb2mi.removeKey(mi.rigidBody);
-            hc2rb.removeKey(mi.rbHashCode);
-            rb2hc.removeKey(mi.rigidBody);
-            btDynamicsWorldTypesEnum.selected.dynamicsWorld.removeRigidBody(mi.rigidBody);
-            //Gdx.app.debug("rem rb", (mi.hgModel.afh != null ? mi.hgModel.afh.name() : mi.nodes.get(0).id)
-            //        + " size: " + mi2rb.size + " num: " + dynamicsWorld.getNumCollisionObjects()
-            //        + " hc: " + mi.rbHashCode + " transform:\n" + mi.rigidBody.getWorldTransform()
-            //);
-        }
     }
 
     public void resetBBModelInstances() {
@@ -869,16 +827,12 @@ public class HGEngine implements Disposable {
 
     public void removeEditableModelInstance(EditableModelInstance mi) {
         if (mi == null) { return; }
-        if (mi.rigidBody != null) { removeRigidBody(mi); }
         editableMIs.removeValue(mi, true);
         mi.dispose();
     }
 
     public void clearModelInstances() {
-        editableMIs.forEach(mi -> {
-            if (mi.rigidBody != null) { removeRigidBody(mi); }
-            mi.dispose();
-        });
+        editableMIs.forEach(mi -> { mi.dispose(); });
         editableMIs.clear();
         // no need to dispose - will be done in HGModelInstance on dispose()
         //auxMIs.forEach(HGModelInstance::dispose);

@@ -33,6 +33,7 @@ import com.badlogic.gdx.physics.bullet.softbody.btSoftBody;
 import com.badlogic.gdx.physics.bullet.softbody.btSoftBodyWorldInfo;
 import com.badlogic.gdx.utils.Disposable;
 import com.hammergenics.core.graphics.glutils.HGImmediateModeRenderer20;
+import com.hammergenics.physics.bullet.dynamics.btDynamicsWorldTypesEnum;
 import com.hammergenics.physics.bullet.dynamics.btRigidBodyProxy;
 
 import static com.hammergenics.physics.bullet.collision.btCollisionObjectProxy.coActivationStatesEnum.ACTIVE_TAG;
@@ -107,6 +108,10 @@ public class PhysicalModelInstance extends HGModelInstance implements Disposable
         setRbMotionState(new HGbtMotionState(this));
     }
 
+    public void addRigidBodyToDynamicsWorld(int group, int mask) {
+        btDynamicsWorldTypesEnum.selected.dynamicsWorld.addRigidBody(rigidBody, group, mask);
+    }
+
     @Override
     public void dispose() {
         //Gdx.app.debug("physical mi", "dispose: "
@@ -120,7 +125,11 @@ public class PhysicalModelInstance extends HGModelInstance implements Disposable
         // free an object when you don’t use it anymore, in C++ you’re responsible for freeing the memory yourself.
         // You’re probably already familiar with this cconcept, because the same goes for a texture, model, model batch, shader etc.
         // Because of this, you have to manually dispose the object when you no longer need it.
-        if (rigidBody != null) { rigidBody.dispose(); rigidBody = null; }
+        if (rigidBody != null) {
+            btDynamicsWorldTypesEnum.selected.dynamicsWorld.removeRigidBody(rigidBody);
+            rigidBody.dispose();
+            rigidBody = null;
+        }
         if (rbConstructionInfo != null) { rbConstructionInfo.dispose(); rbConstructionInfo = null; }
         if (rbCollisionShape != null) {
             rbCollisionShape.release();
