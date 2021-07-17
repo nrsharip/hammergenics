@@ -109,6 +109,11 @@ public class PhysicalModelInstance extends HGModelInstance implements Disposable
 
     @Override
     public void dispose() {
+        //Gdx.app.debug("physical mi", "dispose: "
+        //        + (hgModel.afh != null ? hgModel.afh.name() : nodes.get(0).id)
+        //        + " hc: " + rbHashCode
+        //        //+ " transform:\n" + rigidBody.getWorldTransform()
+        //);
         // IMPORTANT: see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/
         // Every time you construct a bullet class in java, the wrapper will also construct the same class
         // in the native (C++) library. But while in java the garbage collector takes care of memory management and will

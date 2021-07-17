@@ -204,6 +204,13 @@ public enum btDynamicsWorldTypesEnum implements Disposable {
         dynamicsWorld = createBtDynamicsWorld();
     }
 
+    public static btDynamicsWorldTypesEnum selected = null;
+    public static void setSelected(btDynamicsWorldTypesEnum selected) {
+        if (btDynamicsWorldTypesEnum.selected == null) {
+            btDynamicsWorldTypesEnum.selected = selected;
+        }
+    }
+
     public abstract btDynamicsWorld createBtDynamicsWorld();
     public abstract void resetBtDynamicsWorld(float scale);
     public static void resetAllBtDynamicsWorlds(float scale) {

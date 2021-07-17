@@ -84,7 +84,7 @@ import static com.hammergenics.core.graphics.g3d.utils.Models.createLightsModel;
 import static com.hammergenics.core.graphics.g3d.utils.Models.createTestBox;
 import static com.hammergenics.core.graphics.g3d.utils.Models.createTestSphere;
 import static com.hammergenics.core.stages.ui.file.TypeFilterRulesEnum.ALL_FILES;
-import static com.hammergenics.physics.bullet.dynamics.btDynamicsWorldTypesEnum.BT_DISCRETE_DYNAMICS_WORLD;
+import static com.hammergenics.physics.bullet.dynamics.btDynamicsWorldTypesEnum.BT_SOFT_RIGID_DYNAMICS_WORLD;
 import static com.hammergenics.physics.bullet.dynamics.btDynamicsWorldTypesEnum.FLAG_ALL;
 import static com.hammergenics.physics.bullet.dynamics.btDynamicsWorldTypesEnum.FLAG_GROUND;
 import static com.hammergenics.physics.bullet.dynamics.btDynamicsWorldTypesEnum.FLAG_OBJECT;
@@ -213,8 +213,8 @@ public class HGEngine implements Disposable {
         assetManager.setLoader(SceneAsset.class, ".glb", new GLBAssetLoader());
 
         btDynamicsWorldTypesEnum.initBullet();
-
-        resetDynamicsWorld(1f);
+        btDynamicsWorldTypesEnum.resetAllBtDynamicsWorlds(1f);
+        btDynamicsWorldTypesEnum.setSelected(BT_SOFT_RIGID_DYNAMICS_WORLD);
 
         // Chunks should be populated after bullet is initialized (TerrainChunk has physical models)
         chunks = new Array<>(new TerrainChunk[]{
@@ -685,7 +685,7 @@ public class HGEngine implements Disposable {
             rb2mi.put(mi.rigidBody, mi);
             hc2rb.put(mi.rbHashCode, mi.rigidBody);
             rb2hc.put(mi.rigidBody, mi.rbHashCode);
-            BT_DISCRETE_DYNAMICS_WORLD.dynamicsWorld.addRigidBody(mi.rigidBody, group, mask);
+            btDynamicsWorldTypesEnum.selected.dynamicsWorld.addRigidBody(mi.rigidBody, group, mask);
             //Gdx.app.debug("add rb", (mi.hgModel.afh != null ? mi.hgModel.afh.name() : mi.nodes.get(0).id)
             //        + " size: " + mi2rb.size + " num: " + dynamicsWorld.getNumCollisionObjects()
             //        + " hc: " + mi.rbHashCode + " transform:\n" + mi.rigidBody.getWorldTransform()
@@ -699,7 +699,7 @@ public class HGEngine implements Disposable {
             rb2mi.removeKey(mi.rigidBody);
             hc2rb.removeKey(mi.rbHashCode);
             rb2hc.removeKey(mi.rigidBody);
-            BT_DISCRETE_DYNAMICS_WORLD.dynamicsWorld.removeRigidBody(mi.rigidBody);
+            btDynamicsWorldTypesEnum.selected.dynamicsWorld.removeRigidBody(mi.rigidBody);
             //Gdx.app.debug("rem rb", (mi.hgModel.afh != null ? mi.hgModel.afh.name() : mi.nodes.get(0).id)
             //        + " size: " + mi2rb.size + " num: " + dynamicsWorld.getNumCollisionObjects()
             //        + " hc: " + mi.rbHashCode + " transform:\n" + mi.rigidBody.getWorldTransform()
@@ -907,7 +907,7 @@ public class HGEngine implements Disposable {
             // then the calculation will be done multiple times.
             // The maximum number of times that this will be done (the maximum number of sub-steps) is specified
             // by the second argument.
-            BT_DISCRETE_DYNAMICS_WORLD.dynamicsWorld.stepSimulation(delta, 5, 1f/60f);
+            btDynamicsWorldTypesEnum.selected.dynamicsWorld.stepSimulation(delta, 5, 1f/60f);
         }
     }
 }

@@ -44,11 +44,11 @@ import com.hammergenics.core.graphics.glutils.HGImmediateModeRenderer20;
 import com.hammergenics.core.stages.ModelEditStage;
 import com.hammergenics.core.stages.ui.attributes.AttributesManagerTable;
 import com.hammergenics.map.TerrainChunk;
+import com.hammergenics.physics.bullet.dynamics.btDynamicsWorldTypesEnum;
 
 import io.anuke.gif.GifRecorder;
 
 import static com.badlogic.gdx.physics.bullet.linearmath.btIDebugDraw.DebugDrawModes.DBG_NoDebug;
-import static com.hammergenics.physics.bullet.dynamics.btDynamicsWorldTypesEnum.BT_DISCRETE_DYNAMICS_WORLD;
 
 /**
  * Add description here
@@ -121,7 +121,7 @@ public class ModelEditScreen extends ScreenAdapter {
         //     DBG_MAX_DEBUG_DRAW_MODE
         // };
         btDebugDrawer.setDebugMode(DBG_NoDebug);
-        BT_DISCRETE_DYNAMICS_WORLD.dynamicsWorld.setDebugDrawer(btDebugDrawer);
+        btDynamicsWorldTypesEnum.selected.dynamicsWorld.setDebugDrawer(btDebugDrawer);
 
         // Camera related
         perspectiveCamera = new PerspectiveCamera(70f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -271,7 +271,7 @@ public class ModelEditScreen extends ScreenAdapter {
         immediateModeRenderer.end();
 
         btDebugDrawer.begin(perspectiveCamera);
-        BT_DISCRETE_DYNAMICS_WORLD.dynamicsWorld.debugDrawWorld();
+        btDynamicsWorldTypesEnum.selected.dynamicsWorld.debugDrawWorld();
         btDebugDrawer.end();
 
         // https://github.com/StrongJoshua/libgdx-inGameConsole
@@ -335,7 +335,7 @@ public class ModelEditScreen extends ScreenAdapter {
             renderStringBuilder.append("FPS: ").append(fps);
             renderStringBuilder.append(" E: ").append(visibleEditables);
             renderStringBuilder.append(" TP: ").append(visibleTerrainParts);
-            renderStringBuilder.append(" DW.NC: ").append(BT_DISCRETE_DYNAMICS_WORLD.dynamicsWorld.getNumConstraints());
+            renderStringBuilder.append(" DW.NC: ").append(btDynamicsWorldTypesEnum.selected.dynamicsWorld.getNumConstraints());
             stage.fpsLabel.setText(renderStringBuilder);
 
             // check if there're changes made in the root directory

@@ -68,7 +68,7 @@ public class btDynamicsWorldVisWindow extends VisWindow {
         this.stage = stage;
         this.eng = modelES.eng;
 
-        this.dw = BT_DISCRETE_DYNAMICS_WORLD.dynamicsWorld;
+        this.dw = btDynamicsWorldTypesEnum.selected.dynamicsWorld;
 
         init();
 
