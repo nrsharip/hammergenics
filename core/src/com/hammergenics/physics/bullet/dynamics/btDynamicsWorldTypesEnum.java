@@ -202,8 +202,6 @@ public enum btDynamicsWorldTypesEnum implements Disposable {
     btDynamicsWorldTypesEnum(int type) {
         this.type = type;
 
-        initBullet();
-
         dynamicsWorld = createBtDynamicsWorld();
     }
 
@@ -255,59 +253,5 @@ public enum btDynamicsWorldTypesEnum implements Disposable {
         btCollisionConfigurationsEnum.disposeAll();
         btBroadphasesEnum.disposeAll();
         //contactListener.dispose();
-    }
-
-    // see: https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Debugging#loading-the-correct-dll
-    // Set this to the path of the lib to use it on desktop instead of the default lib.
-    private final static String customDesktopLib = "E:\\...\\extensions\\gdx-bullet\\jni\\vs\\gdxBullet\\x64\\Debug\\gdxBullet.dll";
-    private final static boolean debugBullet = false;
-    private static boolean bulletLoaded = false;
-    public static void initBullet() {
-        if (bulletLoaded) { return; }
-        // see: https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Debugging#getting-the-sources
-        //   sources: libgdx-024282e47e9b5d8ec25373d3e1e5ddfe55122596.zip:
-        //      https://github.com/libgdx/libgdx/releases/tag/gdx-parent-1.10.0
-        //      https://github.com/libgdx/libgdx/tree/024282e47e9b5d8ec25373d3e1e5ddfe55122596
-        // see: https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Debugging#getting-the-compileride
-        // see: https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Debugging#building-the-debug-dll
-        //
-        //   ISSUE:
-        //      1>...\Platforms\Win32\PlatformToolsets\v141\Toolset.targets(34,5):
-        //      error MSB8036: The Windows SDK version 8.1 was not found.
-        //      Install the required version of Windows SDK or change the SDK version in the project property pages or by right-clicking the solution and selecting "Retarget solution".
-        //      SOLUTION: right-click VS solution -> Retarget Projects -> select the SDK
-        //   ISSUE:
-        //      1>------ Build started: Project: gdxBullet, Configuration: Debug x64 ------
-        //      1>softbody_wrap.cpp
-        //      1>...\gdx-bullet\jni\swig-src\softbody\softbody_wrap.cpp(179): fatal error C1083: Cannot open include file: 'jni.h': No such file or directory
-        //      ...
-        //      SOLUTION: right-click VS solution -> Properties -> Configuration: Debug, Platform: All Platforms -> C/C++ -> General -> Additional Include Directories
-        //                add the following directory: <path to JDK>/include
-        //   ISSUE:
-        //      1>------ Build started: Project: gdxBullet, Configuration: Debug Win32 ------
-        //      1>softbody_wrap.cpp
-        //      1>...\include\jni.h(45): fatal error C1083: Cannot open include file: 'jni_md.h': No such file or directory
-        //      ...
-        //      SOLUTION: right-click VS solution -> Properties -> Configuration: Debug, Platform: All Platforms -> C/C++ -> General -> Additional Include Directories
-        //                add the following directory: <path to JDK>/include/win32
-
-        // see: https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Debugging#loading-the-correct-dll
-        // Need to initialize bullet before using it.
-        if (Gdx.app.getType() == Application.ApplicationType.Desktop && debugBullet) {
-            System.load(customDesktopLib);
-        } else {
-            Bullet.init();
-        }
-        Gdx.app.log("bullet", "version: " + LinearMath.btGetVersion() + " debug: " + debugBullet);
-        // Release (gradle: libgdx-1.10.0):
-        // [Bullet] Version = 287
-        // Debug (https://github.com/libgdx/libgdx/tree/024282e47e9b5d8ec25373d3e1e5ddfe55122596):
-        // [Bullet] Version = 287
-        // Bullet Github: https://github.com/bulletphysics/bullet3/blob/master/src/LinearMath/btScalar.h#L28
-        // #define BT_BULLET_VERSION 317
-        // see: https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Debugging#debugging
-
-        //contactListener = new HGContactListener(this);
-        bulletLoaded = true;
     }
 }
