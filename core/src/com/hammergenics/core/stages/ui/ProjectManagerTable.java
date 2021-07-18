@@ -81,6 +81,8 @@ public class ProjectManagerTable extends ManagerTable {
 
     public ProjectManagerTable(ModelEditScreen modelES, ModelEditStage stage) {
         super(modelES, stage);
+
+        applyListeners();
     }
 
     @Override
@@ -108,7 +110,7 @@ public class ProjectManagerTable extends ManagerTable {
             }
             @Override
             public void tap(InputEvent event, float x, float y, int count, int button) {
-                Gdx.app.debug("project", "GLOBAL non-select");
+                Gdx.app.debug("project", "GLOBAL non-select: tap");
                 handleNonSelectTap(event, x, y, count, button);
                 super.tap(event, x, y, count, button);
             }
@@ -132,8 +134,6 @@ public class ProjectManagerTable extends ManagerTable {
                 super.tap(event, x, y, count, button);
             }
         };
-
-        applyListeners();
     }
 
     public void handleSelectTap1(InputEvent event, float x, float y, int count, int button) { }
@@ -143,11 +143,11 @@ public class ProjectManagerTable extends ManagerTable {
     public void handleNonSelectTap(InputEvent event, float x, float y, int count, int button) { }
 
     public void applyListeners() {
-        applyListeners(assetsTreeNode);
-        applyListeners(modelInstancesTreeNode);
-        applyListeners(envTreeNode);
+        applyAssetsListeners(assetsTreeNode);
+        applyModelInstancesListeners(modelInstancesTreeNode);
+        applyEnvironmentListeners(envTreeNode);
 
-        applyListeners(fh2imagesTreeNode,
+        applyListeners(fh2imagesTreeNode.values().toArray(),
                 new ActorGestureListener() {
                     @Override
                     public void touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -179,7 +179,7 @@ public class ProjectManagerTable extends ManagerTable {
                 });
     }
 
-    public void applyListeners(HGTreeVisTableNode rootNode) {
+    public void applyAssetsListeners(HGTreeVisTableNode rootNode) {
         rootNode.getActor().clearListeners();
         rootNode.getActor().addListener(globalNonSelectListener);
 
@@ -197,14 +197,26 @@ public class ProjectManagerTable extends ManagerTable {
         }
     }
 
-    public void applyListeners(final ArrayMap<FileHandle, HGTreeVisTableNode> map,
+    public void applyModelInstancesListeners(HGTreeVisTableNode rootNode) {
+        rootNode.getActor().clearListeners();
+        rootNode.getActor().addListener(globalNonSelectListener);
+
+        for (HGTreeVisTableNode node1 : rootNode.getChildren()) {      // "Models", "Images", "Sounds"...
+            node1.getActor().clearListeners();
+            node1.getActor().addListener(globalSelectListener);
+        }
+    }
+
+    public void applyEnvironmentListeners(HGTreeVisTableNode rootNode) {
+        rootNode.getActor().clearListeners();
+        rootNode.getActor().addListener(globalNonSelectListener);
+    }
+
+    public void applyListeners(final Array<HGTreeVisTableNode> parentTreeNodes,
                                ActorGestureListener nonSelectListener,
                                ActorGestureListener selectListener) {
-        if (map == null) { return; }
-        for (ObjectMap.Entry<FileHandle, HGTreeVisTableNode> entry: map) {
-            FileHandle parent = entry.key;
-            HGTreeVisTableNode tn = entry.value;
-
+        if (parentTreeNodes == null) { return; }
+        for (HGTreeVisTableNode tn: parentTreeNodes) {
             // the listeners should already be cleared
             //tn.getActor().clearListeners();
             tn.getActor().addListener(nonSelectListener);
@@ -264,16 +276,16 @@ public class ProjectManagerTable extends ManagerTable {
         Class<?> assetClass = HGEngine.getAssetClass(fileHandle);
 
         boolean parentPresent;
-        HGTreeVisTableNode treeNode;
+        HGTreeVisTableNode parentTreeNode;
         // adding the parent folder node first (if not existed before)
         if ((assetClass.equals(Model.class) || assetClass.equals(SceneAsset.class)) && rootModelsTreeNode != null) {
             parentPresent = mapModels.containsKey(fileHandle.parent());
-            treeNode = getAssetParentFolderTreeNode(fileHandle, assetClass, mapModels);
-            if (!parentPresent) { addModelAssetParentFolderTreeNode(fileHandle, treeNode, rootModelsTreeNode); }
+            parentTreeNode = getAssetParentFolderTreeNode(fileHandle, assetClass, mapModels);
+            if (!parentPresent) { addModelAssetParentFolderTreeNode(fileHandle, parentTreeNode, rootModelsTreeNode); }
         } else if (assetClass.equals(Texture.class) && rootImagesTreeNode != null) {
             parentPresent = mapImages.containsKey(fileHandle.parent());
-            treeNode = getAssetParentFolderTreeNode(fileHandle, assetClass, mapImages);
-            if (!parentPresent) { addImageAssetParentFolderTreeNode(fileHandle, treeNode, rootImagesTreeNode); }
+            parentTreeNode = getAssetParentFolderTreeNode(fileHandle, assetClass, mapImages);
+            if (!parentPresent) { addImageAssetParentFolderTreeNode(fileHandle, parentTreeNode, rootImagesTreeNode); }
         } else {
             return;
         }
@@ -283,9 +295,9 @@ public class ProjectManagerTable extends ManagerTable {
 
         // then adding the child node - the asset itself
         if (assetClass.equals(Model.class) || assetClass.equals(SceneAsset.class)) {
-            addModelAssetTreeNode(fileHandle, treeNode);
+            addModelAssetTreeNode(fileHandle, parentTreeNode);
         } else if (assetClass.equals(Texture.class)) {
-            addImageAssetTreeNode(fileHandle, treeNode);
+            addImageAssetTreeNode(fileHandle, parentTreeNode);
         }
     }
 
@@ -426,7 +438,7 @@ public class ProjectManagerTable extends ManagerTable {
         window.addCloseButton();
         window.setMovable(false);
 
-        window.add(projectTreeScrollPane).expand().fill().padRight(5f).minWidth(Gdx.graphics.getWidth()/8f);
+        window.add(projectTreeScrollPane).expand().fill().padRight(5f).minWidth(Gdx.graphics.getWidth()/6f);
 
         VisImageButton closeTB = null;
         for (Actor actor: window.getTitleTable().getChildren()) {
