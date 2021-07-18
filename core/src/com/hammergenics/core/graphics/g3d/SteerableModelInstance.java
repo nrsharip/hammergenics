@@ -28,6 +28,8 @@ import com.badlogic.gdx.utils.Disposable;
 import com.hammergenics.ai.steer.SteeringBehaviorsVector3Enum;
 import com.hammergenics.ai.utils.LocationAdapter;
 
+import static com.hammergenics.ai.steer.SteeringBehaviorsVector3Enum.*;
+
 /**
  * Add description here
  *
@@ -46,8 +48,8 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     // Returns the threshold below which the linear speed can be considered zero. It must be a small positive value near to zero.
     // Usually it is used to avoid updating the orientation when the velocity vector has a negligible length.
     public float zeroLinearSpeedThreshold = 0.1f;
-    public float maxLinearSpeed = 4f;                // the maximum linear speed
-    public float maxLinearAcceleration = 0.2f;       // the maximum linear acceleration
+    public float maxLinearSpeed = 2f;                // the maximum linear speed
+    public float maxLinearAcceleration = 1.0f;       // the maximum linear acceleration
     public float maxAngularSpeed = 1.0472f;          // (~ 60 degrees) the maximum angular speed
     public float maxAngularAcceleration = 0.174533f; // (~ 10 degrees) the maximum angular acceleration
 
@@ -58,6 +60,7 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     public float orientation = 0f;
 
     // Steering Behaviors related:
+    public SteeringBehaviorsVector3Enum currentSteeringBehavior;
     public Location<Vector3> target = new LocationAdapter<>(new Vector3(10f, 10f, 10f));
 
     public SteerableModelInstance(Model model, float mass, ShapesEnum shape) { this(new HGModel(model), null, mass, shape, (String[])null); }
@@ -67,6 +70,8 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     public SteerableModelInstance(HGModel hgModel, FileHandle assetFL, float mass, ShapesEnum shape) { this(hgModel, assetFL, mass, shape, (String[])null); }
     public SteerableModelInstance(HGModel hgModel, FileHandle assetFL, float mass, ShapesEnum shape, String... rootNodeIds) {
         super(hgModel, assetFL, mass, shape, rootNodeIds);
+
+        currentSteeringBehavior = ARRIVE;
     }
 
     @Override public Vector3 getLinearVelocity() { return linearVelocity; }
@@ -119,10 +124,14 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     // see https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#the-steering-system-api
     public void update (float delta) {
         SteeringAcceleration<Vector3> out = new SteeringAcceleration<>(new Vector3()).setZero();
-        // Calculate steering acceleration
-        SteeringBehaviorsVector3Enum.initArrive(this, target, 0.1f, 1f, 1f);
-        Arrive<Vector3> arrive = (Arrive<Vector3>) SteeringBehaviorsVector3Enum.ARRIVE.getInstance();
-        arrive.calculateSteering(out);
+        switch (currentSteeringBehavior) {
+            case ARRIVE:
+                // Calculate steering acceleration
+                SteeringBehaviorsVector3Enum.initArrive(this, target, 0.1f, 1f, 1f);
+                Arrive<Vector3> arrive = (Arrive<Vector3>) ARRIVE.getInstance();
+                arrive.calculateSteering(out);
+                break;
+        }
 
         /*
          * Here you might want to add a motor control layer filtering steering accelerations.

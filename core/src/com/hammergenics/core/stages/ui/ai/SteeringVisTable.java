@@ -16,7 +16,10 @@
 
 package com.hammergenics.core.stages.ui.ai;
 
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.hammergenics.HGEngine;
+import com.hammergenics.ai.steer.SteeringBehaviorsVector3Enum;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.graphics.g3d.EditableModelInstance;
 import com.hammergenics.core.stages.ModelEditStage;
@@ -25,11 +28,13 @@ import com.hammergenics.core.stages.ui.auxiliary.types.FloatVisTable;
 import com.hammergenics.core.stages.ui.auxiliary.types.Vector3VisTable;
 import com.kotcrab.vis.ui.widget.VisCheckBox;
 import com.kotcrab.vis.ui.widget.VisLabel;
+import com.kotcrab.vis.ui.widget.VisSelectBox;
 import com.kotcrab.vis.ui.widget.VisTable;
 
 public class SteeringVisTable extends VisTable {
     public ModelEditScreen modelES;
     public ModelEditStage stage;
+    public EditableModelInstance dbgModelInstance;
     public HGEngine eng;
 
     public VisCheckBox steerCheckBox;
@@ -47,6 +52,8 @@ public class SteeringVisTable extends VisTable {
 
     public Vector3VisTable positionVisTable;
     public FloatVisTable orientationVisTable;
+
+    public VisSelectBox<SteeringBehaviorsVector3Enum> steeringBehaviorSB;
 
     public SteeringVisTable(ModelEditScreen modelES, ModelEditStage stage) {
         this.modelES = modelES;
@@ -83,6 +90,11 @@ public class SteeringVisTable extends VisTable {
         add(positionVisTable.valueT).expandX().fillX().row();
         add(orientationVisTable.titleL).padRight(5f).right();
         add(orientationVisTable.valueT).expandX().fillX().row();
+
+        add().height(5f); add().row();
+
+        add(new VisLabel("Steering Behaviors: "));
+        add(steeringBehaviorSB).expandX().fillX().row();
     }
 
     public void init() {
@@ -102,9 +114,20 @@ public class SteeringVisTable extends VisTable {
 
         positionVisTable = new Vector3VisTable(false, true, true, new VisLabel("Position: "));
         orientationVisTable = new FloatVisTable(true, new VisLabel("Orientation: "));
+
+        steeringBehaviorSB = new VisSelectBox<>();
+        steeringBehaviorSB.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                if (dbgModelInstance == null) { return; }
+
+                dbgModelInstance.currentSteeringBehavior = steeringBehaviorSB.getSelected();
+            }
+        });
     }
 
     public void updateSteerable(EditableModelInstance mi) {
+        dbgModelInstance = mi;
         if (mi != null) {
             linearVelocityVisTable.setVector3(mi.linearVelocity);
             angularVelocityVisTable.setFloat(mi.angularVelocity);
@@ -119,6 +142,12 @@ public class SteeringVisTable extends VisTable {
 
             positionVisTable.setVector3(mi.position);
             orientationVisTable.setFloat(mi.orientation);
+
+            steeringBehaviorSB.getSelection().setProgrammaticChangeEvents(false);
+            steeringBehaviorSB.clearItems();
+            steeringBehaviorSB.setItems(SteeringBehaviorsVector3Enum.values());
+            steeringBehaviorSB.setSelected(mi.currentSteeringBehavior);
+            steeringBehaviorSB.getSelection().setProgrammaticChangeEvents(true);
         } else {
             linearVelocityVisTable.setVector3(null);
             angularVelocityVisTable.setFloat(0f);
@@ -133,6 +162,10 @@ public class SteeringVisTable extends VisTable {
 
             positionVisTable.setVector3(null);
             orientationVisTable.setFloat(0f);
+
+            steeringBehaviorSB.getSelection().setProgrammaticChangeEvents(false);
+            steeringBehaviorSB.clearItems();
+            steeringBehaviorSB.getSelection().setProgrammaticChangeEvents(true);
         }
     }
 }
