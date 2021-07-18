@@ -14,7 +14,7 @@
  * limitations under the License.
  ******************************************************************************/
 
-package com.hammergenics.ai.utils;
+package com.hammergenics.ai.steer.behaviors;
 
 import com.badlogic.gdx.ai.steer.behaviors.Jump;
 import com.badlogic.gdx.math.Vector3;

@@ -44,11 +44,12 @@ import com.badlogic.gdx.ai.steer.behaviors.Wander;
 import com.badlogic.gdx.ai.steer.proximities.RadiusProximity;
 import com.badlogic.gdx.ai.steer.utils.Path;
 import com.badlogic.gdx.ai.steer.utils.paths.LinePath;
+import com.badlogic.gdx.ai.utils.Location;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.hammergenics.HGEngine;
-import com.hammergenics.ai.utils.JumpCallbackAdapter;
-import com.hammergenics.ai.utils.Y3DGravityComponentHandler;
+import com.hammergenics.ai.steer.behaviors.JumpCallbackAdapter;
+import com.hammergenics.ai.steer.behaviors.Y3DGravityComponentHandler;
 import com.hammergenics.core.graphics.g3d.PhysicalModelInstance.ShapesEnum;
 import com.hammergenics.core.graphics.g3d.SteerableModelInstance;
 
@@ -160,8 +161,7 @@ public enum SteeringBehaviorsVector3Enum {
         @Override
         public SteeringBehavior<Vector3> getInstance() {
             // single threaded processing is assumed: returning a singleton
-            // FIXME: no setter for callback - stubJumpCallback should be replaced or avoided
-            if (instance == null) { instance = new Jump<>(stubOwner, stubJumpDescriptor, stubV1, stubY3DGravityComponentHandler, stubJumpCallback); }
+            if (instance == null) { instance = new HG3DJump(stubOwner, stubJumpDescriptor, stubV1, stubY3DGravityComponentHandler, stubJumpCallback); }
             return instance;
         }
     },
@@ -283,4 +283,45 @@ public enum SteeringBehaviorsVector3Enum {
     // to acquire instances of SteeringBehavior, for now single threaded processing is assumed
     // and getInstance() is expected to return a singleton.
     public abstract SteeringBehavior<Vector3> getInstance();
+
+    public static class HG3DJump extends Jump<Vector3> {
+        public HG3DJump(Steerable<Vector3> owner, JumpDescriptor<Vector3> jumpDescriptor, Vector3 gravity, GravityComponentHandler<Vector3> gravityComponentHandler, JumpCallback callback) {
+            super(owner, jumpDescriptor, gravity, gravityComponentHandler, callback);
+        }
+        public void setCallback(JumpCallback callback) {
+            this.callback = callback;
+        }
+    }
+
+    public static void initAlignment() { }
+    public static void initArrive(Steerable<Vector3> owner, Location<Vector3> target,
+                                  float arrivalTolerance, float decelerationRadius, float timeToTarget) {
+        Arrive<Vector3> arrive = (Arrive<Vector3>) SteeringBehaviorsVector3Enum.ARRIVE.getInstance();
+        arrive.setOwner(owner);
+        arrive.setTarget(target);
+        arrive.setArrivalTolerance(arrivalTolerance);
+        arrive.setDecelerationRadius(decelerationRadius);
+        arrive.setTimeToTarget(timeToTarget);
+        arrive.setEnabled(true);
+    }
+    public static void initBlendedSteering() { }
+    public static void initCohesion() { }
+    public static void initCollisionAvoidance() { }
+    public static void initEvade() { }
+    public static void initFace() { }
+    public static void initFlee() { }
+    public static void initFollowFlowField() { }
+    public static void initFollowPath() { }
+    public static void initHide() { }
+    public static void initInterpose() { }
+    public static void initJump() { }
+    public static void initLookWhereYouAreGoing() { }
+    public static void initMatchVelocity() { }
+    public static void initPrioritySteering() { }
+    public static void initPursue() { }
+    public static void initRaycastObstacleAvoidance() { }
+    public static void initReachOrientation() { }
+    public static void initSeek() { }
+    public static void initSeparation() { }
+    public static void initWander() { }
 }

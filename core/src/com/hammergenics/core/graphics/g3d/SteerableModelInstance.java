@@ -57,7 +57,7 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     // The orientation is the angle in radians representing the direction that this location is facing
     public float orientation = 0f;
 
-    // Behaviors related:
+    // Steering Behaviors related:
     public Location<Vector3> target = new LocationAdapter<>(new Vector3(10f, 10f, 10f));
 
     public SteerableModelInstance(Model model, float mass, ShapesEnum shape) { this(new HGModel(model), null, mass, shape, (String[])null); }
@@ -120,13 +120,8 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     public void update (float delta) {
         SteeringAcceleration<Vector3> out = new SteeringAcceleration<>(new Vector3()).setZero();
         // Calculate steering acceleration
+        SteeringBehaviorsVector3Enum.initArrive(this, target, 0.1f, 1f, 1f);
         Arrive<Vector3> arrive = (Arrive<Vector3>) SteeringBehaviorsVector3Enum.ARRIVE.getInstance();
-        arrive.setOwner(this);
-        arrive.setTarget(target);
-        arrive.setArrivalTolerance(0.1f);
-        arrive.setDecelerationRadius(1f);
-        arrive.setTimeToTarget(1f);
-        arrive.setEnabled(true);
         arrive.calculateSteering(out);
 
         /*
