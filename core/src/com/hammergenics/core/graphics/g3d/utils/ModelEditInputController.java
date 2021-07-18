@@ -250,22 +250,19 @@ public class ModelEditInputController extends SpectatorInputController {
         switch (button) {
             case Buttons.LEFT:
                 boolean ctrlPressed = keysPressed.contains(Keys.CONTROL_LEFT) || keysPressed.contains(Keys.CONTROL_RIGHT);
-                if (hoveredOverMI != null && hoveredOverMI != eng.currMI && ctrlPressed) {
+                if (hoveredOverMI != null && hoveredOverMI != eng.getCurrMI() && ctrlPressed) {
                     if (eng.selectedMIs.indexOf(hoveredOverMI, true) >= 0) {
                         eng.selectedMIs.removeValue(hoveredOverMI, true);
                     } else {
                         eng.selectedMIs.add(hoveredOverMI);
                     }
-                    return false;
-                } else if (hoveredOverMI != eng.currMI) {
-                    eng.currMI = hoveredOverMI;
-                    modelES.stage.reset();
-                    eng.selectedMIs.clear();
-                    return false;
+                } else if (hoveredOverMI != null && hoveredOverMI != eng.getCurrMI()) {
+                    eng.setCurrMI(hoveredOverMI);
                 } else {
-                    eng.selectedMIs.clear();
-                    return false;
+                    eng.setCurrMI(null);
                 }
+                modelES.stage.reset();
+                return false;
             case Buttons.MIDDLE: // fall through
             case Buttons.RIGHT:
                 return true;
@@ -300,7 +297,7 @@ public class ModelEditInputController extends SpectatorInputController {
             case Buttons.LEFT:
                 if (hoveredOverMI != null && hoveredOverCorner != null) {
                     // we hold the left button pressed on the model instance's corner - applying scaling
-                    eng.currMI = hoveredOverMI;
+                    eng.setCurrMI(hoveredOverMI);
                     modelES.stage.reset();
 
                     Vector3 corner = hoveredOverCorner.getBB().getCenter(new Vector3());
@@ -414,7 +411,7 @@ public class ModelEditInputController extends SpectatorInputController {
                 } else if ((keysPressed.contains(Keys.SHIFT_LEFT) || keysPressed.contains(Keys.SHIFT_RIGHT))
                         && hoveredOverMI != null) {
                     // we hold the SHIFT key and left button pressed on the model instance itself - applying rotation
-                    eng.currMI = hoveredOverMI;
+                    eng.setCurrMI(hoveredOverMI);
                     modelES.stage.reset();
 
                     // removing the rotation and scale components from the transform
@@ -430,7 +427,7 @@ public class ModelEditInputController extends SpectatorInputController {
                 } else if ((keysPressed.contains(Keys.CONTROL_LEFT) || keysPressed.contains(Keys.CONTROL_RIGHT))
                         && hoveredOverMI != null) {
                     // we hold the CTRL key and left button pressed on the model instance itself - applying vert translation
-                    eng.currMI = hoveredOverMI;
+                    eng.setCurrMI(hoveredOverMI);
                     modelES.stage.reset();
                     draggedMI = hoveredOverMI;
 
@@ -446,7 +443,7 @@ public class ModelEditInputController extends SpectatorInputController {
                     return false;
                 } else if (hoveredOverMI != null) {
                     // we hold the left button pressed on the model instance itself - applying hor translation
-                    eng.currMI = hoveredOverMI;
+                    eng.setCurrMI(hoveredOverMI);
                     modelES.stage.reset();
                     draggedMI = hoveredOverMI;
 

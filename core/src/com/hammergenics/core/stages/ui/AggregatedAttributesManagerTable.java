@@ -135,7 +135,7 @@ public class AggregatedAttributesManagerTable extends ManagerTable {
             dbgModelInstance.createMtlAttributeTable(mtlSelectBox.getSelected(), stage.eventListener, modelES);
             attrTableCell.setActor(dbgModelInstance.mtlid2atable.get(mtlSelectBox.getSelected()));
 
-            stage.miLabel.setText(HGUtils.getModelInstanceInfo(modelES.eng.currMI));
+            stage.miLabel.setText(HGUtils.getModelInstanceInfo(modelES.eng.getCurrMI()));
 
             //stage.infoTCell.setActor(stage.miLabel);
             //stage.infoBCell.setActor(stage.textureImage);

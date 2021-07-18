@@ -185,9 +185,18 @@ public class HGEngine implements Disposable {
     public final Array<EditableModelInstance> editableMIs = new Array<>(EditableModelInstance.class);
     public float unitSize = 0f;
     public float overallSize = 0f;
-    public EditableModelInstance currMI = null;
     public final Array<EditableModelInstance> selectedMIs = new Array<>(EditableModelInstance.class);
     public Vector2 currCell = Vector2.Zero.cpy();
+
+    public EditableModelInstance getCurrMI() {
+        if (selectedMIs.size != 1) { return null; }
+        return selectedMIs.first();
+    }
+
+    public void setCurrMI(EditableModelInstance mi) {
+        selectedMIs.clear();
+        if (mi != null) { selectedMIs.add(mi); }
+    }
 
     // Map generation related:
     // taking size + 1 to have the actual [SIZE x SIZE] cells grid
@@ -572,7 +581,7 @@ public class HGEngine implements Disposable {
         }
 
         if (nodeId == null) {
-            currMI = new EditableModelInstance(hgModel, hgModel.afh, 10f, ShapesEnum.BOX);
+            setCurrMI(new EditableModelInstance(hgModel, hgModel.afh, 10f, ShapesEnum.BOX));
         } else {
             for (NodePart part:hgModel.obj.nodes.get(nodeIndex).parts) {
                 // see model.nodePartBones
@@ -596,7 +605,8 @@ public class HGEngine implements Disposable {
                 }
             }
             Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),"nodeId: " + nodeId + " nodeIndex: " + nodeIndex);
-            currMI = new EditableModelInstance(hgModel, hgModel.afh, 10f, ShapesEnum.BOX, nodeId);
+
+            setCurrMI(new EditableModelInstance(hgModel, hgModel.afh, 10f, ShapesEnum.BOX, nodeId));
             // for some reasons getting this exception in case nodeId == null:
             // (should be done like (String[])null maybe...)
             // Exception in thread "LWJGL Application" java.lang.NullPointerException
@@ -605,15 +615,15 @@ public class HGEngine implements Disposable {
             //        at com.badlogic.gdx.graphics.g3d.ModelInstance.<init>(ModelInstance.java:145)
         }
 
-        editableMIs.add(currMI);
-        currMI.addRigidBodyToDynamicsWorld(FLAG_OBJECT, FLAG_ALL);
+        editableMIs.add(getCurrMI());
+        getCurrMI().addRigidBodyToDynamicsWorld(FLAG_OBJECT, FLAG_ALL);
 
         // ********************
         // **** ANIMATIONS ****
         // ********************
         copyExternalAnimations(hgModel.afh);
 
-        currMI.checkAnimations();
+        getCurrMI().checkAnimations();
 
         return true;
     }
@@ -622,14 +632,14 @@ public class HGEngine implements Disposable {
      * @param assetFL
      */
     private void copyExternalAnimations(FileHandle assetFL) {
-        if (assetManager == null || currMI == null || assetFL == null) { return; }
+        if (assetManager == null || getCurrMI() == null || assetFL == null) { return; }
 
         FileHandle animationsFolder = HGUtils.fileOnPath(assetFL, "animations");
         if (animationsFolder != null && animationsFolder.isDirectory()) {
             // final since it goes to lambda closure
             final Array<String> animationsPresent = new Array<>();
             // populating with animations already present
-            for (Animation animation : currMI.animations) { animationsPresent.add(animation.id); }
+            for (Animation animation : getCurrMI().animations) { animationsPresent.add(animation.id); }
 
             for (int i = 0; i < hgModels.size; i++) {  // using for loop instead of for-each to avoid nested iterators exception:
                 HGModel hgm = hgModels.getValueAt(i);  // GdxRuntimeException: #iterator() cannot be used nested.
@@ -657,7 +667,7 @@ public class HGEngine implements Disposable {
                         //}
                         animation.id = hgm.afh.name() + ":" + animation.id;
                         Gdx.app.debug(Thread.currentThread().getStackTrace()[3].getMethodName(), "adding animation: " + animation.id);
-                        currMI.copyAnimation(animation);
+                        getCurrMI().copyAnimation(animation);
                         animationsPresent.add(animation.id);
                     });
                 }
@@ -712,7 +722,7 @@ public class HGEngine implements Disposable {
         if (bbArrayHgModelInstance != null) { bbArrayHgModelInstance.clear(); } else { return; }
 
         for (EditableModelInstance mi: editableMIs) {
-            if (mi.equals(currMI)) { bbArrayHgModelInstance.add(mi.getBBHgModelInstance(Color.GREEN)); }
+            if (mi.equals(getCurrMI())) { bbArrayHgModelInstance.add(mi.getBBHgModelInstance(Color.GREEN)); }
             else { bbArrayHgModelInstance.add(mi.getBBHgModelInstance(Color.BLACK)); }
         }
     }
@@ -743,8 +753,8 @@ public class HGEngine implements Disposable {
         }
 
         // Current Model Instance's Material Lights
-        if (currMI != null) {
-            for (Material material:currMI.materials) {
+        if (getCurrMI() != null) {
+            for (Material material:getCurrMI().materials) {
                 dlAttribute = material.get(DirectionalLightsAttribute.class, DirectionalLightsAttribute.Type);
                 if (dlAttribute != null) {
                     dlAttribute.lights.forEach(light -> dlArrayHgModelInstance.add(createDLModelInstance(light, center, unitSize)));
@@ -880,7 +890,7 @@ public class HGEngine implements Disposable {
         // no need to dispose - will be done in HGModelInstance on dispose()
         //auxMIs.forEach(HGModelInstance::dispose);
         auxMIs.clear();
-        currMI = null;
+        selectedMIs.clear();
     }
 
     public void update(final float delta, boolean steering, boolean dynamics) {

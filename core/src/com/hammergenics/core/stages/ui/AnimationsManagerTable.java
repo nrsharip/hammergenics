@@ -87,9 +87,9 @@ public class AnimationsManagerTable extends ManagerTable {
         animationSelectBox.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                if (modelES.eng.currMI.animationController == null) { return; }
+                if (modelES.eng.getCurrMI().animationController == null) { return; }
 
-                EditableModelInstance mi = modelES.eng.currMI;
+                EditableModelInstance mi = modelES.eng.getCurrMI();
 
                 animIdTextField.getColor().set(Color.WHITE);
                 if (animationSelectBox.getSelectedIndex() - 1 < 0) { // -1 since we have "No Animation" item
@@ -122,22 +122,22 @@ public class AnimationsManagerTable extends ManagerTable {
         animLoopCheckBox.addListener(new ChangeListener() {
             @Override
             public void changed (ChangeEvent event, Actor actor) {
-                if (modelES.eng.currMI == null) { return; }
-                boolean checked = modelES.eng.currMI.animLoop = animLoopCheckBox.isChecked();
+                if (modelES.eng.getCurrMI() == null) { return; }
+                boolean checked = modelES.eng.getCurrMI().animLoop = animLoopCheckBox.isChecked();
 
-                if (modelES.eng.currMI.selectedAnimation != null) {
+                if (modelES.eng.getCurrMI().selectedAnimation != null) {
                     if (checked) {
                         // animation selected, loop checked
-                        Animation anim = modelES.eng.currMI.selectedAnimation;
-                        modelES.eng.currMI.animationDesc = modelES.eng.currMI.animationController.setAnimation(anim.id, -1);
+                        Animation anim = modelES.eng.getCurrMI().selectedAnimation;
+                        modelES.eng.getCurrMI().animationDesc = modelES.eng.getCurrMI().animationController.setAnimation(anim.id, -1);
                     } else {
                         // animation selected, loop not checked
-                        modelES.eng.currMI.undoAnimations();
-                        modelES.eng.currMI.animApplyKeyTime(keyFrameSlider.getValue());
+                        modelES.eng.getCurrMI().undoAnimations();
+                        modelES.eng.getCurrMI().animApplyKeyTime(keyFrameSlider.getValue());
                     }
                 } else {
                     // no animation selected
-                    modelES.eng.currMI.undoAnimations();
+                    modelES.eng.getCurrMI().undoAnimations();
                 }
                 updateActors();
             }
@@ -148,10 +148,10 @@ public class AnimationsManagerTable extends ManagerTable {
         keyFrameSlider.addListener(new ChangeListener() {
             @Override
             public void changed (ChangeEvent event, Actor actor) {
-                if (modelES.eng.currMI.selectedAnimation != null) {
+                if (modelES.eng.getCurrMI().selectedAnimation != null) {
                     // turning off the animation loop (assuming the change event is fired on the checkbox)
                     animLoopCheckBox.setChecked(false);
-                    modelES.eng.currMI.animApplyKeyTime(keyFrameSlider.getValue());
+                    modelES.eng.getCurrMI().animApplyKeyTime(keyFrameSlider.getValue());
                     updateActors();
                 }
             }
@@ -161,7 +161,7 @@ public class AnimationsManagerTable extends ManagerTable {
         animIdTextField.setTextFieldListener(new VisTextField.TextFieldListener() {
             @Override
             public void keyTyped(VisTextField textField, char c) {
-                EditableModelInstance mi = modelES.eng.currMI;
+                EditableModelInstance mi = modelES.eng.getCurrMI();
                 if (mi == null || mi.selectedAnimation == null) { return; }
                 Animation anim = mi.selectedAnimation;
 

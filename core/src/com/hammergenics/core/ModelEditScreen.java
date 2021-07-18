@@ -266,7 +266,7 @@ public class ModelEditScreen extends ScreenAdapter {
             //        at com.hammergenics.core.ModelEditScreen.lambda$render$5(ModelEditScreen.java:269)
             immediateModeRenderer.begin(perspectiveCamera.combined, GL20.GL_LINES);
             if (stage.showSelectionCheckBox.isChecked()) {
-                if (eng.currMI != null) { eng.currMI.addSelectionBoxToRenderer(immediateModeRenderer, Color.RED); }
+                if (eng.getCurrMI() != null) { eng.getCurrMI().addSelectionBoxToRenderer(immediateModeRenderer, Color.RED); }
                 eng.selectedMIs.forEach(mi -> mi.addSelectionBoxToRenderer(immediateModeRenderer, Color.FOREST));
             }
             if (stage.nodesCheckBox.isChecked()) { eng.editableMIs.forEach(hgMI -> hgMI.addNodesToRenderer(immediateModeRenderer)); }
@@ -375,7 +375,7 @@ public class ModelEditScreen extends ScreenAdapter {
 
         if (eng.unitSize == 0f) { eng.unitSize = 1f; eng.overallSize = 5f; }
 
-        Vector3 center = eng.currMI != null ? eng.currMI.getBB().getCenter(Vector3.Zero.cpy()) : Vector3.Zero.cpy();
+        Vector3 center = eng.getCurrMI() != null ? eng.getCurrMI().getBB().getCenter(Vector3.Zero.cpy()) : Vector3.Zero.cpy();
 
         resetCamera(eng.overallSize, center.cpy());
         resetScreenInputController(eng.unitSize, eng.overallSize, center.cpy());

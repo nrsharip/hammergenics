@@ -175,9 +175,9 @@ public class PointLightsAttributeTable extends BaseLightsAttributeTable<PointLig
             if (container instanceof Environment) {
                 position.set(pl.position.cpy().rotate(Vector3.Y.cpy(), -45f));
             } else if (container instanceof Material) {
-                position.set(pl.position.cpy().sub(modelES.eng.currMI.getBB().getCenter(new Vector3())));
+                position.set(pl.position.cpy().sub(modelES.eng.getCurrMI().getBB().getCenter(new Vector3())));
                 position.rotate(Vector3.Y.cpy(), -45f);
-                position.add(modelES.eng.currMI.getBB().getCenter(new Vector3()));
+                position.add(modelES.eng.getCurrMI().getBB().getCenter(new Vector3()));
             } else { return null; } // so the IDE is not complaining
 
             intensity = pl.intensity;
@@ -190,8 +190,8 @@ public class PointLightsAttributeTable extends BaseLightsAttributeTable<PointLig
                 }
             } else if (container instanceof Material) {
                 size = modelES.eng.unitSize;
-                if (modelES.eng.currMI != null) {
-                    position = modelES.eng.currMI.getBB().getCenter(new Vector3()).cpy();
+                if (modelES.eng.getCurrMI() != null) {
+                    position = modelES.eng.getCurrMI().getBB().getCenter(new Vector3()).cpy();
                 }
             } else { return null; } // so the IDE is not complaining
 

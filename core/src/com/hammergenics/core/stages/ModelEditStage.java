@@ -719,12 +719,12 @@ public class ModelEditStage extends Stage {
         nodeSelectBox.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                if (modelES.eng.currMI == null) { return; }
+                if (modelES.eng.getCurrMI() == null) { return; }
                 if (nodeSelectBox.getSelectedIndex() == 0) { // 'all' selected
                     addModelInstance(modelSelectBox.getSelected());
                     afterCurrentModelInstanceChanged();
                 } else {
-                    if (!addModelInstance(modelES.eng.currMI.nodeid2model.get(nodeSelectBox.getSelected()))) { // -1 since there's 'all' item
+                    if (!addModelInstance(modelES.eng.getCurrMI().nodeid2model.get(nodeSelectBox.getSelected()))) { // -1 since there's 'all' item
                         nodeSelectBox.getColor().set(Color.PINK);
                     } else {
                         afterCurrentModelInstanceChanged();
@@ -931,9 +931,9 @@ public class ModelEditStage extends Stage {
         deleteCurrModelTextButton.addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                modelES.eng.removeEditableModelInstance(modelES.eng.currMI);
-                if (modelES.eng.editableMIs.size > 0) { modelES.eng.currMI = modelES.eng.editableMIs.get(0); }
-                else { modelES.eng.currMI = null; }
+                modelES.eng.removeEditableModelInstance(modelES.eng.getCurrMI());
+                if (modelES.eng.editableMIs.size > 0) { modelES.eng.setCurrMI(modelES.eng.editableMIs.get(0)); }
+                else { modelES.eng.selectedMIs.clear(); }
                 reset();
                 return super.touchDown(event, x, y, pointer, button);
             }
@@ -944,7 +944,7 @@ public class ModelEditStage extends Stage {
         saveCurrModelTextButton.addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                modelES.eng.saveHgModelInstance(modelES.eng.currMI);
+                modelES.eng.saveHgModelInstance(modelES.eng.getCurrMI());
                 return super.touchDown(event, x, y, pointer, button);
             }
         });
@@ -991,7 +991,7 @@ public class ModelEditStage extends Stage {
     public void addModelInstances(Array<FileHandle> modelFHs) {
         if (modelFHs == null) { return; }
         modelFHs.forEach(this::addModelInstance);
-        if (modelES.eng.editableMIs.size > 0) { modelES.eng.currMI = modelES.eng.editableMIs.get(0); }
+        if (modelES.eng.editableMIs.size > 0) { modelES.eng.setCurrMI(modelES.eng.editableMIs.get(0)); }
     }
 
     public boolean addModelInstance(FileHandle assetFL) {
@@ -1002,7 +1002,7 @@ public class ModelEditStage extends Stage {
     public boolean addModelInstance(HGModel hgModel) {
         boolean created = modelES.eng.addModelInstance(hgModel);
         if (created) {
-            projManagerTable.addModelInstanceTreeNode(modelES.eng.currMI);
+            projManagerTable.addModelInstanceTreeNode(modelES.eng.getCurrMI());
         }
         return created;
     }
@@ -1014,8 +1014,8 @@ public class ModelEditStage extends Stage {
      * @param alias
      */
     private void handleAttributeUpdate(EventType eType, Attributes container, long type, String alias) {
-        if (modelES.eng.currMI != null) {
-            miLabel.setText(HGUtils.getModelInstanceInfo(modelES.eng.currMI));
+        if (modelES.eng.getCurrMI() != null) {
+            miLabel.setText(HGUtils.getModelInstanceInfo(modelES.eng.getCurrMI()));
         } else {
             miLabel.setText("");
         }
@@ -1024,7 +1024,7 @@ public class ModelEditStage extends Stage {
 
         if ((type & (DirectionalLightsAttribute.Type | PointLightsAttribute.Type)) != 0) {
             Vector3 center = Vector3.Zero.cpy();
-            if (modelES.eng.currMI != null) { modelES.eng.currMI.getBB().getCenter(center); }
+            if (modelES.eng.getCurrMI() != null) { modelES.eng.getCurrMI().getBB().getCenter(center); }
             modelES.eng.resetLightsModelInstances(center, modelES.environment);
         }
         //Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "onAttributeDisabled: 0x" + Long.toHexString(type) + " alias: " + alias);
@@ -1199,8 +1199,8 @@ public class ModelEditStage extends Stage {
         // making sure no events fired during the nodeSelectBox reset
         nodeSelectBox.getSelection().setProgrammaticChangeEvents(false);
         nodeSelectBox.clearItems();
-        if (modelES.eng.currMI != null) {
-            String array1[] = modelES.eng.currMI.nodeid2model.keys().toArray().toArray();
+        if (modelES.eng.getCurrMI() != null) {
+            String array1[] = modelES.eng.getCurrMI().nodeid2model.keys().toArray().toArray();
             String array2[] = new String[array1.length + 1];
             System.arraycopy(array1, 0, array2, 1, array1.length);
             array2[0] = "All";
@@ -1216,34 +1216,34 @@ public class ModelEditStage extends Stage {
         if (modelES == null) { return; }
 
         if (isPressed(projTextButton)) {
-            projManagerTable.setDbgModelInstance(modelES.eng.currMI);
+            projManagerTable.setDbgModelInstance(modelES.eng.getCurrMI());
             projManagerTable.resetActors();
         } else {
             leftPaneCell.clearActor();
         }
 
         if (isPressed(attrTextButton)) {
-            aggrAttrTable.setDbgModelInstance(modelES.eng.currMI);
+            aggrAttrTable.setDbgModelInstance(modelES.eng.getCurrMI());
             aggrAttrTable.resetActors();
         }
 
         if (isPressed(animTextButton)) {
-            animationsManagerTable.setDbgModelInstance(modelES.eng.currMI);
+            animationsManagerTable.setDbgModelInstance(modelES.eng.getCurrMI());
             animationsManagerTable.resetActors();
         }
 
         if (isPressed(mapTextButton)) {
-            mapGenerationTable.setDbgModelInstance(modelES.eng.currMI);
+            mapGenerationTable.setDbgModelInstance(modelES.eng.getCurrMI());
             mapGenerationTable.resetActors();
         }
 
         if (isPressed(aiTextButton)) {
-            aiManagerTable.setDbgModelInstance(modelES.eng.currMI);
+            aiManagerTable.setDbgModelInstance(modelES.eng.getCurrMI());
             aiManagerTable.resetActors();
         }
 
         if (isPressed(physTextButton)) {
-            physManagerTable.setDbgModelInstance(modelES.eng.currMI);
+            physManagerTable.setDbgModelInstance(modelES.eng.getCurrMI());
             physManagerTable.resetActors();
         }
 
