@@ -14,13 +14,14 @@
  * limitations under the License.
  ******************************************************************************/
 
-package com.hammergenics.ai.ui;
+package com.hammergenics.core.stages.ui.physics.bullet.dynamics;
 
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.hammergenics.HGEngine;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.graphics.g3d.EditableModelInstance;
 import com.hammergenics.core.stages.ModelEditStage;
+import com.hammergenics.core.stages.ui.physics.bullet.collision.btCollisionObjectVisTable;
 import com.kotcrab.vis.ui.VisUI;
 import com.kotcrab.vis.ui.widget.VisScrollPane;
 import com.kotcrab.vis.ui.widget.VisTable;
@@ -29,16 +30,17 @@ import com.kotcrab.vis.ui.widget.tabbedpane.Tab;
 import com.kotcrab.vis.ui.widget.tabbedpane.TabbedPane;
 import com.kotcrab.vis.ui.widget.tabbedpane.TabbedPaneAdapter;
 
-public class AIVisWindow extends VisWindow {
+public class btRigidBodyVisWindow extends VisWindow {
     public ModelEditScreen modelES;
     public ModelEditStage stage;
     public HGEngine eng;
 
     public VisTable mainTabbedPaneTable;
-    public SteeringVisTable steeringTable;
+    public btRigidBodyVisTable rbTable;
+    public btCollisionObjectVisTable coTable;
 
-    public AIVisWindow(ModelEditScreen modelES, ModelEditStage stage) {
-        super("AI Algorithms");
+    public btRigidBodyVisWindow(ModelEditScreen modelES, ModelEditStage stage) {
+        super("Rigid Body");
 
         this.modelES = modelES;
         this.stage = stage;
@@ -57,11 +59,16 @@ public class AIVisWindow extends VisWindow {
             }
         });
 
-        VisScrollPane steeringScrollPane = new VisScrollPane(steeringTable);
-        VisTable steeringScrollPaneTable = new VisTable();
-        steeringScrollPaneTable.add(steeringScrollPane);
+        VisScrollPane rbScrollPane = new VisScrollPane(rbTable);
+        VisTable rbScrollPaneTable = new VisTable();
+        rbScrollPaneTable.add(rbScrollPane);
 
-        tabbedPane.add(new aiTab("Steering", steeringScrollPaneTable));
+        VisScrollPane coScrollPane = new VisScrollPane(coTable);
+        VisTable coScrollPaneTable = new VisTable();
+        coScrollPaneTable.add(coScrollPane);
+
+        tabbedPane.add(new rbTab("Collision Object", coScrollPaneTable));
+        tabbedPane.add(new rbTab("Rigid Body", rbScrollPaneTable));
 
         add(tabbedPane.getTable()).expandX().fillX();
         row();
@@ -69,18 +76,20 @@ public class AIVisWindow extends VisWindow {
     }
 
     public void init() {
-        steeringTable = new SteeringVisTable(modelES, stage);
+        rbTable = new btRigidBodyVisTable(modelES, stage);
+        coTable = new btCollisionObjectVisTable(modelES, stage);
     }
 
-    public void update(EditableModelInstance mi) {
-        steeringTable.updateSteerable(mi);
+    public void updateRigidBody(EditableModelInstance mi) {
+        rbTable.updateRigidBody(mi);
+        coTable.updateCollisionObject(mi);
     }
 
-    public static class aiTab extends Tab {
+    public static class rbTab extends Tab {
         String title;
         VisTable contentTable;
 
-        public aiTab(String title, VisTable contentTable) {
+        public rbTab(String title, VisTable contentTable) {
             super(false, false);
             this.title = title;
             this.contentTable = contentTable;

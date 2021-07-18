@@ -16,7 +16,7 @@
 
 package com.hammergenics.core.stages.ui;
 
-import com.hammergenics.ai.ui.AIVisWindow;
+import com.hammergenics.core.stages.ui.ai.AIVisWindow;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.graphics.g3d.EditableModelInstance;
 import com.hammergenics.core.stages.ModelEditStage;

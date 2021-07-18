@@ -14,7 +14,7 @@
  * limitations under the License.
  ******************************************************************************/
 
-package com.hammergenics.physics.bullet.ui.dynamics;
+package com.hammergenics.core.stages.ui.physics.bullet.dynamics;
 
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.hammergenics.HGEngine;

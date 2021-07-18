@@ -19,8 +19,8 @@ package com.hammergenics.core.stages.ui;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.graphics.g3d.EditableModelInstance;
 import com.hammergenics.core.stages.ModelEditStage;
-import com.hammergenics.physics.bullet.ui.dynamics.btDynamicsWorldVisWindow;
-import com.hammergenics.physics.bullet.ui.dynamics.btRigidBodyVisWindow;
+import com.hammergenics.core.stages.ui.physics.bullet.dynamics.btDynamicsWorldVisWindow;
+import com.hammergenics.core.stages.ui.physics.bullet.dynamics.btRigidBodyVisWindow;
 import com.kotcrab.vis.ui.widget.VisTable;
 
 /**

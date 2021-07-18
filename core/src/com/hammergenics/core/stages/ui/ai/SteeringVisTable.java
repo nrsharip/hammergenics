@@ -14,7 +14,7 @@
  * limitations under the License.
  ******************************************************************************/
 
-package com.hammergenics.ai.ui;
+package com.hammergenics.core.stages.ui.ai;
 
 import com.hammergenics.HGEngine;
 import com.hammergenics.core.ModelEditScreen;

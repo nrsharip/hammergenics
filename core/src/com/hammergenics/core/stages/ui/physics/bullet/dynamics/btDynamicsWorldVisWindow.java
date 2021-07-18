@@ -14,7 +14,7 @@
  * limitations under the License.
  ******************************************************************************/
 
-package com.hammergenics.physics.bullet.ui.dynamics;
+package com.hammergenics.core.stages.ui.physics.bullet.dynamics;
 
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.dynamics.btDynamicsWorld;
@@ -35,7 +35,6 @@ import com.kotcrab.vis.ui.widget.VisTextField;
 import com.kotcrab.vis.ui.widget.VisWindow;
 
 import static com.hammergenics.physics.bullet.dynamics.btConstraintSolversEnum.BT_MLCP_SOLVER;
-import static com.hammergenics.physics.bullet.dynamics.btDynamicsWorldTypesEnum.BT_DISCRETE_DYNAMICS_WORLD;
 import static com.hammergenics.utils.HGUtils.btDbgModes;
 
 public class btDynamicsWorldVisWindow extends VisWindow {

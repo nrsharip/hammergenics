@@ -14,7 +14,7 @@
  * limitations under the License.
  ******************************************************************************/
 
-package com.hammergenics.physics.bullet.ui.collision;
+package com.hammergenics.core.stages.ui.physics.bullet.collision;
 
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.hammergenics.HGEngine;
