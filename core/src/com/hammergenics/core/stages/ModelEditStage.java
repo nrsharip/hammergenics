@@ -990,23 +990,20 @@ public class ModelEditStage extends Stage {
 
     public void addModelInstances(Array<FileHandle> modelFHs) {
         if (modelFHs == null) { return; }
-        modelFHs.forEach(fileHandle -> addModelInstance(fileHandle));
+        modelFHs.forEach(this::addModelInstance);
         if (modelES.eng.editableMIs.size > 0) { modelES.eng.currMI = modelES.eng.editableMIs.get(0); }
     }
 
     public boolean addModelInstance(FileHandle assetFL) {
-        boolean created = modelES.eng.addModelInstance(assetFL);
-        return created;
-    }
-
-    public boolean addModelInstance(Model model) {
-        boolean created = modelES.eng.addModelInstance(model);
+        boolean created = addModelInstance(modelES.eng.getHgModelFromFileHandle(assetFL));
         return created;
     }
 
     public boolean addModelInstance(HGModel hgModel) {
         boolean created = modelES.eng.addModelInstance(hgModel);
-        if (created) { aggrAttrTable.setDbgModelInstance(modelES.eng.currMI); }
+        if (created) {
+            projManagerTable.addModelInstanceTreeNode(modelES.eng.currMI);
+        }
         return created;
     }
 

@@ -256,19 +256,31 @@ public class ModelEditScreen extends ScreenAdapter {
         // If you want to force rendering in between, then you can use the modelBatch.flush(); method
         modelBatch.end();
 
-        immediateModeRenderer.begin(perspectiveCamera.combined, GL20.GL_LINES);
-        if (stage.showSelectionCheckBox.isChecked()) {
-            if (eng.currMI != null) { eng.currMI.addSelectionBoxToRenderer(immediateModeRenderer, Color.RED); }
-            eng.selectedMIs.forEach(mi -> mi.addSelectionBoxToRenderer(immediateModeRenderer, Color.FOREST));
+        try {
+            // see: immediateModeRenderer = new HGImmediateModeRenderer20(10*Short.MAX_VALUE, false, true, 0);
+            // Exception in thread "LWJGL Application" java.lang.ArrayIndexOutOfBoundsException: 1310683
+            //        at com.badlogic.gdx.graphics.glutils.ImmediateModeRenderer20.color(ImmediateModeRenderer20.java:113)
+            //        at com.hammergenics.core.graphics.glutils.HGImmediateModeRenderer20.line(HGImmediateModeRenderer20.java:66)
+            //        at com.hammergenics.core.graphics.g3d.EditableModelInstance.addVerticesToRenderer(EditableModelInstance.java:607)
+            //        at com.hammergenics.core.graphics.g3d.EditableModelInstance.addVerticesToRenderer(EditableModelInstance.java:594)
+            //        at com.hammergenics.core.ModelEditScreen.lambda$render$5(ModelEditScreen.java:269)
+            immediateModeRenderer.begin(perspectiveCamera.combined, GL20.GL_LINES);
+            if (stage.showSelectionCheckBox.isChecked()) {
+                if (eng.currMI != null) { eng.currMI.addSelectionBoxToRenderer(immediateModeRenderer, Color.RED); }
+                eng.selectedMIs.forEach(mi -> mi.addSelectionBoxToRenderer(immediateModeRenderer, Color.FOREST));
+            }
+            if (stage.nodesCheckBox.isChecked()) { eng.editableMIs.forEach(hgMI -> hgMI.addNodesToRenderer(immediateModeRenderer)); }
+            if (stage.meshPartsCheckBox.isChecked()) { eng.editableMIs.forEach(hgMI -> hgMI.addMeshPartsToRenderer(immediateModeRenderer)); }
+            if (stage.bonesCheckBox.isChecked()) { eng.editableMIs.forEach(hgMI ->
+                    hgMI.addBonesToRenderer(immediateModeRenderer, stage.invertBonesCheckBox.isChecked())); }
+            if (stage.physManagerTable.dynamicsWindow.rbCheckBox.isChecked()) { eng.editableMIs.forEach(mi -> mi.addRBShapeToRenderer(immediateModeRenderer)); }
+            if (stage.verticesCheckBox.isChecked()) { eng.editableMIs.forEach(mi -> mi.addVerticesToRenderer(immediateModeRenderer)); }
+            if (stage.closestCheckBox.isChecked()) { eng.editableMIs.forEach(mi -> mi.addClosestVerticesToRenderer(immediateModeRenderer)); }
+            immediateModeRenderer.end();
+        } catch (ArrayIndexOutOfBoundsException ignored) {
+        } finally {
+            immediateModeRenderer.end();
         }
-        if (stage.nodesCheckBox.isChecked()) { eng.editableMIs.forEach(hgMI -> hgMI.addNodesToRenderer(immediateModeRenderer)); }
-        if (stage.meshPartsCheckBox.isChecked()) { eng.editableMIs.forEach(hgMI -> hgMI.addMeshPartsToRenderer(immediateModeRenderer)); }
-        if (stage.bonesCheckBox.isChecked()) { eng.editableMIs.forEach(hgMI ->
-                hgMI.addBonesToRenderer(immediateModeRenderer, stage.invertBonesCheckBox.isChecked())); }
-        if (stage.physManagerTable.dynamicsWindow.rbCheckBox.isChecked()) { eng.editableMIs.forEach(mi -> mi.addRBShapeToRenderer(immediateModeRenderer)); }
-        if (stage.verticesCheckBox.isChecked()) { eng.editableMIs.forEach(mi -> mi.addVerticesToRenderer(immediateModeRenderer)); }
-        if (stage.closestCheckBox.isChecked()) { eng.editableMIs.forEach(mi -> mi.addClosestVerticesToRenderer(immediateModeRenderer)); }
-        immediateModeRenderer.end();
 
         btDebugDrawer.begin(perspectiveCamera);
         btDynamicsWorldTypesEnum.selected.dynamicsWorld.debugDrawWorld();

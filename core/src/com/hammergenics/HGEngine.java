@@ -534,35 +534,35 @@ public class HGEngine implements Disposable {
         Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "textures loaded: " + textures.size);
     }
 
-    public boolean addModelInstance(FileHandle assetFL) { return addModelInstance(assetFL, null, -1); }
-
-    public boolean addModelInstance(FileHandle assetFL, String nodeId, int nodeIndex) {
-        if (assetFL == null) { return false; }
-        if (!assetManager.contains(assetFL.path())) { return false; }
+    public HGModel getHgModelFromFileHandle(FileHandle assetFL) {
+        if (assetFL == null) { return null; }
+        if (!assetManager.contains(assetFL.path())) { return null; }
 
         Class<?> assetClass = getAssetClass(assetFL);
-        HGModel hgModel;
+        HGModel hgModel = null;
         if (assetClass.equals(Model.class)) {
             hgModel = new HGModel(assetManager.get(assetFL.path(), Model.class), assetFL);
         } else if (assetClass.equals(SceneAsset.class)) {
             SceneAsset sceneAsset = assetManager.get(assetFL.path(), SceneAsset.class);
             hgModel = new HGModel(sceneAsset.scene.model, assetFL);
-        } else { return false; }
-
-        return addModelInstance(hgModel, nodeId, nodeIndex);
+        }
+        return hgModel;
     }
 
-    public boolean addModelInstance(Model model) {
-        return addModelInstance(model, null, -1);
+    public boolean addModelInstance(FileHandle assetFL) {
+        return addModelInstance(assetFL, null, -1);
     }
 
-    public boolean addModelInstance(Model model, String nodeId, int nodeIndex) {
-        return addModelInstance(new HGModel(model), nodeId, nodeIndex);
+    public boolean addModelInstance(FileHandle assetFL, String nodeId, int nodeIndex) {
+        return addModelInstance(getHgModelFromFileHandle(assetFL), nodeId, nodeIndex);
     }
 
-    public boolean addModelInstance(HGModel hgModel) { return addModelInstance(hgModel, null, -1); }
+    public boolean addModelInstance(HGModel hgModel) {
+        return addModelInstance(hgModel, null, -1);
+    }
 
     public boolean addModelInstance(HGModel hgModel, String nodeId, int nodeIndex) {
+        if (hgModel == null) { return false; }
         if (!hgModel.hasMaterials() && !hgModel.hasMeshes() && !hgModel.hasMeshParts()) {
             if (hgModel.hasAnimations()) {
                 // we got animations only model
@@ -574,15 +574,6 @@ public class HGEngine implements Disposable {
         if (nodeId == null) {
             currMI = new EditableModelInstance(hgModel, hgModel.afh, 10f, ShapesEnum.BOX);
         } else {
-            // TODO: maybe it's good to add a Tree for Node traversal
-            // https://libgdx.badlogicgames.com/ci/nightlies/docs/api/com/badlogic/gdx/scenes/scene2d/ui/Tree.html
-//            Array<String> nodeTree = new Array<>();
-//            for (Node node:model.nodes) {
-//                Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(),
-//                        "node '" + node.id + "': \n" + LibgdxUtils.traverseNode(node, nodeTree, " ").toString("\n"));
-//                nodeTree.clear();
-//            }
-
             for (NodePart part:hgModel.obj.nodes.get(nodeIndex).parts) {
                 // see model.nodePartBones
                 // ModelInstance.copyNodes(model.nodes, rootNodeIds); - fills in the bones...

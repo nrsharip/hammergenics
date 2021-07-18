@@ -93,6 +93,13 @@ public class ProjectManagerTable extends ManagerTable {
         projectTree.add(modelInstancesTreeNode = new HGTreeVisTableNode(new HGTreeVisTable("Model Instances")));
         projectTree.add(envTreeNode = new HGTreeVisTableNode(new HGTreeVisTable("Environment")));
 
+        //                   Blueish        Greenish        Yellowish      Reddish        Purplish
+        //          Assets: Color.CYAN;  Color.CHARTREUSE; Color.GOLD;   Color.CORAL;   Color.PINK;
+        // Model Instances: Color.SKY;   Color.GREEN;      Color.YELLOW; Color.SCARLET; Color.MAGENTA;
+        //     Environment: Color.BLUE;  Color.LIME;       Color.ORANGE; Color.RED;     Color.PURPLE;
+        //         Scripts: Color.ROYAL;                   Color.TAN;    Color.SALMON;  Color.VIOLET;
+        //            ... : the unused from the above
+
         assetsTreeNode.add(assetsModelsTreeNode = new HGTreeVisTableNode(new HGTreeVisTable("Models", Color.CYAN)));
         assetsTreeNode.add(assetsImagesTreeNode = new HGTreeVisTableNode(new HGTreeVisTable("Images", Color.CHARTREUSE)));
         assetsTreeNode.add(assetsSoundsTreeNode = new HGTreeVisTableNode(new HGTreeVisTable("Sounds", Color.GOLD)));
@@ -420,6 +427,19 @@ public class ProjectManagerTable extends ManagerTable {
     public void addImageAssetTreeNode(FileHandle fileHandle, HGTreeVisTableNode treeNode) {
         HGTreeVisTableNode node;
         treeNode.add(node = new HGTreeVisTableNode(new HGTreeVisTable(fileHandle.name(), Color.CHARTREUSE, fileHandle)));
+        //node.add(new HGTreeVisTableNode(new HGTreeVisTable(fileHandle.file().getAbsolutePath())));
+    }
+
+    public void addModelInstanceTreeNode(EditableModelInstance mi) {
+        addModelInstanceTreeNode(mi, modelInstancesTreeNode);
+    }
+    public void addModelInstanceTreeNode(EditableModelInstance mi, HGTreeVisTableNode treeNode) {
+        HGTreeVisTableNode node;
+
+        String nodeName = mi.hgModel.afh != null ? mi.hgModel.afh.nameWithoutExtension() : mi.nodes.get(0).id;
+        nodeName += " @" + mi.hashCode();
+        treeNode.add(node = new HGTreeVisTableNode(new HGTreeVisTable(nodeName, Color.SKY, mi.hgModel.afh)));
+
         //node.add(new HGTreeVisTableNode(new HGTreeVisTable(fileHandle.file().getAbsolutePath())));
     }
 
