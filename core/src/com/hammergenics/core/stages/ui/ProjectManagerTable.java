@@ -101,6 +101,12 @@ public class ProjectManagerTable extends ManagerTable {
 
         globalNonSelectListener = new ActorGestureListener() {
             @Override
+            public void touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                Gdx.app.debug("project", "GLOBAL non-select: touchDown");
+                handleNonSelectTouchDown(event, x, y, pointer, button);
+                super.touchDown(event, x, y, pointer, button);
+            }
+            @Override
             public void tap(InputEvent event, float x, float y, int count, int button) {
                 Gdx.app.debug("project", "GLOBAL non-select");
                 handleNonSelectTap(event, x, y, count, button);
@@ -108,6 +114,12 @@ public class ProjectManagerTable extends ManagerTable {
             }
         };
         globalSelectListener = new ActorGestureListener() {
+            @Override
+            public void touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                Gdx.app.debug("project", "GLOBAL select: touchDown");
+                handleSelectTouchDown(event, x, y, pointer, button);
+                super.touchDown(event, x, y, pointer, button);
+            }
             @Override
             public void tap(InputEvent event, float x, float y, int count, int button) {
                 if (count == 1) { // single click
@@ -140,13 +152,11 @@ public class ProjectManagerTable extends ManagerTable {
                     @Override
                     public void touchDown(InputEvent event, float x, float y, int pointer, int button) {
                         Gdx.app.debug("project", "IMAGE non-select: touchDown");
-                        handleNonSelectTouchDown(event, x, y, pointer, button);
                         super.touchDown(event, x, y, pointer, button);
                     }
                     @Override
                     public void tap(InputEvent event, float x, float y, int count, int button) {
                         Gdx.app.debug("project", "IMAGE non-select: tap");
-                        handleNonSelectTap(event, x, y, count, button);
                         super.tap(event, x, y, count, button);
                     }
                 }, new ActorGestureListener() {
@@ -155,17 +165,14 @@ public class ProjectManagerTable extends ManagerTable {
                         Gdx.app.debug("project", "IMAGE select: touchDown");
                         stage.hidePreviewImage();
                         stage.showPreviewImage(((HGTreeVisTableNode.HGTreeVisTable)event.getTarget().getParent()).fileHandle);
-                        handleSelectTouchDown(event, x, y, pointer, button);
                         super.touchDown(event, x, y, pointer, button);
                     }
                     @Override
                     public void tap(InputEvent event, float x, float y, int count, int button) {
                         if (count == 1) { // single click
                             Gdx.app.debug("project", "IMAGE select: tap 1");
-                            handleSelectTap1(event, x, y, count, button);
                         } else if ( count == 2 ) { // double click
                             Gdx.app.debug("project", "IMAGE select: tap 2");
-                            handleSelectTap2(event, x, y, count, button);
                         }
                         super.tap(event, x, y, count, button);
                     }
