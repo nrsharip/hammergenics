@@ -17,7 +17,7 @@
 package com.hammergenics.core.stages.ui.physics.bullet.collision;
 
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
-import com.hammergenics.HGEngine;
+import com.badlogic.gdx.utils.Array;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.graphics.g3d.EditableModelInstance;
 import com.hammergenics.core.stages.ModelEditStage;
@@ -31,7 +31,6 @@ import com.hammergenics.physics.bullet.collision.btCollisionObjectProxy;
 import com.hammergenics.physics.bullet.dynamics.btRigidBodyProxy;
 import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisSelectBox;
-import com.kotcrab.vis.ui.widget.VisTable;
 
 /**
  * Add description here
@@ -208,15 +207,16 @@ public class btCollisionObjectVisTable extends ContextAwareVisTable {
         mergesSimulationIslandsVisTable = new BooleanVisTable(false, true, new VisLabel("Merges Simulation Islands: "));
     }
 
-    public void setDbgModelInstance(EditableModelInstance mi) {
+    public void setDbgModelInstances(Array<EditableModelInstance> mis) {
+        super.setDbgModelInstances(mis);
         co = null;
         cop = null;
-        if (mi != null && mi.rigidBody != null) {
-            co = mi.rigidBody;
-            if (mi.rbProxy == null) {
-                mi.rbProxy = new btRigidBodyProxy(mi.rigidBody);
+        if (dbgModelInstance != null && dbgModelInstance.rigidBody != null) {
+            co = dbgModelInstance.rigidBody;
+            if (dbgModelInstance.rbProxy == null) {
+                dbgModelInstance.rbProxy = new btRigidBodyProxy(dbgModelInstance.rigidBody);
             }
-            cop = mi.rbProxy;
+            cop = dbgModelInstance.rbProxy;
             cop.setInstance(co); // reassuring that collision object is legitimate
             cop.update();
 

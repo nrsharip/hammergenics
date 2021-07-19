@@ -41,12 +41,17 @@ public abstract class ContextAwareVisTable extends VisTable {
         this.stage = stage;
     }
 
-    public void setDbgModelInstance(EditableModelInstance mi) { this.dbgModelInstance = mi; }
-
     public void setDbgModelInstances(Array<EditableModelInstance> mis) {
         dbgModelInstances.clear();
+        dbgModelInstance = null;
         if (mis == null) { return; }
-        this.dbgModelInstances.addAll(mis);
+        dbgModelInstances.addAll(mis);
+        dbgModelInstance = getDbgModelInstance();
+    }
+
+    public EditableModelInstance getDbgModelInstance() {
+        if (dbgModelInstances.size != 1) { return null; }
+        return dbgModelInstances.first();
     }
 
     public void update(float delta) { }

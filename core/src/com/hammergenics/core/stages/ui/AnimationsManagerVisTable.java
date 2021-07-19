@@ -208,7 +208,9 @@ public class AnimationsManagerVisTable extends ManagerVisTable {
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 if (dbgModelInstance != null) {
                     dbgModelInstance.deleteAnimation(dbgModelInstance.selectedAnimation);
-                    setDbgModelInstance(dbgModelInstance);
+                    setAnimSelectBox(dbgModelInstance);
+                    setAnimation(dbgModelInstance);
+                    updateActors();
                 }
                 updateActors();
                 return super.touchDown(event, x, y, pointer, button); // false
@@ -225,7 +227,9 @@ public class AnimationsManagerVisTable extends ManagerVisTable {
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 if (dbgModelInstance != null) {
                     dbgModelInstance.selectedAnimation = dbgModelInstance.createAnimation();
-                    setDbgModelInstance(dbgModelInstance);
+                    setAnimSelectBox(dbgModelInstance);
+                    setAnimation(dbgModelInstance);
+                    updateActors();
                 }
                 updateActors();
                 return super.touchDown(event, x, y, pointer, button); // false
@@ -345,11 +349,11 @@ public class AnimationsManagerVisTable extends ManagerVisTable {
     }
 
     @Override
-    public void setDbgModelInstance(EditableModelInstance mi) {
-        super.setDbgModelInstance(mi);
+    public void setDbgModelInstances(Array<EditableModelInstance> mis) {
+        super.setDbgModelInstances(mis);
 
-        setAnimSelectBox(mi);
-        setAnimation(mi);
+        setAnimSelectBox(dbgModelInstance);
+        setAnimation(dbgModelInstance);
         updateActors();
     }
 

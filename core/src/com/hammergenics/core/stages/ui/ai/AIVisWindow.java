@@ -17,6 +17,7 @@
 package com.hammergenics.core.stages.ui.ai;
 
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.utils.Array;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.graphics.g3d.EditableModelInstance;
 import com.hammergenics.core.stages.ModelEditStage;
@@ -70,9 +71,9 @@ public class AIVisWindow extends ContextAwareVisWindow {
     }
 
     @Override
-    public void setDbgModelInstance(EditableModelInstance mi) {
-        super.setDbgModelInstance(mi);
-        steeringTable.setDbgModelInstance(mi);
+    public void setDbgModelInstances(Array<EditableModelInstance> mis) {
+        super.setDbgModelInstances(mis);
+        steeringTable.setDbgModelInstances(mis);
     }
 
     @Override

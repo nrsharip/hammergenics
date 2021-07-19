@@ -16,6 +16,7 @@
 
 package com.hammergenics.core.stages.ui.ai.steer;
 
+import com.badlogic.gdx.utils.Array;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.graphics.g3d.EditableModelInstance;
 import com.hammergenics.core.stages.ModelEditStage;
@@ -110,8 +111,8 @@ public class SteerableVisTable extends ContextAwareVisTable {
     }
 
     @Override
-    public void setDbgModelInstance(EditableModelInstance mi) {
-        super.setDbgModelInstance(mi);
+    public void setDbgModelInstances(Array<EditableModelInstance> mis) {
+        super.setDbgModelInstances(mis);
 
         update(0f);
     }

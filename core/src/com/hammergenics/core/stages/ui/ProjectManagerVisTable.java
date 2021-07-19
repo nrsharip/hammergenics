@@ -444,8 +444,8 @@ public class ProjectManagerVisTable extends ManagerVisTable {
     }
 
     @Override
-    public void setDbgModelInstance(EditableModelInstance mi) {
-        super.setDbgModelInstance(mi);
+    public void setDbgModelInstances(Array<EditableModelInstance> mis) {
+        super.setDbgModelInstances(mis);
     }
 
     @Override

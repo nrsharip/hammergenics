@@ -17,7 +17,7 @@
 package com.hammergenics.core.stages.ui.physics.bullet.dynamics;
 
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
-import com.hammergenics.HGEngine;
+import com.badlogic.gdx.utils.Array;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.graphics.g3d.EditableModelInstance;
 import com.hammergenics.core.stages.ModelEditStage;
@@ -31,7 +31,6 @@ import com.hammergenics.core.stages.ui.auxiliary.types.QuaternionVisTable;
 import com.hammergenics.core.stages.ui.auxiliary.types.Vector3VisTable;
 import com.hammergenics.physics.bullet.dynamics.btRigidBodyProxy;
 import com.kotcrab.vis.ui.widget.VisLabel;
-import com.kotcrab.vis.ui.widget.VisTable;
 
 /**
  * Add description here
@@ -174,15 +173,16 @@ public class btRigidBodyVisTable extends ContextAwareVisTable {
         wantsSleepingVisTable = new BooleanVisTable(false, true, new VisLabel("Wants Sleeping: "));;
     }
 
-    public void setDbgModelInstance(EditableModelInstance mi) {
+    public void setDbgModelInstances(Array<EditableModelInstance> mis) {
+        super.setDbgModelInstances(mis);
         rb = null;
         rbp = null;
-        if (mi != null && mi.rigidBody != null) {
-            rb = mi.rigidBody;
-            if (mi.rbProxy == null) {
-                mi.rbProxy = new btRigidBodyProxy(mi.rigidBody);
+        if (dbgModelInstance != null && dbgModelInstance.rigidBody != null) {
+            rb = dbgModelInstance.rigidBody;
+            if (dbgModelInstance.rbProxy == null) {
+                dbgModelInstance.rbProxy = new btRigidBodyProxy(dbgModelInstance.rigidBody);
             }
-            rbp = mi.rbProxy;
+            rbp = dbgModelInstance.rbProxy;
             rbp.setInstance(rb); // reassuring that rigid body is legitimate
             rbp.update();
 

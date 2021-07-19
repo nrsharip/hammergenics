@@ -16,15 +16,12 @@
 
 package com.hammergenics.core.stages.ui.ai.steer;
 
+import com.badlogic.gdx.utils.Array;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.graphics.g3d.EditableModelInstance;
 import com.hammergenics.core.stages.ModelEditStage;
 import com.hammergenics.core.stages.ui.ContextAwareVisTable;
-import com.hammergenics.core.stages.ui.auxiliary.types.BooleanVisTable;
-import com.hammergenics.core.stages.ui.auxiliary.types.FloatVisTable;
-import com.hammergenics.core.stages.ui.auxiliary.types.Vector3VisTable;
 import com.kotcrab.vis.ui.widget.Separator;
-import com.kotcrab.vis.ui.widget.VisLabel;
 
 /**
  * Add description here
@@ -55,10 +52,10 @@ public class SteeringVisTable extends ContextAwareVisTable {
     }
 
     @Override
-    public void setDbgModelInstance(EditableModelInstance mi) {
-        super.setDbgModelInstance(mi);
-        steerableVisTable.setDbgModelInstance(mi);
-        steeringBehaviorsVisTable.setDbgModelInstance(mi);
+    public void setDbgModelInstances(Array<EditableModelInstance> mis) {
+        super.setDbgModelInstances(mis);
+        steerableVisTable.setDbgModelInstances(dbgModelInstances);
+        steeringBehaviorsVisTable.setDbgModelInstances(dbgModelInstances);
     }
 
     @Override

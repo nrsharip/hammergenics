@@ -17,6 +17,7 @@
 package com.hammergenics.core.stages.ui.physics.bullet.dynamics;
 
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.utils.Array;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.graphics.g3d.EditableModelInstance;
 import com.hammergenics.core.stages.ModelEditStage;
@@ -81,18 +82,18 @@ public class btRigidBodyVisWindow extends ContextAwareVisWindow {
     }
 
     @Override
-    public void setDbgModelInstance(EditableModelInstance mi) {
-        super.setDbgModelInstance(mi);
-        rbTable.setDbgModelInstance(mi);
-        coTable.setDbgModelInstance(mi);
+    public void setDbgModelInstances(Array<EditableModelInstance> mis) {
+        super.setDbgModelInstances(mis);
+        rbTable.setDbgModelInstances(mis);
+        coTable.setDbgModelInstances(mis);
     }
 
     @Override
     public void update(float delta) {
         super.update(delta);
 
-        rbTable.setDbgModelInstance(dbgModelInstance); // keeping setDbgModelInstance for now instead of update
-        coTable.setDbgModelInstance(dbgModelInstance); // keeping setDbgModelInstance for now instead of update
+        rbTable.setDbgModelInstances(dbgModelInstances); // keeping setDbgModelInstance for now instead of update
+        coTable.setDbgModelInstances(dbgModelInstances); // keeping setDbgModelInstance for now instead of update
     }
 
     public static class rbTab extends Tab {

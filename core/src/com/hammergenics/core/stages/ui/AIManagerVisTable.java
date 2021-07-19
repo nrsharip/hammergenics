@@ -16,6 +16,7 @@
 
 package com.hammergenics.core.stages.ui;
 
+import com.badlogic.gdx.utils.Array;
 import com.hammergenics.core.stages.ui.ai.AIVisWindow;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.graphics.g3d.EditableModelInstance;
@@ -53,10 +54,10 @@ public class AIManagerVisTable extends ManagerVisTable {
     }
 
     @Override
-    public void setDbgModelInstance(EditableModelInstance mi) {
-        super.setDbgModelInstance(mi);
+    public void setDbgModelInstances(Array<EditableModelInstance> mis) {
+        super.setDbgModelInstances(mis);
 
-        aiVisWindow.setDbgModelInstance(mi);
+        aiVisWindow.setDbgModelInstances(mis);
     }
 
     @Override

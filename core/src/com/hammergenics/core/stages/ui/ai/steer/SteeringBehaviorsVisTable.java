@@ -20,7 +20,7 @@ import com.badlogic.gdx.ai.utils.Location;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
-import com.hammergenics.HGEngine;
+import com.badlogic.gdx.utils.Array;
 import com.hammergenics.ai.steer.SteeringBehaviorsVector3Enum;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.graphics.g3d.EditableModelInstance;
@@ -28,11 +28,8 @@ import com.hammergenics.core.stages.ModelEditStage;
 import com.hammergenics.core.stages.ui.ContextAwareVisTable;
 import com.hammergenics.core.stages.ui.ai.steer.utils.TargetVisTable;
 import com.hammergenics.core.stages.ui.auxiliary.types.BooleanVisTable;
-import com.hammergenics.core.stages.ui.auxiliary.types.FloatVisTable;
-import com.hammergenics.core.stages.ui.auxiliary.types.Vector3VisTable;
 import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisSelectBox;
-import com.kotcrab.vis.ui.widget.VisTable;
 
 /**
  * Add description here
@@ -84,8 +81,8 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
     }
 
     @Override
-    public void setDbgModelInstance(EditableModelInstance mi) {
-        super.setDbgModelInstance(mi);
+    public void setDbgModelInstances(Array<EditableModelInstance> mis) {
+        super.setDbgModelInstances(mis);
 
         update(0f);
     }

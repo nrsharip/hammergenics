@@ -1215,34 +1215,34 @@ public class ModelEditStage extends Stage {
         if (modelES == null) { return; }
 
         if (isPressed(projTextButton)) {
-            projManagerTable.setDbgModelInstance(modelES.eng.getCurrMI());
+            projManagerTable.setDbgModelInstances(modelES.eng.selectedMIs);
             projManagerTable.resetActors();
         } else {
             leftPaneCell.clearActor();
         }
 
         if (isPressed(attrTextButton)) {
-            aggrAttrTable.setDbgModelInstance(modelES.eng.getCurrMI());
+            aggrAttrTable.setDbgModelInstances(modelES.eng.selectedMIs);
             aggrAttrTable.resetActors();
         }
 
         if (isPressed(animTextButton)) {
-            animationsManagerTable.setDbgModelInstance(modelES.eng.getCurrMI());
+            animationsManagerTable.setDbgModelInstances(modelES.eng.selectedMIs);
             animationsManagerTable.resetActors();
         }
 
         if (isPressed(mapTextButton)) {
-            mapGenerationTable.setDbgModelInstance(modelES.eng.getCurrMI());
+            mapGenerationTable.setDbgModelInstances(modelES.eng.selectedMIs);
             mapGenerationTable.resetActors();
         }
 
         if (isPressed(aiTextButton)) {
-            aiManagerTable.setDbgModelInstance(modelES.eng.getCurrMI());
+            aiManagerTable.setDbgModelInstances(modelES.eng.selectedMIs);
             aiManagerTable.resetActors();
         }
 
         if (isPressed(physTextButton)) {
-            physManagerTable.setDbgModelInstance(modelES.eng.getCurrMI());
+            physManagerTable.setDbgModelInstances(modelES.eng.selectedMIs);
             physManagerTable.resetActors();
         }
 
