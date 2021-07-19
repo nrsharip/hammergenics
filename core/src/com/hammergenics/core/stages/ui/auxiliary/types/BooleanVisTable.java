@@ -16,6 +16,8 @@
 
 package com.hammergenics.core.stages.ui.auxiliary.types;
 
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.kotcrab.vis.ui.widget.VisCheckBox;
 import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisTable;
@@ -40,6 +42,12 @@ public class BooleanVisTable extends VisTable {
         if (titleL != null) { this.titleL = titleL; } else { this.titleL = new VisLabel("Boolean: "); }
 
         valueCB = new VisCheckBox("", value);
+        valueCB.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                handleChanged(valueCB.isChecked(), event, actor);
+            }
+        });
 
         valueT = new VisTable();
         valueT.add(valueCB).expandX().left().pad(0.5f);
@@ -53,4 +61,6 @@ public class BooleanVisTable extends VisTable {
         this.value = value;
         valueCB.setChecked(value);
     }
+
+    public void handleChanged(boolean value, ChangeListener.ChangeEvent event, Actor actor) { }
 }

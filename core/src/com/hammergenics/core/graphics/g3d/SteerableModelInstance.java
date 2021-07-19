@@ -60,8 +60,9 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     public float orientation = 0f;
 
     // Steering Behaviors related:
+    public boolean steeringEnabled = false;
     public SteeringBehaviorsVector3Enum currentSteeringBehavior;
-    public Location<Vector3> target = new LocationAdapter<>(new Vector3(10f, 10f, 10f));
+    public Location<Vector3> target = new LocationAdapter<>(new Vector3(0f, 0f, 0f));
 
     public SteerableModelInstance(Model model, float mass, ShapesEnum shape) { this(new HGModel(model), null, mass, shape, (String[])null); }
     public SteerableModelInstance(Model model, float mass, ShapesEnum shape, String... rootNodeIds) { this(new HGModel(model), null, mass, shape, rootNodeIds); }
@@ -123,6 +124,8 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
 
     // see https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#the-steering-system-api
     public void update (float delta) {
+        if (!steeringEnabled) { return; }
+
         SteeringAcceleration<Vector3> out = new SteeringAcceleration<>(new Vector3()).setZero();
         switch (currentSteeringBehavior) {
             case ARRIVE:

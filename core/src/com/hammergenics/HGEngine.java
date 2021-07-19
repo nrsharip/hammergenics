@@ -893,7 +893,7 @@ public class HGEngine implements Disposable {
         selectedMIs.clear();
     }
 
-    public void update(final float delta, boolean steering, boolean dynamics) {
+    public void update(final float delta, boolean dynamics) {
         editableMIs.forEach(hgMI -> {
             if(hgMI.animationController != null && !hgMI.animationController.paused) {
                 hgMI.animationController.update(delta);
@@ -903,7 +903,7 @@ public class HGEngine implements Disposable {
             }
         });
 
-        if (steering) { editableMIs.forEach(mi -> mi.update(delta)); }
+        editableMIs.forEach(mi -> mi.update(delta));
 
         if (dynamics) {
             // see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part2/

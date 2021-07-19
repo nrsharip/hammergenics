@@ -174,7 +174,6 @@ public class ModelEditScreen extends ScreenAdapter {
 
         meic.update(delta);
         eng.update(delta,
-                stage.aiManagerTable.aiVisWindow.steeringTable.steerCheckBox.isChecked(),
                 stage.physManagerTable.dynamicsWindow.dynamicsCheckBox.isChecked()
         );
         if (stage.isPressed(stage.aiTextButton) && stage.aiManagerTable.dbgModelInstance != null) {
