@@ -21,6 +21,7 @@ import com.hammergenics.HGEngine;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.graphics.g3d.EditableModelInstance;
 import com.hammergenics.core.stages.ModelEditStage;
+import com.hammergenics.core.stages.ui.ContextAwareVisTable;
 import com.hammergenics.core.stages.ui.auxiliary.types.BooleanVisTable;
 import com.hammergenics.core.stages.ui.auxiliary.types.FloatVisTable;
 import com.hammergenics.core.stages.ui.auxiliary.types.IntVisTable;
@@ -32,11 +33,12 @@ import com.hammergenics.physics.bullet.dynamics.btRigidBodyProxy;
 import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisTable;
 
-public class btRigidBodyVisTable extends VisTable {
-    public ModelEditScreen modelES;
-    public ModelEditStage stage;
-    public HGEngine eng;
-
+/**
+ * Add description here
+ *
+ * @author nrsharip
+ */
+public class btRigidBodyVisTable extends ContextAwareVisTable {
     public btRigidBody rb;
     public btRigidBodyProxy rbp;
 
@@ -72,9 +74,7 @@ public class btRigidBodyVisTable extends VisTable {
     public BooleanVisTable wantsSleepingVisTable;
 
     public btRigidBodyVisTable(ModelEditScreen modelES, ModelEditStage stage) {
-        this.modelES = modelES;
-        this.stage = stage;
-        this.eng = modelES.eng;
+        super(modelES, stage);
 
         init();
 
@@ -174,7 +174,7 @@ public class btRigidBodyVisTable extends VisTable {
         wantsSleepingVisTable = new BooleanVisTable(false, true, new VisLabel("Wants Sleeping: "));;
     }
 
-    public void updateRigidBody(EditableModelInstance mi) {
+    public void setDbgModelInstance(EditableModelInstance mi) {
         rb = null;
         rbp = null;
         if (mi != null && mi.rigidBody != null) {
@@ -249,4 +249,7 @@ public class btRigidBodyVisTable extends VisTable {
             wantsSleepingVisTable.setBoolean(false);
         }
     }
+
+    @Override
+    public void applyLocale() { }
 }

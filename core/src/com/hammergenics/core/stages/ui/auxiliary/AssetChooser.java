@@ -43,6 +43,11 @@ import com.kotcrab.vis.ui.widget.file.FileTypeFilter;
 
 import static com.hammergenics.core.stages.ui.file.TypeFilterRulesEnum.ALL_FILES;
 
+/**
+ * Add description here
+ *
+ * @author nrsharip
+ */
 public abstract class AssetChooser extends VisWindow {
     public HGEngine engine;
     public ModelEditStage stage;

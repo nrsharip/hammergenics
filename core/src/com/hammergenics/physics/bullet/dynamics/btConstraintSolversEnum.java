@@ -45,6 +45,11 @@ import static com.hammergenics.physics.bullet.dynamics.btMLCPSolversEnum.BT_DANT
 //     BT_MULTIBODY_SOLVER = 8,
 //     BT_BLOCK_SOLVER = 16,
 // };
+/**
+ * Add description here
+ *
+ * @author nrsharip
+ */
 public enum btConstraintSolversEnum implements Disposable {
     // https://github.com/bulletphysics/bullet3/blob/master/src/BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.h
     BT_SEQUENTIAL_IMPULSE_SOLVER(btConstraintSolverType.BT_SEQUENTIAL_IMPULSE_SOLVER, "Sequential Impulse", "SI"),

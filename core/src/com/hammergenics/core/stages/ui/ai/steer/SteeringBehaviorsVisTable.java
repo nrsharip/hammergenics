@@ -14,8 +14,10 @@
  * limitations under the License.
  ******************************************************************************/
 
-package com.hammergenics.core.stages.ui.ai;
+package com.hammergenics.core.stages.ui.ai.steer;
 
+import com.badlogic.gdx.ai.utils.Location;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.hammergenics.HGEngine;
@@ -23,6 +25,8 @@ import com.hammergenics.ai.steer.SteeringBehaviorsVector3Enum;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.graphics.g3d.EditableModelInstance;
 import com.hammergenics.core.stages.ModelEditStage;
+import com.hammergenics.core.stages.ui.ContextAwareVisTable;
+import com.hammergenics.core.stages.ui.ai.steer.utils.TargetVisTable;
 import com.hammergenics.core.stages.ui.auxiliary.types.BooleanVisTable;
 import com.hammergenics.core.stages.ui.auxiliary.types.FloatVisTable;
 import com.hammergenics.core.stages.ui.auxiliary.types.Vector3VisTable;
@@ -30,39 +34,31 @@ import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisSelectBox;
 import com.kotcrab.vis.ui.widget.VisTable;
 
-public class SteeringBehaviorsVisTable extends VisTable {
-    public ModelEditScreen modelES;
-    public ModelEditStage stage;
-    public EditableModelInstance dbgModelInstance;
-    public HGEngine eng;
-
+/**
+ * Add description here
+ *
+ * @author nrsharip
+ */
+public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
     public BooleanVisTable steeringEnabledVisTable;
     public VisSelectBox<SteeringBehaviorsVector3Enum> steeringBehaviorSB;
 
-    public Vector3VisTable targetPosition;
-    public FloatVisTable targetOrientation;
+    public TargetVisTable targetVisTable;
 
     public SteeringBehaviorsVisTable(ModelEditScreen modelES, ModelEditStage stage) {
-        this.modelES = modelES;
-        this.stage = stage;
-        this.eng = modelES.eng;
+        super(modelES, stage);
 
         init();
 
-        add(steeringEnabledVisTable).right().pad(2f);
+        targetVisTable = new TargetVisTable(modelES, stage);
+
+        add(steeringEnabledVisTable).padRight(5f).right();
         add(new VisLabel("Steering Behaviors: "));
         add(steeringBehaviorSB).expandX().fillX();
-        add().row();
+        row();
 
-        add(new VisLabel("Target")).center();
-        add(targetPosition.titleL).padRight(5f).right();
-        add(targetPosition.valueT).expandX().fillX();
-        add().row();
-
-        add().center().pad(2f);
-        add(targetOrientation.titleL).padRight(5f).right();
-        add(targetOrientation.valueT).expandX().fillX();
-        add().row();
+        add(targetVisTable).colspan(3).expandX().fillX();
+        row();
     }
 
     public void init() {
@@ -85,13 +81,11 @@ public class SteeringBehaviorsVisTable extends VisTable {
                 dbgModelInstance.currentSteeringBehavior = steeringBehaviorSB.getSelected();
             }
         });
-
-        targetPosition = new Vector3VisTable(false, true, true, new VisLabel("position: "));
-        targetOrientation = new FloatVisTable(true, new VisLabel("orientation: "));
     }
 
-    public void update(EditableModelInstance mi) {
-        dbgModelInstance = mi;
+    @Override
+    public void setDbgModelInstance(EditableModelInstance mi) {
+        super.setDbgModelInstance(mi);
         if (mi != null) {
             steeringEnabledVisTable.setBoolean(mi.steeringEnabled);
 
@@ -101,8 +95,7 @@ public class SteeringBehaviorsVisTable extends VisTable {
             steeringBehaviorSB.setSelected(mi.currentSteeringBehavior);
             steeringBehaviorSB.getSelection().setProgrammaticChangeEvents(true);
 
-            targetPosition.setVector3(mi.arriveTarget.getPosition());     // reachOrientationTarget // arriveTarget
-            targetOrientation.setFloat(mi.arriveTarget.getOrientation()); // reachOrientationTarget // arriveTarget
+            targetVisTable.setTarget(getCurrentTarget());
         } else {
             steeringEnabledVisTable.setBoolean(false);
 
@@ -110,8 +103,20 @@ public class SteeringBehaviorsVisTable extends VisTable {
             steeringBehaviorSB.clearItems();
             steeringBehaviorSB.getSelection().setProgrammaticChangeEvents(true);
 
-            targetPosition.setVector3(null);
-            targetOrientation.setFloat(0f);
+            targetVisTable.setTarget(null);
         }
     }
+
+    public Location<Vector3> getCurrentTarget() {
+        if (dbgModelInstance == null) { return null; }
+        SteeringBehaviorsVector3Enum sb = steeringBehaviorSB.getSelected();
+        if (sb == null) { return null; }
+        switch (sb) {
+            case ARRIVE: return dbgModelInstance.arriveTarget;
+            default: return null;
+        }
+    }
+
+    @Override
+    public void applyLocale() { }
 }

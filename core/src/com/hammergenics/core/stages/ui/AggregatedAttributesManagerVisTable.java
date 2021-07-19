@@ -34,14 +34,14 @@ import com.kotcrab.vis.ui.widget.VisTextButton;
  *
  * @author nrsharip
  */
-public class AggregatedAttributesManagerTable extends ManagerTable {
+public class AggregatedAttributesManagerVisTable extends ManagerVisTable {
     public Cell<?> attrTableCell;
     
     public VisTextButton mtlTextButton;
     public VisTextButton envTextButton;
     public VisSelectBox<String> mtlSelectBox;
 
-    public AggregatedAttributesManagerTable(ModelEditScreen modelES, ModelEditStage stage) {
+    public AggregatedAttributesManagerVisTable(ModelEditScreen modelES, ModelEditStage stage) {
         super(modelES, stage);
 
         VisTable topPanel = new VisTable();
@@ -144,7 +144,6 @@ public class AggregatedAttributesManagerTable extends ManagerTable {
         }
     }
 
-    public void applyLocale() {
-
-    }
+    @Override
+    public void applyLocale() { }
 }

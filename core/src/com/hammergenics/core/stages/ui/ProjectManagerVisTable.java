@@ -57,7 +57,7 @@ import java.util.regex.Pattern;
  *
  * @author nrsharip
  */
-public class ProjectManagerTable extends ManagerTable {
+public class ProjectManagerVisTable extends ManagerVisTable {
     public VisTree<HGTreeVisTableNode, VisLabel> projectTree;
     public VisScrollPane projectTreeScrollPane;
 
@@ -79,7 +79,7 @@ public class ProjectManagerTable extends ManagerTable {
     public ActorGestureListener globalNonSelectListener;
     public ActorGestureListener globalSelectListener;
 
-    public ProjectManagerTable(ModelEditScreen modelES, ModelEditStage stage) {
+    public ProjectManagerVisTable(ModelEditScreen modelES, ModelEditStage stage) {
         super(modelES, stage);
 
         applyListeners();
@@ -479,7 +479,5 @@ public class ProjectManagerTable extends ManagerTable {
     }
 
     @Override
-    public void applyLocale() {
-        super.applyLocale();
-    }
+    public void applyLocale() { }
 }

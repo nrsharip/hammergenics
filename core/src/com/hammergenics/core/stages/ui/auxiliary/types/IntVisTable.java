@@ -20,6 +20,11 @@ import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisTable;
 import com.kotcrab.vis.ui.widget.VisTextField;
 
+/**
+ * Add description here
+ *
+ * @author nrsharip
+ */
 public class IntVisTable extends VisTable {
     public int value;
     public VisLabel titleL;

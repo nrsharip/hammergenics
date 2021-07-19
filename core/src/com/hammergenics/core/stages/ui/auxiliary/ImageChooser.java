@@ -27,6 +27,11 @@ import com.hammergenics.core.stages.ui.file.TypeFilterRulesEnum;
 
 import static com.hammergenics.core.stages.ui.file.TypeFilterRulesEnum.IMAGE_FILES;
 
+/**
+ * Add description here
+ *
+ * @author nrsharip
+ */
 public class ImageChooser extends AssetChooser {
     // image preview part
     public HGImageVisWindow imagePreviewWindow;

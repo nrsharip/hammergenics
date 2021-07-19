@@ -21,6 +21,8 @@ import com.badlogic.gdx.ai.steer.Proximity;
 import com.badlogic.gdx.ai.steer.Steerable;
 import com.badlogic.gdx.ai.steer.SteeringAcceleration;
 import com.badlogic.gdx.ai.steer.behaviors.Arrive;
+import com.badlogic.gdx.ai.steer.behaviors.Evade;
+import com.badlogic.gdx.ai.steer.behaviors.FollowFlowField;
 import com.badlogic.gdx.ai.steer.behaviors.Jump;
 import com.badlogic.gdx.ai.steer.proximities.RadiusProximity;
 import com.badlogic.gdx.ai.steer.utils.Path;
@@ -30,6 +32,7 @@ import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
+import com.badlogic.gdx.math.Vector;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
@@ -72,20 +75,79 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     // Steering Behaviors related:
     public boolean steeringEnabled = false;
     public SteeringBehaviorsVector3Enum currentSteeringBehavior;
+    public final SteeringAcceleration<Vector3> steeringAcceleration = new SteeringAcceleration<>(new Vector3()).setZero();
+
     // SteeringBehavior
     public Steerable<Vector3> steeringBehaviorOwner;
     public Limiter steeringBehaviorLimiter = null;
     public boolean steeringBehaviorEnabled = true;
+
+    // INDIVIDUAL BEHAVIORS: https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#individual-behaviors
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#arrive
     // SteeringBehavior -> Arrive
     public Location<Vector3> arriveTarget = new LocationAdapter<>(new Vector3(0f, 0f, 0f), 0f);
     public float arriveArrivalTolerance = 0.1f;
     public float arriveDecelerationRadius = 1f;
     public float arriveTimeToTarget = 1f;
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#pursue-and-evade
+    // SteeringBehavior -> Pursue -> Evade
+    public Location<Vector3> evadeTarget = new LocationAdapter<>(new Vector3(0f, 0f, 0f), 0f);
+    public float evadeMaxPredictionTime = 1f;
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#face
+    // ReachOrientation -> Face
+    public Location<Vector3> faceTarget = new LocationAdapter<>(new Vector3(0f, 0f, 0f), 0f);
+    public float faceAlignTolerance = 0.1f;
+    public float faceDecelerationRadius = 1f;
+    public float faceTimeToTarget = 1f;
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#seek-and-flee
+    // SteeringBehavior -> Seek -> Flee
+    public Location<Vector3> fleeTarget = new LocationAdapter<>(new Vector3(0f, 0f, 0f), 0f);
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#flow-field-following
+    // SteeringBehavior -> FollowFlowField
+    public FollowFlowField.FlowField<Vector3> flowField = position -> null;
+    public float flowFieldPredictionTime = 1f;
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#path-following
+    // SteeringBehavior -> Arrive -> FollowPath
+    public LinePath<Vector3> path = new LinePath<>(new Array<>(new Vector3[]{Vector3.X.cpy(), Vector3.Z.cpy()}));
+    public float pathOffset;
+    public Path.PathParam pathParam = new LinePath.LinePathParam();
+    public boolean arriveEnabled;
+    public float predictionTime;
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#interpose
+    // SteeringBehavior -> Arrive -> Interpose
+    protected Steerable<Vector3> agentA;
+    protected Steerable<Vector3> agentB;
+    protected float interpositionRatio;
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#jump
+    // SteeringBehavior -> MatchVelocity -> Jump
+    public Jump.JumpDescriptor<Vector3> jumpDescriptor;
+    public Vector3 jumpGravity = new Vector3();
+    public Y3DGravityComponentHandler y3DGravityComponentHandler;
+    public JumpCallbackAdapter jumpCallback;
+    public float takeoffPositionTolerance;
+    public float takeoffVelocityTolerance;
+    public float maxVerticalVelocity;
+    public float airborneTime = 0;
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#look-where-you-are-going
+    // SteeringBehavior -> ReachOrientation -> LookWhereYouAreGoing
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#match-velocity
+    // SteeringBehavior -> MatchVelocity
+    protected Steerable<Vector3> matchVelocityTarget;
+    protected float matchVelocityTimeToTarget;
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#pursue-and-evade
+    // SteeringBehavior -> Pursue
+    public Location<Vector3> pursueTarget = new LocationAdapter<>(new Vector3(0f, 0f, 0f), 0f);
+    public float pursueMaxPredictionTime = 1f;
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#reach-orientation
     // SteeringBehavior -> ReachOrientation
     public Location<Vector3> reachOrientationTarget = new LocationAdapter<>(new Vector3(0f, 0f, 0f), 0f);
     public float reachOrientationAlignTolerance = 0.1f;
     public float reachOrientationDecelerationRadius = 1f;
     public float reachOrientationTimeToTarget = 1f;
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#seek-and-flee
+    // SteeringBehavior -> Seek
+    public Location<Vector3> seekTarget = new LocationAdapter<>(new Vector3(0f, 0f, 0f), 0f);
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#wander
     // ReachOrientation -> Face -> Wander
     public float wanderLastTime = 0f;
     public float wanderOffset = 1f;
@@ -99,11 +161,6 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     // InfiniteProximity
     // RadiusProximity
     public Proximity<Vector3> proximity = new RadiusProximity<>(this, agents, 1f);
-    public Path<Vector3, LinePath.LinePathParam> path;
-    public Jump.JumpDescriptor<Vector3> jumpDescriptor;
-    public Y3DGravityComponentHandler y3DGravityComponentHandler;
-    public JumpCallbackAdapter jumpCallback;
-    private Vector3 jumpGravity = new Vector3();
 
     public SteerableModelInstance(Model model, float mass, ShapesEnum shape) { this(new HGModel(model), null, mass, shape, (String[])null); }
     public SteerableModelInstance(Model model, float mass, ShapesEnum shape, String... rootNodeIds) { this(new HGModel(model), null, mass, shape, rootNodeIds); }
@@ -165,7 +222,6 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
 
     public void syncLocationWithTransform() { transform.getTranslation(position); }
 
-    protected final SteeringAcceleration<Vector3> steeringAcceleration = new SteeringAcceleration<>(new Vector3()).setZero();
     // see https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#the-steering-system-api
     public void update (float delta) {
         if (!steeringEnabled) { return; }
@@ -173,7 +229,8 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
         steeringAcceleration.setZero();
         // Calculate steering acceleration for selected behavior
         switch (currentSteeringBehavior) {
-            case ALIGNMENT: break;
+            // INDIVIDUAL BEHAVIORS: https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#individual-behaviors
+            // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#arrive
             case ARRIVE:
                 Arrive<Vector3> arrive = (Arrive<Vector3>) ARRIVE.getInstance();
                 SteeringBehaviorsVector3Enum.initSteeringBehavior(arrive,
@@ -187,32 +244,44 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
                         arriveTimeToTarget);
                 arrive.calculateSteering(steeringAcceleration);
                 break;
-            case BLENDED_STEERING: break;
-            case COHESION: break;
-            case COLLISION_AVOIDANCE: break;
-            case EVADE: break;
+            // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#pursue-and-evade
+            case EVADE:
+                Evade<Vector3> evade = (Evade<Vector3>) EVADE.getInstance();
+                SteeringBehaviorsVector3Enum.initSteeringBehavior(evade,
+                        steeringBehaviorOwner,
+                        steeringBehaviorLimiter,
+                        steeringEnabled);
+                break;
+            // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#face
             case FACE: break;
+            // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#seek-and-flee
             case FLEE: break;
+            // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#flow-field-following
             case FOLLOW_FLOW_FIELD: break;
+            // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#path-following
             case FOLLOW_PATH: break;
-            case HIDE: break;
+            // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#interpose
             case INTERPOSE: break;
+            // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#jump
             case JUMP: break;
+            // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#look-where-you-are-going
             case LOOK_WHERE_YOU_ARE_GOING: break;
+            // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#match-velocity
             case MATCH_VELOCITY: break;
-            case PRIORITY_STEERING: break;
+            // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#pursue-and-evade
             case PURSUE: break;
-            case RAY_CAST_OBSTACLE_AVOIDANCE: break;
+            // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#reach-orientation
             case REACH_ORIENTATION: break;
+            // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#seek-and-flee
             case SEEK: break;
-            case SEPARATION: break;
-            case WANDER: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#wander
+            // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#wander
+            case WANDER:
                 HG3DWander wander = (HG3DWander) WANDER.getInstance();
                 SteeringBehaviorsVector3Enum.initSteeringBehavior(wander,
                         steeringBehaviorOwner,
                         steeringBehaviorLimiter,
                         steeringEnabled);
-                //SteeringBehaviorsVector3Enum.initReachOrientation(wander,...);
+                //SteeringBehaviorsVector3Enum.initReachOrientation(wander,...); // see Wander.internalTargetPosition
                 //SteeringBehaviorsVector3Enum.initFace(wander);
                 SteeringBehaviorsVector3Enum.initWander(wander,
                         wanderLastTime,
@@ -224,6 +293,25 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
                 wander.calculateSteering(steeringAcceleration);
                 wanderLastTime = wander.getLastTime();
                 break;
+
+            // GROUP BEHAVIORS: https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#group-behaviors
+            // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#alignment
+            case ALIGNMENT: break;
+            // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#cohesion
+            case COHESION: break;
+            // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#collision-avoidance
+            case COLLISION_AVOIDANCE: break;
+            // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#hide
+            case HIDE: break;
+            // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#raycast-obstacle-avoidance
+            case RAY_CAST_OBSTACLE_AVOIDANCE: break;
+            // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#separation
+            case SEPARATION: break;
+            // COMBINING STEERING BEHAVIORS: https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#combining-steering-behaviors
+            // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#blended-steering
+            case BLENDED_STEERING: break;
+            // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#priority-steering
+            case PRIORITY_STEERING: break;
         }
 
         /*

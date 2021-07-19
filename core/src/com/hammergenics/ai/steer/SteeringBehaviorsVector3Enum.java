@@ -60,14 +60,9 @@ import com.hammergenics.core.graphics.g3d.SteerableModelInstance;
  * @author nrsharip
  */
 public enum SteeringBehaviorsVector3Enum {
-    ALIGNMENT(Alignment.class) {
-        @Override
-        public SteeringBehavior<Vector3> getInstance() {
-            // single threaded processing is assumed: returning a singleton
-            if (instance == null) { instance = new Alignment<>(stubOwner, stubProximity); }
-            return instance;
-        }
-    },
+    // see https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#the-steering-system-api
+    // INDIVIDUAL BEHAVIORS: https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#individual-behaviors
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#arrive
     ARRIVE(Arrive.class) {
         @Override
         public SteeringBehavior<Vector3> getInstance() {
@@ -76,6 +71,182 @@ public enum SteeringBehaviorsVector3Enum {
             return instance;
         }
     },
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#pursue-and-evade
+    EVADE(Evade.class) {
+        @Override
+        public SteeringBehavior<Vector3> getInstance() {
+            // single threaded processing is assumed: returning a singleton
+            if (instance == null) { instance = new Evade<>(stubOwner, stubAgent1); }
+            return instance;
+        }
+    },
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#face
+    FACE(Face.class) {
+        @Override
+        public SteeringBehavior<Vector3> getInstance() {
+            // single threaded processing is assumed: returning a singleton
+            if (instance == null) { instance = new Face<>(stubOwner); }
+            return instance;
+        }
+    },
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#seek-and-flee
+    FLEE(Flee.class) {
+        @Override
+        public SteeringBehavior<Vector3> getInstance() {
+            // single threaded processing is assumed: returning a singleton
+            if (instance == null) { instance = new Flee<>(stubOwner); }
+            return instance;
+        }
+    },
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#flow-field-following
+    FOLLOW_FLOW_FIELD(FollowFlowField.class) {
+        @Override
+        public SteeringBehavior<Vector3> getInstance() {
+            // single threaded processing is assumed: returning a singleton
+            if (instance == null) { instance = new FollowFlowField<>(stubOwner); }
+            return instance;
+        }
+    },
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#path-following
+    FOLLOW_PATH(FollowPath.class) {
+        @Override
+        public SteeringBehavior<Vector3> getInstance() {
+            // single threaded processing is assumed: returning a singleton
+            if (instance == null) { instance = new FollowPath<>(stubOwner, stubPath); }
+            return instance;
+        }
+    },
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#interpose
+    INTERPOSE(Interpose.class) {
+        @Override
+        public SteeringBehavior<Vector3> getInstance() {
+            // single threaded processing is assumed: returning a singleton
+            if (instance == null) { instance = new Interpose<>(stubOwner, stubAgent1, stubAgent2); }
+            return instance;
+        }
+    },
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#jump
+    JUMP(Jump.class) {
+        @Override
+        public SteeringBehavior<Vector3> getInstance() {
+            // single threaded processing is assumed: returning a singleton
+            if (instance == null) { instance = new HG3DJump(stubOwner, stubJumpDescriptor, stubV1, stubY3DGravityComponentHandler, stubJumpCallback); }
+            return instance;
+        }
+    },
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#look-where-you-are-going
+    LOOK_WHERE_YOU_ARE_GOING(LookWhereYouAreGoing.class) {
+        @Override
+        public SteeringBehavior<Vector3> getInstance() {
+            // single threaded processing is assumed: returning a singleton
+            if (instance == null) { instance = new LookWhereYouAreGoing<>(stubOwner); }
+            return instance;
+        }
+    },
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#match-velocity
+    MATCH_VELOCITY(MatchVelocity.class) {
+        @Override
+        public SteeringBehavior<Vector3> getInstance() {
+            // single threaded processing is assumed: returning a singleton
+            if (instance == null) { instance = new MatchVelocity<>(stubOwner); }
+            return instance;
+        }
+    },
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#pursue-and-evade
+    PURSUE(Pursue.class) {
+        @Override
+        public SteeringBehavior<Vector3> getInstance() {
+            // single threaded processing is assumed: returning a singleton
+            if (instance == null) { instance = new Pursue<>(stubOwner, stubAgent1); }
+            return instance;
+        }
+    },
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#reach-orientation
+    REACH_ORIENTATION(ReachOrientation.class) {
+        @Override
+        public SteeringBehavior<Vector3> getInstance() {
+            // single threaded processing is assumed: returning a singleton
+            if (instance == null) { instance = new ReachOrientation<>(stubOwner); }
+            return instance;
+        }
+    },
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#seek-and-flee
+    SEEK(Seek.class) {
+        @Override
+        public SteeringBehavior<Vector3> getInstance() {
+            // single threaded processing is assumed: returning a singleton
+            if (instance == null) { instance = new Seek<>(stubOwner); }
+            return instance;
+        }
+    },
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#wander
+    WANDER(Wander.class) {
+        @Override
+        public SteeringBehavior<Vector3> getInstance() {
+            // single threaded processing is assumed: returning a singleton
+            if (instance == null) { instance = new HG3DWander(stubOwner); }
+            return instance;
+        }
+    },
+
+    // GROUP BEHAVIORS: https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#group-behaviors
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#alignment
+    ALIGNMENT(Alignment.class) {
+        @Override
+        public SteeringBehavior<Vector3> getInstance() {
+            // single threaded processing is assumed: returning a singleton
+            if (instance == null) { instance = new Alignment<>(stubOwner, stubProximity); }
+            return instance;
+        }
+    },
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#cohesion
+    COHESION(Cohesion.class) {
+        @Override
+        public SteeringBehavior<Vector3> getInstance() {
+            // single threaded processing is assumed: returning a singleton
+            if (instance == null) { instance = new Cohesion<>(stubOwner, stubProximity); }
+            return instance;
+        }
+    },
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#collision-avoidance
+    COLLISION_AVOIDANCE(CollisionAvoidance.class) {
+        @Override
+        public SteeringBehavior<Vector3> getInstance() {
+            // single threaded processing is assumed: returning a singleton
+            if (instance == null) { instance = new CollisionAvoidance<>(stubOwner, stubProximity); }
+            return instance;
+        }
+    },
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#hide
+    HIDE(Hide.class) {
+        @Override
+        public SteeringBehavior<Vector3> getInstance() {
+            // single threaded processing is assumed: returning a singleton
+            if (instance == null) { instance = new Hide<>(stubOwner); }
+            return instance;
+        }
+    },
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#raycast-obstacle-avoidance
+    RAY_CAST_OBSTACLE_AVOIDANCE(RaycastObstacleAvoidance.class) {
+        @Override
+        public SteeringBehavior<Vector3> getInstance() {
+            // single threaded processing is assumed: returning a singleton
+            if (instance == null) { instance = new RaycastObstacleAvoidance<>(stubOwner); }
+            return instance;
+        }
+    },
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#separation
+    SEPARATION(Separation.class) {
+        @Override
+        public SteeringBehavior<Vector3> getInstance() {
+            // single threaded processing is assumed: returning a singleton
+            if (instance == null) { instance = new Separation<>(stubOwner, stubProximity); }
+            return instance;
+        }
+    },
+
+    // COMBINING STEERING BEHAVIORS: https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#combining-steering-behaviors
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#blended-steering
     // This combination behavior simply sums up all the behaviors,
     // applies their weights, and truncates the result before returning.
     BLENDED_STEERING(BlendedSteering.class) {
@@ -86,156 +257,12 @@ public enum SteeringBehaviorsVector3Enum {
             return instance;
         }
     },
-    COHESION(Cohesion.class) {
-        @Override
-        public SteeringBehavior<Vector3> getInstance() {
-            // single threaded processing is assumed: returning a singleton
-            if (instance == null) { instance = new Cohesion<>(stubOwner, stubProximity); }
-            return instance;
-        }
-    },
-    COLLISION_AVOIDANCE(CollisionAvoidance.class) {
-        @Override
-        public SteeringBehavior<Vector3> getInstance() {
-            // single threaded processing is assumed: returning a singleton
-            if (instance == null) { instance = new CollisionAvoidance<>(stubOwner, stubProximity); }
-            return instance;
-        }
-    },
-    EVADE(Evade.class) {
-        @Override
-        public SteeringBehavior<Vector3> getInstance() {
-            // single threaded processing is assumed: returning a singleton
-            if (instance == null) { instance = new Evade<>(stubOwner, stubAgent1); }
-            return instance;
-        }
-    },
-    FACE(Face.class) {
-        @Override
-        public SteeringBehavior<Vector3> getInstance() {
-            // single threaded processing is assumed: returning a singleton
-            if (instance == null) { instance = new Face<>(stubOwner); }
-            return instance;
-        }
-    },
-    FLEE(Flee.class) {
-        @Override
-        public SteeringBehavior<Vector3> getInstance() {
-            // single threaded processing is assumed: returning a singleton
-            if (instance == null) { instance = new Flee<>(stubOwner); }
-            return instance;
-        }
-    },
-    FOLLOW_FLOW_FIELD(FollowFlowField.class) {
-        @Override
-        public SteeringBehavior<Vector3> getInstance() {
-            // single threaded processing is assumed: returning a singleton
-            if (instance == null) { instance = new FollowFlowField<>(stubOwner); }
-            return instance;
-        }
-    },
-    FOLLOW_PATH(FollowPath.class) {
-        @Override
-        public SteeringBehavior<Vector3> getInstance() {
-            // single threaded processing is assumed: returning a singleton
-            if (instance == null) { instance = new FollowPath<>(stubOwner, stubPath); }
-            return instance;
-        }
-    },
-    HIDE(Hide.class) {
-        @Override
-        public SteeringBehavior<Vector3> getInstance() {
-            // single threaded processing is assumed: returning a singleton
-            if (instance == null) { instance = new Hide<>(stubOwner); }
-            return instance;
-        }
-    },
-    INTERPOSE(Interpose.class) {
-        @Override
-        public SteeringBehavior<Vector3> getInstance() {
-            // single threaded processing is assumed: returning a singleton
-            if (instance == null) { instance = new Interpose<>(stubOwner, stubAgent1, stubAgent2); }
-            return instance;
-        }
-    },
-    JUMP(Jump.class) {
-        @Override
-        public SteeringBehavior<Vector3> getInstance() {
-            // single threaded processing is assumed: returning a singleton
-            if (instance == null) { instance = new HG3DJump(stubOwner, stubJumpDescriptor, stubV1, stubY3DGravityComponentHandler, stubJumpCallback); }
-            return instance;
-        }
-    },
-    LOOK_WHERE_YOU_ARE_GOING(LookWhereYouAreGoing.class) {
-        @Override
-        public SteeringBehavior<Vector3> getInstance() {
-            // single threaded processing is assumed: returning a singleton
-            if (instance == null) { instance = new LookWhereYouAreGoing<>(stubOwner); }
-            return instance;
-        }
-    },
-    MATCH_VELOCITY(MatchVelocity.class) {
-        @Override
-        public SteeringBehavior<Vector3> getInstance() {
-            // single threaded processing is assumed: returning a singleton
-            if (instance == null) { instance = new MatchVelocity<>(stubOwner); }
-            return instance;
-        }
-    },
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#priority-steering
     PRIORITY_STEERING(PrioritySteering.class) {
         @Override
         public SteeringBehavior<Vector3> getInstance() {
             // single threaded processing is assumed: returning a singleton
             if (instance == null) { instance = new PrioritySteering<>(stubOwner); }
-            return instance;
-        }
-    },
-    PURSUE(Pursue.class) {
-        @Override
-        public SteeringBehavior<Vector3> getInstance() {
-            // single threaded processing is assumed: returning a singleton
-            if (instance == null) { instance = new Pursue<>(stubOwner, stubAgent1); }
-            return instance;
-        }
-    },
-    RAY_CAST_OBSTACLE_AVOIDANCE(RaycastObstacleAvoidance.class) {
-        @Override
-        public SteeringBehavior<Vector3> getInstance() {
-            // single threaded processing is assumed: returning a singleton
-            if (instance == null) { instance = new RaycastObstacleAvoidance<>(stubOwner); }
-            return instance;
-        }
-    },
-    REACH_ORIENTATION(ReachOrientation.class) {
-        @Override
-        public SteeringBehavior<Vector3> getInstance() {
-            // single threaded processing is assumed: returning a singleton
-            if (instance == null) { instance = new ReachOrientation<>(stubOwner); }
-            return instance;
-        }
-    },
-    SEEK(Seek.class) {
-        @Override
-        public SteeringBehavior<Vector3> getInstance() {
-            // single threaded processing is assumed: returning a singleton
-            if (instance == null) { instance = new Seek<>(stubOwner); }
-            return instance;
-        }
-    },
-    SEPARATION(Separation.class) {
-        @Override
-        public SteeringBehavior<Vector3> getInstance() {
-            // single threaded processing is assumed: returning a singleton
-            if (instance == null) { instance = new Separation<>(stubOwner, stubProximity); }
-            return instance;
-        }
-    },
-    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#wander
-    WANDER(Wander.class) {
-        @Override
-        public SteeringBehavior<Vector3> getInstance() {
-            // single threaded processing is assumed: returning a singleton
-            if (instance == null) { instance = new HG3DWander(stubOwner); }
             return instance;
         }
     };

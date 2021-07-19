@@ -14,24 +14,23 @@
  * limitations under the License.
  ******************************************************************************/
 
-package com.hammergenics.core.stages.ui.ai;
+package com.hammergenics.core.stages.ui.ai.steer;
 
-import com.hammergenics.HGEngine;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.graphics.g3d.EditableModelInstance;
 import com.hammergenics.core.stages.ModelEditStage;
+import com.hammergenics.core.stages.ui.ContextAwareVisTable;
 import com.hammergenics.core.stages.ui.auxiliary.types.BooleanVisTable;
 import com.hammergenics.core.stages.ui.auxiliary.types.FloatVisTable;
 import com.hammergenics.core.stages.ui.auxiliary.types.Vector3VisTable;
 import com.kotcrab.vis.ui.widget.VisLabel;
-import com.kotcrab.vis.ui.widget.VisTable;
 
-public class SteeringVisTable extends VisTable {
-    public ModelEditScreen modelES;
-    public ModelEditStage stage;
-    public EditableModelInstance dbgModelInstance;
-    public HGEngine eng;
-
+/**
+ * Add description here
+ *
+ * @author nrsharip
+ */
+public class SteerableVisTable extends ContextAwareVisTable {
     public Vector3VisTable linearVelocityVisTable;
     public FloatVisTable angularVelocityVisTable;
     public FloatVisTable boundingRadiusVisTable;
@@ -46,16 +45,13 @@ public class SteeringVisTable extends VisTable {
     public Vector3VisTable positionVisTable;
     public FloatVisTable orientationVisTable;
 
-    public SteeringBehaviorsVisTable steeringBehaviorsVisTable;
+    public Vector3VisTable steeringAccelerationLinearVisTable;
+    public FloatVisTable steeringAccelerationAngularVisTable;
 
-    public SteeringVisTable(ModelEditScreen modelES, ModelEditStage stage) {
-        this.modelES = modelES;
-        this.stage = stage;
-        this.eng = modelES.eng;
+    public SteerableVisTable(ModelEditScreen modelES, ModelEditStage stage) {
+        super(modelES, stage);
 
         init();
-
-        steeringBehaviorsVisTable = new SteeringBehaviorsVisTable(modelES, stage);
 
         add().padRight(5f).right();
         add(linearVelocityVisTable.labelsT).expandX().fillX().row();
@@ -86,8 +82,12 @@ public class SteeringVisTable extends VisTable {
         add(orientationVisTable.titleL).padRight(5f).right();
         add(orientationVisTable.valueT).expandX().fillX().row();
 
-        add().height(5f); add().row();
-        add(steeringBehaviorsVisTable).expandX().fillX().colspan(2).center();
+        add().padRight(5f).right();
+        add(steeringAccelerationLinearVisTable.labelsT).expandX().fillX().row();
+        add(steeringAccelerationLinearVisTable.titleL).padRight(5f).right();
+        add(steeringAccelerationLinearVisTable.valueT).expandX().fillX().row();
+        add(steeringAccelerationAngularVisTable.titleL).padRight(5f).right();
+        add(steeringAccelerationAngularVisTable.valueT).expandX().fillX().row();
     }
 
     public void init() {
@@ -104,11 +104,14 @@ public class SteeringVisTable extends VisTable {
 
         positionVisTable = new Vector3VisTable(false, true, true, new VisLabel("Position: "));
         orientationVisTable = new FloatVisTable(true, new VisLabel("Orientation: "));
+
+        steeringAccelerationLinearVisTable = new Vector3VisTable(false, true, true, new VisLabel("Steering Acceleration (linear): "));
+        steeringAccelerationAngularVisTable = new FloatVisTable(true, new VisLabel("Steering Acceleration (angular): "));
     }
 
-    public void updateSteerable(EditableModelInstance mi) {
-        dbgModelInstance = mi;
-        steeringBehaviorsVisTable.update(mi);
+    @Override
+    public void setDbgModelInstance(EditableModelInstance mi) {
+        super.setDbgModelInstance(mi);
         if (mi != null) {
             linearVelocityVisTable.setVector3(mi.linearVelocity);
             angularVelocityVisTable.setFloat(mi.angularVelocity);
@@ -123,6 +126,9 @@ public class SteeringVisTable extends VisTable {
 
             positionVisTable.setVector3(mi.position);
             orientationVisTable.setFloat(mi.orientation);
+
+            steeringAccelerationLinearVisTable.setVector3(mi.steeringAcceleration.linear);
+            steeringAccelerationAngularVisTable.setFloat(mi.steeringAcceleration.angular);
         } else {
             linearVelocityVisTable.setVector3(null);
             angularVelocityVisTable.setFloat(0f);
@@ -137,6 +143,12 @@ public class SteeringVisTable extends VisTable {
 
             positionVisTable.setVector3(null);
             orientationVisTable.setFloat(0f);
+
+            steeringAccelerationLinearVisTable.setVector3(null);
+            steeringAccelerationAngularVisTable.setFloat(0f);
         }
     }
+
+    @Override
+    public void applyLocale() { }
 }

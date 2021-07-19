@@ -24,6 +24,11 @@ import com.badlogic.gdx.scenes.scene2d.ui.Tree;
 import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisTable;
 
+/**
+ * Add description here
+ *
+ * @author nrsharip
+ */
 public class HGTreeVisTableNode extends Tree.Node<HGTreeVisTableNode, Integer, HGTreeVisTableNode.HGTreeVisTable> {
     public HGTreeVisTableNode(HGTreeVisTable actor) { super(actor); }
 

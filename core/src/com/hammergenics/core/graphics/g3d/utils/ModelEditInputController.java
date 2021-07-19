@@ -258,7 +258,7 @@ public class ModelEditInputController extends SpectatorInputController {
                     }
                 } else if (hoveredOverMI != null && hoveredOverMI != eng.getCurrMI()) {
                     eng.setCurrMI(hoveredOverMI);
-                } else {
+                } else if (hoveredOverMI == null) {
                     eng.setCurrMI(null);
                 }
                 modelES.stage.reset();

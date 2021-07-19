@@ -20,27 +20,23 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.utils.Array;
-import com.hammergenics.HGEngine;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.stages.ModelEditStage;
+import com.hammergenics.core.stages.ui.ContextAwareVisWindow;
 import com.hammergenics.map.HGGrid;
 import com.kotcrab.vis.ui.widget.VisTextButton;
-import com.kotcrab.vis.ui.widget.VisWindow;
 
-public class DungeonGridVisWindow extends VisWindow {
-    public ModelEditScreen modelES;
-    public ModelEditStage stage;
-    public HGEngine eng;
-
+/**
+ * Add description here
+ *
+ * @author nrsharip
+ */
+public class DungeonGridVisWindow extends ContextAwareVisWindow {
     public VisTextButton genDungeonTextButton;
     public Texture textureDungeon;
 
     public DungeonGridVisWindow(ModelEditScreen modelES, ModelEditStage stage) {
-        super("Dungeon Grid");
-
-        this.modelES = modelES;
-        this.stage = stage;
-        this.eng = modelES.eng;
+        super("Dungeon Grid", modelES, stage);
 
         genDungeonTextButton = new VisTextButton("gen dungeon grid");
         stage.unpressButton(genDungeonTextButton);
@@ -58,4 +54,7 @@ public class DungeonGridVisWindow extends VisWindow {
 
         add(genDungeonTextButton).center().expandX().fillX();
     }
+
+    @Override
+    public void applyLocale() { }
 }

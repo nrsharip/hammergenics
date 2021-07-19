@@ -30,6 +30,11 @@ import com.kotcrab.vis.ui.widget.VisImageButton;
 import com.kotcrab.vis.ui.widget.VisTable;
 import com.kotcrab.vis.ui.widget.VisWindow;
 
+/**
+ * Add description here
+ *
+ * @author nrsharip
+ */
 public class HGImageVisWindow extends VisWindow {
     public HGImageVisTable table;
     public Cell<HGImageVisTable> cell;

@@ -37,14 +37,14 @@ import com.kotcrab.vis.ui.widget.VisTable;
  *
  * @author nrsharip
  */
-public class MapGenerationTable extends ManagerTable {
+public class MapGenerationVisTable extends ManagerVisTable {
     public NoiseGridVisWindow noiseGridVisWindow;
     public CellularGridVisWindow cellularGridVisWindow;
     public DungeonGridVisWindow dungeonGridVisWindow;
     public TerrainVisWindow terrainVisWindow;
     public final HGImageVisWindow imagePreviewWindow;
 
-    public MapGenerationTable(ModelEditScreen modelES, ModelEditStage stage) {
+    public MapGenerationVisTable(ModelEditScreen modelES, ModelEditStage stage) {
         super(modelES, stage);
 
         noiseGridVisWindow = new NoiseGridVisWindow(modelES, stage);
@@ -141,7 +141,6 @@ public class MapGenerationTable extends ManagerTable {
         stage.imagePreviewCell.setActor(stage.textureImage);
     }
 
-    public void applyLocale() {
-
-    }
+    @Override
+    public void applyLocale() { }
 }

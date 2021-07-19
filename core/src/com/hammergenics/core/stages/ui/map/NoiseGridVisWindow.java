@@ -23,9 +23,9 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Array;
-import com.hammergenics.HGEngine;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.stages.ModelEditStage;
+import com.hammergenics.core.stages.ui.ContextAwareVisWindow;
 import com.hammergenics.map.HGGrid;
 import com.hammergenics.map.TerrainChunk;
 import com.kotcrab.vis.ui.widget.VisCheckBox;
@@ -33,15 +33,15 @@ import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisTable;
 import com.kotcrab.vis.ui.widget.VisTextButton;
 import com.kotcrab.vis.ui.widget.VisTextField;
-import com.kotcrab.vis.ui.widget.VisWindow;
 
 import java.util.Arrays;
 
-public class NoiseGridVisWindow extends VisWindow {
-    public ModelEditScreen modelES;
-    public ModelEditStage stage;
-    public HGEngine eng;
-
+/**
+ * Add description here
+ *
+ * @author nrsharip
+ */
+public class NoiseGridVisWindow extends ContextAwareVisWindow {
     public VisTextButton genNoiseTextButton;
     public Texture textureNoise;
     public Array<NoiseStageTable> noiseStageTables = new Array<>(true, 16, NoiseStageTable.class);
@@ -55,11 +55,7 @@ public class NoiseGridVisWindow extends VisWindow {
     public float noiseStep = 0.05f;
 
     public NoiseGridVisWindow(ModelEditScreen modelES, ModelEditStage stage) {
-        super("Noise Grid");
-
-        this.modelES = modelES;
-        this.stage = stage;
-        this.eng = modelES.eng;
+        super("Noise Grid", modelES, stage);
 
         noiseStageTables.addAll(
                 new NoiseStageTable(stage, 16, 0.8f),
@@ -253,4 +249,7 @@ public class NoiseGridVisWindow extends VisWindow {
             add(applySeedCB).padRight(5f);
         }
     }
+
+    @Override
+    public void applyLocale() { }
 }

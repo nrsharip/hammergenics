@@ -28,12 +28,12 @@ import com.kotcrab.vis.ui.widget.VisTable;
  *
  * @author nrsharip
  */
-public class PhysicsManagerTable extends ManagerTable {
+public class PhysicsManagerVisTable extends ManagerVisTable {
 
     public btDynamicsWorldVisWindow dynamicsWindow;
     public btRigidBodyVisWindow rigidBodyWindow;
 
-    public PhysicsManagerTable(ModelEditScreen modelES, ModelEditStage stage) {
+    public PhysicsManagerVisTable(ModelEditScreen modelES, ModelEditStage stage) {
         super(modelES, stage);
 
         dynamicsWindow = new btDynamicsWorldVisWindow(modelES, stage);
@@ -59,14 +59,13 @@ public class PhysicsManagerTable extends ManagerTable {
         super.setDbgModelInstance(mi);
 
         dynamicsWindow.updateDynamicsWorld();
-        rigidBodyWindow.updateRigidBody(mi);
+        rigidBodyWindow.setDbgModelInstance(mi);
     }
 
     public void updateRigidBody() {
-        rigidBodyWindow.updateRigidBody(dbgModelInstance);
+        rigidBodyWindow.setDbgModelInstance(dbgModelInstance);
     }
 
-    public void applyLocale() {
-
-    }
+    @Override
+    public void applyLocale() { }
 }

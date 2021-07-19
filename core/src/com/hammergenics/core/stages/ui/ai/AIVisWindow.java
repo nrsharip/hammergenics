@@ -17,32 +17,29 @@
 package com.hammergenics.core.stages.ui.ai;
 
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.hammergenics.HGEngine;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.graphics.g3d.EditableModelInstance;
 import com.hammergenics.core.stages.ModelEditStage;
+import com.hammergenics.core.stages.ui.ContextAwareVisWindow;
+import com.hammergenics.core.stages.ui.ai.steer.SteeringVisTable;
 import com.kotcrab.vis.ui.VisUI;
 import com.kotcrab.vis.ui.widget.VisScrollPane;
 import com.kotcrab.vis.ui.widget.VisTable;
-import com.kotcrab.vis.ui.widget.VisWindow;
 import com.kotcrab.vis.ui.widget.tabbedpane.Tab;
 import com.kotcrab.vis.ui.widget.tabbedpane.TabbedPane;
 import com.kotcrab.vis.ui.widget.tabbedpane.TabbedPaneAdapter;
 
-public class AIVisWindow extends VisWindow {
-    public ModelEditScreen modelES;
-    public ModelEditStage stage;
-    public HGEngine eng;
-
+/**
+ * Add description here
+ *
+ * @author nrsharip
+ */
+public class AIVisWindow extends ContextAwareVisWindow {
     public VisTable mainTabbedPaneTable;
     public SteeringVisTable steeringTable;
 
     public AIVisWindow(ModelEditScreen modelES, ModelEditStage stage) {
-        super("AI Algorithms");
-
-        this.modelES = modelES;
-        this.stage = stage;
-        this.eng = modelES.eng;
+        super("AI Algorithms", modelES, stage);
 
         init();
 
@@ -72,8 +69,10 @@ public class AIVisWindow extends VisWindow {
         steeringTable = new SteeringVisTable(modelES, stage);
     }
 
-    public void update(EditableModelInstance mi) {
-        steeringTable.updateSteerable(mi);
+    @Override
+    public void setDbgModelInstance(EditableModelInstance mi) {
+        super.setDbgModelInstance(mi);
+        steeringTable.setDbgModelInstance(mi);
     }
 
     public static class aiTab extends Tab {
@@ -89,4 +88,7 @@ public class AIVisWindow extends VisWindow {
         @Override public String getTabTitle() { return title; }
         @Override public Table getContentTable() { return contentTable; }
     }
+
+    @Override
+    public void applyLocale() { }
 }

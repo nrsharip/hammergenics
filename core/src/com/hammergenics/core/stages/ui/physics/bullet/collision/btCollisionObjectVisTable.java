@@ -21,6 +21,7 @@ import com.hammergenics.HGEngine;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.graphics.g3d.EditableModelInstance;
 import com.hammergenics.core.stages.ModelEditStage;
+import com.hammergenics.core.stages.ui.ContextAwareVisTable;
 import com.hammergenics.core.stages.ui.auxiliary.types.BooleanVisTable;
 import com.hammergenics.core.stages.ui.auxiliary.types.FloatVisTable;
 import com.hammergenics.core.stages.ui.auxiliary.types.IntVisTable;
@@ -32,11 +33,12 @@ import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisSelectBox;
 import com.kotcrab.vis.ui.widget.VisTable;
 
-public class btCollisionObjectVisTable extends VisTable {
-    public ModelEditScreen modelES;
-    public ModelEditStage stage;
-    public HGEngine eng;
-
+/**
+ * Add description here
+ *
+ * @author nrsharip
+ */
+public class btCollisionObjectVisTable extends ContextAwareVisTable {
     public btCollisionObject co;
     public btCollisionObjectProxy cop;
 
@@ -82,9 +84,7 @@ public class btCollisionObjectVisTable extends VisTable {
     public BooleanVisTable mergesSimulationIslandsVisTable;
 
     public btCollisionObjectVisTable(ModelEditScreen modelES, ModelEditStage stage) {
-        this.modelES = modelES;
-        this.stage = stage;
-        this.eng = modelES.eng;
+        super(modelES, stage);
 
         init();
 
@@ -208,7 +208,7 @@ public class btCollisionObjectVisTable extends VisTable {
         mergesSimulationIslandsVisTable = new BooleanVisTable(false, true, new VisLabel("Merges Simulation Islands: "));
     }
 
-    public void updateCollisionObject(EditableModelInstance mi) {
+    public void setDbgModelInstance(EditableModelInstance mi) {
         co = null;
         cop = null;
         if (mi != null && mi.rigidBody != null) {
@@ -303,4 +303,7 @@ public class btCollisionObjectVisTable extends VisTable {
             mergesSimulationIslandsVisTable.setBoolean(false);
         }
     }
+
+    @Override
+    public void applyLocale() { }
 }

@@ -20,27 +20,23 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.utils.Array;
-import com.hammergenics.HGEngine;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.stages.ModelEditStage;
+import com.hammergenics.core.stages.ui.ContextAwareVisWindow;
 import com.hammergenics.map.HGGrid;
 import com.kotcrab.vis.ui.widget.VisTextButton;
-import com.kotcrab.vis.ui.widget.VisWindow;
 
-public class CellularGridVisWindow extends VisWindow {
-    public ModelEditScreen modelES;
-    public ModelEditStage stage;
-    public HGEngine eng;
-
+/**
+ * Add description here
+ *
+ * @author nrsharip
+ */
+public class CellularGridVisWindow extends ContextAwareVisWindow {
     public VisTextButton genCellularTextButton;
     public Texture textureCellular;
 
     public CellularGridVisWindow(ModelEditScreen modelES, ModelEditStage stage) {
-        super("Cellular Grid");
-
-        this.modelES = modelES;
-        this.stage = stage;
-        this.eng = modelES.eng;
+        super("Cellular Grid", modelES, stage);
 
         genCellularTextButton = new VisTextButton("gen cellular grid");
         stage.unpressButton(genCellularTextButton);
@@ -58,4 +54,7 @@ public class CellularGridVisWindow extends VisWindow {
 
         add(genCellularTextButton).center().expandX().fillX();
     }
+
+    @Override
+    public void applyLocale() { }
 }

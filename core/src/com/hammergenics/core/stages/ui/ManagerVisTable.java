@@ -16,34 +16,22 @@
 
 package com.hammergenics.core.stages.ui;
 
-import com.hammergenics.HGEngine;
 import com.hammergenics.core.ModelEditScreen;
-import com.hammergenics.core.graphics.g3d.EditableModelInstance;
 import com.hammergenics.core.stages.ModelEditStage;
-import com.kotcrab.vis.ui.widget.VisTable;
 
 /**
  * Add description here
  *
  * @author nrsharip
  */
-public abstract class ManagerTable extends VisTable {
-    public ModelEditScreen modelES;
-    public ModelEditStage stage;
-    public EditableModelInstance dbgModelInstance;
-    public HGEngine eng;
-
-    public ManagerTable(ModelEditScreen modelES, ModelEditStage stage) {
-        this.modelES = modelES;
-        this.eng = modelES.eng;
-        this.stage = stage;
+public abstract class ManagerVisTable extends ContextAwareVisTable {
+    public ManagerVisTable(ModelEditScreen modelES, ModelEditStage stage) {
+        super(modelES, stage);
 
         init();
     }
 
     protected abstract void init();
-
-    public void setDbgModelInstance(EditableModelInstance mi) { this.dbgModelInstance = mi; }
 
     public void resetActors() {
         stage.leftPaneCell.expand(false, false);
@@ -52,9 +40,5 @@ public abstract class ManagerTable extends VisTable {
         stage.editCell.clearActor();
 
         stage.editCell.setActor(this);
-    }
-
-    public void applyLocale() {
-
     }
 }

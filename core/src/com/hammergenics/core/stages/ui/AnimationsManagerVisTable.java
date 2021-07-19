@@ -44,7 +44,7 @@ import com.kotcrab.vis.ui.widget.VisTextField;
  *
  * @author nrsharip
  */
-public class AnimationsManagerTable extends ManagerTable {
+public class AnimationsManagerVisTable extends ManagerVisTable {
     public VisLabel animInfoLabel;
     public VisSelectBox<String> animationSelectBox;
     public VisCheckBox animLoopCheckBox;
@@ -56,7 +56,7 @@ public class AnimationsManagerTable extends ManagerTable {
     public VisTextButton plsKeyFrameTextButton;
     public VisTextButton mnsKeyFrameTextButton;
 
-    public AnimationsManagerTable(ModelEditScreen modelES, ModelEditStage stage) {
+    public AnimationsManagerVisTable(ModelEditScreen modelES, ModelEditStage stage) {
         super(modelES, stage);
 
         add(new VisLabel("Animation: ", Color.BLACK)).padLeft(5f).right();
@@ -360,7 +360,6 @@ public class AnimationsManagerTable extends ManagerTable {
         stage.infoCell.setActor(animInfoLabel);
     }
 
-    public void applyLocale() {
-
-    }
+    @Override
+    public void applyLocale() { }
 }

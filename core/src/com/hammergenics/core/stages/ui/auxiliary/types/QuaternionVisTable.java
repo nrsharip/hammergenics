@@ -21,6 +21,11 @@ import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisTable;
 import com.kotcrab.vis.ui.widget.VisTextField;
 
+/**
+ * Add description here
+ *
+ * @author nrsharip
+ */
 public class QuaternionVisTable extends VisTable {
     public Quaternion quaternion;
 

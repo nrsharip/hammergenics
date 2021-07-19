@@ -17,10 +17,8 @@
 package com.hammergenics.physics.bullet.dynamics;
 
 
-import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.physics.bullet.collision.ContactListener;
 import com.badlogic.gdx.physics.bullet.collision.btBroadphaseInterface;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionConfiguration;
@@ -29,7 +27,6 @@ import com.badlogic.gdx.physics.bullet.collision.btDispatcher;
 import com.badlogic.gdx.physics.bullet.dynamics.btDiscreteDynamicsWorld;
 import com.badlogic.gdx.physics.bullet.dynamics.btDynamicsWorld;
 import com.badlogic.gdx.physics.bullet.dynamics.btSimpleDynamicsWorld;
-import com.badlogic.gdx.physics.bullet.linearmath.LinearMath;
 import com.badlogic.gdx.physics.bullet.softbody.btSoftMultiBodyDynamicsWorld;
 import com.badlogic.gdx.physics.bullet.softbody.btSoftRigidDynamicsWorld;
 import com.badlogic.gdx.utils.Disposable;
@@ -62,6 +59,11 @@ import static com.hammergenics.physics.bullet.dynamics.btConstraintSolversEnum.B
 //     BT_GPU_DYNAMICS_WORLD=5,
 //     BT_SOFT_MULTIBODY_DYNAMICS_WORLD=6
 // };
+/**
+ * Add description here
+ *
+ * @author nrsharip
+ */
 public enum btDynamicsWorldTypesEnum implements Disposable {
     BT_SIMPLE_DYNAMICS_WORLD(1) {
         @Override

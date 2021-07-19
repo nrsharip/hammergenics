@@ -23,6 +23,11 @@ import com.kotcrab.vis.ui.widget.VisTextField;
 
 import static com.badlogic.gdx.math.Matrix4.*;
 
+/**
+ * Add description here
+ *
+ * @author nrsharip
+ */
 public class Matrix4VisTable extends VisTable {
     public Matrix4 matrix4;
 

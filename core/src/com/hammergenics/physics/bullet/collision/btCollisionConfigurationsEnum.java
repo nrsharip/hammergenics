@@ -22,6 +22,11 @@ import com.badlogic.gdx.physics.bullet.softbody.btSoftBodyRigidBodyCollisionConf
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 
+/**
+ * Add description here
+ *
+ * @author nrsharip
+ */
 public enum btCollisionConfigurationsEnum implements Disposable {
     // btDefaultCollisionConfiguration
     BT_DEFAULT_COLLISION_CONFIGURATION {

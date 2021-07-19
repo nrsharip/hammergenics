@@ -14,34 +14,33 @@
  * limitations under the License.
  ******************************************************************************/
 
-package com.hammergenics.core.stages.ui.auxiliary;
+package com.hammergenics.core.stages.ui;
 
 import com.hammergenics.HGEngine;
+import com.hammergenics.core.ModelEditScreen;
+import com.hammergenics.core.graphics.g3d.EditableModelInstance;
 import com.hammergenics.core.stages.ModelEditStage;
-import com.hammergenics.core.stages.ui.file.TypeFilterRulesEnum;
-
-import static com.hammergenics.core.stages.ui.file.TypeFilterRulesEnum.MODEL_FILES;
+import com.kotcrab.vis.ui.widget.VisWindow;
 
 /**
  * Add description here
  *
  * @author nrsharip
  */
-public class ModelChooser extends AssetChooser {
-    public ModelChooser(HGEngine engine, ModelEditStage stage) {
-        super(engine, stage);
+public abstract class ContextAwareVisWindow extends VisWindow {
+    public ModelEditScreen modelES;
+    public ModelEditStage stage;
+    public EditableModelInstance dbgModelInstance;
+    public HGEngine eng;
 
-        getTitleLabel().setText("Choose Model");
+    public ContextAwareVisWindow(String title, ModelEditScreen modelES, ModelEditStage stage) {
+        super(title);
+        this.modelES = modelES;
+        this.eng = modelES.eng;
+        this.stage = stage;
     }
 
-    @Override
-    public HGTreeVisTableNode getAssetsNode()  {
-        HGTreeVisTableNode assetsNode = new HGTreeVisTableNode(new HGTreeVisTableNode.HGTreeVisTable("Models"));
-        if (stage.projManagerTable != null) {
-            stage.projManagerTable.fillTreeNodesWithAssets(assetsNode, null);
-        }
-        return assetsNode;
-    }
+    public void setDbgModelInstance(EditableModelInstance mi) { this.dbgModelInstance = mi; }
 
-    @Override public TypeFilterRulesEnum getTypeFilterRule() { return MODEL_FILES; }
+    public abstract void applyLocale();
 }

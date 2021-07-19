@@ -24,6 +24,11 @@ import com.badlogic.gdx.physics.bullet.collision.btDbvtBroadphase;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 
+/**
+ * Add description here
+ *
+ * @author nrsharip
+ */
 public enum btBroadphasesEnum implements Disposable {
     // bt32BitAxisSweep3 extends btAxisSweep3InternalInt
     BT_32BIT_AXIS_SWEEP_3 {

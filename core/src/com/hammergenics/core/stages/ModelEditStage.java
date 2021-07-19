@@ -22,7 +22,6 @@ import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g3d.Attributes;
-import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
 import com.badlogic.gdx.math.Vector3;
@@ -49,12 +48,12 @@ import com.hammergenics.HGGame;
 import com.hammergenics.HGGame.I18NBundlesEnum;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.graphics.g3d.HGModel;
-import com.hammergenics.core.stages.ui.AIManagerTable;
-import com.hammergenics.core.stages.ui.AggregatedAttributesManagerTable;
-import com.hammergenics.core.stages.ui.AnimationsManagerTable;
-import com.hammergenics.core.stages.ui.MapGenerationTable;
-import com.hammergenics.core.stages.ui.PhysicsManagerTable;
-import com.hammergenics.core.stages.ui.ProjectManagerTable;
+import com.hammergenics.core.stages.ui.AIManagerVisTable;
+import com.hammergenics.core.stages.ui.AggregatedAttributesManagerVisTable;
+import com.hammergenics.core.stages.ui.AnimationsManagerVisTable;
+import com.hammergenics.core.stages.ui.MapGenerationVisTable;
+import com.hammergenics.core.stages.ui.PhysicsManagerVisTable;
+import com.hammergenics.core.stages.ui.ProjectManagerVisTable;
 import com.hammergenics.core.stages.ui.attributes.AttributesManagerTable;
 import com.hammergenics.core.stages.ui.attributes.BaseAttributeTable;
 import com.hammergenics.core.stages.ui.attributes.BaseAttributeTable.EventType;
@@ -127,13 +126,13 @@ public class ModelEditStage extends Stage {
     public Cell<?> editCell;
     public Cell<?> loadImagePreviewCell;
 
-    public ProjectManagerTable projManagerTable;
+    public ProjectManagerVisTable projManagerTable;
     public AttributesManagerTable envAttrTable;
-    public AggregatedAttributesManagerTable aggrAttrTable;
-    public AnimationsManagerTable animationsManagerTable;
-    public MapGenerationTable mapGenerationTable;
-    public AIManagerTable aiManagerTable;
-    public PhysicsManagerTable physManagerTable;
+    public AggregatedAttributesManagerVisTable aggrAttrTable;
+    public AnimationsManagerVisTable animationsManagerTable;
+    public MapGenerationVisTable mapGenerationTable;
+    public AIManagerVisTable aiManagerTable;
+    public PhysicsManagerVisTable physManagerTable;
 
     // 2D Stage Widgets:
     public ColorPicker colorPicker;
@@ -207,12 +206,12 @@ public class ModelEditStage extends Stage {
             Gdx.app.exit();
         }
 
-        projManagerTable = new ProjectManagerTable(modelES, this);
-        aggrAttrTable = new AggregatedAttributesManagerTable(modelES, this);
-        animationsManagerTable = new AnimationsManagerTable(modelES, this);
-        mapGenerationTable = new MapGenerationTable(modelES, this);
-        aiManagerTable = new AIManagerTable(modelES, this);
-        physManagerTable = new PhysicsManagerTable(modelES, this);
+        projManagerTable = new ProjectManagerVisTable(modelES, this);
+        aggrAttrTable = new AggregatedAttributesManagerVisTable(modelES, this);
+        animationsManagerTable = new AnimationsManagerVisTable(modelES, this);
+        mapGenerationTable = new MapGenerationVisTable(modelES, this);
+        aiManagerTable = new AIManagerVisTable(modelES, this);
+        physManagerTable = new PhysicsManagerVisTable(modelES, this);
 
         pressButton(projTextButton, true);
         resetTables();
@@ -759,7 +758,7 @@ public class ModelEditStage extends Stage {
         lightsCheckBox.setChecked(true);
 
         showSelectionCheckBox = (VisCheckBox)CHECKBOX_SHOW_SELECTION.seize(new VisCheckBox("selection"));
-        showSelectionCheckBox.setChecked(false);
+        showSelectionCheckBox.setChecked(true);
 
         origScaleCheckBox = (VisCheckBox)CHECKBOX_ORIG_SCALE.seize(new VisCheckBox("orig scale"));
         origScaleCheckBox.setChecked(false);

@@ -22,6 +22,11 @@ import com.kotcrab.vis.ui.widget.VisCheckBox;
 import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisTable;
 
+/**
+ * Add description here
+ *
+ * @author nrsharip
+ */
 public class BooleanVisTable extends VisTable {
     public boolean value;
     public VisLabel titleL;

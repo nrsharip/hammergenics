@@ -24,6 +24,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.hammergenics.HGEngine;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.stages.ModelEditStage;
+import com.hammergenics.core.stages.ui.ContextAwareVisWindow;
 import com.hammergenics.physics.bullet.dynamics.btConstraintSolversEnum;
 import com.hammergenics.physics.bullet.dynamics.btDynamicsWorldTypesEnum;
 import com.hammergenics.physics.bullet.dynamics.btMLCPSolversEnum;
@@ -37,11 +38,12 @@ import com.kotcrab.vis.ui.widget.VisWindow;
 import static com.hammergenics.physics.bullet.dynamics.btConstraintSolversEnum.BT_MLCP_SOLVER;
 import static com.hammergenics.utils.HGUtils.btDbgModes;
 
-public class btDynamicsWorldVisWindow extends VisWindow {
-    public ModelEditScreen modelES;
-    public ModelEditStage stage;
-    public HGEngine eng;
-
+/**
+ * Add description here
+ *
+ * @author nrsharip
+ */
+public class btDynamicsWorldVisWindow extends ContextAwareVisWindow {
     public btDynamicsWorld dw;
 
     public VisLabel dwTypeLabel;
@@ -61,11 +63,7 @@ public class btDynamicsWorldVisWindow extends VisWindow {
     public Vector3 dwGravity = new Vector3();
     
     public btDynamicsWorldVisWindow(ModelEditScreen modelES, ModelEditStage stage) {
-        super("Dynamics World");
-
-        this.modelES = modelES;
-        this.stage = stage;
-        this.eng = modelES.eng;
+        super("Dynamics World", modelES, stage);
 
         this.dw = btDynamicsWorldTypesEnum.selected.dynamicsWorld;
 
@@ -209,4 +207,7 @@ public class btDynamicsWorldVisWindow extends VisWindow {
         dwGravityYTF.setText(Float.toString(dwGravity.y));
         dwGravityZTF.setText(Float.toString(dwGravity.z));
     }
+
+    @Override
+    public void applyLocale() { }
 }

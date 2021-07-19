@@ -17,30 +17,30 @@
 package com.hammergenics.core.stages.ui.physics.bullet.dynamics;
 
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.hammergenics.HGEngine;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.graphics.g3d.EditableModelInstance;
 import com.hammergenics.core.stages.ModelEditStage;
+import com.hammergenics.core.stages.ui.ContextAwareVisWindow;
 import com.hammergenics.core.stages.ui.physics.bullet.collision.btCollisionObjectVisTable;
 import com.kotcrab.vis.ui.VisUI;
 import com.kotcrab.vis.ui.widget.VisScrollPane;
 import com.kotcrab.vis.ui.widget.VisTable;
-import com.kotcrab.vis.ui.widget.VisWindow;
 import com.kotcrab.vis.ui.widget.tabbedpane.Tab;
 import com.kotcrab.vis.ui.widget.tabbedpane.TabbedPane;
 import com.kotcrab.vis.ui.widget.tabbedpane.TabbedPaneAdapter;
 
-public class btRigidBodyVisWindow extends VisWindow {
-    public ModelEditScreen modelES;
-    public ModelEditStage stage;
-    public HGEngine eng;
-
+/**
+ * Add description here
+ *
+ * @author nrsharip
+ */
+public class btRigidBodyVisWindow extends ContextAwareVisWindow {
     public VisTable mainTabbedPaneTable;
     public btRigidBodyVisTable rbTable;
     public btCollisionObjectVisTable coTable;
 
     public btRigidBodyVisWindow(ModelEditScreen modelES, ModelEditStage stage) {
-        super("Rigid Body");
+        super("Rigid Body", modelES, stage);
 
         this.modelES = modelES;
         this.stage = stage;
@@ -80,9 +80,11 @@ public class btRigidBodyVisWindow extends VisWindow {
         coTable = new btCollisionObjectVisTable(modelES, stage);
     }
 
-    public void updateRigidBody(EditableModelInstance mi) {
-        rbTable.updateRigidBody(mi);
-        coTable.updateCollisionObject(mi);
+    @Override
+    public void setDbgModelInstance(EditableModelInstance mi) {
+        super.setDbgModelInstance(mi);
+        rbTable.setDbgModelInstance(mi);
+        coTable.setDbgModelInstance(mi);
     }
 
     public static class rbTab extends Tab {
@@ -98,4 +100,7 @@ public class btRigidBodyVisWindow extends VisWindow {
         @Override public String getTabTitle() { return title; }
         @Override public Table getContentTable() { return contentTable; }
     }
+
+    @Override
+    public void applyLocale() { }
 }

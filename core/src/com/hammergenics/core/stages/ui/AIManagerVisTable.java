@@ -27,10 +27,10 @@ import com.kotcrab.vis.ui.widget.VisTable;
  *
  * @author nrsharip
  */
-public class AIManagerTable extends ManagerTable {
+public class AIManagerVisTable extends ManagerVisTable {
     public AIVisWindow aiVisWindow;
 
-    public AIManagerTable(ModelEditScreen modelES, ModelEditStage stage) {
+    public AIManagerVisTable(ModelEditScreen modelES, ModelEditStage stage) {
         super(modelES, stage);
 
         VisTable windows = new VisTable();
@@ -49,7 +49,7 @@ public class AIManagerTable extends ManagerTable {
     public void update() {
         EditableModelInstance mi = dbgModelInstance;
 
-        aiVisWindow.update(mi);
+        aiVisWindow.setDbgModelInstance(mi);
     }
 
     @Override
@@ -59,7 +59,6 @@ public class AIManagerTable extends ManagerTable {
         update();
     }
 
-    public void applyLocale() {
-
-    }
+    @Override
+    public void applyLocale() { }
 }

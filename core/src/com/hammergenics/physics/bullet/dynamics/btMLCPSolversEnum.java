@@ -22,6 +22,11 @@ import com.badlogic.gdx.physics.bullet.dynamics.btMLCPSolverInterface;
 import com.badlogic.gdx.physics.bullet.dynamics.btSolveProjectedGaussSeidel;
 import com.badlogic.gdx.utils.Disposable;
 
+/**
+ * Add description here
+ *
+ * @author nrsharip
+ */
 public enum btMLCPSolversEnum implements Disposable {
     // https://github.com/bulletphysics/bullet3/blob/master/src/BulletDynamics/MLCPSolvers/btDantzigLCP.cpp
     BT_DANTZIG("Dantzig"),

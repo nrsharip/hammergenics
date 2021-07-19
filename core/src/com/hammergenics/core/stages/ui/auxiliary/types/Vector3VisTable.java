@@ -22,6 +22,11 @@ import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisTable;
 import com.kotcrab.vis.ui.widget.VisTextField;
 
+/**
+ * Add description here
+ *
+ * @author nrsharip
+ */
 public class Vector3VisTable extends VisTable {
     private static final String ACTOR_X = "vector3.x";
     private static final String ACTOR_Y = "vector3.y";
