@@ -46,17 +46,17 @@ public class AIManagerVisTable extends ManagerVisTable {
         aiVisWindow = new AIVisWindow(modelES, stage);
     }
 
-    public void update() {
-        EditableModelInstance mi = dbgModelInstance;
-
-        aiVisWindow.setDbgModelInstance(mi);
+    @Override
+    public void update(float delta) {
+        super.update(delta);
+        aiVisWindow.update(delta);
     }
 
     @Override
     public void setDbgModelInstance(EditableModelInstance mi) {
         super.setDbgModelInstance(mi);
 
-        update();
+        aiVisWindow.setDbgModelInstance(mi);
     }
 
     @Override

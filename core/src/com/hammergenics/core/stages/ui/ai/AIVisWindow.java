@@ -75,6 +75,13 @@ public class AIVisWindow extends ContextAwareVisWindow {
         steeringTable.setDbgModelInstance(mi);
     }
 
+    @Override
+    public void update(float delta) {
+        super.update(delta);
+
+        steeringTable.update(delta);
+    }
+
     public static class aiTab extends Tab {
         String title;
         VisTable contentTable;

@@ -198,7 +198,9 @@ public class btDynamicsWorldVisWindow extends ContextAwareVisWindow {
         dwGravityZTF = new VisTextField(""); // dw gravity
     }
 
-    public void updateDynamicsWorld() {
+    @Override
+    public void update(float delta) {
+        super.update(delta);
         String dwTypeName = btDynamicsWorldTypesEnum.findByType(dw.getWorldType()).toString();
         dwTypeLabel.setText("Dynamics World Type: " + dwTypeName);
 

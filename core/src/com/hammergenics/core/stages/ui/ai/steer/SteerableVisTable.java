@@ -112,6 +112,14 @@ public class SteerableVisTable extends ContextAwareVisTable {
     @Override
     public void setDbgModelInstance(EditableModelInstance mi) {
         super.setDbgModelInstance(mi);
+
+        update(0f);
+    }
+
+    @Override
+    public void update(float delta) {
+        super.update(delta);
+        EditableModelInstance mi = dbgModelInstance;
         if (mi != null) {
             linearVelocityVisTable.setVector3(mi.linearVelocity);
             angularVelocityVisTable.setFloat(mi.angularVelocity);

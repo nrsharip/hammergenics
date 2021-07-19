@@ -62,5 +62,12 @@ public class SteeringVisTable extends ContextAwareVisTable {
     }
 
     @Override
+    public void update(float delta) {
+        super.update(delta);
+        steerableVisTable.update(delta);
+        steeringBehaviorsVisTable.update(delta);
+    }
+
+    @Override
     public void applyLocale() { }
 }

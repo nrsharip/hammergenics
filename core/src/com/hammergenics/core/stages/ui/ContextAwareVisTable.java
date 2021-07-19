@@ -16,6 +16,7 @@
 
 package com.hammergenics.core.stages.ui;
 
+import com.badlogic.gdx.utils.Array;
 import com.hammergenics.HGEngine;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.graphics.g3d.EditableModelInstance;
@@ -31,6 +32,7 @@ public abstract class ContextAwareVisTable extends VisTable {
     public ModelEditScreen modelES;
     public ModelEditStage stage;
     public EditableModelInstance dbgModelInstance;
+    public Array<EditableModelInstance> dbgModelInstances = new Array<>(true, 16, EditableModelInstance.class);
     public HGEngine eng;
 
     public ContextAwareVisTable(ModelEditScreen modelES, ModelEditStage stage) {
@@ -40,6 +42,14 @@ public abstract class ContextAwareVisTable extends VisTable {
     }
 
     public void setDbgModelInstance(EditableModelInstance mi) { this.dbgModelInstance = mi; }
+
+    public void setDbgModelInstances(Array<EditableModelInstance> mis) {
+        dbgModelInstances.clear();
+        if (mis == null) { return; }
+        this.dbgModelInstances.addAll(mis);
+    }
+
+    public void update(float delta) { }
 
     public abstract void applyLocale();
 }

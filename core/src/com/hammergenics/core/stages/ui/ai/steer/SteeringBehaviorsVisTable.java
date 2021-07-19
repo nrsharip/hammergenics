@@ -86,13 +86,21 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
     @Override
     public void setDbgModelInstance(EditableModelInstance mi) {
         super.setDbgModelInstance(mi);
-        if (mi != null) {
-            steeringEnabledVisTable.setBoolean(mi.steeringEnabled);
+
+        update(0f);
+    }
+
+    @Override
+    public void update(float delta) {
+        super.update(delta);
+
+        if (dbgModelInstance != null) {
+            steeringEnabledVisTable.setBoolean(dbgModelInstance.steeringEnabled);
 
             steeringBehaviorSB.getSelection().setProgrammaticChangeEvents(false);
             steeringBehaviorSB.clearItems();
             steeringBehaviorSB.setItems(SteeringBehaviorsVector3Enum.values());
-            steeringBehaviorSB.setSelected(mi.currentSteeringBehavior);
+            steeringBehaviorSB.setSelected(dbgModelInstance.currentSteeringBehavior);
             steeringBehaviorSB.getSelection().setProgrammaticChangeEvents(true);
 
             targetVisTable.setTarget(getCurrentTarget());

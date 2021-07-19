@@ -87,6 +87,14 @@ public class btRigidBodyVisWindow extends ContextAwareVisWindow {
         coTable.setDbgModelInstance(mi);
     }
 
+    @Override
+    public void update(float delta) {
+        super.update(delta);
+
+        rbTable.setDbgModelInstance(dbgModelInstance); // keeping setDbgModelInstance for now instead of update
+        coTable.setDbgModelInstance(dbgModelInstance); // keeping setDbgModelInstance for now instead of update
+    }
+
     public static class rbTab extends Tab {
         String title;
         VisTable contentTable;

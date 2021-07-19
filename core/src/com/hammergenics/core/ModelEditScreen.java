@@ -177,10 +177,10 @@ public class ModelEditScreen extends ScreenAdapter {
                 stage.physManagerTable.dynamicsWindow.dynamicsCheckBox.isChecked()
         );
         if (stage.isPressed(stage.aiTextButton) && stage.aiManagerTable.dbgModelInstance != null) {
-            stage.aiManagerTable.update();
+            stage.aiManagerTable.update(delta);
         }
         if (stage.isPressed(stage.physTextButton) && stage.physManagerTable.dbgModelInstance != null) {
-            stage.physManagerTable.updateRigidBody();
+            stage.physManagerTable.update(delta);
         }
 
         visibleTerrainParts = 0;

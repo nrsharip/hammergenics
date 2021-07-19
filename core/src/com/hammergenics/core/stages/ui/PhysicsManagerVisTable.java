@@ -46,7 +46,7 @@ public class PhysicsManagerVisTable extends ManagerVisTable {
 
         add(windows).expand().fill();
 
-        dynamicsWindow.updateDynamicsWorld();
+        dynamicsWindow.update(0f);
     }
 
     @Override
@@ -58,12 +58,15 @@ public class PhysicsManagerVisTable extends ManagerVisTable {
     public void setDbgModelInstance(EditableModelInstance mi) {
         super.setDbgModelInstance(mi);
 
-        dynamicsWindow.updateDynamicsWorld();
+        dynamicsWindow.update(0f);
         rigidBodyWindow.setDbgModelInstance(mi);
     }
 
-    public void updateRigidBody() {
-        rigidBodyWindow.setDbgModelInstance(dbgModelInstance);
+    @Override
+    public void update(float delta) {
+        super.update(delta);
+        dynamicsWindow.update(delta);
+        rigidBodyWindow.update(delta);
     }
 
     @Override
