@@ -16,16 +16,24 @@
 
 package com.hammergenics.core.graphics.g3d;
 
+import com.badlogic.gdx.ai.steer.Proximity;
 import com.badlogic.gdx.ai.steer.Steerable;
 import com.badlogic.gdx.ai.steer.SteeringAcceleration;
 import com.badlogic.gdx.ai.steer.behaviors.Arrive;
+import com.badlogic.gdx.ai.steer.behaviors.Jump;
+import com.badlogic.gdx.ai.steer.proximities.RadiusProximity;
+import com.badlogic.gdx.ai.steer.utils.Path;
+import com.badlogic.gdx.ai.steer.utils.paths.LinePath;
 import com.badlogic.gdx.ai.utils.Location;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import com.hammergenics.ai.steer.SteeringBehaviorsVector3Enum;
+import com.hammergenics.ai.steer.behaviors.JumpCallbackAdapter;
+import com.hammergenics.ai.steer.behaviors.Y3DGravityComponentHandler;
 import com.hammergenics.ai.utils.LocationAdapter;
 
 import static com.hammergenics.ai.steer.SteeringBehaviorsVector3Enum.*;
@@ -63,6 +71,16 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     public boolean steeringEnabled = false;
     public SteeringBehaviorsVector3Enum currentSteeringBehavior;
     public Location<Vector3> target = new LocationAdapter<>(new Vector3(0f, 0f, 0f));
+    public Array<Steerable<Vector3>> agents = new Array<>(true, 16, Steerable.class);
+    // FieldOfViewProximity
+    // InfiniteProximity
+    // RadiusProximity
+    public Proximity<Vector3> proximity = new RadiusProximity<>(this, agents, 1f);
+    public Path<Vector3, LinePath.LinePathParam> path;
+    public Jump.JumpDescriptor<Vector3> jumpDescriptor;
+    public Y3DGravityComponentHandler y3DGravityComponentHandler;
+    public JumpCallbackAdapter jumpCallback;
+    private Vector3 jumpGravity = new Vector3();
 
     public SteerableModelInstance(Model model, float mass, ShapesEnum shape) { this(new HGModel(model), null, mass, shape, (String[])null); }
     public SteerableModelInstance(Model model, float mass, ShapesEnum shape, String... rootNodeIds) { this(new HGModel(model), null, mass, shape, rootNodeIds); }
@@ -128,12 +146,33 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
 
         SteeringAcceleration<Vector3> out = new SteeringAcceleration<>(new Vector3()).setZero();
         switch (currentSteeringBehavior) {
+            case ALIGNMENT: break;
             case ARRIVE:
                 // Calculate steering acceleration
                 SteeringBehaviorsVector3Enum.initArrive(this, target, 0.1f, 1f, 1f);
                 Arrive<Vector3> arrive = (Arrive<Vector3>) ARRIVE.getInstance();
                 arrive.calculateSteering(out);
                 break;
+            case BLENDED_STEERING: break;
+            case COHESION: break;
+            case COLLISION_AVOIDANCE: break;
+            case EVADE: break;
+            case FACE: break;
+            case FLEE: break;
+            case FOLLOW_FLOW_FIELD: break;
+            case FOLLOW_PATH: break;
+            case HIDE: break;
+            case INTERPOSE: break;
+            case JUMP: break;
+            case LOOK_WHERE_YOU_ARE_GOING: break;
+            case MATCH_VELOCITY: break;
+            case PRIORITY_STEERING: break;
+            case PURSUE: break;
+            case RAY_CAST_OBSTACLE_AVOIDANCE: break;
+            case REACH_ORIENTATION: break;
+            case SEEK: break;
+            case SEPARATION: break;
+            case WANDER: break;
         }
 
         /*

@@ -16,12 +16,16 @@
 
 package com.hammergenics.core.stages.ui.auxiliary.types;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector3;
 import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisTable;
 import com.kotcrab.vis.ui.widget.VisTextField;
 
 public class Vector3VisTable extends VisTable {
+    private static final String ACTOR_X = "vector3.x";
+    private static final String ACTOR_Y = "vector3.y";
+    private static final String ACTOR_Z = "vector3.z";
     public Vector3 vector3;
 
     public VisLabel titleL;
@@ -70,9 +74,36 @@ public class Vector3VisTable extends VisTable {
         if (yL != null) { this.yL = yL; } else { this.yL = new VisLabel("y"); }
         if (zL != null) { this.zL = zL; } else { this.zL = new VisLabel("z"); }
 
+        VisTextField.TextFieldListener textFieldListener = new VisTextField.TextFieldListener() {
+            @Override
+            public void keyTyped(VisTextField textField, char c) {
+                if (Vector3VisTable.this.vector3 == null) { return; }
+                try {
+                    float value = Float.parseFloat(textField.getText());
+
+                    switch (textField.getName()) {
+                        case ACTOR_X: Vector3VisTable.this.vector3.x = value; break;
+                        case ACTOR_Y: Vector3VisTable.this.vector3.y = value; break;
+                        case ACTOR_Z: Vector3VisTable.this.vector3.z = value; break;
+                    }
+                    textField.getColor().set(Color.WHITE);
+                } catch (NumberFormatException e) {
+                    textField.getColor().set(Color.PINK);
+                }
+            }
+        };
+
         xTF = new VisTextField(Float.toString(this.vector3.x));
+        xTF.setName(ACTOR_X);
+        xTF.setTextFieldListener(textFieldListener);
+
         yTF = new VisTextField(Float.toString(this.vector3.y));
+        yTF.setName(ACTOR_Y);
+        yTF.setTextFieldListener(textFieldListener);
+
         zTF = new VisTextField(Float.toString(this.vector3.z));
+        zTF.setName(ACTOR_Z);
+        zTF.setTextFieldListener(textFieldListener);
 
         if (!vertical) {
             if (labels) {
