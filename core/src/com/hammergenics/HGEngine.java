@@ -18,6 +18,7 @@ package com.hammergenics;
 
 import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.ai.GdxAI;
 import com.badlogic.gdx.assets.AssetDescriptor;
 import com.badlogic.gdx.assets.AssetLoaderParameters;
 import com.badlogic.gdx.assets.AssetManager;
@@ -903,6 +904,20 @@ public class HGEngine implements Disposable {
             }
         });
 
+        // https://github.com/libgdx/gdx-ai/wiki/Initializing-and-Using-gdxAI
+        // Timepiece is the AI clock which gives you the current time and the last delta time i.e.,
+        // the time span between the current frame and the last frame in seconds. This is the only service
+        // provider that does not depend on the environment, whether libgdx or not. It is needed because some
+        // parts of gdx-ai (like for instance MessageDispatcher, Jump steering behavior and Wait task) have
+        // a notion of spent time and we want to support game pause. It's developer's responsibility to update
+        // the timepiece on each game loop. When the game is paused you simply don't update the timepiece.
+
+        // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#wander
+        // Note that this behavior internally calls the GdxAI.getTimepiece().getTime() method to get
+        // the current AI time and make the wanderRate FPS independent. This means that
+        // * if you forget to update the timepiece the wander orientation won't change.
+        // * the timepiece should be always updated before this steering behavior runs.
+        GdxAI.getTimepiece().update(delta);
         editableMIs.forEach(mi -> mi.update(delta));
 
         if (dynamics) {

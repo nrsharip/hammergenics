@@ -16,6 +16,7 @@
 
 package com.hammergenics.ai.steer;
 
+import com.badlogic.gdx.ai.steer.Limiter;
 import com.badlogic.gdx.ai.steer.Proximity;
 import com.badlogic.gdx.ai.steer.Steerable;
 import com.badlogic.gdx.ai.steer.SteeringBehavior;
@@ -229,11 +230,12 @@ public enum SteeringBehaviorsVector3Enum {
             return instance;
         }
     },
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#wander
     WANDER(Wander.class) {
         @Override
         public SteeringBehavior<Vector3> getInstance() {
             // single threaded processing is assumed: returning a singleton
-            if (instance == null) { instance = new Wander<>(stubOwner); }
+            if (instance == null) { instance = new HG3DWander(stubOwner); }
             return instance;
         }
     };
@@ -293,22 +295,39 @@ public enum SteeringBehaviorsVector3Enum {
         }
     }
 
+    public static class HG3DWander extends Wander<Vector3> {
+        public HG3DWander(Steerable<Vector3> owner) {
+            super(owner);
+        }
+        public float getLastTime() { return this.lastTime; }
+        public void setLastTime(float lastTime) { this.lastTime = lastTime; }
+    }
+
+    public static void initSteeringBehavior(SteeringBehavior<Vector3> steeringBehavior,
+                                            Steerable<Vector3> owner, Limiter limiter, boolean enabled) {
+        steeringBehavior.setOwner(owner);
+        steeringBehavior.setLimiter(limiter);
+        steeringBehavior.setEnabled(enabled);
+    }
     public static void initAlignment() { }
-    public static void initArrive(Steerable<Vector3> owner, Location<Vector3> target,
+    public static void initArrive(Arrive<Vector3> arrive, Location<Vector3> target,
                                   float arrivalTolerance, float decelerationRadius, float timeToTarget) {
-        Arrive<Vector3> arrive = (Arrive<Vector3>) SteeringBehaviorsVector3Enum.ARRIVE.getInstance();
-        arrive.setOwner(owner);
+        // Consider also:
+        // initSteeringBehavior
         arrive.setTarget(target);
         arrive.setArrivalTolerance(arrivalTolerance);
         arrive.setDecelerationRadius(decelerationRadius);
         arrive.setTimeToTarget(timeToTarget);
-        arrive.setEnabled(true);
     }
     public static void initBlendedSteering() { }
     public static void initCohesion() { }
     public static void initCollisionAvoidance() { }
     public static void initEvade() { }
-    public static void initFace() { }
+    public static void initFace(Face<Vector3> face) {
+        // Consider also:
+        // initSteeringBehavior
+        // initReachOrientation
+    }
     public static void initFlee() { }
     public static void initFollowFlowField() { }
     public static void initFollowPath() { }
@@ -320,8 +339,29 @@ public enum SteeringBehaviorsVector3Enum {
     public static void initPrioritySteering() { }
     public static void initPursue() { }
     public static void initRaycastObstacleAvoidance() { }
-    public static void initReachOrientation() { }
+    public static void initReachOrientation(ReachOrientation<Vector3> reachOrientation, Location<Vector3> target,
+                                            float alignTolerance, float decelerationRadius, float timeToTarget) {
+        // Consider also:
+        // initSteeringBehavior
+        reachOrientation.setTarget(target);
+        reachOrientation.setAlignTolerance(alignTolerance);
+        reachOrientation.setDecelerationRadius(decelerationRadius);
+        reachOrientation.setTimeToTarget(timeToTarget);
+    }
     public static void initSeek() { }
     public static void initSeparation() { }
-    public static void initWander() { }
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#wander
+    public static void initWander(HG3DWander wander, float lastTime, float wanderOffset, float wanderRadius, float wanderRate,
+                                  float wanderOrientation, boolean faceEnabled) {
+        // Consider also:
+        // initSteeringBehavior
+        // initReachOrientation
+        // initFace
+        wander.setLastTime(lastTime);
+        wander.setWanderOffset(wanderOffset);
+        wander.setWanderRadius(wanderRadius);
+        wander.setWanderRate(wanderRate);
+        wander.setWanderOrientation(wanderOrientation);
+        wander.setFaceEnabled(faceEnabled);
+    }
 }

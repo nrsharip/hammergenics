@@ -16,6 +16,7 @@
 
 package com.hammergenics.core.graphics.g3d;
 
+import com.badlogic.gdx.ai.steer.Limiter;
 import com.badlogic.gdx.ai.steer.Proximity;
 import com.badlogic.gdx.ai.steer.Steerable;
 import com.badlogic.gdx.ai.steer.SteeringAcceleration;
@@ -27,6 +28,7 @@ import com.badlogic.gdx.ai.steer.utils.paths.LinePath;
 import com.badlogic.gdx.ai.utils.Location;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
@@ -70,7 +72,28 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     // Steering Behaviors related:
     public boolean steeringEnabled = false;
     public SteeringBehaviorsVector3Enum currentSteeringBehavior;
-    public Location<Vector3> target = new LocationAdapter<>(new Vector3(0f, 0f, 0f));
+    // SteeringBehavior
+    public Steerable<Vector3> steeringBehaviorOwner;
+    public Limiter steeringBehaviorLimiter = null;
+    public boolean steeringBehaviorEnabled = true;
+    // SteeringBehavior -> Arrive
+    public Location<Vector3> arriveTarget = new LocationAdapter<>(new Vector3(0f, 0f, 0f), 0f);
+    public float arriveArrivalTolerance = 0.1f;
+    public float arriveDecelerationRadius = 1f;
+    public float arriveTimeToTarget = 1f;
+    // SteeringBehavior -> ReachOrientation
+    public Location<Vector3> reachOrientationTarget = new LocationAdapter<>(new Vector3(0f, 0f, 0f), 0f);
+    public float reachOrientationAlignTolerance = 0.1f;
+    public float reachOrientationDecelerationRadius = 1f;
+    public float reachOrientationTimeToTarget = 1f;
+    // ReachOrientation -> Face -> Wander
+    public float wanderLastTime = 0f;
+    public float wanderOffset = 1f;
+    public float wanderRadius = 10f;
+    public float wanderRate = 1f;
+    public float wanderOrientation = 0f;
+    public boolean faceEnabled = true;
+
     public Array<Steerable<Vector3>> agents = new Array<>(true, 16, Steerable.class);
     // FieldOfViewProximity
     // InfiniteProximity
@@ -89,6 +112,8 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     public SteerableModelInstance(HGModel hgModel, FileHandle assetFL, float mass, ShapesEnum shape) { this(hgModel, assetFL, mass, shape, (String[])null); }
     public SteerableModelInstance(HGModel hgModel, FileHandle assetFL, float mass, ShapesEnum shape, String... rootNodeIds) {
         super(hgModel, assetFL, mass, shape, rootNodeIds);
+
+        steeringBehaviorOwner = this;
 
         currentSteeringBehavior = ARRIVE;
     }
@@ -140,18 +165,27 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
 
     public void syncLocationWithTransform() { transform.getTranslation(position); }
 
+    protected final SteeringAcceleration<Vector3> steeringAcceleration = new SteeringAcceleration<>(new Vector3()).setZero();
     // see https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#the-steering-system-api
     public void update (float delta) {
         if (!steeringEnabled) { return; }
 
-        SteeringAcceleration<Vector3> out = new SteeringAcceleration<>(new Vector3()).setZero();
+        steeringAcceleration.setZero();
+        // Calculate steering acceleration for selected behavior
         switch (currentSteeringBehavior) {
             case ALIGNMENT: break;
             case ARRIVE:
-                // Calculate steering acceleration
-                SteeringBehaviorsVector3Enum.initArrive(this, target, 0.1f, 1f, 1f);
                 Arrive<Vector3> arrive = (Arrive<Vector3>) ARRIVE.getInstance();
-                arrive.calculateSteering(out);
+                SteeringBehaviorsVector3Enum.initSteeringBehavior(arrive,
+                        steeringBehaviorOwner,
+                        steeringBehaviorLimiter,
+                        steeringEnabled);
+                SteeringBehaviorsVector3Enum.initArrive(arrive,
+                        arriveTarget,
+                        arriveArrivalTolerance,
+                        arriveDecelerationRadius,
+                        arriveTimeToTarget);
+                arrive.calculateSteering(steeringAcceleration);
                 break;
             case BLENDED_STEERING: break;
             case COHESION: break;
@@ -172,7 +206,24 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
             case REACH_ORIENTATION: break;
             case SEEK: break;
             case SEPARATION: break;
-            case WANDER: break;
+            case WANDER: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#wander
+                HG3DWander wander = (HG3DWander) WANDER.getInstance();
+                SteeringBehaviorsVector3Enum.initSteeringBehavior(wander,
+                        steeringBehaviorOwner,
+                        steeringBehaviorLimiter,
+                        steeringEnabled);
+                //SteeringBehaviorsVector3Enum.initReachOrientation(wander,...);
+                //SteeringBehaviorsVector3Enum.initFace(wander);
+                SteeringBehaviorsVector3Enum.initWander(wander,
+                        wanderLastTime,
+                        wanderOffset,
+                        wanderRadius,
+                        wanderRate,
+                        wanderOrientation,
+                        faceEnabled);
+                wander.calculateSteering(steeringAcceleration);
+                wanderLastTime = wander.getLastTime();
+                break;
         }
 
         /*
@@ -186,18 +237,31 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
          */
 
         // Apply steering acceleration to move this agent
-        applySteering(out, delta);
+        applySteering(steeringAcceleration, delta);
     }
+
+    private final Vector3 translation = new Vector3();
+    private final Quaternion rotation = new Quaternion();
+    private final Vector3 scale = new Vector3();
+    private final Matrix4 tmpM4 = new Matrix4();
 
     // see https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#the-steering-system-api
     private void applySteering(SteeringAcceleration<Vector3> steering, float time) {
+        transform.getScale(scale);
         // Update position and linear velocity. Velocity is trimmed to maximum speed
         this.position.mulAdd(linearVelocity, time);
-        this.linearVelocity.mulAdd(steering.linear, time).limit(this.getMaxLinearSpeed());
-
         this.orientation += angularVelocity * time;
+        //Gdx.app.debug("steerable", "steering.linear: " + steering.linear);
+        //Gdx.app.debug("steerable", "steering.angular: " + steering.angular);
+        this.linearVelocity.mulAdd(steering.linear, time).limit(this.getMaxLinearSpeed());
         this.angularVelocity += steering.angular * time;
+        //Gdx.app.debug("steerable", "linearVelocity: " + this.linearVelocity);
+        //Gdx.app.debug("steerable", "angularVelocity: " + this.angularVelocity);
+
+        rotation.setEulerAnglesRad(-this.orientation, 0f, 0f);
 
         setToTranslation(this.position);
+        rotate(rotation);
+        scale(scale.x, scale.y, scale.z);
     }
 }

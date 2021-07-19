@@ -101,8 +101,8 @@ public class SteeringBehaviorsVisTable extends VisTable {
             steeringBehaviorSB.setSelected(mi.currentSteeringBehavior);
             steeringBehaviorSB.getSelection().setProgrammaticChangeEvents(true);
 
-            targetPosition.setVector3(mi.target.getPosition());
-            targetOrientation.setFloat(mi.target.getOrientation());
+            targetPosition.setVector3(mi.arriveTarget.getPosition());     // reachOrientationTarget // arriveTarget
+            targetOrientation.setFloat(mi.arriveTarget.getOrientation()); // reachOrientationTarget // arriveTarget
         } else {
             steeringEnabledVisTable.setBoolean(false);
 
