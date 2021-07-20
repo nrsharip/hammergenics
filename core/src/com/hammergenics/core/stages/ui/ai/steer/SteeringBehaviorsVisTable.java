@@ -200,6 +200,22 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
                 steeringParamsVisTable.add(arriveTimeToTargetVisTable.titleL).padRight(5f).right();
                 steeringParamsVisTable.add(arriveTimeToTargetVisTable.valueT).left().row();
                 break;
+            case EVADE: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#pursue-and-evade
+                targetVisTable.setTarget(getCurrentTarget());
+                evadeMaxPredictionTimeVisTable.setFloat(mi.evadeMaxPredictionTime).setSetter(mi::setEvadeMaxPredictionTime);
+
+                steeringParamsVisTable.add(targetVisTable).colspan(2).row();
+                steeringParamsVisTable.add(evadeMaxPredictionTimeVisTable.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(evadeMaxPredictionTimeVisTable.valueT).left().row();
+                break;
+            case PURSUE: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#pursue-and-evade
+                targetVisTable.setTarget(getCurrentTarget());
+                pursueMaxPredictionTimeVisTable.setFloat(mi.pursueMaxPredictionTime).setSetter(mi::setPursueMaxPredictionTime);
+
+                steeringParamsVisTable.add(targetVisTable).colspan(2).row();
+                steeringParamsVisTable.add(pursueMaxPredictionTimeVisTable.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(pursueMaxPredictionTimeVisTable.valueT).left().row();
+                break;
             case WANDER: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#wander
                 wanderLastTimeVisTable.setFloat(mi.wanderLastTime).setSetter(mi::setWanderLastTime);
                 wanderOffsetVisTable.setFloat(mi.wanderOffset).setSetter(mi::setWanderOffset);
@@ -233,6 +249,10 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
         arriveDecelerationRadiusVisTable.setFloat(0f).clearSetter();
         arriveTimeToTargetVisTable.setFloat(0f).clearSetter();
 
+        evadeMaxPredictionTimeVisTable.setFloat(0f).clearSetter();
+
+        pursueMaxPredictionTimeVisTable.setFloat(0f).clearSetter();
+
         wanderLastTimeVisTable.setFloat(0f).clearSetter();
         wanderOffsetVisTable.setFloat(0f).clearSetter();
         wanderRadiusVisTable.setFloat(0f).clearSetter();
@@ -249,6 +269,12 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
                 arriveArrivalToleranceVisTable.setFloat(dbgModelInstance.arriveArrivalTolerance);
                 arriveDecelerationRadiusVisTable.setFloat(dbgModelInstance.arriveDecelerationRadius);
                 arriveTimeToTargetVisTable.setFloat(dbgModelInstance.arriveTimeToTarget);
+                break;
+            case EVADE:
+                evadeMaxPredictionTimeVisTable.setFloat(dbgModelInstance.evadeMaxPredictionTime);
+                break;
+            case PURSUE:
+                pursueMaxPredictionTimeVisTable.setFloat(dbgModelInstance.pursueMaxPredictionTime);
                 break;
             case WANDER:
                 wanderLastTimeVisTable.setFloat(dbgModelInstance.wanderLastTime);
@@ -273,17 +299,20 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
         if (sb == null) { return null; }
         switch (sb) {
             case ARRIVE: return dbgModelInstance.arriveTarget;
+            case EVADE: return dbgModelInstance.evadeTarget;
+            case PURSUE: return dbgModelInstance.pursueTarget;
             default: return null;
         }
     }
 
-    public void setCurrentTarget(Location<Vector3> target) {
-        if (dbgModelInstance == null) { return; }
+    public void setCurrentTarget(EditableModelInstance target) {
+        if (dbgModelInstance == null || target == null) { return; }
         SteeringBehaviorsVector3Enum sb = steeringBehaviorSB.getSelected();
         if (sb == null) { return; }
         switch (sb) {
-            case ARRIVE: if (target != null) { dbgModelInstance.arriveTarget = target; } break;
-            default: return;
+            case ARRIVE: dbgModelInstance.arriveTarget = target; break;
+            case EVADE: dbgModelInstance.evadeTarget = target; break;
+            case PURSUE: dbgModelInstance.pursueTarget = target; break;
         }
     }
 

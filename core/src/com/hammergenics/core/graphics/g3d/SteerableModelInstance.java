@@ -24,6 +24,7 @@ import com.badlogic.gdx.ai.steer.behaviors.Arrive;
 import com.badlogic.gdx.ai.steer.behaviors.Evade;
 import com.badlogic.gdx.ai.steer.behaviors.FollowFlowField;
 import com.badlogic.gdx.ai.steer.behaviors.Jump;
+import com.badlogic.gdx.ai.steer.behaviors.Pursue;
 import com.badlogic.gdx.ai.steer.proximities.RadiusProximity;
 import com.badlogic.gdx.ai.steer.utils.Path;
 import com.badlogic.gdx.ai.steer.utils.paths.LinePath;
@@ -88,7 +89,7 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     public float arriveTimeToTarget = 1f;
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#pursue-and-evade
     // SteeringBehavior -> Pursue -> Evade
-    public Location<Vector3> evadeTarget = new LocationAdapter<>(new Vector3(0f, 0f, 0f), 0f);
+    public Steerable<Vector3> evadeTarget = this;
     public float evadeMaxPredictionTime = 1f;
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#face
     // ReachOrientation -> Face
@@ -133,7 +134,7 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     public float matchVelocityTimeToTarget;
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#pursue-and-evade
     // SteeringBehavior -> Pursue
-    public Location<Vector3> pursueTarget = new LocationAdapter<>(new Vector3(0f, 0f, 0f), 0f);
+    public Steerable<Vector3> pursueTarget = this;
     public float pursueMaxPredictionTime = 1f;
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#reach-orientation
     // SteeringBehavior -> ReachOrientation
@@ -232,7 +233,7 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     public void setArriveArrivalTolerance(float arriveArrivalTolerance) { this.arriveArrivalTolerance = arriveArrivalTolerance; }
     public void setArriveDecelerationRadius(float arriveDecelerationRadius) { this.arriveDecelerationRadius = arriveDecelerationRadius; }
     public void setArriveTimeToTarget(float arriveTimeToTarget) { this.arriveTimeToTarget = arriveTimeToTarget; }
-    public void setEvadeTarget(Location<Vector3> evadeTarget) { this.evadeTarget = evadeTarget; }
+    public void setEvadeTarget(Steerable<Vector3> evadeTarget) { this.evadeTarget = evadeTarget; }
     public void setEvadeMaxPredictionTime(float evadeMaxPredictionTime) { this.evadeMaxPredictionTime = evadeMaxPredictionTime; }
     public void setFaceTarget(Location<Vector3> faceTarget) { this.faceTarget = faceTarget; }
     public void setFaceAlignTolerance(float faceAlignTolerance) { this.faceAlignTolerance = faceAlignTolerance; }
@@ -259,7 +260,7 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     public void setJumpAirborneTime(float jumpAirborneTime) { this.jumpAirborneTime = jumpAirborneTime; }
     public void setMatchVelocityTarget(Steerable<Vector3> matchVelocityTarget) { this.matchVelocityTarget = matchVelocityTarget; }
     public void setMatchVelocityTimeToTarget(float matchVelocityTimeToTarget) { this.matchVelocityTimeToTarget = matchVelocityTimeToTarget; }
-    public void setPursueTarget(Location<Vector3> pursueTarget) { this.pursueTarget = pursueTarget; }
+    public void setPursueTarget(Steerable<Vector3> pursueTarget) { this.pursueTarget = pursueTarget; }
     public void setPursueMaxPredictionTime(float pursueMaxPredictionTime) { this.pursueMaxPredictionTime = pursueMaxPredictionTime; }
     public void setReachOrientationTarget(Location<Vector3> reachOrientationTarget) { this.reachOrientationTarget = reachOrientationTarget; }
     public void setReachOrientationAlignTolerance(float reachOrientationAlignTolerance) { this.reachOrientationAlignTolerance = reachOrientationAlignTolerance; }
@@ -302,6 +303,10 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
                         steeringBehaviorOwner,
                         steeringBehaviorLimiter,
                         steeringEnabled);
+                SteeringBehaviorsVector3Enum.initPursue(evade,
+                        evadeTarget,
+                        evadeMaxPredictionTime);
+                evade.calculateSteering(steeringAcceleration);
                 break;
             // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#face
             case FACE: break;
@@ -320,7 +325,17 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
             // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#match-velocity
             case MATCH_VELOCITY: break;
             // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#pursue-and-evade
-            case PURSUE: break;
+            case PURSUE:
+                Pursue<Vector3> pursue = (Pursue<Vector3>) PURSUE.getInstance();
+                SteeringBehaviorsVector3Enum.initSteeringBehavior(pursue,
+                        steeringBehaviorOwner,
+                        steeringBehaviorLimiter,
+                        steeringEnabled);
+                SteeringBehaviorsVector3Enum.initPursue(pursue,
+                        pursueTarget,
+                        pursueMaxPredictionTime);
+                pursue.calculateSteering(steeringAcceleration);
+                break;
             // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#reach-orientation
             case REACH_ORIENTATION: break;
             // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#seek-and-flee

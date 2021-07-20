@@ -349,7 +349,11 @@ public enum SteeringBehaviorsVector3Enum {
     public static void initBlendedSteering() { }
     public static void initCohesion() { }
     public static void initCollisionAvoidance() { }
-    public static void initEvade() { }
+    public static void initEvade(Evade<Vector3> evade) {
+        // Consider also:
+        // initSteeringBehavior
+        // initPursue
+    }
     public static void initFace(Face<Vector3> face) {
         // Consider also:
         // initSteeringBehavior
@@ -364,7 +368,12 @@ public enum SteeringBehaviorsVector3Enum {
     public static void initLookWhereYouAreGoing() { }
     public static void initMatchVelocity() { }
     public static void initPrioritySteering() { }
-    public static void initPursue() { }
+    public static void initPursue(Pursue<Vector3> pursue, Steerable<Vector3> target, float maxPredictionTime) {
+        // Consider also:
+        // initSteeringBehavior
+        pursue.setTarget(target);
+        pursue.setMaxPredictionTime(maxPredictionTime);
+    }
     public static void initRaycastObstacleAvoidance() { }
     public static void initReachOrientation(ReachOrientation<Vector3> reachOrientation, Location<Vector3> target,
                                             float alignTolerance, float decelerationRadius, float timeToTarget) {
