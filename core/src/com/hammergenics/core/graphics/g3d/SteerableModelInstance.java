@@ -32,7 +32,6 @@ import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
-import com.badlogic.gdx.math.Vector;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
@@ -76,12 +75,10 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     public boolean steeringEnabled = false;
     public SteeringBehaviorsVector3Enum currentSteeringBehavior;
     public final SteeringAcceleration<Vector3> steeringAcceleration = new SteeringAcceleration<>(new Vector3()).setZero();
-
     // SteeringBehavior
     public Steerable<Vector3> steeringBehaviorOwner;
     public Limiter steeringBehaviorLimiter = null;
     public boolean steeringBehaviorEnabled = true;
-
     // INDIVIDUAL BEHAVIORS: https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#individual-behaviors
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#arrive
     // SteeringBehavior -> Arrive
@@ -108,32 +105,32 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     public float flowFieldPredictionTime = 1f;
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#path-following
     // SteeringBehavior -> Arrive -> FollowPath
-    public LinePath<Vector3> path = new LinePath<>(new Array<>(new Vector3[]{Vector3.X.cpy(), Vector3.Z.cpy()}));
-    public float pathOffset;
-    public Path.PathParam pathParam = new LinePath.LinePathParam();
-    public boolean arriveEnabled;
-    public float predictionTime;
+    public LinePath<Vector3> followPath = new LinePath<>(new Array<>(new Vector3[]{Vector3.X.cpy(), Vector3.Z.cpy()}));
+    public float followPathOffset;
+    public Path.PathParam followPathParam = new LinePath.LinePathParam();
+    public boolean followArriveEnabled;
+    public float followPredictionTime;
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#interpose
     // SteeringBehavior -> Arrive -> Interpose
-    protected Steerable<Vector3> agentA;
-    protected Steerable<Vector3> agentB;
-    protected float interpositionRatio;
+    public Steerable<Vector3> interposeAgentA;
+    public Steerable<Vector3> interposeAgentB;
+    public float interpositionRatio;
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#jump
     // SteeringBehavior -> MatchVelocity -> Jump
     public Jump.JumpDescriptor<Vector3> jumpDescriptor;
-    public Vector3 jumpGravity = new Vector3();
-    public Y3DGravityComponentHandler y3DGravityComponentHandler;
+    public Y3DGravityComponentHandler jumpY3DGravityComponentHandler;
     public JumpCallbackAdapter jumpCallback;
-    public float takeoffPositionTolerance;
-    public float takeoffVelocityTolerance;
-    public float maxVerticalVelocity;
-    public float airborneTime = 0;
+    public Vector3 jumpGravity = new Vector3();
+    public float jumpTakeoffPositionTolerance;
+    public float jumpTakeoffVelocityTolerance;
+    public float jumpMaxVerticalVelocity;
+    public float jumpAirborneTime = 0;
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#look-where-you-are-going
     // SteeringBehavior -> ReachOrientation -> LookWhereYouAreGoing
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#match-velocity
     // SteeringBehavior -> MatchVelocity
-    protected Steerable<Vector3> matchVelocityTarget;
-    protected float matchVelocityTimeToTarget;
+    public Steerable<Vector3> matchVelocityTarget;
+    public float matchVelocityTimeToTarget;
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#pursue-and-evade
     // SteeringBehavior -> Pursue
     public Location<Vector3> pursueTarget = new LocationAdapter<>(new Vector3(0f, 0f, 0f), 0f);
@@ -154,7 +151,7 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     public float wanderRadius = 10f;
     public float wanderRate = 1f;
     public float wanderOrientation = 0f;
-    public boolean faceEnabled = true;
+    public boolean wanderFaceEnabled = true;
 
     public Array<Steerable<Vector3>> agents = new Array<>(true, 16, Steerable.class);
     // FieldOfViewProximity
@@ -220,7 +217,57 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     @Override public void rotate(Quaternion rotation) { super.rotate(rotation); syncLocationWithTransform(); }
     @Override public void rotate(Vector3 v1, Vector3 v2) { super.rotate(v1, v2); syncLocationWithTransform(); }
 
-    public void syncLocationWithTransform() { transform.getTranslation(position); }
+    public void syncLocationWithTransform() {
+        transform.getTranslation(position);
+    }
+
+    public void setSteeringBehaviorOwner(Steerable<Vector3> steeringBehaviorOwner) { this.steeringBehaviorOwner = steeringBehaviorOwner; }
+    public void setSteeringBehaviorLimiter(Limiter steeringBehaviorLimiter) { this.steeringBehaviorLimiter = steeringBehaviorLimiter; }
+    public void setSteeringBehaviorEnabled(boolean steeringBehaviorEnabled) { this.steeringBehaviorEnabled = steeringBehaviorEnabled; }
+    public void setArriveTarget(Location<Vector3> arriveTarget) { this.arriveTarget = arriveTarget; }
+    public void setArriveArrivalTolerance(float arriveArrivalTolerance) { this.arriveArrivalTolerance = arriveArrivalTolerance; }
+    public void setArriveDecelerationRadius(float arriveDecelerationRadius) { this.arriveDecelerationRadius = arriveDecelerationRadius; }
+    public void setArriveTimeToTarget(float arriveTimeToTarget) { this.arriveTimeToTarget = arriveTimeToTarget; }
+    public void setEvadeTarget(Location<Vector3> evadeTarget) { this.evadeTarget = evadeTarget; }
+    public void setEvadeMaxPredictionTime(float evadeMaxPredictionTime) { this.evadeMaxPredictionTime = evadeMaxPredictionTime; }
+    public void setFaceTarget(Location<Vector3> faceTarget) { this.faceTarget = faceTarget; }
+    public void setFaceAlignTolerance(float faceAlignTolerance) { this.faceAlignTolerance = faceAlignTolerance; }
+    public void setFaceDecelerationRadius(float faceDecelerationRadius) { this.faceDecelerationRadius = faceDecelerationRadius; }
+    public void setFaceTimeToTarget(float faceTimeToTarget) { this.faceTimeToTarget = faceTimeToTarget; }
+    public void setFleeTarget(Location<Vector3> fleeTarget) { this.fleeTarget = fleeTarget; }
+    public void setFlowField(FollowFlowField.FlowField<Vector3> flowField) { this.flowField = flowField; }
+    public void setFlowFieldPredictionTime(float flowFieldPredictionTime) { this.flowFieldPredictionTime = flowFieldPredictionTime; }
+    public void setFollowPath(LinePath<Vector3> followPath) { this.followPath = followPath; }
+    public void setFollowPathOffset(float followPathOffset) { this.followPathOffset = followPathOffset; }
+    public void setFollowPathParam(Path.PathParam followPathParam) { this.followPathParam = followPathParam; }
+    public void setFollowArriveEnabled(boolean followArriveEnabled) { this.followArriveEnabled = followArriveEnabled; }
+    public void setFollowPredictionTime(float followPredictionTime) { this.followPredictionTime = followPredictionTime; }
+    public void setInterposeAgentA(Steerable<Vector3> interposeAgentA) { this.interposeAgentA = interposeAgentA; }
+    public void setInterposeAgentB(Steerable<Vector3> interposeAgentB) { this.interposeAgentB = interposeAgentB; }
+    public void setInterpositionRatio(float interpositionRatio) { this.interpositionRatio = interpositionRatio; }
+    public void setJumpDescriptor(Jump.JumpDescriptor<Vector3> jumpDescriptor) { this.jumpDescriptor = jumpDescriptor; }
+    public void setJumpY3DGravityComponentHandler(Y3DGravityComponentHandler jumpY3DGravityComponentHandler) { this.jumpY3DGravityComponentHandler = jumpY3DGravityComponentHandler; }
+    public void setJumpCallback(JumpCallbackAdapter jumpCallback) { this.jumpCallback = jumpCallback; }
+    public void setJumpGravity(Vector3 jumpGravity) { this.jumpGravity = jumpGravity; }
+    public void setJumpTakeoffPositionTolerance(float jumpTakeoffPositionTolerance) { this.jumpTakeoffPositionTolerance = jumpTakeoffPositionTolerance; }
+    public void setJumpTakeoffVelocityTolerance(float jumpTakeoffVelocityTolerance) { this.jumpTakeoffVelocityTolerance = jumpTakeoffVelocityTolerance; }
+    public void setJumpMaxVerticalVelocity(float jumpMaxVerticalVelocity) { this.jumpMaxVerticalVelocity = jumpMaxVerticalVelocity; }
+    public void setJumpAirborneTime(float jumpAirborneTime) { this.jumpAirborneTime = jumpAirborneTime; }
+    public void setMatchVelocityTarget(Steerable<Vector3> matchVelocityTarget) { this.matchVelocityTarget = matchVelocityTarget; }
+    public void setMatchVelocityTimeToTarget(float matchVelocityTimeToTarget) { this.matchVelocityTimeToTarget = matchVelocityTimeToTarget; }
+    public void setPursueTarget(Location<Vector3> pursueTarget) { this.pursueTarget = pursueTarget; }
+    public void setPursueMaxPredictionTime(float pursueMaxPredictionTime) { this.pursueMaxPredictionTime = pursueMaxPredictionTime; }
+    public void setReachOrientationTarget(Location<Vector3> reachOrientationTarget) { this.reachOrientationTarget = reachOrientationTarget; }
+    public void setReachOrientationAlignTolerance(float reachOrientationAlignTolerance) { this.reachOrientationAlignTolerance = reachOrientationAlignTolerance; }
+    public void setReachOrientationDecelerationRadius(float reachOrientationDecelerationRadius) { this.reachOrientationDecelerationRadius = reachOrientationDecelerationRadius; }
+    public void setReachOrientationTimeToTarget(float reachOrientationTimeToTarget) { this.reachOrientationTimeToTarget = reachOrientationTimeToTarget; }
+    public void setSeekTarget(Location<Vector3> seekTarget) { this.seekTarget = seekTarget; }
+    public void setWanderLastTime(float wanderLastTime) { this.wanderLastTime = wanderLastTime; }
+    public void setWanderOffset(float wanderOffset) { this.wanderOffset = wanderOffset; }
+    public void setWanderRadius(float wanderRadius) { this.wanderRadius = wanderRadius; }
+    public void setWanderRate(float wanderRate) { this.wanderRate = wanderRate; }
+    public void setWanderOrientation(float wanderOrientation) { this.wanderOrientation = wanderOrientation; }
+    public void setWanderFaceEnabled(boolean wanderFaceEnabled) { this.wanderFaceEnabled = wanderFaceEnabled; }
 
     // see https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#the-steering-system-api
     public void update (float delta) {
@@ -289,7 +336,7 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
                         wanderRadius,
                         wanderRate,
                         wanderOrientation,
-                        faceEnabled);
+                        wanderFaceEnabled);
                 wander.calculateSteering(steeringAcceleration);
                 wanderLastTime = wander.getLastTime();
                 break;

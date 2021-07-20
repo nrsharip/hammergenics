@@ -65,15 +65,22 @@ public class TargetVisTable extends ContextAwareVisTable {
         targetOrientation = new FloatVisTable(true, new VisLabel("orientation: "));
     }
 
-    public void setTarget(Location<Vector3> target) {
+    public TargetVisTable setTarget(Location<Vector3> target) {
         this.target = target;
         if (target != null) {
-            targetPosition.setVector3(target.getPosition());     // reachOrientationTarget // arriveTarget
-            targetOrientation.setFloat(target.getOrientation()); // reachOrientationTarget // arriveTarget
+            targetPosition.setVector3(target.getPosition());
+            targetOrientation.setFloat(target.getOrientation()).setSetter(target::setOrientation);
         } else {
             targetPosition.setVector3(null);
             targetOrientation.setFloat(0f);
         }
+        return this;
+    }
+
+    @Override
+    public void update(float delta) {
+        targetPosition.update();
+        targetOrientation.setFloat(target != null ? target.getOrientation() : 0f);
     }
 
     @Override

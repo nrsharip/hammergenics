@@ -16,9 +16,12 @@
 
 package com.hammergenics.core.stages.ui.auxiliary.types;
 
+import com.badlogic.gdx.graphics.Color;
 import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisTable;
 import com.kotcrab.vis.ui.widget.VisTextField;
+
+import java.util.function.Consumer;
 
 /**
  * Add description here
@@ -30,6 +33,7 @@ public class FloatVisTable extends VisTable {
     public VisLabel titleL;
     public VisTextField valueTF;
     public VisTable valueT;
+    public Consumer<Float> setter = null;
 
     public FloatVisTable(boolean title) {
         this(0f, title, null);
@@ -52,6 +56,19 @@ public class FloatVisTable extends VisTable {
         if (titleL != null) { this.titleL = titleL; } else { this.titleL = new VisLabel("Float: "); }
 
         valueTF = new VisTextField(Float.toString(this.value));
+        valueTF.setTextFieldListener(new VisTextField.TextFieldListener() {
+            @Override
+            public void keyTyped(VisTextField textField, char c) {
+                try {
+                    float value = Float.parseFloat(textField.getText());
+                    handleKeyTyped(value, textField, c);
+                    if (setter != null) { setter.accept(value); }
+                    textField.getColor().set(Color.WHITE);
+                } catch (NumberFormatException e) {
+                    textField.getColor().set(Color.PINK);
+                }
+            }
+        });
 
         valueT = new VisTable();
         valueT.add(valueTF).width(120).maxWidth(120).expandX().left().pad(0.5f);
@@ -61,8 +78,13 @@ public class FloatVisTable extends VisTable {
         row();
     }
 
-    public void setFloat(Float value) {
+    public FloatVisTable setFloat(Float value) {
         this.value = value;
         valueTF.setText(Float.toString(value));
+        return this;
     }
+
+    public void handleKeyTyped(float value, VisTextField textField, char c) { }
+    public void setSetter(Consumer<Float> setter) { this.setter = setter; }
+    public void clearSetter() { this.setter = null; }
 }
