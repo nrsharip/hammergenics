@@ -79,6 +79,11 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
     public FloatVisTable wanderRateVisTable; // = 1f;
     public FloatVisTable wanderOrientationVisTable; // = 0f;
     public BooleanVisTable wanderFaceEnabledVisTable; // = true;
+    // TODO: FollowPath.getInternalTargetPosition
+    // TODO: Interpose.getInternalTargetPosition
+    // TODO: HGJump.getAirborneTime()
+    // TODO: Wander.getInternalTargetPosition
+    // TODO: Wander.getWanderCenter
 
     public SteeringBehaviorsVisTable(ModelEditScreen modelES, ModelEditStage stage) {
         super(modelES, stage);

@@ -112,7 +112,7 @@ public enum SteeringBehaviorsVector3Enum {
         @Override
         public SteeringBehavior<Vector3> getInstance() {
             // single threaded processing is assumed: returning a singleton
-            if (instance == null) { instance = new FollowPath<>(stubOwner, stubPath); }
+            if (instance == null) { instance = new HG3DFollowLinePath(stubOwner, stubPath); }
             return instance;
         }
     },
@@ -275,7 +275,7 @@ public enum SteeringBehaviorsVector3Enum {
     public static final Steerable<Vector3> stubAgent1;
     public static final Steerable<Vector3> stubAgent2;
     public static final Proximity<Vector3> stubProximity;
-    public static final Path<Vector3, LinePath.LinePathParam> stubPath;
+    public static final LinePath<Vector3> stubPath;
     public static final Jump.JumpDescriptor<Vector3> stubJumpDescriptor;
     public static final Y3DGravityComponentHandler stubY3DGravityComponentHandler;
     public static final JumpCallbackAdapter stubJumpCallback;
@@ -317,11 +317,20 @@ public enum SteeringBehaviorsVector3Enum {
         public HG3DJump(Steerable<Vector3> owner, JumpDescriptor<Vector3> jumpDescriptor, Vector3 gravity, GravityComponentHandler<Vector3> gravityComponentHandler, JumpCallback callback) {
             super(owner, jumpDescriptor, gravity, gravityComponentHandler, callback);
         }
-        public void setCallback(JumpCallback callback) {
-            this.callback = callback;
+        public void setCallback(JumpCallback callback) { this.callback = callback; }
+        public void setGravityComponentHandler(Jump.GravityComponentHandler<Vector3> gravityComponentHandler) {
+            this.gravityComponentHandler = gravityComponentHandler;
+        }
+        public float getAirborneTime() { return this.airborneTime; }
+    }
+    public static class HG3DFollowLinePath extends FollowPath<Vector3, LinePath.LinePathParam> {
+        public HG3DFollowLinePath(Steerable<Vector3> owner, LinePath<Vector3> path) {
+            super(owner, path);
+        }
+        public void setPathParam(LinePath.LinePathParam pathParam) {
+            this.pathParam = pathParam;
         }
     }
-
     public static class HG3DWander extends Wander<Vector3> {
         public HG3DWander(Steerable<Vector3> owner) {
             super(owner);
@@ -330,6 +339,7 @@ public enum SteeringBehaviorsVector3Enum {
         public void setLastTime(float lastTime) { this.lastTime = lastTime; }
     }
 
+    // Init Methods
     public static void initSteeringBehavior(SteeringBehavior<Vector3> steeringBehavior,
                                             Steerable<Vector3> owner, Limiter limiter, boolean enabled) {
         steeringBehavior.setOwner(owner);
@@ -359,14 +369,67 @@ public enum SteeringBehaviorsVector3Enum {
         // initSteeringBehavior
         // initReachOrientation
     }
-    public static void initFlee() { }
-    public static void initFollowFlowField() { }
-    public static void initFollowPath() { }
+    public static void initFlee() {
+        // Consider also:
+        // initSteeringBehavior
+        // initSeek
+    }
+    public static void initFollowFlowField(FollowFlowField<Vector3> followFlowField,
+                                           FollowFlowField.FlowField<Vector3> flowField,
+                                           float predictionTime) {
+        // Consider also:
+        // initSteeringBehavior
+        followFlowField.setFlowField(flowField);
+        followFlowField.setPredictionTime(predictionTime);
+    }
+    public static void initFollowPath(HG3DFollowLinePath followPath, LinePath<Vector3> path, float predictionTime,
+                                      boolean arriveEnabled, float pathOffset, LinePath.LinePathParam pathParam) {
+        // Consider also:
+        // initSteeringBehavior
+        // initArrive
+        followPath.setPath(path);
+        followPath.setPredictionTime(predictionTime);
+        followPath.setArriveEnabled(arriveEnabled);
+        followPath.setPathOffset(pathOffset);
+        followPath.setPathParam(pathParam);
+    }
     public static void initHide() { }
-    public static void initInterpose() { }
-    public static void initJump() { }
-    public static void initLookWhereYouAreGoing() { }
-    public static void initMatchVelocity() { }
+    public static void initInterpose(Interpose<Vector3> interpose, Steerable<Vector3> agentA,
+                                     Steerable<Vector3> agentB, float interpositionRatio) {
+        // Consider also:
+        // initSteeringBehavior
+        // initArrive
+        interpose.setAgentA(agentA);
+        interpose.setAgentB(agentB);
+        interpose.setInterpositionRatio(interpositionRatio);
+    }
+    public static void initJump(HG3DJump jump, Jump.JumpDescriptor<Vector3> jumpDescriptor, Vector3 gravity,
+                                Jump.GravityComponentHandler<Vector3> gravityComponentHandler, Jump.JumpCallback callback,
+                                float maxVerticalVelocity, float takeoffPositionTolerance,
+                                float takeoffVelocityTolerance, float takeoffTolerance) {
+        // Consider also:
+        // initSteeringBehavior
+        // initMatchVelocity
+        jump.setJumpDescriptor(jumpDescriptor);
+        jump.setGravity(gravity);
+        jump.setGravityComponentHandler(gravityComponentHandler);
+        jump.setCallback(callback);
+        jump.setMaxVerticalVelocity(maxVerticalVelocity);
+        jump.setTakeoffPositionTolerance(takeoffPositionTolerance);
+        jump.setTakeoffVelocityTolerance(takeoffVelocityTolerance);
+        jump.setTakeoffTolerance(takeoffTolerance);
+    }
+    public static void initLookWhereYouAreGoing(LookWhereYouAreGoing<Vector3> lookWhereYouAreGoing) {
+        // Consider also:
+        // initSteeringBehavior
+        // initReachOrientation
+    }
+    public static void initMatchVelocity(MatchVelocity<Vector3> matchVelocity, Steerable<Vector3> target, float timeToTarget) {
+        // Consider also:
+        // initSteeringBehavior
+        matchVelocity.setTarget(target);
+        matchVelocity.setTimeToTarget(timeToTarget);
+    }
     public static void initPrioritySteering() { }
     public static void initPursue(Pursue<Vector3> pursue, Steerable<Vector3> target, float maxPredictionTime) {
         // Consider also:
@@ -384,7 +447,11 @@ public enum SteeringBehaviorsVector3Enum {
         reachOrientation.setDecelerationRadius(decelerationRadius);
         reachOrientation.setTimeToTarget(timeToTarget);
     }
-    public static void initSeek() { }
+    public static void initSeek(Seek<Vector3> seek, Location<Vector3> target) {
+        // Consider also:
+        // initSteeringBehavior
+        seek.setTarget(target);
+    }
     public static void initSeparation() { }
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#wander
     public static void initWander(HG3DWander wander, float lastTime, float wanderOffset, float wanderRadius, float wanderRate,
