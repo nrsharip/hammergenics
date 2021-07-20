@@ -51,7 +51,7 @@ public abstract class ContextAwareVisWindow extends VisWindow {
     }
 
     public EditableModelInstance getDbgModelInstance() {
-        if (dbgModelInstances.size != 1) { return null; }
+        if (dbgModelInstances.size < 1) { return null; }
         return dbgModelInstances.first();
     }
 

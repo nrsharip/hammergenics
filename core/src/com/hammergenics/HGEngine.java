@@ -190,7 +190,7 @@ public class HGEngine implements Disposable {
     public Vector2 currCell = Vector2.Zero.cpy();
 
     public EditableModelInstance getCurrMI() {
-        if (selectedMIs.size != 1) { return null; }
+        if (selectedMIs.size < 1) { return null; }
         return selectedMIs.first();
     }
 

@@ -50,7 +50,7 @@ public abstract class ContextAwareVisTable extends VisTable {
     }
 
     public EditableModelInstance getDbgModelInstance() {
-        if (dbgModelInstances.size != 1) { return null; }
+        if (dbgModelInstances.size < 1) { return null; }
         return dbgModelInstances.first();
     }
 
