@@ -60,7 +60,7 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     // Returns the threshold below which the linear speed can be considered zero. It must be a small positive value near to zero.
     // Usually it is used to avoid updating the orientation when the velocity vector has a negligible length.
     public float zeroLinearSpeedThreshold = 0.1f;
-    public float maxLinearSpeed = 2f;                // the maximum linear speed
+    public float maxLinearSpeed = 2.0f;              // the maximum linear speed
     public float maxLinearAcceleration = 1.0f;       // the maximum linear acceleration
     public float maxAngularSpeed = 1.0472f;          // (~ 60 degrees) the maximum angular speed
     public float maxAngularAcceleration = 0.174533f; // (~ 10 degrees) the maximum angular acceleration
@@ -147,9 +147,9 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#wander
     // ReachOrientation -> Face -> Wander
     public float wanderLastTime = 0f;
-    public float wanderOffset = 10f;
-    public float wanderRadius = 10f;
-    public float wanderRate = 1f;
+    public float wanderOffset = 2f;
+    public float wanderRadius = 2f;
+    public float wanderRate = 0.2f;
     public float wanderOrientation = 0f;
     public boolean wanderFaceEnabled = true;
 

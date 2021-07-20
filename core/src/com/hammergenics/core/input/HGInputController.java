@@ -133,15 +133,15 @@ public class HGInputController extends GestureDetector {
 
     @Override
     public boolean keyDown(int keycode) {
-        Gdx.app.debug(getTag(), String.format("keycode: %5d", keycode));
         keysPressed.add(keycode);
+        Gdx.app.debug(getTag(), String.format("keycode: %5d, keysPressed: %s", keycode, keysPressed.toString()));
         return super.keyDown(keycode);
     }
 
     @Override
     public boolean keyUp(int keycode) {
-        Gdx.app.debug(getTag(), String.format("keycode: %5d", keycode));
         keysPressed.remove(keycode);
+        Gdx.app.debug(getTag(), String.format("keycode: %5d, keysPressed: %s", keycode, keysPressed.toString()));
         return super.keyUp(keycode);
     }
 

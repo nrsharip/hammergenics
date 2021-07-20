@@ -126,6 +126,19 @@ public class ModelEditInputController extends SpectatorInputController {
     }
 
     @Override
+    public boolean keyUp(int keycode) {
+        // Ctrl + A: selecting all the model instances
+        if (keysPressed.size == 2
+                && (keysPressed.contains(Keys.CONTROL_LEFT) || keysPressed.contains(Keys.CONTROL_RIGHT))
+                && keysPressed.contains(Keys.A)) {
+            eng.selectedMIs.clear();
+            eng.selectedMIs.addAll(eng.editableMIs);
+            modelES.stage.reset();
+        }
+        return super.keyUp(keycode);
+    }
+
+    @Override
     public boolean mouseMoved(int screenX, int screenY) {
         if (modelES != null) { checkMouseMoved(screenX, screenY); }
 

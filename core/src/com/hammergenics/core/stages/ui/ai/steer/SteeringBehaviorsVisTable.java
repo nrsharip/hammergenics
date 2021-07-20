@@ -99,7 +99,8 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
             @Override
             public void handleChanged(boolean value, ChangeListener.ChangeEvent event, Actor actor) {
                 if (dbgModelInstance == null) { return; }
-                dbgModelInstance.steeringEnabled = value;
+                //dbgModelInstance.steeringEnabled = value;
+                dbgModelInstances.forEach(mi -> mi.steeringEnabled = value);
                 super.handleChanged(value, event, actor);
             }
         };
@@ -109,8 +110,8 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 if (dbgModelInstance == null) { return; }
-
-                dbgModelInstance.currentSteeringBehavior = steeringBehaviorSB.getSelected();
+                //dbgModelInstance.currentSteeringBehavior = steeringBehaviorSB.getSelected();
+                dbgModelInstances.forEach(mi -> mi.currentSteeringBehavior = steeringBehaviorSB.getSelected());
                 setSteeringParamsVisTable();
             }
         });
