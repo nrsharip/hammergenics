@@ -22,6 +22,8 @@ import com.kotcrab.vis.ui.widget.VisCheckBox;
 import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisTable;
 
+import java.util.function.Consumer;
+
 /**
  * Add description here
  *
@@ -32,6 +34,7 @@ public class BooleanVisTable extends VisTable {
     public VisLabel titleL;
     public VisCheckBox valueCB;
     public VisTable valueT;
+    public Consumer<Boolean> setter = null;
 
     public BooleanVisTable() {
         this(false, false, null);
@@ -51,6 +54,7 @@ public class BooleanVisTable extends VisTable {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 handleChanged(valueCB.isChecked(), event, actor);
+                if (setter != null) { setter.accept(valueCB.isChecked()); }
             }
         });
 
@@ -62,10 +66,13 @@ public class BooleanVisTable extends VisTable {
         row();
     }
 
-    public void setBoolean(boolean value) {
+    public BooleanVisTable setBoolean(boolean value) {
         this.value = value;
         valueCB.setChecked(value);
+        return this;
     }
 
     public void handleChanged(boolean value, ChangeListener.ChangeEvent event, Actor actor) { }
+    public void setSetter(Consumer<Boolean> setter) { this.setter = setter; }
+    public void clearSetter() { this.setter = null; }
 }

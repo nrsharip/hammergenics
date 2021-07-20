@@ -123,38 +123,38 @@ public class SteerableVisTable extends ContextAwareVisTable {
         EditableModelInstance mi = dbgModelInstance;
         if (mi != null) {
             linearVelocityVisTable.setVector3(mi.linearVelocity);
-            angularVelocityVisTable.setFloat(mi.angularVelocity);
-            boundingRadiusVisTable.setFloat(mi.boundingRadius);
-            taggedVisTable.setBoolean(mi.tagged);
+            angularVelocityVisTable.setFloat(mi.angularVelocity).setSetter(mi::setAngularVelocity);
+            boundingRadiusVisTable.setFloat(mi.boundingRadius).setSetter(mi::setBoundingRadius);
+            taggedVisTable.setBoolean(mi.tagged).setSetter(mi::setTagged);
 
-            zeroLinearSpeedThresholdVisTable.setFloat(mi.zeroLinearSpeedThreshold);
-            maxLinearSpeedVisTable.setFloat(mi.maxLinearSpeed);
-            maxLinearAccelerationVisTable.setFloat(mi.maxLinearAcceleration);
-            maxAngularSpeedVisTable.setFloat(mi.maxAngularSpeed);
-            maxAngularAccelerationVisTable.setFloat(mi.maxAngularAcceleration);
+            zeroLinearSpeedThresholdVisTable.setFloat(mi.zeroLinearSpeedThreshold).setSetter(mi::setZeroLinearSpeedThreshold);
+            maxLinearSpeedVisTable.setFloat(mi.maxLinearSpeed).setSetter(mi::setMaxLinearSpeed);
+            maxLinearAccelerationVisTable.setFloat(mi.maxLinearAcceleration).setSetter(mi::setMaxLinearAcceleration);
+            maxAngularSpeedVisTable.setFloat(mi.maxAngularSpeed).setSetter(mi::setMaxAngularSpeed);
+            maxAngularAccelerationVisTable.setFloat(mi.maxAngularAcceleration).setSetter(mi::setMaxAngularAcceleration);
 
             positionVisTable.setVector3(mi.position);
-            orientationVisTable.setFloat(mi.orientation);
+            orientationVisTable.setFloat(mi.orientation).setSetter(mi::setOrientation);
 
             steeringAccelerationLinearVisTable.setVector3(mi.steeringAcceleration.linear);
-            steeringAccelerationAngularVisTable.setFloat(mi.steeringAcceleration.angular);
+            steeringAccelerationAngularVisTable.setFloat(mi.steeringAcceleration.angular).setSetter(mi::setSteeringAccelerationAngular);
         } else {
             linearVelocityVisTable.setVector3(null);
             angularVelocityVisTable.setFloat(0f);
             boundingRadiusVisTable.setFloat(0f);
             taggedVisTable.setBoolean(false);
 
-            zeroLinearSpeedThresholdVisTable.setFloat(0f);
-            maxLinearSpeedVisTable.setFloat(0f);
-            maxLinearAccelerationVisTable.setFloat(0f);
-            maxAngularSpeedVisTable.setFloat(0f);
-            maxAngularAccelerationVisTable.setFloat(0f);
+            zeroLinearSpeedThresholdVisTable.setFloat(0f).clearSetter();
+            maxLinearSpeedVisTable.setFloat(0f).clearSetter();
+            maxLinearAccelerationVisTable.setFloat(0f).clearSetter();
+            maxAngularSpeedVisTable.setFloat(0f).clearSetter();
+            maxAngularAccelerationVisTable.setFloat(0f).clearSetter();
 
             positionVisTable.setVector3(null);
-            orientationVisTable.setFloat(0f);
+            orientationVisTable.setFloat(0f).clearSetter();
 
             steeringAccelerationLinearVisTable.setVector3(null);
-            steeringAccelerationAngularVisTable.setFloat(0f);
+            steeringAccelerationAngularVisTable.setFloat(0f).clearSetter();
         }
     }
 

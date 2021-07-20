@@ -147,7 +147,7 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#wander
     // ReachOrientation -> Face -> Wander
     public float wanderLastTime = 0f;
-    public float wanderOffset = 1f;
+    public float wanderOffset = 10f;
     public float wanderRadius = 10f;
     public float wanderRate = 1f;
     public float wanderOrientation = 0f;
@@ -174,7 +174,9 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
 
     @Override public Vector3 getLinearVelocity() { return linearVelocity; }
     @Override public float getAngularVelocity() { return angularVelocity; }
+    public void setAngularVelocity(float value) { angularVelocity = value; }
     @Override public float getBoundingRadius() { return boundingRadius; }
+    public void setBoundingRadius(float value) { boundingRadius = value; }
     @Override public boolean isTagged() { return tagged; }
     @Override public void setTagged(boolean tagged) { this.tagged = tagged; }
 
@@ -192,6 +194,7 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     @Override public Vector3 getPosition() { return position; }
     @Override public float getOrientation() { return orientation; }
     @Override public void setOrientation(float orientation) { this.orientation = orientation; }
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#the-steering-system-api
     @Override public float vectorToAngle(Vector3 vector) { return (float)Math.atan2(-vector.x, vector.z); }
     @Override public Vector3 angleToVector(Vector3 outVector, float angle) {
         outVector.x = -(float)Math.sin(angle);
@@ -221,6 +224,7 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
         transform.getTranslation(position);
     }
 
+    public void setSteeringAccelerationAngular(float angular) { steeringAcceleration.angular = angular; }
     public void setSteeringBehaviorOwner(Steerable<Vector3> steeringBehaviorOwner) { this.steeringBehaviorOwner = steeringBehaviorOwner; }
     public void setSteeringBehaviorLimiter(Limiter steeringBehaviorLimiter) { this.steeringBehaviorLimiter = steeringBehaviorLimiter; }
     public void setSteeringBehaviorEnabled(boolean steeringBehaviorEnabled) { this.steeringBehaviorEnabled = steeringBehaviorEnabled; }
