@@ -100,6 +100,7 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
             steeringBehaviorSB.setSelected(dbgModelInstance.currentSteeringBehavior);
             steeringBehaviorSB.getSelection().setProgrammaticChangeEvents(true);
 
+            setCurrentTarget(getSecondaryModelInstance());
             targetVisTable.setTarget(getCurrentTarget());
         } else {
             steeringEnabledVisTable.setBoolean(false);
@@ -119,6 +120,16 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
         switch (sb) {
             case ARRIVE: return dbgModelInstance.arriveTarget;
             default: return null;
+        }
+    }
+
+    public void setCurrentTarget(Location<Vector3> target) {
+        if (dbgModelInstance == null) { return; }
+        SteeringBehaviorsVector3Enum sb = steeringBehaviorSB.getSelected();
+        if (sb == null) { return; }
+        switch (sb) {
+            case ARRIVE: if (target != null) { dbgModelInstance.arriveTarget = target; } break;
+            default: return;
         }
     }
 

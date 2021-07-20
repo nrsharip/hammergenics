@@ -47,12 +47,17 @@ public abstract class ContextAwareVisWindow extends VisWindow {
         dbgModelInstance = null;
         if (mis == null) { return; }
         dbgModelInstances.addAll(mis);
-        dbgModelInstance = getDbgModelInstance();
+        dbgModelInstance = getPrimaryModelInstance();
     }
 
-    public EditableModelInstance getDbgModelInstance() {
+    public EditableModelInstance getPrimaryModelInstance() {
         if (dbgModelInstances.size < 1) { return null; }
         return dbgModelInstances.first();
+    }
+
+    public EditableModelInstance getSecondaryModelInstance() {
+        if (dbgModelInstances.size < 2) { return null; }
+        return dbgModelInstances.get(1);
     }
 
     public void update(float delta) { }
