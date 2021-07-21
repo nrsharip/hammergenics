@@ -26,7 +26,6 @@ import com.badlogic.gdx.ai.steer.behaviors.Evade;
 import com.badlogic.gdx.ai.steer.behaviors.Face;
 import com.badlogic.gdx.ai.steer.behaviors.Flee;
 import com.badlogic.gdx.ai.steer.behaviors.FollowFlowField;
-import com.badlogic.gdx.ai.steer.behaviors.FollowPath;
 import com.badlogic.gdx.ai.steer.behaviors.Interpose;
 import com.badlogic.gdx.ai.steer.behaviors.Jump;
 import com.badlogic.gdx.ai.steer.behaviors.LookWhereYouAreGoing;
@@ -35,7 +34,6 @@ import com.badlogic.gdx.ai.steer.behaviors.Pursue;
 import com.badlogic.gdx.ai.steer.behaviors.ReachOrientation;
 import com.badlogic.gdx.ai.steer.behaviors.Seek;
 import com.badlogic.gdx.ai.steer.proximities.RadiusProximity;
-import com.badlogic.gdx.ai.steer.utils.Path;
 import com.badlogic.gdx.ai.steer.utils.paths.LinePath;
 import com.badlogic.gdx.ai.utils.Location;
 import com.badlogic.gdx.files.FileHandle;
@@ -116,25 +114,29 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#path-following
     // SteeringBehavior -> Arrive -> FollowPath
     public LinePath<Vector3> followPath = new LinePath<>(new Array<>(new Vector3[]{Vector3.X.cpy(), Vector3.Z.cpy()}));
-    public float followPathOffset;
+    public float followPathOffset = 1f;
     public LinePath.LinePathParam followPathParam = new LinePath.LinePathParam();
-    public boolean followArriveEnabled;
-    public float followPredictionTime;
+    public boolean followPathArriveEnabled = true;
+    public float followPathPredictionTime = 1f;
+    // FollowPath debug
+    public Vector3 followPathInternalTargetPosition = new Vector3();
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#interpose
     // SteeringBehavior -> Arrive -> Interpose
     public Steerable<Vector3> interposeAgentA = this;
     public Steerable<Vector3> interposeAgentB = this;
-    public float interpositionRatio;
+    public float interpositionRatio = 1f;
+    // Interpose debug
+    public Vector3 interposeInternalTargetPosition = new Vector3();
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#jump
     // SteeringBehavior -> MatchVelocity -> Jump
     public Jump.JumpDescriptor<Vector3> jumpDescriptor;
     public Y3DGravityComponentHandler jumpY3DGravityComponentHandler;
     public JumpCallbackAdapter jumpCallback;
     public Vector3 jumpGravity = new Vector3();
-    public float jumpTakeoffPositionTolerance;
-    public float jumpTakeoffVelocityTolerance;
-    public float jumpTakeoffTolerance;
-    public float jumpMaxVerticalVelocity;
+    public float jumpTakeoffPositionTolerance = 0.5f;
+    public float jumpTakeoffVelocityTolerance = 0.5f;
+    public float jumpTakeoffTolerance = 0.5f;
+    public float jumpMaxVerticalVelocity = 2f;
     public float jumpAirborneTime = 0;
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#look-where-you-are-going
     // SteeringBehavior -> ReachOrientation -> LookWhereYouAreGoing
@@ -144,8 +146,8 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     public float lwyagTimeToTarget = 1f;
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#match-velocity
     // SteeringBehavior -> MatchVelocity
-    public Steerable<Vector3> matchVelocityTarget;
-    public float matchVelocityTimeToTarget;
+    public Steerable<Vector3> matchVelocityTarget = this;
+    public float matchVelocityTimeToTarget = 1f;
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#pursue-and-evade
     // SteeringBehavior -> Pursue
     public Steerable<Vector3> pursueTarget = this;
@@ -167,6 +169,9 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     public float wanderRate = 0.2f;
     public float wanderOrientation = 0f;
     public boolean wanderFaceEnabled = true;
+    // Wander debug
+    public Vector3 wanderInternalTargetPosition = new Vector3();
+    public Vector3 wanderCenter = new Vector3();
 
     public Array<Steerable<Vector3>> agents = new Array<>(true, 16, Steerable.class);
     // FieldOfViewProximity
@@ -259,8 +264,8 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     public void setFollowPath(LinePath<Vector3> followPath) { this.followPath = followPath; }
     public void setFollowPathOffset(float followPathOffset) { this.followPathOffset = followPathOffset; }
     public void setFollowPathParam(LinePath.LinePathParam followPathParam) { this.followPathParam = followPathParam; }
-    public void setFollowArriveEnabled(boolean followArriveEnabled) { this.followArriveEnabled = followArriveEnabled; }
-    public void setFollowPredictionTime(float followPredictionTime) { this.followPredictionTime = followPredictionTime; }
+    public void setFollowPathArriveEnabled(boolean followPathArriveEnabled) { this.followPathArriveEnabled = followPathArriveEnabled; }
+    public void setFollowPathPredictionTime(float followPathPredictionTime) { this.followPathPredictionTime = followPathPredictionTime; }
     public void setInterposeAgentA(Steerable<Vector3> interposeAgentA) { this.interposeAgentA = interposeAgentA; }
     public void setInterposeAgentB(Steerable<Vector3> interposeAgentB) { this.interposeAgentB = interposeAgentB; }
     public void setInterpositionRatio(float interpositionRatio) { this.interpositionRatio = interpositionRatio; }
@@ -270,8 +275,13 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     public void setJumpGravity(Vector3 jumpGravity) { this.jumpGravity = jumpGravity; }
     public void setJumpTakeoffPositionTolerance(float jumpTakeoffPositionTolerance) { this.jumpTakeoffPositionTolerance = jumpTakeoffPositionTolerance; }
     public void setJumpTakeoffVelocityTolerance(float jumpTakeoffVelocityTolerance) { this.jumpTakeoffVelocityTolerance = jumpTakeoffVelocityTolerance; }
+    public void setJumpTakeoffTolerance(float jumpTakeoffTolerance) { this.jumpTakeoffTolerance = jumpTakeoffTolerance; }
     public void setJumpMaxVerticalVelocity(float jumpMaxVerticalVelocity) { this.jumpMaxVerticalVelocity = jumpMaxVerticalVelocity; }
     public void setJumpAirborneTime(float jumpAirborneTime) { this.jumpAirborneTime = jumpAirborneTime; }
+    public void setLwyagTarget(Location<Vector3> lwyagTarget) { this.lwyagTarget = lwyagTarget; }
+    public void setLwyagAlignTolerance(float lwyagAlignTolerance) { this.lwyagAlignTolerance = lwyagAlignTolerance; }
+    public void setLwyagDecelerationRadius(float lwyagDecelerationRadius) { this.lwyagDecelerationRadius = lwyagDecelerationRadius; }
+    public void setLwyagTimeToTarget(float lwyagTimeToTarget) { this.lwyagTimeToTarget = lwyagTimeToTarget; }
     public void setMatchVelocityTarget(Steerable<Vector3> matchVelocityTarget) { this.matchVelocityTarget = matchVelocityTarget; }
     public void setMatchVelocityTimeToTarget(float matchVelocityTimeToTarget) { this.matchVelocityTimeToTarget = matchVelocityTimeToTarget; }
     public void setPursueTarget(Steerable<Vector3> pursueTarget) { this.pursueTarget = pursueTarget; }
@@ -339,24 +349,40 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
                 break;
             case FOLLOW_PATH: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#path-following
                 HG3DFollowLinePath followLinePath = (HG3DFollowLinePath) FOLLOW_PATH.getInstance();
+                SteeringBehaviorsVector3Enum.initSteeringBehavior(followLinePath,
+                        steeringBehaviorOwner,
+                        steeringBehaviorLimiter,
+                        steeringEnabled);
                 SteeringBehaviorsVector3Enum.initFollowPath(followLinePath,
                         followPath,
-                        followPredictionTime,
-                        followArriveEnabled,
+                        followPathPredictionTime,
+                        followPathArriveEnabled,
                         followPathOffset,
                         followPathParam);
-                sb = followLinePath;
+                followLinePath.calculateSteering(steeringAcceleration);
+                // debug
+                followPathInternalTargetPosition.set(followLinePath.getInternalTargetPosition());
                 break;
             case INTERPOSE: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#interpose
                 Interpose<Vector3> interpose = (Interpose<Vector3>) INTERPOSE.getInstance();
+                SteeringBehaviorsVector3Enum.initSteeringBehavior(interpose,
+                        steeringBehaviorOwner,
+                        steeringBehaviorLimiter,
+                        steeringEnabled);
                 SteeringBehaviorsVector3Enum.initInterpose(interpose,
                         interposeAgentA,
                         interposeAgentB,
                         interpositionRatio);
-                sb = interpose;
+                interpose.calculateSteering(steeringAcceleration);
+                // debug
+                interposeInternalTargetPosition.set(interpose.getInternalTargetPosition());
                 break;
             case JUMP: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#jump
                 HG3DJump jump = (HG3DJump) JUMP.getInstance();
+                SteeringBehaviorsVector3Enum.initSteeringBehavior(jump,
+                        steeringBehaviorOwner,
+                        steeringBehaviorLimiter,
+                        steeringEnabled);
                 SteeringBehaviorsVector3Enum.initJump(jump,
                         jumpDescriptor,
                         jumpGravity,
@@ -366,7 +392,8 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
                         jumpTakeoffPositionTolerance,
                         jumpTakeoffVelocityTolerance,
                         jumpTakeoffTolerance);
-                sb = jump;
+                jump.calculateSteering(steeringAcceleration);
+                jumpAirborneTime = jump.getAirborneTime();
                 break;
             case LOOK_WHERE_YOU_ARE_GOING: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#look-where-you-are-going
                 LookWhereYouAreGoing<Vector3> lookWhereYouAreGoing = (LookWhereYouAreGoing<Vector3>) LOOK_WHERE_YOU_ARE_GOING.getInstance();
@@ -423,6 +450,9 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
                         wanderFaceEnabled);
                 wander.calculateSteering(steeringAcceleration);
                 wanderLastTime = wander.getLastTime();
+                // debug
+                wanderInternalTargetPosition.set(wander.getInternalTargetPosition());
+                wanderCenter.set(wander.getWanderCenter());
                 break;
 
             // GROUP BEHAVIORS: https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#group-behaviors

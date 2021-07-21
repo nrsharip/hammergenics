@@ -60,6 +60,11 @@ public abstract class ContextAwareVisWindow extends VisWindow {
         return dbgModelInstances.get(1);
     }
 
+    public EditableModelInstance getModelInstanceN(int n) {
+        if (n < 0 || dbgModelInstances.size < n + 1) { return null; }
+        return dbgModelInstances.get(n);
+    }
+
     public void update(float delta) { }
 
     public abstract void applyLocale();

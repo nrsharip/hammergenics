@@ -44,46 +44,63 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
     public VisSelectBox<SteeringBehaviorsVector3Enum> steeringBehaviorSB;
 
     public VisTable steeringParamsVisTable;
-    public TargetVisTable targetVisTable;
+    public TargetVisTable targetAVisTable;
+    public TargetVisTable targetBVisTable;
 
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#arrive
-    public FloatVisTable arriveArrivalToleranceVisTable; // = 0.1f;
-    public FloatVisTable arriveDecelerationRadiusVisTable; // = 1f;
-    public FloatVisTable arriveTimeToTargetVisTable; // = 1f;
+    public FloatVisTable arriveArrivalToleranceVisTable;
+    public FloatVisTable arriveDecelerationRadiusVisTable;
+    public FloatVisTable arriveTimeToTargetVisTable;
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#pursue-and-evade
-    public FloatVisTable evadeMaxPredictionTimeVisTable; // = 1f;
+    public FloatVisTable evadeMaxPredictionTimeVisTable;
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#face
-    public FloatVisTable faceAlignToleranceVisTable; // = 0.1f;
-    public FloatVisTable faceDecelerationRadiusVisTable; // = 1f;
-    public FloatVisTable faceTimeToTargetVisTable; // = 1f;
+    public FloatVisTable faceAlignToleranceVisTable;
+    public FloatVisTable faceDecelerationRadiusVisTable;
+    public FloatVisTable faceTimeToTargetVisTable;
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#seek-and-flee
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#flow-field-following
+    public FloatVisTable followFlowFieldPredictionTimeVisTable;
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#path-following
+    public FloatVisTable followPathOffsetVisTable;
+    public BooleanVisTable followPathArriveEnabledVisTable;
+    public FloatVisTable followPathPredictionTimeVisTable;
+    // FollowPath debug
+    public Vector3VisTable followPathInternalTargetPositionVisTable;
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#interpose
+    public FloatVisTable interpositionRatioVisTable;
+    // Interpose debug
+    public Vector3VisTable interposeInternalTargetPositionVisTable;
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#jump
-    public Vector3VisTable jumpGravityVisTable; // = new Vector3();
+    public Vector3VisTable jumpGravityVisTable;
     public FloatVisTable jumpTakeoffPositionToleranceVisTable;
     public FloatVisTable jumpTakeoffVelocityToleranceVisTable;
+    public FloatVisTable jumpTakeoffToleranceVisTable;
     public FloatVisTable jumpMaxVerticalVelocityVisTable;
-    public FloatVisTable jumpAirborneTimeVisTable; // = 0;
+    // HGJump debug
+    public FloatVisTable jumpAirborneTimeVisTable;
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#look-where-you-are-going
+    public FloatVisTable lwyagAlignToleranceVisTable;
+    public FloatVisTable lwyagDecelerationRadiusVisTable;
+    public FloatVisTable lwyagTimeToTargetVisTable;
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#match-velocity
-    //protected Steerable<Vector3> matchVelocityTarget;
     protected FloatVisTable matchVelocityTimeToTargetVisTable;
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#pursue-and-evade
-    public FloatVisTable pursueMaxPredictionTimeVisTable; // = 1f;
+    public FloatVisTable pursueMaxPredictionTimeVisTable;
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#reach-orientation
-    public FloatVisTable reachOrientationAlignToleranceVisTable; // = 0.1f;
-    public FloatVisTable reachOrientationDecelerationRadiusVisTable; // = 1f;
-    public FloatVisTable reachOrientationTimeToTargetVisTable; // = 1f;
+    public FloatVisTable reachOrientationAlignToleranceVisTable;
+    public FloatVisTable reachOrientationDecelerationRadiusVisTable;
+    public FloatVisTable reachOrientationTimeToTargetVisTable;
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#seek-and-flee
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#wander
-    public FloatVisTable wanderLastTimeVisTable; // = 0f;
-    public FloatVisTable wanderOffsetVisTable; // = 1f;
-    public FloatVisTable wanderRadiusVisTable; // = 10f;
-    public FloatVisTable wanderRateVisTable; // = 1f;
-    public FloatVisTable wanderOrientationVisTable; // = 0f;
-    public BooleanVisTable wanderFaceEnabledVisTable; // = true;
-    // TODO: FollowPath.getInternalTargetPosition
-    // TODO: Interpose.getInternalTargetPosition
-    // TODO: HGJump.getAirborneTime()
-    // TODO: Wander.getInternalTargetPosition
-    // TODO: Wander.getWanderCenter
+    public FloatVisTable wanderLastTimeVisTable;
+    public FloatVisTable wanderOffsetVisTable;
+    public FloatVisTable wanderRadiusVisTable;
+    public FloatVisTable wanderRateVisTable;
+    public FloatVisTable wanderOrientationVisTable;
+    public BooleanVisTable wanderFaceEnabledVisTable;
+    // Wander debug
+    public Vector3VisTable wanderInternalTargetPositionVisTable;
+    public Vector3VisTable wanderCenterVisTable;
 
     public SteeringBehaviorsVisTable(ModelEditScreen modelES, ModelEditStage stage) {
         super(modelES, stage);
@@ -121,7 +138,8 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
             }
         });
 
-        targetVisTable = new TargetVisTable(modelES, stage);
+        targetAVisTable = new TargetVisTable(new VisLabel("Target A"), modelES, stage);
+        targetBVisTable = new TargetVisTable(new VisLabel("Target B"), modelES, stage);
         steeringParamsVisTable = new VisTable();
 
         // Steering Behaviors Parameters
@@ -135,15 +153,31 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
         faceAlignToleranceVisTable = new FloatVisTable(true, new VisLabel("Align Tolerance: "));
         faceDecelerationRadiusVisTable = new FloatVisTable(true, new VisLabel("Deceleration Radius: "));
         faceTimeToTargetVisTable = new FloatVisTable(true, new VisLabel("Time To Target: "));
+        // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#seek-and-flee
+        // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#flow-field-following
+        followFlowFieldPredictionTimeVisTable = new FloatVisTable(true, new VisLabel("Prediction Time: "));
+        // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#path-following
+        followPathOffsetVisTable = new FloatVisTable(true, new VisLabel("Offset: "));
+        followPathArriveEnabledVisTable = new BooleanVisTable(false, true, new VisLabel("Arrive Enabled: "));
+        followPathPredictionTimeVisTable = new FloatVisTable(true, new VisLabel("Prediction Time: "));
+        // FollowPath debug
+        followPathInternalTargetPositionVisTable = new Vector3VisTable(false, true, true, new VisLabel("Internal Target Position: "));
+        // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#interpose
+        interpositionRatioVisTable = new FloatVisTable(true, new VisLabel("Interposition Ratio: "));
+        // Interpose debug
+        interposeInternalTargetPositionVisTable = new Vector3VisTable(false, true, true, new VisLabel("Internal Target Position: "));
         // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#jump
         jumpGravityVisTable = new Vector3VisTable(false, true, true, new VisLabel("Gravity: "));
         jumpTakeoffPositionToleranceVisTable = new FloatVisTable(true, new VisLabel("Takeoff Position Tolerance: "));
         jumpTakeoffVelocityToleranceVisTable = new FloatVisTable(true, new VisLabel("Takeoff Velocity Tolerance: "));
+        jumpTakeoffToleranceVisTable = new FloatVisTable(true, new VisLabel("Takeoff Tolerance: "));
         jumpMaxVerticalVelocityVisTable = new FloatVisTable(true, new VisLabel("Max Vertical Velocity: "));
         jumpAirborneTimeVisTable = new FloatVisTable(true, new VisLabel("Airborne Time: "));
         // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#look-where-you-are-going
+        lwyagAlignToleranceVisTable = new FloatVisTable(true, new VisLabel("Align Tolerance: "));
+        lwyagDecelerationRadiusVisTable = new FloatVisTable(true, new VisLabel("Deceleration Radius: "));
+        lwyagTimeToTargetVisTable = new FloatVisTable(true, new VisLabel("Time To Target: "));
         // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#match-velocity
-        //matchVelocityTarget;
         matchVelocityTimeToTargetVisTable = new FloatVisTable(true, new VisLabel("Time To Target: "));
         // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#pursue-and-evade
         pursueMaxPredictionTimeVisTable = new FloatVisTable(true, new VisLabel("Max Prediction Time: "));
@@ -151,6 +185,7 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
         reachOrientationAlignToleranceVisTable = new FloatVisTable(true, new VisLabel("Align Tolerance: "));
         reachOrientationDecelerationRadiusVisTable = new FloatVisTable(true, new VisLabel("Deceleration Radius: "));
         reachOrientationTimeToTargetVisTable = new FloatVisTable(true, new VisLabel("Time To Target: "));
+        // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#seek-and-flee
         // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#wander
         wanderLastTimeVisTable = new FloatVisTable(true, new VisLabel("Last Time: "));
         wanderOffsetVisTable = new FloatVisTable(true, new VisLabel("Offset: "));
@@ -158,6 +193,9 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
         wanderRateVisTable = new FloatVisTable(true, new VisLabel("Rate: "));
         wanderOrientationVisTable = new FloatVisTable(true, new VisLabel("Orientation: "));
         wanderFaceEnabledVisTable = new BooleanVisTable(false, true, new VisLabel("Face Enabled: "));
+        // Wander debug
+        wanderInternalTargetPositionVisTable = new Vector3VisTable(false, true, true, new VisLabel("Internal Target Position: "));
+        wanderCenterVisTable = new Vector3VisTable(false, true, true, new VisLabel("Wander Center: "));
     }
 
     @Override
@@ -188,16 +226,24 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
 
     public void setSteeringParamsVisTable() {
         steeringParamsVisTable.clearChildren();
-        setCurrentTarget(getSecondaryModelInstance());
+
+        setCurrentTargetA(getSecondaryModelInstance());
+        setCurrentTargetB(getModelInstanceN(2));
+
+        targetAVisTable.setTarget(null);
+        targetAVisTable.targetOrientation.clearSetter();
+        targetBVisTable.setTarget(null);
+        targetBVisTable.targetOrientation.clearSetter();
+
         EditableModelInstance mi = dbgModelInstance;
         switch (dbgModelInstance.currentSteeringBehavior) {
             case ARRIVE: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#arrive
-                targetVisTable.setTarget(getCurrentTarget());
+                targetAVisTable.setTarget(getCurrentTargetA());
                 arriveArrivalToleranceVisTable.setFloat(mi.arriveArrivalTolerance).setSetter(mi::setArriveArrivalTolerance);
                 arriveDecelerationRadiusVisTable.setFloat(mi.arriveDecelerationRadius).setSetter(mi::setArriveDecelerationRadius);
                 arriveTimeToTargetVisTable.setFloat(mi.arriveTimeToTarget).setSetter(mi::setArriveTimeToTarget);
 
-                steeringParamsVisTable.add(targetVisTable).colspan(2).row();
+                steeringParamsVisTable.add(targetAVisTable).colspan(2).row();
                 steeringParamsVisTable.add(arriveArrivalToleranceVisTable.titleL).padRight(5f).right();
                 steeringParamsVisTable.add(arriveArrivalToleranceVisTable.valueT).left().row();
                 steeringParamsVisTable.add(arriveDecelerationRadiusVisTable.titleL).padRight(5f).right();
@@ -206,20 +252,150 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
                 steeringParamsVisTable.add(arriveTimeToTargetVisTable.valueT).left().row();
                 break;
             case EVADE: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#pursue-and-evade
-                targetVisTable.setTarget(getCurrentTarget());
+                targetAVisTable.setTarget(getCurrentTargetA());
                 evadeMaxPredictionTimeVisTable.setFloat(mi.evadeMaxPredictionTime).setSetter(mi::setEvadeMaxPredictionTime);
 
-                steeringParamsVisTable.add(targetVisTable).colspan(2).row();
+                steeringParamsVisTable.add(targetAVisTable).colspan(2).row();
                 steeringParamsVisTable.add(evadeMaxPredictionTimeVisTable.titleL).padRight(5f).right();
                 steeringParamsVisTable.add(evadeMaxPredictionTimeVisTable.valueT).left().row();
                 break;
+            case FACE: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#face
+                targetAVisTable.setTarget(getCurrentTargetA());
+
+                faceAlignToleranceVisTable.setFloat(mi.faceAlignTolerance).setSetter(mi::setFaceAlignTolerance);
+                faceDecelerationRadiusVisTable.setFloat(mi.faceDecelerationRadius).setSetter(mi::setFaceDecelerationRadius);
+                faceTimeToTargetVisTable.setFloat(mi.faceTimeToTarget).setSetter(mi::setFaceTimeToTarget);
+
+                steeringParamsVisTable.add(targetAVisTable).colspan(2).row();
+                steeringParamsVisTable.add(faceAlignToleranceVisTable.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(faceAlignToleranceVisTable.valueT).left().row();
+                steeringParamsVisTable.add(faceDecelerationRadiusVisTable.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(faceDecelerationRadiusVisTable.valueT).left().row();
+                steeringParamsVisTable.add(faceTimeToTargetVisTable.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(faceTimeToTargetVisTable.valueT).left().row();
+                break;
+            case FLEE: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#seek-and-flee
+                targetAVisTable.setTarget(getCurrentTargetA());
+
+                steeringParamsVisTable.add(targetAVisTable).colspan(2).row();
+                break;
+            case FOLLOW_FLOW_FIELD: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#flow-field-following
+                followFlowFieldPredictionTimeVisTable.setFloat(mi.followFlowFieldPredictionTime).setSetter(mi::setFollowFlowFieldPredictionTime);
+
+                steeringParamsVisTable.add(followFlowFieldPredictionTimeVisTable.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(followFlowFieldPredictionTimeVisTable.valueT).left().row();
+                break;
+            case FOLLOW_PATH: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#path-following
+                followPathOffsetVisTable.setFloat(mi.followPathOffset).setSetter(mi::setFollowPathOffset);
+                followPathPredictionTimeVisTable.setFloat(mi.followPathPredictionTime).setSetter(mi::setFollowPathPredictionTime);
+                followPathArriveEnabledVisTable.setBoolean(mi.followPathArriveEnabled).setSetter(mi::setFollowPathArriveEnabled);
+                // FollowPath debug
+                followPathInternalTargetPositionVisTable.setVector3(mi.followPathInternalTargetPosition);
+
+                steeringParamsVisTable.add(followPathOffsetVisTable.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(followPathOffsetVisTable.valueT).left().row();
+                steeringParamsVisTable.add(followPathPredictionTimeVisTable.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(followPathPredictionTimeVisTable.valueT).left().row();
+                steeringParamsVisTable.add(followPathArriveEnabledVisTable.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(followPathArriveEnabledVisTable.valueT).left().row();
+
+                steeringParamsVisTable.add().padRight(5f).right();
+                steeringParamsVisTable.add(followPathInternalTargetPositionVisTable.labelsT).expandX().fillX().row();
+                steeringParamsVisTable.add(followPathInternalTargetPositionVisTable.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(followPathInternalTargetPositionVisTable.valueT).left().row();
+                break;
+            case INTERPOSE: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#interpose
+                targetAVisTable.setTarget(getCurrentTargetA());
+                targetAVisTable.setTarget(getCurrentTargetB());
+
+                interpositionRatioVisTable.setFloat(mi.interpositionRatio).setSetter(mi::setInterpositionRatio);
+                // Interpose debug
+                interposeInternalTargetPositionVisTable.setVector3(mi.interposeInternalTargetPosition);
+
+                steeringParamsVisTable.add(targetAVisTable).colspan(2).row();
+                steeringParamsVisTable.add(targetBVisTable).colspan(2).row();
+                steeringParamsVisTable.add().padRight(5f).right();
+                steeringParamsVisTable.add(interposeInternalTargetPositionVisTable.labelsT).expandX().fillX().row();
+                steeringParamsVisTable.add(interposeInternalTargetPositionVisTable.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(interposeInternalTargetPositionVisTable.valueT).left().row();
+                steeringParamsVisTable.add(interpositionRatioVisTable.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(interpositionRatioVisTable.valueT).left().row();
+                break;
+            case JUMP: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#jump
+                jumpGravityVisTable.setVector3(mi.jumpGravity);
+                jumpTakeoffPositionToleranceVisTable.setFloat(mi.jumpTakeoffPositionTolerance).setSetter(mi::setJumpTakeoffPositionTolerance);
+                jumpTakeoffVelocityToleranceVisTable.setFloat(mi.jumpTakeoffVelocityTolerance).setSetter(mi::setJumpTakeoffVelocityTolerance);
+                jumpTakeoffToleranceVisTable.setFloat(mi.jumpTakeoffTolerance).setSetter(mi::setJumpTakeoffTolerance);
+                jumpMaxVerticalVelocityVisTable.setFloat(mi.jumpMaxVerticalVelocity).setSetter(mi::setJumpMaxVerticalVelocity);
+                jumpAirborneTimeVisTable.setFloat(mi.jumpAirborneTime).setSetter(mi::setJumpAirborneTime);
+
+                steeringParamsVisTable.add().padRight(5f).right();
+                steeringParamsVisTable.add(jumpGravityVisTable.labelsT).expandX().fillX().row();
+                steeringParamsVisTable.add(jumpGravityVisTable.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(jumpGravityVisTable.valueT).left().row();
+
+                steeringParamsVisTable.add(jumpTakeoffPositionToleranceVisTable.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(jumpTakeoffPositionToleranceVisTable.valueT).left().row();
+                steeringParamsVisTable.add(jumpTakeoffVelocityToleranceVisTable.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(jumpTakeoffVelocityToleranceVisTable.valueT).left().row();
+                steeringParamsVisTable.add(jumpTakeoffToleranceVisTable.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(jumpTakeoffToleranceVisTable.valueT).left().row();
+                steeringParamsVisTable.add(jumpMaxVerticalVelocityVisTable.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(jumpMaxVerticalVelocityVisTable.valueT).left().row();
+                steeringParamsVisTable.add(jumpAirborneTimeVisTable.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(jumpAirborneTimeVisTable.valueT).left().row();
+                break;
+            case LOOK_WHERE_YOU_ARE_GOING: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#look-where-you-are-going
+                targetAVisTable.setTarget(getCurrentTargetA());
+
+                lwyagAlignToleranceVisTable.setFloat(mi.lwyagAlignTolerance).setSetter(mi::setLwyagAlignTolerance);
+                lwyagDecelerationRadiusVisTable.setFloat(mi.lwyagDecelerationRadius).setSetter(mi::setLwyagDecelerationRadius);
+                lwyagTimeToTargetVisTable.setFloat(mi.lwyagTimeToTarget).setSetter(mi::setLwyagTimeToTarget);
+
+                steeringParamsVisTable.add(targetAVisTable).colspan(2).row();
+                steeringParamsVisTable.add(lwyagAlignToleranceVisTable.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(lwyagAlignToleranceVisTable.valueT).left().row();
+                steeringParamsVisTable.add(lwyagDecelerationRadiusVisTable.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(lwyagDecelerationRadiusVisTable.valueT).left().row();
+                steeringParamsVisTable.add(lwyagTimeToTargetVisTable.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(lwyagTimeToTargetVisTable.valueT).left().row();
+                break;
+            case MATCH_VELOCITY: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#match-velocity
+                targetAVisTable.setTarget(getCurrentTargetA());
+
+                matchVelocityTimeToTargetVisTable.setFloat(mi.matchVelocityTimeToTarget).setSetter(mi::setMatchVelocityTimeToTarget);
+
+                steeringParamsVisTable.add(targetAVisTable).colspan(2).row();
+                steeringParamsVisTable.add(matchVelocityTimeToTargetVisTable.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(matchVelocityTimeToTargetVisTable.valueT).left().row();
+                break;
             case PURSUE: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#pursue-and-evade
-                targetVisTable.setTarget(getCurrentTarget());
+                targetAVisTable.setTarget(getCurrentTargetA());
                 pursueMaxPredictionTimeVisTable.setFloat(mi.pursueMaxPredictionTime).setSetter(mi::setPursueMaxPredictionTime);
 
-                steeringParamsVisTable.add(targetVisTable).colspan(2).row();
+                steeringParamsVisTable.add(targetAVisTable).colspan(2).row();
                 steeringParamsVisTable.add(pursueMaxPredictionTimeVisTable.titleL).padRight(5f).right();
                 steeringParamsVisTable.add(pursueMaxPredictionTimeVisTable.valueT).left().row();
+                break;
+            case REACH_ORIENTATION: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#reach-orientation
+                targetAVisTable.setTarget(getCurrentTargetA());
+
+                reachOrientationAlignToleranceVisTable.setFloat(mi.reachOrientationAlignTolerance).setSetter(mi::setReachOrientationAlignTolerance);
+                reachOrientationDecelerationRadiusVisTable.setFloat(mi.reachOrientationAlignTolerance).setSetter(mi::setReachOrientationAlignTolerance);
+                reachOrientationTimeToTargetVisTable.setFloat(mi.reachOrientationAlignTolerance).setSetter(mi::setReachOrientationAlignTolerance);
+
+                steeringParamsVisTable.add(targetAVisTable).colspan(2).row();
+                steeringParamsVisTable.add(reachOrientationAlignToleranceVisTable.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(reachOrientationAlignToleranceVisTable.valueT).left().row();
+                steeringParamsVisTable.add(reachOrientationDecelerationRadiusVisTable.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(reachOrientationDecelerationRadiusVisTable.valueT).left().row();
+                steeringParamsVisTable.add(reachOrientationTimeToTargetVisTable.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(reachOrientationTimeToTargetVisTable.valueT).left().row();
+                break;
+            case SEEK: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#seek-and-flee
+                targetAVisTable.setTarget(getCurrentTargetA());
+
+                steeringParamsVisTable.add(targetAVisTable).colspan(2).row();
                 break;
             case WANDER: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#wander
                 wanderLastTimeVisTable.setFloat(mi.wanderLastTime).setSetter(mi::setWanderLastTime);
@@ -228,6 +404,9 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
                 wanderRateVisTable.setFloat(mi.wanderRate).setSetter(mi::setWanderRate);
                 wanderOrientationVisTable.setFloat(mi.wanderOrientation).setSetter(mi::setWanderOrientation);
                 wanderFaceEnabledVisTable.setBoolean(mi.wanderFaceEnabled).setSetter(mi::setWanderFaceEnabled);
+
+                wanderInternalTargetPositionVisTable.setVector3(mi.wanderInternalTargetPosition);
+                wanderCenterVisTable.setVector3(mi.wanderCenter);
 
                 steeringParamsVisTable.add(wanderLastTimeVisTable.titleL).padRight(5f).right();
                 steeringParamsVisTable.add(wanderLastTimeVisTable.valueT).left().row();
@@ -241,53 +420,154 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
                 steeringParamsVisTable.add(wanderOrientationVisTable.valueT).left().row();
                 steeringParamsVisTable.add(wanderFaceEnabledVisTable.titleL).padRight(5f).right();
                 steeringParamsVisTable.add(wanderFaceEnabledVisTable.valueT).left().row();
+
+                steeringParamsVisTable.add().padRight(5f).right();
+                steeringParamsVisTable.add(wanderInternalTargetPositionVisTable.labelsT).expandX().fillX().row();
+                steeringParamsVisTable.add(wanderInternalTargetPositionVisTable.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(wanderInternalTargetPositionVisTable.valueT).left().row();
+                steeringParamsVisTable.add(wanderCenterVisTable.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(wanderCenterVisTable.valueT).left().row();
                 break;
         }
     }
 
     public void clearSteeringParamsVisTable() {
         steeringParamsVisTable.clearChildren();
-        targetVisTable.setTarget(null);
-        targetVisTable.targetOrientation.clearSetter();
+        targetAVisTable.setTarget(null);
+        targetAVisTable.targetOrientation.clearSetter();
+        targetBVisTable.setTarget(null);
+        targetBVisTable.targetOrientation.clearSetter();
 
+        // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#arrive
         arriveArrivalToleranceVisTable.setFloat(0f).clearSetter();
         arriveDecelerationRadiusVisTable.setFloat(0f).clearSetter();
         arriveTimeToTargetVisTable.setFloat(0f).clearSetter();
-
+        // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#pursue-and-evade
         evadeMaxPredictionTimeVisTable.setFloat(0f).clearSetter();
-
+        // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#face
+        faceAlignToleranceVisTable.setFloat(0f).clearSetter();
+        faceDecelerationRadiusVisTable.setFloat(0f).clearSetter();
+        faceTimeToTargetVisTable.setFloat(0f).clearSetter();
+        // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#seek-and-flee
+        // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#flow-field-following
+        followFlowFieldPredictionTimeVisTable.setFloat(0f).clearSetter();
+        // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#path-following
+        followPathOffsetVisTable.setFloat(0f).clearSetter();
+        followPathArriveEnabledVisTable.setBoolean(false).clearSetter();
+        followPathPredictionTimeVisTable.setFloat(0f).clearSetter();
+        // debug
+        followPathInternalTargetPositionVisTable.setVector3(null);
+        // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#interpose
+        interpositionRatioVisTable.setFloat(0f).clearSetter();
+        // debug
+        interposeInternalTargetPositionVisTable.setVector3(null);
+        // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#jump
+        jumpGravityVisTable.setVector3(null);
+        jumpTakeoffPositionToleranceVisTable.setFloat(0f).clearSetter();
+        jumpTakeoffVelocityToleranceVisTable.setFloat(0f).clearSetter();
+        jumpTakeoffToleranceVisTable.setFloat(0f).clearSetter();
+        jumpMaxVerticalVelocityVisTable.setFloat(0f).clearSetter();
+        // debug
+        jumpAirborneTimeVisTable.setFloat(0f).clearSetter();
+        // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#look-where-you-are-going
+        lwyagAlignToleranceVisTable.setFloat(0f).clearSetter();
+        lwyagDecelerationRadiusVisTable.setFloat(0f).clearSetter();
+        lwyagTimeToTargetVisTable.setFloat(0f).clearSetter();
+        // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#match-velocity
+        matchVelocityTimeToTargetVisTable.setFloat(0f).clearSetter();
+        // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#pursue-and-evade
         pursueMaxPredictionTimeVisTable.setFloat(0f).clearSetter();
-
+        // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#reach-orientation
+        reachOrientationAlignToleranceVisTable.setFloat(0f).clearSetter();
+        reachOrientationDecelerationRadiusVisTable.setFloat(0f).clearSetter();
+        reachOrientationTimeToTargetVisTable.setFloat(0f).clearSetter();
+        // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#seek-and-flee
+        // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#wander
         wanderLastTimeVisTable.setFloat(0f).clearSetter();
         wanderOffsetVisTable.setFloat(0f).clearSetter();
         wanderRadiusVisTable.setFloat(0f).clearSetter();
         wanderRateVisTable.setFloat(0f).clearSetter();
         wanderOrientationVisTable.setFloat(0f).clearSetter();
         wanderFaceEnabledVisTable.setBoolean(false).clearSetter();
+        // debug
+        wanderInternalTargetPositionVisTable.setVector3(null);
+        wanderCenterVisTable.setVector3(null);
+
     }
 
     public void updateSteeringParamsVisTable(float delta) {
         if (dbgModelInstance == null) { return; }
+        EditableModelInstance mi = dbgModelInstance;
+
+        targetAVisTable.update(delta);
+        targetBVisTable.update(delta);
         switch (dbgModelInstance.currentSteeringBehavior) {
-            case ARRIVE:
-                targetVisTable.update(delta);
+            case ARRIVE: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#arrive
                 arriveArrivalToleranceVisTable.setFloat(dbgModelInstance.arriveArrivalTolerance);
                 arriveDecelerationRadiusVisTable.setFloat(dbgModelInstance.arriveDecelerationRadius);
                 arriveTimeToTargetVisTable.setFloat(dbgModelInstance.arriveTimeToTarget);
                 break;
-            case EVADE:
+            case EVADE: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#pursue-and-evade
                 evadeMaxPredictionTimeVisTable.setFloat(dbgModelInstance.evadeMaxPredictionTime);
                 break;
-            case PURSUE:
+            case FACE: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#face
+                faceAlignToleranceVisTable.setFloat(mi.faceAlignTolerance);
+                faceDecelerationRadiusVisTable.setFloat(mi.faceDecelerationRadius);
+                faceTimeToTargetVisTable.setFloat(mi.faceTimeToTarget);
+                break;
+            case FLEE: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#seek-and-flee
+                break;
+            case FOLLOW_FLOW_FIELD: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#flow-field-following
+                followFlowFieldPredictionTimeVisTable.setFloat(mi.followFlowFieldPredictionTime);
+                break;
+            case FOLLOW_PATH: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#path-following
+                followPathOffsetVisTable.setFloat(mi.followPathOffset);
+                followPathPredictionTimeVisTable.setFloat(mi.followPathPredictionTime);
+                followPathArriveEnabledVisTable.setBoolean(mi.followPathArriveEnabled);
+                // FollowPath debug
+                followPathInternalTargetPositionVisTable.update();
+                break;
+            case INTERPOSE: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#interpose
+                interpositionRatioVisTable.setFloat(mi.interpositionRatio);
+                // Interpose debug
+                interposeInternalTargetPositionVisTable.update();
+                break;
+            case JUMP: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#jump
+                jumpGravityVisTable.update();
+                jumpTakeoffPositionToleranceVisTable.setFloat(mi.jumpTakeoffPositionTolerance);
+                jumpTakeoffVelocityToleranceVisTable.setFloat(mi.jumpTakeoffVelocityTolerance);
+                jumpTakeoffToleranceVisTable.setFloat(mi.jumpTakeoffTolerance);
+                jumpMaxVerticalVelocityVisTable.setFloat(mi.jumpMaxVerticalVelocity);
+                jumpAirborneTimeVisTable.setFloat(mi.jumpAirborneTime);
+                break;
+            case LOOK_WHERE_YOU_ARE_GOING: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#look-where-you-are-going
+                lwyagAlignToleranceVisTable.setFloat(mi.lwyagAlignTolerance);
+                lwyagDecelerationRadiusVisTable.setFloat(mi.lwyagDecelerationRadius);
+                lwyagTimeToTargetVisTable.setFloat(mi.lwyagTimeToTarget);
+                break;
+            case MATCH_VELOCITY: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#match-velocity
+                matchVelocityTimeToTargetVisTable.setFloat(mi.matchVelocityTimeToTarget);
+                break;
+            case PURSUE: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#pursue-and-evade
                 pursueMaxPredictionTimeVisTable.setFloat(dbgModelInstance.pursueMaxPredictionTime);
                 break;
-            case WANDER:
-                wanderLastTimeVisTable.setFloat(dbgModelInstance.wanderLastTime);
-                wanderOffsetVisTable.setFloat(dbgModelInstance.wanderOffset);
-                wanderRadiusVisTable.setFloat(dbgModelInstance.wanderRadius);
-                wanderRateVisTable.setFloat(dbgModelInstance.wanderRate);
-                wanderOrientationVisTable.setFloat(dbgModelInstance.wanderOrientation);
-                wanderFaceEnabledVisTable.setBoolean(dbgModelInstance.wanderFaceEnabled);
+            case REACH_ORIENTATION: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#reach-orientation
+                reachOrientationAlignToleranceVisTable.setFloat(mi.reachOrientationAlignTolerance);
+                reachOrientationDecelerationRadiusVisTable.setFloat(mi.reachOrientationAlignTolerance);
+                reachOrientationTimeToTargetVisTable.setFloat(mi.reachOrientationAlignTolerance);
+                break;
+            case SEEK: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#seek-and-flee
+                break;
+            case WANDER: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#wander
+                wanderLastTimeVisTable.setFloat(mi.wanderLastTime);
+                wanderOffsetVisTable.setFloat(mi.wanderOffset);
+                wanderRadiusVisTable.setFloat(mi.wanderRadius);
+                wanderRateVisTable.setFloat(mi.wanderRate);
+                wanderOrientationVisTable.setFloat(mi.wanderOrientation);
+                wanderFaceEnabledVisTable.setBoolean(mi.wanderFaceEnabled);
+                // Wander debug
+                wanderInternalTargetPositionVisTable.update();
+                wanderCenterVisTable.update();
                 break;
         }
     }
@@ -298,26 +578,59 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
         updateSteeringParamsVisTable(delta);
     }
 
-    public Location<Vector3> getCurrentTarget() {
+    public Location<Vector3> getCurrentTargetA() {
         if (dbgModelInstance == null) { return null; }
         SteeringBehaviorsVector3Enum sb = steeringBehaviorSB.getSelected();
         if (sb == null) { return null; }
         switch (sb) {
             case ARRIVE: return dbgModelInstance.arriveTarget;
             case EVADE: return dbgModelInstance.evadeTarget;
+            case FACE: return dbgModelInstance.faceTarget;
+            case FLEE: return dbgModelInstance.fleeTarget;
+            case INTERPOSE: return dbgModelInstance.interposeAgentA;
+            case LOOK_WHERE_YOU_ARE_GOING: return dbgModelInstance.lwyagTarget;
+            case MATCH_VELOCITY: return dbgModelInstance.matchVelocityTarget;
             case PURSUE: return dbgModelInstance.pursueTarget;
+            case REACH_ORIENTATION: return dbgModelInstance.reachOrientationTarget;
+            case SEEK: return dbgModelInstance.seekTarget;
             default: return null;
         }
     }
 
-    public void setCurrentTarget(EditableModelInstance target) {
+    public Location<Vector3> getCurrentTargetB() {
+        if (dbgModelInstance == null) { return null; }
+        SteeringBehaviorsVector3Enum sb = steeringBehaviorSB.getSelected();
+        if (sb == null) { return null; }
+        switch (sb) {
+            case INTERPOSE: return dbgModelInstance.interposeAgentB;
+            default: return null;
+        }
+    }
+
+    public void setCurrentTargetA(EditableModelInstance target) {
         if (dbgModelInstance == null || target == null) { return; }
         SteeringBehaviorsVector3Enum sb = steeringBehaviorSB.getSelected();
         if (sb == null) { return; }
         switch (sb) {
             case ARRIVE: dbgModelInstance.arriveTarget = target; break;
             case EVADE: dbgModelInstance.evadeTarget = target; break;
+            case FACE: dbgModelInstance.faceTarget = target; break;
+            case FLEE: dbgModelInstance.fleeTarget = target; break;
+            case INTERPOSE: dbgModelInstance.interposeAgentA = target; break;
+            case LOOK_WHERE_YOU_ARE_GOING: dbgModelInstance.lwyagTarget = target; break;
+            case MATCH_VELOCITY: dbgModelInstance.matchVelocityTarget = target; break;
             case PURSUE: dbgModelInstance.pursueTarget = target; break;
+            case REACH_ORIENTATION: dbgModelInstance.reachOrientationTarget = target; break;
+            case SEEK: dbgModelInstance.seekTarget = target; break;
+        }
+    }
+
+    public void setCurrentTargetB(EditableModelInstance target) {
+        if (dbgModelInstance == null || target == null) { return; }
+        SteeringBehaviorsVector3Enum sb = steeringBehaviorSB.getSelected();
+        if (sb == null) { return; }
+        switch (sb) {
+            case INTERPOSE: dbgModelInstance.interposeAgentB = target; break;
         }
     }
 
