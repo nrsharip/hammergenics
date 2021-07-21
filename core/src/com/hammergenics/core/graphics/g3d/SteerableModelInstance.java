@@ -21,6 +21,7 @@ import com.badlogic.gdx.ai.steer.Proximity;
 import com.badlogic.gdx.ai.steer.Steerable;
 import com.badlogic.gdx.ai.steer.SteeringAcceleration;
 import com.badlogic.gdx.ai.steer.SteeringBehavior;
+import com.badlogic.gdx.ai.steer.behaviors.Alignment;
 import com.badlogic.gdx.ai.steer.behaviors.Arrive;
 import com.badlogic.gdx.ai.steer.behaviors.Evade;
 import com.badlogic.gdx.ai.steer.behaviors.Face;
@@ -68,10 +69,10 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     // Returns the threshold below which the linear speed can be considered zero. It must be a small positive value near to zero.
     // Usually it is used to avoid updating the orientation when the velocity vector has a negligible length.
     public float zeroLinearSpeedThreshold = 0.1f;
-    public float maxLinearSpeed = 2.0f;              // the maximum linear speed
-    public float maxLinearAcceleration = 1.0f;       // the maximum linear acceleration
-    public float maxAngularSpeed = 1.0472f;          // (~ 60 degrees) the maximum angular speed
-    public float maxAngularAcceleration = 0.174533f; // (~ 10 degrees) the maximum angular acceleration
+    public float maxLinearSpeed = 2.0f;         // the maximum linear speed
+    public float maxLinearAcceleration = 1.0f;  // the maximum linear acceleration
+    public float maxAngularSpeed = 0.5f;        // (~ 30 degrees) the maximum angular speed
+    public float maxAngularAcceleration = 0.5f; // (~ 30 degrees) the maximum angular acceleration
 
     // the vector indicating the position of this location
     public final Vector3 position = new Vector3();
@@ -186,20 +187,39 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#wander
     // ReachOrientation -> Face -> Wander
     public float wanderLastTime = 0f;
-    public float wanderOffset = 2f;
-    public float wanderRadius = 2f;
-    public float wanderRate = 0.2f;
+    public float wanderOffset = 0f;
+    public float wanderRadius = 1f;
+    public float wanderRate = 0.01f;
     public float wanderOrientation = 0f;
     public boolean wanderFaceEnabled = true;
     // Wander debug
     public Vector3 wanderInternalTargetPosition = new Vector3();
     public Vector3 wanderCenter = new Vector3();
 
-    public Array<Steerable<Vector3>> agents = new Array<>(true, 16, Steerable.class);
+    // Proximity implementations:
     // FieldOfViewProximity
     // InfiniteProximity
     // RadiusProximity
-    public Proximity<Vector3> proximity = new RadiusProximity<>(this, agents, 1f);
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#alignment
+    public Array<Steerable<Vector3>> alignmentAgents = new Array<>(true, 16, Steerable.class);
+    public Proximity<Vector3> alignmentProximity = new RadiusProximity<>(this, alignmentAgents, 50f);
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#cohesion
+    public Array<Steerable<Vector3>> cohesionAgents = new Array<>(true, 16, Steerable.class);
+    public Proximity<Vector3> cohesionProximity = new RadiusProximity<>(this, cohesionAgents, 50f);
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#collision-avoidance
+    public Array<Steerable<Vector3>> collisionAvoidanceAgents = new Array<>(true, 16, Steerable.class);
+    public Proximity<Vector3> collisionAvoidanceProximity = new RadiusProximity<>(this, collisionAvoidanceAgents, 50f);
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#hide
+    public Array<Steerable<Vector3>> hideAgents = new Array<>(true, 16, Steerable.class);
+    public Proximity<Vector3> hideProximity = new RadiusProximity<>(this, hideAgents, 50f);
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#raycast-obstacle-avoidance
+    // RayConfiguration implementations:
+    // CentralRayWithWhiskersConfiguration
+    // ParallelSideRayConfiguration
+    // SingleRayConfiguration
+    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#separation
+    public Array<Steerable<Vector3>> separationAgents = new Array<>(true, 16, Steerable.class);
+    public Proximity<Vector3> separationProximity = new RadiusProximity<>(this, separationAgents, 50f);
 
     public SteerableModelInstance(Model model, float mass, ShapesEnum shape) { this(new HGModel(model), null, mass, shape, (String[])null); }
     public SteerableModelInstance(Model model, float mass, ShapesEnum shape, String... rootNodeIds) { this(new HGModel(model), null, mass, shape, rootNodeIds); }
@@ -501,7 +521,16 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
 
             // GROUP BEHAVIORS: https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#group-behaviors
             // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#alignment
-            case ALIGNMENT: break;
+            case ALIGNMENT:
+                Alignment<Vector3> alignment = (Alignment<Vector3>) ALIGNMENT.getInstance();
+                SteeringBehaviorsVector3Enum.initSteeringBehavior(alignment,
+                        steeringBehaviorOwner,
+                        steeringBehaviorLimiter,
+                        steeringEnabled);
+                SteeringBehaviorsVector3Enum.initGroupBehavior(alignment,
+                        alignmentProximity);
+                alignment.calculateSteering(steeringAcceleration);
+                break;
             // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#cohesion
             case COHESION: break;
             // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#collision-avoidance

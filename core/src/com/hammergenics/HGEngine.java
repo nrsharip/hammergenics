@@ -199,6 +199,13 @@ public class HGEngine implements Disposable {
         if (mi != null) { selectedMIs.add(mi); }
     }
 
+    public void makeCurrMI(EditableModelInstance mi) {
+        if (mi == null) { return; }
+        int index = selectedMIs.indexOf(mi, true);
+        if (index >= 0) { selectedMIs.removeIndex(index); }
+        selectedMIs.insert(0, mi);
+    }
+
     // Map generation related:
     // taking size + 1 to have the actual [SIZE x SIZE] cells grid
     // which will take [SIZE + 1 x SIZE + 1] vertex grid to define

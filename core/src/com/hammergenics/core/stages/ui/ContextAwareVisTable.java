@@ -64,6 +64,10 @@ public abstract class ContextAwareVisTable extends VisTable {
         return dbgModelInstances.get(n);
     }
 
+    public Array<EditableModelInstance> getNonPrimaryModelInstances() {
+        return new Array<>(true, dbgModelInstances.toArray(), 1, dbgModelInstances.size - 1);
+    }
+
     public void update(float delta) { }
 
     public abstract void applyLocale();

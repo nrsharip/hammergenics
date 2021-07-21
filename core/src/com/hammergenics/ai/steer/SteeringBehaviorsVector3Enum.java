@@ -16,6 +16,7 @@
 
 package com.hammergenics.ai.steer;
 
+import com.badlogic.gdx.ai.steer.GroupBehavior;
 import com.badlogic.gdx.ai.steer.Limiter;
 import com.badlogic.gdx.ai.steer.Proximity;
 import com.badlogic.gdx.ai.steer.Steerable;
@@ -345,6 +346,11 @@ public enum SteeringBehaviorsVector3Enum {
         steeringBehavior.setOwner(owner);
         steeringBehavior.setLimiter(limiter);
         steeringBehavior.setEnabled(enabled);
+    }
+    public static void initGroupBehavior(GroupBehavior<Vector3> groupBehavior, Proximity<Vector3> proximity) {
+        // Consider also:
+        // initSteeringBehavior
+        groupBehavior.setProximity(proximity);
     }
     public static void initAlignment() { }
     public static void initArrive(Arrive<Vector3> arrive, Location<Vector3> target,

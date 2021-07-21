@@ -131,8 +131,16 @@ public class ModelEditInputController extends SpectatorInputController {
         if (keysPressed.size == 2
                 && (keysPressed.contains(Keys.CONTROL_LEFT) || keysPressed.contains(Keys.CONTROL_RIGHT))
                 && keysPressed.contains(Keys.A)) {
+            EditableModelInstance curr = eng.getCurrMI();
             eng.selectedMIs.clear();
             eng.selectedMIs.addAll(eng.editableMIs);
+            if (curr != null) { eng.makeCurrMI(curr); }
+            modelES.stage.reset();
+        }
+        // Delete: deleting all selected model instances
+        if (keysPressed.size == 1 && (keysPressed.contains(Keys.DEL) || keysPressed.contains(Keys.FORWARD_DEL))) {
+            eng.selectedMIs.forEach(eng::removeEditableModelInstance);
+            eng.selectedMIs.clear();
             modelES.stage.reset();
         }
         return super.keyUp(keycode);
@@ -263,7 +271,7 @@ public class ModelEditInputController extends SpectatorInputController {
         switch (button) {
             case Buttons.LEFT:
                 boolean ctrlPressed = keysPressed.contains(Keys.CONTROL_LEFT) || keysPressed.contains(Keys.CONTROL_RIGHT);
-                if (hoveredOverMI != null && hoveredOverMI != eng.getCurrMI() && ctrlPressed) {
+                if (hoveredOverMI != null && ctrlPressed) {
                     if (eng.selectedMIs.indexOf(hoveredOverMI, true) >= 0) {
                         eng.selectedMIs.removeValue(hoveredOverMI, true);
                     } else {

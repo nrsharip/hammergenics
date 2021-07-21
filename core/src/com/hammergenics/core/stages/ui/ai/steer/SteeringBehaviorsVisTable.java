@@ -16,6 +16,7 @@
 
 package com.hammergenics.core.stages.ui.ai.steer;
 
+import com.badlogic.gdx.ai.steer.Steerable;
 import com.badlogic.gdx.ai.utils.Location;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -256,6 +257,7 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
 
         setCurrentTargetA(getSecondaryModelInstance());
         setCurrentTargetB(getModelInstanceN(2));
+        setCurrentAgents(getNonPrimaryModelInstances());
 
         targetAVisTable.setTarget(null);
         targetAVisTable.targetOrientation.clearSetter();
@@ -711,6 +713,34 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
         if (sb == null) { return; }
         switch (sb) {
             case INTERPOSE: dbgModelInstance.interposeAgentB = target; break;
+        }
+    }
+
+    public void setCurrentAgents(Array<EditableModelInstance> agents) {
+        if (dbgModelInstance == null || agents == null || agents.size == 0) { return; }
+        SteeringBehaviorsVector3Enum sb = steeringBehaviorSB.getSelected();
+        if (sb == null) { return; }
+        EditableModelInstance mi = dbgModelInstance;
+        switch (sb) {
+            case ALIGNMENT: mi.alignmentAgents.clear(); mi.alignmentAgents.addAll(agents); break;
+            case COHESION: mi.cohesionAgents.clear(); mi.cohesionAgents.addAll(agents); break;
+            case COLLISION_AVOIDANCE: mi.collisionAvoidanceAgents.clear(); mi.collisionAvoidanceAgents.addAll(agents); break;
+            case HIDE: mi.hideAgents.clear(); mi.hideAgents.addAll(agents); break;
+            case SEPARATION: mi.separationAgents.clear(); mi.separationAgents.addAll(agents); break;
+        }
+    }
+
+    public Array<Steerable<Vector3>> getCurrentAgents() {
+        if (dbgModelInstance == null) { return null; }
+        SteeringBehaviorsVector3Enum sb = steeringBehaviorSB.getSelected();
+        if (sb == null) { return null; }
+        switch (sb) {
+            case ALIGNMENT: return dbgModelInstance.alignmentAgents;
+            case COHESION: return dbgModelInstance.cohesionAgents;
+            case COLLISION_AVOIDANCE: return dbgModelInstance.collisionAvoidanceAgents;
+            case HIDE: return dbgModelInstance.hideAgents;
+            case SEPARATION: return dbgModelInstance.separationAgents;
+            default: return null;
         }
     }
 

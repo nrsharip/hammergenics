@@ -265,9 +265,9 @@ public class ModelEditScreen extends ScreenAdapter {
             //        at com.hammergenics.core.ModelEditScreen.lambda$render$5(ModelEditScreen.java:269)
             immediateModeRenderer.begin(perspectiveCamera.combined, GL20.GL_LINES);
             if (stage.showSelectionCheckBox.isChecked()) {
-                eng.selectedMIs.forEach(
-                        mi -> mi.addSelectionBoxToRenderer(immediateModeRenderer, Color.FOREST)
-                );
+                eng.selectedMIs.forEach(mi -> {
+                    if (mi != null) { mi.addSelectionBoxToRenderer(immediateModeRenderer, Color.FOREST); }
+                });
                 if (eng.getCurrMI() != null) {
                     eng.getCurrMI().addSelectionBoxToRenderer(immediateModeRenderer, Color.RED);
                 }
