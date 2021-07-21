@@ -468,7 +468,7 @@ public class ProjectManagerVisTable extends ManagerVisTable {
             closeTB.addListener(new ChangeListener() {
                 @Override
                 public void changed(ChangeEvent event, Actor actor) {
-                    stage.unpressButton(stage.projTextButton, true);
+                    stage.unpressButton(stage.projTextButton);
                     stage.resetTables();
                 }
             });

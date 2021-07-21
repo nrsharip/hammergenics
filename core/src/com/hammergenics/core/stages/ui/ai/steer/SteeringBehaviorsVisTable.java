@@ -76,9 +76,9 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
     public Vector3VisTable followPathInternalTargetPositionVisTable;
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#interpose
     // Arrive part
-    public FloatVisTable interposeArrivalTolerance;
-    public FloatVisTable interposeDecelerationRadius;
-    public FloatVisTable interposeTimeToTarget;
+    public FloatVisTable interposeArrivalToleranceVisTable;
+    public FloatVisTable interposeDecelerationRadiusVisTable;
+    public FloatVisTable interposeTimeToTargetVisTable;
     // Interpose part
     public FloatVisTable interpositionRatioVisTable;
     // Interpose debug
@@ -89,6 +89,8 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
     public FloatVisTable jumpTakeoffVelocityToleranceVisTable;
     public FloatVisTable jumpTakeoffToleranceVisTable;
     public FloatVisTable jumpMaxVerticalVelocityVisTable;
+    // callback values
+    public BooleanVisTable jumpCallbackAchievableVisTable;
     // HGJump debug
     public FloatVisTable jumpAirborneTimeVisTable;
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#look-where-you-are-going
@@ -183,9 +185,9 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
         // FollowPath debug
         followPathInternalTargetPositionVisTable = new Vector3VisTable(false, true, true, new VisLabel("Internal Target Position: "));
         // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#interpose
-        interposeArrivalTolerance = new FloatVisTable(true, new VisLabel("Arrival Tolerance: "));
-        interposeDecelerationRadius = new FloatVisTable(true, new VisLabel("Deceleration Radius: "));
-        interposeTimeToTarget = new FloatVisTable(true, new VisLabel("Time To Target: "));
+        interposeArrivalToleranceVisTable = new FloatVisTable(true, new VisLabel("Arrival Tolerance: "));
+        interposeDecelerationRadiusVisTable = new FloatVisTable(true, new VisLabel("Deceleration Radius: "));
+        interposeTimeToTargetVisTable = new FloatVisTable(true, new VisLabel("Time To Target: "));
 
         interpositionRatioVisTable = new FloatVisTable(true, new VisLabel("Interposition Ratio: "));
         // Interpose debug
@@ -196,6 +198,7 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
         jumpTakeoffVelocityToleranceVisTable = new FloatVisTable(true, new VisLabel("Takeoff Velocity Tolerance: "));
         jumpTakeoffToleranceVisTable = new FloatVisTable(true, new VisLabel("Takeoff Tolerance: "));
         jumpMaxVerticalVelocityVisTable = new FloatVisTable(true, new VisLabel("Max Vertical Velocity: "));
+        jumpCallbackAchievableVisTable = new BooleanVisTable(false, true, new VisLabel("Jump Achievable: "));
         jumpAirborneTimeVisTable = new FloatVisTable(true, new VisLabel("Airborne Time: "));
         // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#look-where-you-are-going
         lwyagAlignToleranceVisTable = new FloatVisTable(true, new VisLabel("Align Tolerance: "));
@@ -349,9 +352,9 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
                 targetAVisTable.setTarget(getCurrentTargetA());
                 targetBVisTable.setTarget(getCurrentTargetB());
 
-                interposeArrivalTolerance.setFloat(mi.interposeArrivalTolerance).setSetter(mi::setInterposeArrivalTolerance);
-                interposeDecelerationRadius.setFloat(mi.interposeDecelerationRadius).setSetter(mi::setInterposeDecelerationRadius);
-                interposeTimeToTarget.setFloat(mi.interposeTimeToTarget).setSetter(mi::setInterposeTimeToTarget);
+                interposeArrivalToleranceVisTable.setFloat(mi.interposeArrivalTolerance).setSetter(mi::setInterposeArrivalTolerance);
+                interposeDecelerationRadiusVisTable.setFloat(mi.interposeDecelerationRadius).setSetter(mi::setInterposeDecelerationRadius);
+                interposeTimeToTargetVisTable.setFloat(mi.interposeTimeToTarget).setSetter(mi::setInterposeTimeToTarget);
 
                 interpositionRatioVisTable.setFloat(mi.interpositionRatio).setSetter(mi::setInterpositionRatio);
                 // Interpose debug
@@ -364,12 +367,12 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
                 steeringParamsVisTable.add(interposeInternalTargetPositionVisTable.labelsT).expandX().fillX().row();
                 steeringParamsVisTable.add(interposeInternalTargetPositionVisTable.titleL).padRight(5f).right();
                 steeringParamsVisTable.add(interposeInternalTargetPositionVisTable.valueT).left().row();
-                steeringParamsVisTable.add(interposeArrivalTolerance.titleL).padRight(5f).right();
-                steeringParamsVisTable.add(interposeArrivalTolerance.valueT).left().row();
-                steeringParamsVisTable.add(interposeDecelerationRadius.titleL).padRight(5f).right();
-                steeringParamsVisTable.add(interposeDecelerationRadius.valueT).left().row();
-                steeringParamsVisTable.add(interposeTimeToTarget.titleL).padRight(5f).right();
-                steeringParamsVisTable.add(interposeTimeToTarget.valueT).left().row();
+                steeringParamsVisTable.add(interposeArrivalToleranceVisTable.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(interposeArrivalToleranceVisTable.valueT).left().row();
+                steeringParamsVisTable.add(interposeDecelerationRadiusVisTable.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(interposeDecelerationRadiusVisTable.valueT).left().row();
+                steeringParamsVisTable.add(interposeTimeToTargetVisTable.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(interposeTimeToTargetVisTable.valueT).left().row();
                 steeringParamsVisTable.add(interpositionRatioVisTable.titleL).padRight(5f).right();
                 steeringParamsVisTable.add(interpositionRatioVisTable.valueT).left().row();
                 break;
@@ -379,6 +382,7 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
                 jumpTakeoffVelocityToleranceVisTable.setFloat(mi.jumpTakeoffVelocityTolerance).setSetter(mi::setJumpTakeoffVelocityTolerance);
                 jumpTakeoffToleranceVisTable.setFloat(mi.jumpTakeoffTolerance).setSetter(mi::setJumpTakeoffTolerance);
                 jumpMaxVerticalVelocityVisTable.setFloat(mi.jumpMaxVerticalVelocity).setSetter(mi::setJumpMaxVerticalVelocity);
+                jumpCallbackAchievableVisTable.setBoolean(mi.jumpCallbackAchievable);
                 jumpAirborneTimeVisTable.setFloat(mi.jumpAirborneTime).setSetter(mi::setJumpAirborneTime);
 
                 steeringParamsVisTable.add().padRight(5f).right();
@@ -394,6 +398,8 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
                 steeringParamsVisTable.add(jumpTakeoffToleranceVisTable.valueT).left().row();
                 steeringParamsVisTable.add(jumpMaxVerticalVelocityVisTable.titleL).padRight(5f).right();
                 steeringParamsVisTable.add(jumpMaxVerticalVelocityVisTable.valueT).left().row();
+                steeringParamsVisTable.add(jumpCallbackAchievableVisTable.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(jumpCallbackAchievableVisTable.valueT).left().row();
                 steeringParamsVisTable.add(jumpAirborneTimeVisTable.titleL).padRight(5f).right();
                 steeringParamsVisTable.add(jumpAirborneTimeVisTable.valueT).left().row();
                 break;
@@ -516,9 +522,9 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
         // debug
         followPathInternalTargetPositionVisTable.setVector3(null);
         // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#interpose
-        interposeArrivalTolerance.setFloat(0f).clearSetter();
-        interposeDecelerationRadius.setFloat(0f).clearSetter();
-        interposeTimeToTarget.setFloat(0f).clearSetter();
+        interposeArrivalToleranceVisTable.setFloat(0f).clearSetter();
+        interposeDecelerationRadiusVisTable.setFloat(0f).clearSetter();
+        interposeTimeToTargetVisTable.setFloat(0f).clearSetter();
 
         interpositionRatioVisTable.setFloat(0f).clearSetter();
         // debug
@@ -529,6 +535,7 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
         jumpTakeoffVelocityToleranceVisTable.setFloat(0f).clearSetter();
         jumpTakeoffToleranceVisTable.setFloat(0f).clearSetter();
         jumpMaxVerticalVelocityVisTable.setFloat(0f).clearSetter();
+        jumpCallbackAchievableVisTable.setBoolean(false);
         // debug
         jumpAirborneTimeVisTable.setFloat(0f).clearSetter();
         // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#look-where-you-are-going
@@ -596,9 +603,9 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
                 followPathInternalTargetPositionVisTable.update();
                 break;
             case INTERPOSE: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#interpose
-                interposeArrivalTolerance.setFloat(mi.interposeArrivalTolerance);
-                interposeDecelerationRadius.setFloat(mi.interposeDecelerationRadius);
-                interposeTimeToTarget.setFloat(mi.interposeTimeToTarget);
+                interposeArrivalToleranceVisTable.setFloat(mi.interposeArrivalTolerance);
+                interposeDecelerationRadiusVisTable.setFloat(mi.interposeDecelerationRadius);
+                interposeTimeToTargetVisTable.setFloat(mi.interposeTimeToTarget);
 
                 interpositionRatioVisTable.setFloat(mi.interpositionRatio);
                 // Interpose debug
@@ -610,6 +617,7 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
                 jumpTakeoffVelocityToleranceVisTable.setFloat(mi.jumpTakeoffVelocityTolerance);
                 jumpTakeoffToleranceVisTable.setFloat(mi.jumpTakeoffTolerance);
                 jumpMaxVerticalVelocityVisTable.setFloat(mi.jumpMaxVerticalVelocity);
+                jumpCallbackAchievableVisTable.setBoolean(mi.jumpCallbackAchievable);
                 jumpAirborneTimeVisTable.setFloat(mi.jumpAirborneTime);
                 break;
             case LOOK_WHERE_YOU_ARE_GOING: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#look-where-you-are-going

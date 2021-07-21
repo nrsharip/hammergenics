@@ -145,14 +145,20 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     public Vector3 interposeInternalTargetPosition = new Vector3();
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#jump
     // SteeringBehavior -> MatchVelocity -> Jump
-    public Jump.JumpDescriptor<Vector3> jumpDescriptor;
-    public Y3DGravityComponentHandler jumpY3DGravityComponentHandler;
-    public JumpCallbackAdapter jumpCallback;
-    public Vector3 jumpGravity = new Vector3();
-    public float jumpTakeoffPositionTolerance = 0.5f;
-    public float jumpTakeoffVelocityTolerance = 0.5f;
-    public float jumpTakeoffTolerance = 0.5f;
-    public float jumpMaxVerticalVelocity = 2f;
+    public Jump.JumpDescriptor<Vector3> jumpDescriptor = new Jump.JumpDescriptor<>(new Vector3(), new Vector3());
+    public Y3DGravityComponentHandler jumpY3DGravityComponentHandler = new Y3DGravityComponentHandler();
+    public boolean jumpCallbackAchievable = false;
+    public Jump.JumpCallback jumpCallback = new Jump.JumpCallback() {
+        @Override public void reportAchievability(boolean achievable) { jumpCallbackAchievable = achievable; }
+        @Override public void takeoff(float maxVerticalVelocity, float time) {
+            linearVelocity.y = maxVerticalVelocity;
+        }
+    };
+    public Vector3 jumpGravity = new Vector3(0f, -10f, 0f);
+    public float jumpTakeoffPositionTolerance = 0.1f;
+    public float jumpTakeoffVelocityTolerance = 0.1f;
+    public float jumpTakeoffTolerance = 0.1f;
+    public float jumpMaxVerticalVelocity = 10f;
     public float jumpAirborneTime = 0;
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#look-where-you-are-going
     // SteeringBehavior -> ReachOrientation -> LookWhereYouAreGoing
@@ -415,6 +421,8 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
                 break;
             case JUMP: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#jump
                 HG3DJump jump = (HG3DJump) JUMP.getInstance();
+                jumpDescriptor.takeoffPosition.set(0f, getPosition().y, 0f);
+                jumpDescriptor.landingPosition.set(1f, getPosition().y, 1f);
                 SteeringBehaviorsVector3Enum.initSteeringBehavior(jump,
                         steeringBehaviorOwner,
                         steeringBehaviorLimiter,

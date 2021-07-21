@@ -213,7 +213,7 @@ public class ModelEditStage extends Stage {
         aiManagerTable = new AIManagerVisTable(modelES, this);
         physManagerTable = new PhysicsManagerVisTable(modelES, this);
 
-        pressButton(projTextButton, true);
+        pressButton(projTextButton);
         resetTables();
     }
 
@@ -802,9 +802,9 @@ public class ModelEditStage extends Stage {
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 editCell.clearActor();
                 if (!isPressed(projTextButton)) {
-                    pressButton(projTextButton, true);
+                    pressButton(projTextButton);
                 } else {
-                    unpressButton(projTextButton, true);
+                    unpressButton(projTextButton);
                 }
                 resetTables();
                 return super.touchDown(event, x, y, pointer, button); // false
