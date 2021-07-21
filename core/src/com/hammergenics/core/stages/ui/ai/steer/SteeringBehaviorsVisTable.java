@@ -29,6 +29,7 @@ import com.hammergenics.core.stages.ui.ContextAwareVisTable;
 import com.hammergenics.core.stages.ui.ai.steer.utils.TargetVisTable;
 import com.hammergenics.core.stages.ui.auxiliary.types.BooleanVisTable;
 import com.hammergenics.core.stages.ui.auxiliary.types.FloatVisTable;
+import com.hammergenics.core.stages.ui.auxiliary.types.IntVisTable;
 import com.hammergenics.core.stages.ui.auxiliary.types.Vector3VisTable;
 import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisSelectBox;
@@ -61,12 +62,24 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#flow-field-following
     public FloatVisTable followFlowFieldPredictionTimeVisTable;
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#path-following
+    // Arrive part
+    public FloatVisTable followPathArrivalToleranceVisTable;
+    public FloatVisTable followPathDecelerationRadiusVisTable;
+    public FloatVisTable followPathTimeToTargetVisTable;
+    // FollowPath part
     public FloatVisTable followPathOffsetVisTable;
+    public IntVisTable followPathParamSegmentIndexVisTable;
+    public FloatVisTable followPathParamDistanceVisTable;
     public BooleanVisTable followPathArriveEnabledVisTable;
     public FloatVisTable followPathPredictionTimeVisTable;
     // FollowPath debug
     public Vector3VisTable followPathInternalTargetPositionVisTable;
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#interpose
+    // Arrive part
+    public FloatVisTable interposeArrivalTolerance;
+    public FloatVisTable interposeDecelerationRadius;
+    public FloatVisTable interposeTimeToTarget;
+    // Interpose part
     public FloatVisTable interpositionRatioVisTable;
     // Interpose debug
     public Vector3VisTable interposeInternalTargetPositionVisTable;
@@ -157,12 +170,23 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
         // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#flow-field-following
         followFlowFieldPredictionTimeVisTable = new FloatVisTable(true, new VisLabel("Prediction Time: "));
         // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#path-following
+        // Arrive part
+        followPathArrivalToleranceVisTable = new FloatVisTable(true, new VisLabel("Arrival Tolerance: "));
+        followPathDecelerationRadiusVisTable = new FloatVisTable(true, new VisLabel("Deceleration Radius: "));
+        followPathTimeToTargetVisTable = new FloatVisTable(true, new VisLabel("Time To Target: "));
+        // FollowPath part
         followPathOffsetVisTable = new FloatVisTable(true, new VisLabel("Offset: "));
+        followPathParamSegmentIndexVisTable = new IntVisTable(true, new VisLabel("Segment Index: "));;
+        followPathParamDistanceVisTable = new FloatVisTable(true, new VisLabel("Distance: "));
         followPathArriveEnabledVisTable = new BooleanVisTable(false, true, new VisLabel("Arrive Enabled: "));
         followPathPredictionTimeVisTable = new FloatVisTable(true, new VisLabel("Prediction Time: "));
         // FollowPath debug
         followPathInternalTargetPositionVisTable = new Vector3VisTable(false, true, true, new VisLabel("Internal Target Position: "));
         // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#interpose
+        interposeArrivalTolerance = new FloatVisTable(true, new VisLabel("Arrival Tolerance: "));
+        interposeDecelerationRadius = new FloatVisTable(true, new VisLabel("Deceleration Radius: "));
+        interposeTimeToTarget = new FloatVisTable(true, new VisLabel("Time To Target: "));
+
         interpositionRatioVisTable = new FloatVisTable(true, new VisLabel("Interposition Ratio: "));
         // Interpose debug
         interposeInternalTargetPositionVisTable = new Vector3VisTable(false, true, true, new VisLabel("Internal Target Position: "));
@@ -286,11 +310,24 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
                 steeringParamsVisTable.add(followFlowFieldPredictionTimeVisTable.valueT).left().row();
                 break;
             case FOLLOW_PATH: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#path-following
+                followPathArrivalToleranceVisTable.setFloat(mi.followPathArrivalTolerance).setSetter(mi::setFollowPathArrivalTolerance);
+                followPathDecelerationRadiusVisTable.setFloat(mi.followPathDecelerationRadius).setSetter(mi::setFollowPathDecelerationRadius);
+                followPathTimeToTargetVisTable.setFloat(mi.followPathTimeToTarget).setSetter(mi::setFollowPathTimeToTarget);
+
                 followPathOffsetVisTable.setFloat(mi.followPathOffset).setSetter(mi::setFollowPathOffset);
+                followPathParamSegmentIndexVisTable.setInt(mi.followPathParamSegmentIndex).setSetter(mi::setFollowPathParamSegmentIndex);
+                followPathParamDistanceVisTable.setFloat(mi.followPathParamDistance).setSetter(mi::setFollowPathParamDistance);
                 followPathPredictionTimeVisTable.setFloat(mi.followPathPredictionTime).setSetter(mi::setFollowPathPredictionTime);
                 followPathArriveEnabledVisTable.setBoolean(mi.followPathArriveEnabled).setSetter(mi::setFollowPathArriveEnabled);
                 // FollowPath debug
                 followPathInternalTargetPositionVisTable.setVector3(mi.followPathInternalTargetPosition);
+
+                steeringParamsVisTable.add(followPathArrivalToleranceVisTable.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(followPathArrivalToleranceVisTable.valueT).left().row();
+                steeringParamsVisTable.add(followPathDecelerationRadiusVisTable.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(followPathDecelerationRadiusVisTable.valueT).left().row();
+                steeringParamsVisTable.add(followPathTimeToTargetVisTable.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(followPathTimeToTargetVisTable.valueT).left().row();
 
                 steeringParamsVisTable.add(followPathOffsetVisTable.titleL).padRight(5f).right();
                 steeringParamsVisTable.add(followPathOffsetVisTable.valueT).left().row();
@@ -303,10 +340,18 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
                 steeringParamsVisTable.add(followPathInternalTargetPositionVisTable.labelsT).expandX().fillX().row();
                 steeringParamsVisTable.add(followPathInternalTargetPositionVisTable.titleL).padRight(5f).right();
                 steeringParamsVisTable.add(followPathInternalTargetPositionVisTable.valueT).left().row();
+                steeringParamsVisTable.add(followPathParamSegmentIndexVisTable.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(followPathParamSegmentIndexVisTable.valueT).left().row();
+                steeringParamsVisTable.add(followPathParamDistanceVisTable.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(followPathParamDistanceVisTable.valueT).left().row();
                 break;
             case INTERPOSE: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#interpose
                 targetAVisTable.setTarget(getCurrentTargetA());
-                targetAVisTable.setTarget(getCurrentTargetB());
+                targetBVisTable.setTarget(getCurrentTargetB());
+
+                interposeArrivalTolerance.setFloat(mi.interposeArrivalTolerance).setSetter(mi::setInterposeArrivalTolerance);
+                interposeDecelerationRadius.setFloat(mi.interposeDecelerationRadius).setSetter(mi::setInterposeDecelerationRadius);
+                interposeTimeToTarget.setFloat(mi.interposeTimeToTarget).setSetter(mi::setInterposeTimeToTarget);
 
                 interpositionRatioVisTable.setFloat(mi.interpositionRatio).setSetter(mi::setInterpositionRatio);
                 // Interpose debug
@@ -315,9 +360,16 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
                 steeringParamsVisTable.add(targetAVisTable).colspan(2).row();
                 steeringParamsVisTable.add(targetBVisTable).colspan(2).row();
                 steeringParamsVisTable.add().padRight(5f).right();
+
                 steeringParamsVisTable.add(interposeInternalTargetPositionVisTable.labelsT).expandX().fillX().row();
                 steeringParamsVisTable.add(interposeInternalTargetPositionVisTable.titleL).padRight(5f).right();
                 steeringParamsVisTable.add(interposeInternalTargetPositionVisTable.valueT).left().row();
+                steeringParamsVisTable.add(interposeArrivalTolerance.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(interposeArrivalTolerance.valueT).left().row();
+                steeringParamsVisTable.add(interposeDecelerationRadius.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(interposeDecelerationRadius.valueT).left().row();
+                steeringParamsVisTable.add(interposeTimeToTarget.titleL).padRight(5f).right();
+                steeringParamsVisTable.add(interposeTimeToTarget.valueT).left().row();
                 steeringParamsVisTable.add(interpositionRatioVisTable.titleL).padRight(5f).right();
                 steeringParamsVisTable.add(interpositionRatioVisTable.valueT).left().row();
                 break;
@@ -452,12 +504,22 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
         // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#flow-field-following
         followFlowFieldPredictionTimeVisTable.setFloat(0f).clearSetter();
         // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#path-following
+        followPathArrivalToleranceVisTable.setFloat(0f).clearSetter();
+        followPathDecelerationRadiusVisTable.setFloat(0f).clearSetter();
+        followPathTimeToTargetVisTable.setFloat(0f).clearSetter();
+
         followPathOffsetVisTable.setFloat(0f).clearSetter();
+        followPathParamSegmentIndexVisTable.setInt(0).clearSetter();
+        followPathParamDistanceVisTable.setFloat(0f).clearSetter();
         followPathArriveEnabledVisTable.setBoolean(false).clearSetter();
         followPathPredictionTimeVisTable.setFloat(0f).clearSetter();
         // debug
         followPathInternalTargetPositionVisTable.setVector3(null);
         // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#interpose
+        interposeArrivalTolerance.setFloat(0f).clearSetter();
+        interposeDecelerationRadius.setFloat(0f).clearSetter();
+        interposeTimeToTarget.setFloat(0f).clearSetter();
+
         interpositionRatioVisTable.setFloat(0f).clearSetter();
         // debug
         interposeInternalTargetPositionVisTable.setVector3(null);
@@ -521,13 +583,23 @@ public class SteeringBehaviorsVisTable extends ContextAwareVisTable {
                 followFlowFieldPredictionTimeVisTable.setFloat(mi.followFlowFieldPredictionTime);
                 break;
             case FOLLOW_PATH: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#path-following
+                followPathArrivalToleranceVisTable.setFloat(mi.followPathArrivalTolerance);
+                followPathDecelerationRadiusVisTable.setFloat(mi.followPathDecelerationRadius);
+                followPathTimeToTargetVisTable.setFloat(mi.followPathTimeToTarget);
+
                 followPathOffsetVisTable.setFloat(mi.followPathOffset);
+                followPathParamSegmentIndexVisTable.setInt(mi.followPathParamSegmentIndex);
+                followPathParamDistanceVisTable.setFloat(mi.followPathParamDistance);
                 followPathPredictionTimeVisTable.setFloat(mi.followPathPredictionTime);
                 followPathArriveEnabledVisTable.setBoolean(mi.followPathArriveEnabled);
                 // FollowPath debug
                 followPathInternalTargetPositionVisTable.update();
                 break;
             case INTERPOSE: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#interpose
+                interposeArrivalTolerance.setFloat(mi.interposeArrivalTolerance);
+                interposeDecelerationRadius.setFloat(mi.interposeDecelerationRadius);
+                interposeTimeToTarget.setFloat(mi.interposeTimeToTarget);
+
                 interpositionRatioVisTable.setFloat(mi.interpositionRatio);
                 // Interpose debug
                 interposeInternalTargetPositionVisTable.update();

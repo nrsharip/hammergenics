@@ -113,18 +113,34 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     public float followFlowFieldPredictionTime = 1f;
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#path-following
     // SteeringBehavior -> Arrive -> FollowPath
-    public LinePath<Vector3> followPath = new LinePath<>(new Array<>(new Vector3[]{Vector3.X.cpy(), Vector3.Z.cpy()}));
+    // Arrive part
+    public float followPathArrivalTolerance = 0.1f;
+    public float followPathDecelerationRadius = 1f;
+    public float followPathTimeToTarget = 1f;
+    // FollowPath part
+    public LinePath<Vector3> followPath = new LinePath<>(new Array<>(new Vector3[]{
+            new Vector3(-3, 1, -3), new Vector3(-3, 1, 3), new Vector3(3, 1, 3), new Vector3(3, 1, -3), new Vector3(-3, 1, -3),
+            new Vector3(-6, 1, -6), new Vector3(-6, 1, 6), new Vector3(6, 1, 6), new Vector3(6, 1, -6), new Vector3(-6, 1, -6),
+            new Vector3(-9, 1, -9), new Vector3(-9, 1, 9), new Vector3(9, 1, 9), new Vector3(9, 1, -9), new Vector3(-9, 1, -9),
+    }));
     public float followPathOffset = 1f;
     public LinePath.LinePathParam followPathParam = new LinePath.LinePathParam();
+    public int followPathParamSegmentIndex;
+    public float followPathParamDistance;
     public boolean followPathArriveEnabled = true;
     public float followPathPredictionTime = 1f;
     // FollowPath debug
     public Vector3 followPathInternalTargetPosition = new Vector3();
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#interpose
     // SteeringBehavior -> Arrive -> Interpose
+    // Arrive part
+    public float interposeArrivalTolerance = 0.001f;
+    public float interposeDecelerationRadius = 3f;
+    public float interposeTimeToTarget = 0.01f;
+    // Interpose part
     public Steerable<Vector3> interposeAgentA = this;
     public Steerable<Vector3> interposeAgentB = this;
-    public float interpositionRatio = 1f;
+    public float interpositionRatio = 0.5f;
     // Interpose debug
     public Vector3 interposeInternalTargetPosition = new Vector3();
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#jump
@@ -261,11 +277,19 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     public void setFleeTarget(Location<Vector3> fleeTarget) { this.fleeTarget = fleeTarget; }
     public void setFlowField(FollowFlowField.FlowField<Vector3> flowField) { this.flowField = flowField; }
     public void setFollowFlowFieldPredictionTime(float followFlowFieldPredictionTime) { this.followFlowFieldPredictionTime = followFlowFieldPredictionTime; }
+    public void setFollowPathArrivalTolerance(float followPathArrivalTolerance) { this.followPathArrivalTolerance = followPathArrivalTolerance; }
+    public void setFollowPathDecelerationRadius(float followPathDecelerationRadius) { this.followPathDecelerationRadius = followPathDecelerationRadius; }
+    public void setFollowPathTimeToTarget(float followPathTimeToTarget) { this.followPathTimeToTarget = followPathTimeToTarget; }
     public void setFollowPath(LinePath<Vector3> followPath) { this.followPath = followPath; }
     public void setFollowPathOffset(float followPathOffset) { this.followPathOffset = followPathOffset; }
     public void setFollowPathParam(LinePath.LinePathParam followPathParam) { this.followPathParam = followPathParam; }
+    public void setFollowPathParamSegmentIndex(int followPathParamSegmentIndex) { this.followPathParamSegmentIndex = followPathParamSegmentIndex; }
+    public void setFollowPathParamDistance(float followPathParamDistance) { this.followPathParamDistance = followPathParamDistance; }
     public void setFollowPathArriveEnabled(boolean followPathArriveEnabled) { this.followPathArriveEnabled = followPathArriveEnabled; }
     public void setFollowPathPredictionTime(float followPathPredictionTime) { this.followPathPredictionTime = followPathPredictionTime; }
+    public void setInterposeArrivalTolerance(float interposeArrivalTolerance) { this.interposeArrivalTolerance = interposeArrivalTolerance; }
+    public void setInterposeDecelerationRadius(float interposeDecelerationRadius) { this.interposeDecelerationRadius = interposeDecelerationRadius; }
+    public void setInterposeTimeToTarget(float interposeTimeToTarget) { this.interposeTimeToTarget = interposeTimeToTarget; }
     public void setInterposeAgentA(Steerable<Vector3> interposeAgentA) { this.interposeAgentA = interposeAgentA; }
     public void setInterposeAgentB(Steerable<Vector3> interposeAgentB) { this.interposeAgentB = interposeAgentB; }
     public void setInterpositionRatio(float interpositionRatio) { this.interpositionRatio = interpositionRatio; }
@@ -353,6 +377,11 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
                         steeringBehaviorOwner,
                         steeringBehaviorLimiter,
                         steeringEnabled);
+                SteeringBehaviorsVector3Enum.initArrive(followLinePath,
+                        null,
+                        followPathArrivalTolerance,
+                        followPathDecelerationRadius,
+                        followPathTimeToTarget);
                 SteeringBehaviorsVector3Enum.initFollowPath(followLinePath,
                         followPath,
                         followPathPredictionTime,
@@ -362,6 +391,8 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
                 followLinePath.calculateSteering(steeringAcceleration);
                 // debug
                 followPathInternalTargetPosition.set(followLinePath.getInternalTargetPosition());
+                followPathParamSegmentIndex = followPathParam.getSegmentIndex();
+                followPathParamDistance = followPathParam.getDistance();
                 break;
             case INTERPOSE: // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#interpose
                 Interpose<Vector3> interpose = (Interpose<Vector3>) INTERPOSE.getInstance();
@@ -369,6 +400,11 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
                         steeringBehaviorOwner,
                         steeringBehaviorLimiter,
                         steeringEnabled);
+                SteeringBehaviorsVector3Enum.initArrive(interpose,
+                        null,
+                        interposeArrivalTolerance,
+                        interposeDecelerationRadius,
+                        interposeTimeToTarget);
                 SteeringBehaviorsVector3Enum.initInterpose(interpose,
                         interposeAgentA,
                         interposeAgentB,

@@ -16,9 +16,12 @@
 
 package com.hammergenics.core.stages.ui.auxiliary.types;
 
+import com.badlogic.gdx.graphics.Color;
 import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisTable;
 import com.kotcrab.vis.ui.widget.VisTextField;
+
+import java.util.function.IntConsumer;
 
 /**
  * Add description here
@@ -32,6 +35,7 @@ public class IntVisTable extends VisTable {
     public VisTextField decTF;
     public VisTextField hexTF;
     public VisTable valueT;
+    public IntConsumer setter = null;
 
     public IntVisTable(boolean title) {
         this(0, title, null);
@@ -53,9 +57,27 @@ public class IntVisTable extends VisTable {
         this.value = value;
         if (titleL != null) { this.titleL = titleL; } else { this.titleL = new VisLabel("Float: "); }
 
+        VisTextField.TextFieldListener listener = new VisTextField.TextFieldListener() {
+            @Override
+            public void keyTyped(VisTextField textField, char c) {
+                try {
+                    int value = Integer.parseInt(textField.getText());
+                    handleKeyTyped(value, textField, c);
+                    if (setter != null) { setter.accept(value); }
+                    textField.getColor().set(Color.WHITE);
+                } catch (NumberFormatException e) {
+                    textField.getColor().set(Color.PINK);
+                }
+            }
+        };
+
         octTF = new VisTextField(Integer.toOctalString(this.value));
         decTF = new VisTextField(Integer.toString(this.value));
         hexTF = new VisTextField(Integer.toHexString(this.value));
+
+        octTF.setTextFieldListener(listener);
+        decTF.setTextFieldListener(listener);
+        hexTF.setTextFieldListener(listener);
 
         valueT = new VisTable();
         VisTable tmp = new VisTable();
@@ -69,10 +91,15 @@ public class IntVisTable extends VisTable {
         row();
     }
 
-    public void setInt(int value) {
+    public IntVisTable setInt(int value) {
         this.value = value;
         octTF.setText(Integer.toOctalString(value));
         decTF.setText(Integer.toString(value));
         hexTF.setText(Integer.toHexString(value));
+        return this;
     }
+
+    public void handleKeyTyped(int value, VisTextField textField, char c) { }
+    public void setSetter(IntConsumer setter) { this.setter = setter; }
+    public void clearSetter() { this.setter = null; }
 }

@@ -351,7 +351,7 @@ public enum SteeringBehaviorsVector3Enum {
                                   float arrivalTolerance, float decelerationRadius, float timeToTarget) {
         // Consider also:
         // initSteeringBehavior
-        arrive.setTarget(target);
+        if (target != null) { arrive.setTarget(target); }
         arrive.setArrivalTolerance(arrivalTolerance);
         arrive.setDecelerationRadius(decelerationRadius);
         arrive.setTimeToTarget(timeToTarget);
