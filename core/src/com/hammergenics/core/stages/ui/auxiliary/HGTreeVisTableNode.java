@@ -35,7 +35,7 @@ public class HGTreeVisTableNode extends Tree.Node<HGTreeVisTableNode, Integer, H
     public static class HGTreeVisTable extends VisTable {
         public Cell<?> cell1, cell2, cell3, cell4;
         public VisLabel label;
-        public FileHandle fileHandle;
+        public FileHandle fileHandle; // TODO: this should be a generic value: T value instead of FileHandle fileHandle
 
         public HGTreeVisTable(CharSequence text) { this(text, Color.WHITE, null); }
         public HGTreeVisTable(CharSequence text, FileHandle fileHandle) { this(text, Color.WHITE, fileHandle); }

@@ -44,9 +44,10 @@ import com.badlogic.gdx.ai.steer.behaviors.Seek;
 import com.badlogic.gdx.ai.steer.behaviors.Separation;
 import com.badlogic.gdx.ai.steer.behaviors.Wander;
 import com.badlogic.gdx.ai.steer.proximities.RadiusProximity;
-import com.badlogic.gdx.ai.steer.utils.Path;
+import com.badlogic.gdx.ai.steer.utils.RayConfiguration;
 import com.badlogic.gdx.ai.steer.utils.paths.LinePath;
 import com.badlogic.gdx.ai.utils.Location;
+import com.badlogic.gdx.ai.utils.RaycastCollisionDetector;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.hammergenics.HGEngine;
@@ -399,7 +400,13 @@ public enum SteeringBehaviorsVector3Enum {
         followPath.setPathOffset(pathOffset);
         followPath.setPathParam(pathParam);
     }
-    public static void initHide() { }
+    public static void initHide(Hide<Vector3> hide, Proximity<Vector3> proximity, float distanceFromBoundary) {
+        // Consider also:
+        // initSteeringBehavior
+        // initArrive
+        hide.setProximity(proximity);
+        hide.setDistanceFromBoundary(distanceFromBoundary);
+    }
     public static void initInterpose(Interpose<Vector3> interpose, Steerable<Vector3> agentA,
                                      Steerable<Vector3> agentB, float interpositionRatio) {
         // Consider also:
@@ -443,7 +450,16 @@ public enum SteeringBehaviorsVector3Enum {
         pursue.setTarget(target);
         pursue.setMaxPredictionTime(maxPredictionTime);
     }
-    public static void initRaycastObstacleAvoidance() { }
+    public static void initRaycastObstacleAvoidance(RaycastObstacleAvoidance<Vector3> raycastObstacleAvoidance,
+                                                    RayConfiguration<Vector3> rayConfiguration,
+                                                    RaycastCollisionDetector<Vector3> raycastCollisionDetector,
+                                                    float distanceFromBoundary) {
+        // Consider also:
+        // initSteeringBehavior
+        raycastObstacleAvoidance.setRayConfiguration(rayConfiguration);
+        raycastObstacleAvoidance.setRaycastCollisionDetector(raycastCollisionDetector);
+        raycastObstacleAvoidance.setDistanceFromBoundary(distanceFromBoundary);
+    }
     public static void initReachOrientation(ReachOrientation<Vector3> reachOrientation, Location<Vector3> target,
                                             float alignTolerance, float decelerationRadius, float timeToTarget) {
         // Consider also:
@@ -458,7 +474,12 @@ public enum SteeringBehaviorsVector3Enum {
         // initSteeringBehavior
         seek.setTarget(target);
     }
-    public static void initSeparation() { }
+    public static void initSeparation(Separation<Vector3> separation, float decayCoefficient) {
+        // Consider also:
+        // initSteeringBehavior
+        // initGroupBehavior
+        separation.setDecayCoefficient(decayCoefficient);
+    }
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#wander
     public static void initWander(HG3DWander wander, float lastTime, float wanderOffset, float wanderRadius, float wanderRate,
                                   float wanderOrientation, boolean faceEnabled) {
