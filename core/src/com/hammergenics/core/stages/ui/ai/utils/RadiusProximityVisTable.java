@@ -14,7 +14,7 @@
  * limitations under the License.
  ******************************************************************************/
 
-package com.hammergenics.core.stages.ui.ai.steer.utils;
+package com.hammergenics.core.stages.ui.ai.utils;
 
 import com.badlogic.gdx.ai.steer.proximities.RadiusProximity;
 import com.badlogic.gdx.math.Vector3;

@@ -27,7 +27,7 @@ import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.graphics.g3d.EditableModelInstance;
 import com.hammergenics.core.stages.ModelEditStage;
 import com.hammergenics.core.stages.ui.ContextAwareVisTable;
-import com.hammergenics.core.stages.ui.ai.steer.utils.Location3DVisTable;
+import com.hammergenics.core.stages.ui.ai.utils.Location3DVisTable;
 import com.hammergenics.core.stages.ui.auxiliary.types.ArrayAsTreeVisTable;
 import com.hammergenics.core.stages.ui.auxiliary.types.FloatVisTable;
 import com.kotcrab.vis.ui.widget.VisLabel;
