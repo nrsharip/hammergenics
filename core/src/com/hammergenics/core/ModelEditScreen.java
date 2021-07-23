@@ -176,7 +176,7 @@ public class ModelEditScreen extends ScreenAdapter {
         eng.update(delta,
                 stage.physManagerTable.dynamicsWindow.dynamicsCheckBox.isChecked()
         );
-        if (stage.isPressed(stage.aiTextButton) && stage.aiManagerTable.dbgModelInstance != null) {
+        if (stage.isPressed(stage.aiTextButton)) {
             stage.aiManagerTable.update(delta);
         }
         if (stage.isPressed(stage.physTextButton) && stage.physManagerTable.dbgModelInstance != null) {

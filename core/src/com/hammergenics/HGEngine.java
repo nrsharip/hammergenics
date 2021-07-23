@@ -19,6 +19,10 @@ package com.hammergenics;
 import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ai.GdxAI;
+import com.badlogic.gdx.ai.fma.Formation;
+import com.badlogic.gdx.ai.fma.FormationMember;
+import com.badlogic.gdx.ai.steer.Steerable;
+import com.badlogic.gdx.ai.utils.Location;
 import com.badlogic.gdx.assets.AssetDescriptor;
 import com.badlogic.gdx.assets.AssetLoaderParameters;
 import com.badlogic.gdx.assets.AssetManager;
@@ -61,6 +65,7 @@ import com.hammergenics.core.graphics.g3d.EditableModelInstance;
 import com.hammergenics.core.graphics.g3d.HGModel;
 import com.hammergenics.core.graphics.g3d.HGModelInstance;
 import com.hammergenics.core.graphics.g3d.PhysicalModelInstance.ShapesEnum;
+import com.hammergenics.core.graphics.g3d.SteerableModelInstance;
 import com.hammergenics.core.graphics.g3d.saver.G3dModelSaver;
 import com.hammergenics.core.utils.AttributesMap;
 import com.hammergenics.map.HGGrid;
@@ -81,6 +86,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 
+import static com.hammergenics.ai.fma.FormationPatterns3DEnum.DEFENSIVE_CIRCLE;
+import static com.hammergenics.ai.fma.SlotAssignmentStrategies3DEnum.FREE;
 import static com.hammergenics.core.graphics.g3d.utils.Models.createGridModel;
 import static com.hammergenics.core.graphics.g3d.utils.Models.createLightsModel;
 import static com.hammergenics.core.graphics.g3d.utils.Models.createTestBox;
@@ -182,6 +189,38 @@ public class HGEngine implements Disposable {
     // the general container for any auxiliary model instances
     public Array<HGModelInstance> auxMIs = new Array<>(HGModelInstance.class);
 
+    // Formation Related:
+    // FormationPattern implementations:
+    // * DefensiveCircleFormationPattern
+    // * OffensiveCircleFormationPattern
+    // SlotAssignmentStrategy implementations:
+    // * FreeSlotAssignmentStrategy
+    // * SoftRoleSlotAssignmentStrategy
+    public final Steerable<Vector3> stubAnchor;
+    public Formation<Vector3> formation;
+
+    public Array<FormationMember<Vector3>> getFormationMembers(Array<FormationMember<Vector3>> out) {
+        for (int i = 0; i < formation.getSlotAssignmentCount(); i++) {
+            out.add(formation.getSlotAssignmentAt(i).member);
+        }
+        return out;
+    }
+
+    public void setFormationAnchor(Location<Vector3> anchor) {
+        if (anchor == null) { return; }
+        formation.setAnchorPoint(anchor);
+    }
+
+    public void setFormationMembers(Array<EditableModelInstance> members) {
+        if (members == null || members.size == 0) { return; }
+        for (int i = formation.getSlotAssignmentCount() - 1; i >= 0 ; i--) {
+            formation.removeMember(formation.getSlotAssignmentAt(i).member);
+        }
+        for (FormationMember<Vector3> member: members) {
+            formation.addMember(member);
+        }
+    }
+
     // ModelInstance Related:
     public final Array<EditableModelInstance> editableMIs = new Array<>(EditableModelInstance.class);
     public float unitSize = 0f;
@@ -236,6 +275,11 @@ public class HGEngine implements Disposable {
                 new TerrainChunk(MAP_SIZE + 1, MAP_CENTER           , MAP_CENTER           )
         });
 
+        // Formation Related:
+        // NOTE: stubAnchor should be initialized after Bullet init.
+        stubAnchor = new SteerableModelInstance(HGEngine.boxHgModel, 0f, ShapesEnum.BOX);
+        formation = new Formation<>(stubAnchor, DEFENSIVE_CIRCLE.getInstance(3f), FREE.getInstance());
+        formation.updateSlots();
         // see public BitmapFont ()
         // Gdx.files.classpath("com/badlogic/gdx/utils/arial-15.fnt"), Gdx.files.classpath("com/badlogic/gdx/utils/arial-15.png")
 
@@ -925,6 +969,7 @@ public class HGEngine implements Disposable {
         // * if you forget to update the timepiece the wander orientation won't change.
         // * the timepiece should be always updated before this steering behavior runs.
         GdxAI.getTimepiece().update(delta);
+        formation.updateSlots();
         editableMIs.forEach(mi -> mi.update(delta));
 
         if (dynamics) {

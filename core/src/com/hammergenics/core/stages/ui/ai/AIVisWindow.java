@@ -22,6 +22,7 @@ import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.graphics.g3d.EditableModelInstance;
 import com.hammergenics.core.stages.ModelEditStage;
 import com.hammergenics.core.stages.ui.ContextAwareVisWindow;
+import com.hammergenics.core.stages.ui.ai.fma.FormationVisTable;
 import com.hammergenics.core.stages.ui.ai.steer.SteeringVisTable;
 import com.kotcrab.vis.ui.VisUI;
 import com.kotcrab.vis.ui.widget.VisScrollPane;
@@ -38,6 +39,11 @@ import com.kotcrab.vis.ui.widget.tabbedpane.TabbedPaneAdapter;
 public class AIVisWindow extends ContextAwareVisWindow {
     public VisTable mainTabbedPaneTable;
     public SteeringVisTable steeringTable;
+    public FormationVisTable formationTable;
+
+    public TabbedPane tabbedPane;
+    public aiTab steeringTab;
+    public aiTab formationTab;
 
     public AIVisWindow(ModelEditScreen modelES, ModelEditStage stage) {
         super("AI Algorithms", modelES, stage);
@@ -46,10 +52,11 @@ public class AIVisWindow extends ContextAwareVisWindow {
 
         mainTabbedPaneTable = new VisTable();
         TabbedPane.TabbedPaneStyle style = VisUI.getSkin().get("default", TabbedPane.TabbedPaneStyle.class);
-        TabbedPane tabbedPane = new TabbedPane(style);
+        tabbedPane = new TabbedPane(style);
         tabbedPane.addListener(new TabbedPaneAdapter() {
             @Override
             public void switchedTab (Tab tab) {
+                setTabsDbgModelInstances(dbgModelInstances);
                 mainTabbedPaneTable.clearChildren();
                 mainTabbedPaneTable.add(tab.getContentTable()).expand().fill();
             }
@@ -59,8 +66,14 @@ public class AIVisWindow extends ContextAwareVisWindow {
         VisTable steeringScrollPaneTable = new VisTable();
         steeringScrollPaneTable.add(steeringScrollPane);
 
-        tabbedPane.add(new aiTab("Steering", steeringScrollPaneTable));
+        VisScrollPane formationScrollPane = new VisScrollPane(formationTable);
+        VisTable formationScrollPaneTable = new VisTable();
+        formationScrollPaneTable.add(formationScrollPane);
 
+        tabbedPane.add(steeringTab = new aiTab("Steering", steeringScrollPaneTable));
+        tabbedPane.add(formationTab = new aiTab("Formation", formationScrollPaneTable));
+
+        tabbedPane.switchTab(0);
         add(tabbedPane.getTable()).expandX().fillX();
         row();
         add(mainTabbedPaneTable).expandX().center();
@@ -68,19 +81,36 @@ public class AIVisWindow extends ContextAwareVisWindow {
 
     public void init() {
         steeringTable = new SteeringVisTable(modelES, stage);
+        formationTable = new FormationVisTable(modelES, stage);
     }
 
     @Override
     public void setDbgModelInstances(Array<EditableModelInstance> mis) {
         super.setDbgModelInstances(mis);
-        steeringTable.setDbgModelInstances(mis);
+
+        setTabsDbgModelInstances(mis);
+    }
+
+    public void setTabsDbgModelInstances(Array<EditableModelInstance> mis) {
+        steeringTable.setDbgModelInstances(null);
+        formationTable.setDbgModelInstances(null);
+
+        if (tabbedPane.getActiveTab().equals(steeringTab)) {
+            steeringTable.setDbgModelInstances(mis);
+        } else if (tabbedPane.getActiveTab().equals(formationTab)) {
+            formationTable.setDbgModelInstances(mis);
+        }
     }
 
     @Override
     public void update(float delta) {
         super.update(delta);
 
-        steeringTable.update(delta);
+        if (tabbedPane.getActiveTab().equals(steeringTab)) {
+            steeringTable.update(delta);
+        } else if (tabbedPane.getActiveTab().equals(formationTab)) {
+            formationTable.update(delta);
+        }
     }
 
     public static class aiTab extends Tab {

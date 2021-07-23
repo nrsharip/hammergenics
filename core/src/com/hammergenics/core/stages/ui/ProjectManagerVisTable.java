@@ -436,8 +436,7 @@ public class ProjectManagerVisTable extends ManagerVisTable {
     public void addModelInstanceTreeNode(EditableModelInstance mi, HGTreeVisTableNode treeNode) {
         HGTreeVisTableNode node;
 
-        String nodeName = mi.hgModel.afh != null ? mi.hgModel.afh.nameWithoutExtension() : mi.nodes.get(0).id;
-        nodeName += " @" + mi.hashCode();
+        String nodeName = mi.toString() + " @" + mi.hashCode();
         treeNode.add(node = new HGTreeVisTableNode(new HGTreeVisTable(nodeName, Color.SKY, mi.hgModel.afh)));
 
         //node.add(new HGTreeVisTableNode(new HGTreeVisTable(fileHandle.file().getAbsolutePath())));

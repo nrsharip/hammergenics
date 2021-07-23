@@ -61,6 +61,7 @@ public class FloatVisTable extends VisTable {
             public void keyTyped(VisTextField textField, char c) {
                 try {
                     float value = Float.parseFloat(textField.getText());
+                    FloatVisTable.this.value = value;
                     handleKeyTyped(value, textField, c);
                     if (setter != null) { setter.accept(value); }
                     textField.getColor().set(Color.WHITE);

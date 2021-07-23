@@ -85,6 +85,11 @@ public class HGModelInstance extends ModelInstance implements Disposable {
         // hgModel is being disposed by the AssetManager
     }
 
+    @Override
+    public String toString() {
+        return hgModel.afh != null ? hgModel.afh.nameWithoutExtension() : nodes.get(0).id;
+    }
+
     public String getTag(int depth) {
         return Thread.currentThread().getStackTrace()[depth].getMethodName() + ":" + afh.name() + "@" + hashCode();
     }

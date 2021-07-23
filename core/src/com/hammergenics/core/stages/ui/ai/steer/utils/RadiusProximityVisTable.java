@@ -16,20 +16,16 @@
 
 package com.hammergenics.core.stages.ui.ai.steer.utils;
 
-import com.badlogic.gdx.ai.steer.Steerable;
 import com.badlogic.gdx.ai.steer.proximities.RadiusProximity;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.graphics.g3d.EditableModelInstance;
-import com.hammergenics.core.graphics.g3d.HGModelInstance;
 import com.hammergenics.core.stages.ModelEditStage;
 import com.hammergenics.core.stages.ui.ContextAwareVisTable;
-import com.hammergenics.core.stages.ui.auxiliary.HGTreeVisTableNode;
+import com.hammergenics.core.stages.ui.auxiliary.types.ArrayAsTreeVisTable;
 import com.hammergenics.core.stages.ui.auxiliary.types.FloatVisTable;
 import com.kotcrab.vis.ui.widget.VisLabel;
-import com.kotcrab.vis.ui.widget.VisScrollPane;
-import com.kotcrab.vis.ui.widget.VisTree;
 
 /**
  * Add description here
@@ -38,8 +34,7 @@ import com.kotcrab.vis.ui.widget.VisTree;
  */
 public class RadiusProximityVisTable extends ContextAwareVisTable {
     public RadiusProximity<Vector3> radiusProximity;
-    public VisTree<HGTreeVisTableNode, VisLabel> arrayTree;
-    public VisScrollPane arrayTreeScrollPane;
+    public ArrayAsTreeVisTable agentsVisTable;
     public FloatVisTable radiusProximityRadius;
 
     public VisLabel titleL;
@@ -57,8 +52,8 @@ public class RadiusProximityVisTable extends ContextAwareVisTable {
         init();
 
         add(this.titleL).center();
-        add(this.agentsL).padRight(5f).right();
-        add(arrayTreeScrollPane).expandX().fillX().maxHeight(100f);
+        add(agentsVisTable.titleL).padRight(5f).right();
+        add(agentsVisTable.valueT).expandX().fillX().maxHeight(100f);
         add().row();
 
         add().center().pad(2f);
@@ -68,23 +63,15 @@ public class RadiusProximityVisTable extends ContextAwareVisTable {
     }
 
     public void init() {
-        arrayTree = new VisTree<>();
-        arrayTreeScrollPane = new VisScrollPane(arrayTree);
+        agentsVisTable = new ArrayAsTreeVisTable(null, true, agentsL);
         radiusProximityRadius = new FloatVisTable(true, new VisLabel("Radius: "));
     }
 
     public RadiusProximityVisTable setProximity(RadiusProximity<Vector3> radiusProximity) {
         this.radiusProximity = radiusProximity;
-        arrayTree.clearChildren();
         if (radiusProximity != null) {
             radiusProximityRadius.setFloat(radiusProximity.getRadius()).setSetter(radiusProximity::setRadius);
-            for (Steerable<Vector3> agent: radiusProximity.getAgents()) {
-                if (agent instanceof HGModelInstance) {
-                    HGModelInstance mi = (HGModelInstance)agent;
-                    String name = mi.hgModel.afh != null ? mi.hgModel.afh.nameWithoutExtension() : mi.nodes.get(0).id;
-                    arrayTree.add(new HGTreeVisTableNode(new HGTreeVisTableNode.HGTreeVisTable(name)));
-                }
-            }
+            agentsVisTable.setArray(radiusProximity.getAgents());
         } else {
             radiusProximityRadius.setFloat(0f).clearSetter();
         }

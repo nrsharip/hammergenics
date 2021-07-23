@@ -32,55 +32,55 @@ import com.kotcrab.vis.ui.widget.VisLabel;
  *
  * @author nrsharip
  */
-public class TargetVisTable extends ContextAwareVisTable {
-    public Location<Vector3> target;
-    public Vector3VisTable targetPosition;
-    public FloatVisTable targetOrientation;
+public class Location3DVisTable extends ContextAwareVisTable {
+    public Location<Vector3> location;
+    public Vector3VisTable locationPosition;
+    public FloatVisTable locationOrientation;
 
     public VisLabel titleL;
 
-    public TargetVisTable(ModelEditScreen modelES, ModelEditStage stage) {
-        this(new VisLabel("Target"), modelES, stage);
+    public Location3DVisTable(ModelEditScreen modelES, ModelEditStage stage) {
+        this(new VisLabel("Location"), modelES, stage);
     }
-    public TargetVisTable(VisLabel titleL, ModelEditScreen modelES, ModelEditStage stage) {
+    public Location3DVisTable(VisLabel titleL, ModelEditScreen modelES, ModelEditStage stage) {
         super(modelES, stage);
 
-        this.titleL = titleL != null ? titleL : new VisLabel("Target");
+        this.titleL = titleL != null ? titleL : new VisLabel("Location");
 
         init();
 
         add(this.titleL).center();
-        add(targetPosition.titleL).padRight(5f).right();
-        add(targetPosition.valueT).expandX().fillX();
+        add(locationPosition.titleL).padRight(5f).right();
+        add(locationPosition.valueT).expandX().fillX();
         add().row();
 
         add().center().pad(2f);
-        add(targetOrientation.titleL).padRight(5f).right();
-        add(targetOrientation.valueT).expandX().fillX();
+        add(locationOrientation.titleL).padRight(5f).right();
+        add(locationOrientation.valueT).expandX().fillX();
         add().row();
     }
 
     public void init() {
-        targetPosition = new Vector3VisTable(false, true, true, new VisLabel("Position: "));
-        targetOrientation = new FloatVisTable(true, new VisLabel("Orientation: "));
+        locationPosition = new Vector3VisTable(false, true, true, new VisLabel("Position: "));
+        locationOrientation = new FloatVisTable(true, new VisLabel("Orientation: "));
     }
 
-    public TargetVisTable setTarget(Location<Vector3> target) {
-        this.target = target;
-        if (target != null) {
-            targetPosition.setVector3(target.getPosition());
-            targetOrientation.setFloat(target.getOrientation()).setSetter(target::setOrientation);
+    public Location3DVisTable setLocation(Location<Vector3> location) {
+        this.location = location;
+        if (location != null) {
+            locationPosition.setVector3(location.getPosition());
+            locationOrientation.setFloat(location.getOrientation()).setSetter(location::setOrientation);
         } else {
-            targetPosition.setVector3(null);
-            targetOrientation.setFloat(0f).clearSetter();
+            locationPosition.setVector3(null);
+            locationOrientation.setFloat(0f).clearSetter();
         }
         return this;
     }
 
     @Override
     public void update(float delta) {
-        targetPosition.update();
-        targetOrientation.setFloat(target != null ? target.getOrientation() : 0f);
+        locationPosition.update();
+        locationOrientation.setFloat(location != null ? location.getOrientation() : 0f);
     }
 
     @Override

@@ -16,6 +16,7 @@
 
 package com.hammergenics.core.graphics.g3d;
 
+import com.badlogic.gdx.ai.fma.FormationMember;
 import com.badlogic.gdx.ai.steer.Limiter;
 import com.badlogic.gdx.ai.steer.Proximity;
 import com.badlogic.gdx.ai.steer.Steerable;
@@ -65,7 +66,7 @@ import static com.hammergenics.ai.steer.SteeringBehaviorsVector3Enum.*;
  *
  * @author nrsharip
  */
-public class SteerableModelInstance extends PhysicalModelInstance implements Disposable, Steerable<Vector3> {
+public class SteerableModelInstance extends PhysicalModelInstance implements Disposable, Steerable<Vector3>, FormationMember<Vector3> {
     // INTERFACE Steerable:
     // the vector indicating the linear velocity of this Steerable.
     public final Vector3 linearVelocity = new Vector3(Vector3.Zero);
@@ -105,7 +106,7 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     // I. INDIVIDUAL BEHAVIORS: https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#individual-behaviors
     // I.1. Arrive: https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#arrive
     //      SteeringBehavior -> Arrive
-    public Location<Vector3> arriveTarget = new LocationAdapter<>(new Vector3(0f, 0f, 0f), 0f);
+    public Location<Vector3> arriveTarget = this;
     public float arriveArrivalTolerance = 0.01f;
     public float arriveDecelerationRadius = 2f;
     public float arriveTimeToTarget = 0.5f;
@@ -115,13 +116,13 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     public float evadeMaxPredictionTime = 1f;
     // I.3. Face: https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#face
     //      ReachOrientation -> Face
-    public Location<Vector3> faceTarget = new LocationAdapter<>(new Vector3(0f, 0f, 0f), 0f);
+    public Location<Vector3> faceTarget = this;
     public float faceAlignTolerance = 0.01f;
     public float faceDecelerationRadius = 2f;
     public float faceTimeToTarget = 0.5f;
     // I.4. Flee: https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#seek-and-flee
     //      SteeringBehavior -> Seek -> Flee
-    public Location<Vector3> fleeTarget = new LocationAdapter<>(new Vector3(0f, 0f, 0f), 0f);
+    public Location<Vector3> fleeTarget = this;
     // I.5. Follow Flow Field: https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#flow-field-following
     //      SteeringBehavior -> FollowFlowField
     public FollowFlowField.FlowField<Vector3> flowField = Vector3::new;
@@ -177,7 +178,7 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     public float jumpAirborneTime = 0;
     // I.9. Look Where You Are Going: https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#look-where-you-are-going
     //      SteeringBehavior -> ReachOrientation -> LookWhereYouAreGoing
-    public Location<Vector3> lwyagTarget = new LocationAdapter<>(new Vector3(0f, 0f, 0f), 0f);
+    public Location<Vector3> lwyagTarget = this;
     public float lwyagAlignTolerance = 0.01f;
     public float lwyagDecelerationRadius = 2f;
     public float lwyagTimeToTarget = 0.5f;
@@ -191,13 +192,13 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     public float pursueMaxPredictionTime = 1f;
     // I.12. Reach Orientation: https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#reach-orientation
     //       SteeringBehavior -> ReachOrientation
-    public Location<Vector3> reachOrientationTarget = new LocationAdapter<>(new Vector3(0f, 0f, 0f), 0f);
+    public Location<Vector3> reachOrientationTarget = this;
     public float reachOrientationAlignTolerance = 0.01f;
     public float reachOrientationDecelerationRadius = 2f;
     public float reachOrientationTimeToTarget = 0.5f;
     // I.13. Seek: https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#seek-and-flee
     //       SteeringBehavior -> Seek
-    public Location<Vector3> seekTarget = new LocationAdapter<>(new Vector3(0f, 0f, 0f), 0f);
+    public Location<Vector3> seekTarget = this;
     // I.14. Wander: https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#wander
     //       ReachOrientation -> Face -> Wander
     public float wanderLastTime = 0f;
@@ -289,7 +290,19 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     // INTERFACE Location:
     @Override public Vector3 getPosition() { return position; }
     @Override public float getOrientation() { return orientation; }
-    @Override public void setOrientation(float orientation) { this.orientation = orientation; }
+    @Override public void setOrientation(float orientation) {
+        this.orientation = orientation;
+        // With steering set to null and time = 0 no velocities or accelerations are applied.
+        // Just Location.position and Location.orientation is being applied to the actual model instance's transform
+        // This is a first approach to sync the outside Location manipulation (e.g. from formation slots update)
+        // NOTE: it is just a good coincidence that Formation.updateSlots has a sequence of
+        //       1. getPosition (-> further Vector3 update by reference)
+        //       2. getOrientation
+        //       3. setOrientation
+        //       Otherwise Position component update wouldn't be taken into account.
+        //       TODO: need to figure out the way to have Position update handled independently
+        applySteering(null, 0f);
+    }
     // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#the-steering-system-api
     @Override public float vectorToAngle(Vector3 vector) { return (float)Math.atan2(-vector.x, vector.z); }
     @Override public Vector3 angleToVector(Vector3 outVector, float angle) {
@@ -299,6 +312,8 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
         return outVector;
     }
     @Override public Location<Vector3> newLocation() { return null; }
+    // INTERFACE FormationMember:
+    @Override public Location<Vector3> getTargetLocation() { return this; }
 
     @Override public void trn(Vector3 vector) { super.trn(vector); syncLocationWithTransform(); }
     @Override public void trn(float x, float y, float z) { super.trn(x, y, z); syncLocationWithTransform(); }
@@ -318,6 +333,7 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
 
     public void syncLocationWithTransform() {
         transform.getTranslation(position);
+        // TODO: add orientation component
     }
 
     // Individual Steering Behaviors Setters:
@@ -652,27 +668,29 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     }
 
     private final Vector3 translation = new Vector3();
-    private final Quaternion rotation = new Quaternion();
-    private final Vector3 scale = new Vector3();
+    private final Quaternion tmpRotation = new Quaternion();
+    private final Vector3 tmpScale = new Vector3();
     private final Matrix4 tmpM4 = new Matrix4();
 
     // see https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#the-steering-system-api
     private void applySteering(SteeringAcceleration<Vector3> steering, float time) {
-        transform.getScale(scale);
+        transform.getScale(tmpScale);
         // Update position and linear velocity. Velocity is trimmed to maximum speed
         this.position.mulAdd(linearVelocity, time);
         this.orientation += angularVelocity * time;
         //Gdx.app.debug("steerable", "steering.linear: " + steering.linear);
         //Gdx.app.debug("steerable", "steering.angular: " + steering.angular);
-        this.linearVelocity.mulAdd(steering.linear, time).limit(this.getMaxLinearSpeed());
-        this.angularVelocity += steering.angular * time;
+        if (steering != null) {
+            this.linearVelocity.mulAdd(steering.linear, time).limit(this.getMaxLinearSpeed());
+            this.angularVelocity += steering.angular * time;
+        }
         //Gdx.app.debug("steerable", "linearVelocity: " + this.linearVelocity);
         //Gdx.app.debug("steerable", "angularVelocity: " + this.angularVelocity);
 
-        rotation.setEulerAnglesRad(-this.orientation, 0f, 0f);
+        tmpRotation.setEulerAnglesRad(-this.orientation, 0f, 0f);
 
         setToTranslation(this.position);
-        rotate(rotation);
-        scale(scale.x, scale.y, scale.z);
+        rotate(tmpRotation);
+        scale(tmpScale.x, tmpScale.y, tmpScale.z);
     }
 }
