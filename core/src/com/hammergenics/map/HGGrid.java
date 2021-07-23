@@ -102,6 +102,11 @@ public class HGGrid extends Grid {
         return out.set(x0, z0, x1 - x0, z1 - z0);
     }
 
+    public void discard() {
+        fill(0f);
+        min = max = mid = 0f;
+    }
+
     public void calculateMinMaxMid() {
         float[] values = new float[getArray().length];
         System.arraycopy(getArray(), 0, values, 0, values.length);

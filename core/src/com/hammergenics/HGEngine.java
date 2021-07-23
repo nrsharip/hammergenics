@@ -367,6 +367,14 @@ public class HGEngine implements Disposable {
         resetChunks(unitSize);
     }
 
+    public void discardNoise() {
+        this.step = -1f;
+
+        for (TerrainChunk tc: chunks) { tc.discardNoise(); }
+
+        resetChunks(unitSize);
+    }
+
     public void generateCellular() { gridCellular.generateCellular(); }
 
     public void generateDungeon() { gridDungeon.generateDungeon(); }

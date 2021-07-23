@@ -46,6 +46,7 @@ public class NoiseGridVisWindow extends ContextAwareVisWindow {
     public Texture textureNoise;
     public Array<NoiseStageTable> noiseStageTables = new Array<>(true, 16, NoiseStageTable.class);
     public VisTextButton roundStepNoiseTextButton;
+    public VisTextButton discardNoiseTextButton;
     public VisCheckBox previewNoiseGrid;
     // TODO: preview image should be more general option on the stage level
     public VisCheckBox previewNoiseImage;
@@ -64,7 +65,7 @@ public class NoiseGridVisWindow extends ContextAwareVisWindow {
                 new NoiseStageTable(stage, 1, 0.05f)
         );
 
-        genNoiseTextButton = new VisTextButton("gen noise grid");
+        genNoiseTextButton = new VisTextButton("Generate Noise Grid");
         stage.unpressButton(genNoiseTextButton);
         genNoiseTextButton.addListener(new InputListener() {
             @Override
@@ -95,7 +96,7 @@ public class NoiseGridVisWindow extends ContextAwareVisWindow {
             }
         });
 
-        roundStepNoiseTextButton = new VisTextButton("round: step");
+        roundStepNoiseTextButton = new VisTextButton("Round: Step");
         stage.unpressButton(roundStepNoiseTextButton);
         roundStepNoiseTextButton.addListener(new InputListener() {
             @Override
@@ -105,6 +106,23 @@ public class NoiseGridVisWindow extends ContextAwareVisWindow {
                 Array<HGGrid> grids = Arrays.stream(eng.chunks.toArray())
                         .map(TerrainChunk::getGridNoise).collect(Array::new, Array::add, Array::addAll);
                 textureNoise = stage.mapGenerationTable.imageGrid("Noise Grid Preview - round step: " + noiseStep, grids);
+                return super.touchDown(event, x, y, pointer, button); // false
+                // If true is returned, this listener will have touch focus, so it will receive all
+                // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
+                // Also when true is returned, the event is handled
+            }
+        });
+
+        discardNoiseTextButton = new VisTextButton("Discard");
+        stage.unpressButton(discardNoiseTextButton);
+        discardNoiseTextButton.addListener(new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                eng.discardNoise();
+
+                Array<HGGrid> grids = Arrays.stream(eng.chunks.toArray())
+                        .map(TerrainChunk::getGridNoise).collect(Array::new, Array::add, Array::addAll);
+                textureNoise = stage.mapGenerationTable.imageGrid("Noise Grid Preview", grids);
                 return super.touchDown(event, x, y, pointer, button); // false
                 // If true is returned, this listener will have touch focus, so it will receive all
                 // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
@@ -165,7 +183,8 @@ public class NoiseGridVisWindow extends ContextAwareVisWindow {
 
         noiseGridTable.add(new VisLabel("step:")).right().padRight(5f);
         noiseGridTable.add(noiseStepTF).width(60).maxWidth(60).padRight(5f);
-        noiseGridTable.add(roundStepNoiseTextButton).center().expandX().fillX();
+        noiseGridTable.add(roundStepNoiseTextButton).center().expandX().fillX().padRight(5f);
+        noiseGridTable.add(discardNoiseTextButton).center().expandX().fillX().padRight(5f);
 
         add(noiseGridTable).center().expandX().fillX();
         row();

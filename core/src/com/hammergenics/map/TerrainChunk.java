@@ -74,7 +74,12 @@ public class TerrainChunk {
         clearTerrain();
         gridNoise.roundToStep(step);
     }
-    
+
+    public void discardNoise() {
+        clearTerrain();
+        gridNoise.discard();
+    }
+
     public void resetNoiseModelInstances(float scale) {
         // models
         if (noiseLinesHgModel != null) { noiseLinesHgModel.dispose(); }
