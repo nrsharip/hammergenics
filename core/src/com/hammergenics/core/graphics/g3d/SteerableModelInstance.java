@@ -81,10 +81,11 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     // Returns the threshold below which the linear speed can be considered zero. It must be a small positive value near to zero.
     // Usually it is used to avoid updating the orientation when the velocity vector has a negligible length.
     public float zeroLinearSpeedThreshold = 0.1f;
-    public float maxLinearSpeed = 2.0f;         // the maximum linear speed
-    public float maxLinearAcceleration = 1.0f;  // the maximum linear acceleration
-    public float maxAngularSpeed = 0.5f;        // (~ 30 degrees) the maximum angular speed
-    public float maxAngularAcceleration = 0.5f; // (~ 30 degrees) the maximum angular acceleration
+    public float maxLinearSpeed = 5.0f;          // the maximum linear speed
+    public float maxLinearAcceleration = 100.0f; // the maximum linear acceleration
+                                                 // NOTE: keeping a large number so there's always enough speed on the slopes
+    public float maxAngularSpeed = 1f;           // (~ 60 degrees) the maximum angular speed
+    public float maxAngularAcceleration = 1f;    // (~ 60 degrees) the maximum angular acceleration
 
     // INTERFACE Location:
     // the vector indicating the position of this location
@@ -318,6 +319,8 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     @Override public void trn(Vector3 vector) { super.trn(vector); syncLocationWithTransform(); }
     @Override public void trn(float x, float y, float z) { super.trn(x, y, z); syncLocationWithTransform(); }
     @Override public void translate(Vector3 translation) { super.translate(translation); syncLocationWithTransform(); }
+    @Override public void setTranslation(Vector3 vector) { super.setTranslation(vector); syncLocationWithTransform(); }
+    @Override public void setTranslation(float x, float y, float z) { super.setTranslation(x, y, z); syncLocationWithTransform(); }
     @Override public void setToTranslation(Vector3 vector) { super.setToTranslation(vector); syncLocationWithTransform(); }
     @Override public void setToTranslation(float x, float y, float z) { super.setToTranslation(x, y, z); syncLocationWithTransform(); }
     @Override public void setToTranslationAndScaling(Vector3 translation, Vector3 scaling) { super.setToTranslationAndScaling(translation, scaling); syncLocationWithTransform(); }

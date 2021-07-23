@@ -128,6 +128,8 @@ public class EditableModelInstance extends SteerableModelInstance implements Dis
     @Override public void trn(Vector3 vector) { super.trn(vector); syncAuxWithTransform(); }
     @Override public void trn(float x, float y, float z) { super.trn(x, y, z); syncAuxWithTransform(); }
     @Override public void translate(Vector3 translation) { super.translate(translation); syncAuxWithTransform(); }
+    @Override public void setTranslation(Vector3 vector) { super.setTranslation(vector); syncAuxWithTransform(); }
+    @Override public void setTranslation(float x, float y, float z) { super.setTranslation(x, y, z); syncAuxWithTransform(); }
     @Override public void setToTranslation(Vector3 vector) { super.setToTranslation(vector); syncAuxWithTransform(); }
     @Override public void setToTranslation(float x, float y, float z) { super.setToTranslation(x, y, z); syncAuxWithTransform(); }
     @Override public void setToTranslationAndScaling(Vector3 translation, Vector3 scaling) { super.setToTranslationAndScaling(translation, scaling); syncAuxWithTransform(); }

@@ -120,6 +120,8 @@ public class HGModelInstance extends ModelInstance implements Disposable {
     public void trn(Vector3 vector) { transform.trn(vector); }
     public void trn(float x, float y, float z) { transform.trn(x, y, z); }
     public void translate(Vector3 translation) { transform.translate(translation); }
+    public void setTranslation(Vector3 vector) { transform.setTranslation(vector); }
+    public void setTranslation(float x, float y, float z) { transform.setTranslation(x, y, z); }
     public void setToTranslation(Vector3 vector) { transform.setToTranslation(vector); }
     public void setToTranslation(float x, float y, float z) { transform.setToTranslation(x, y, z); }
     public void setToTranslationAndScaling(Vector3 translation, Vector3 scaling) { transform.setToTranslationAndScaling(translation, scaling); }

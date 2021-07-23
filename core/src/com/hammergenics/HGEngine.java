@@ -407,6 +407,40 @@ public class HGEngine implements Disposable {
             tc.applyTerrainParts(scale);
             tc.trnTerrain(0f, -mid * tc.gridNoise.yScale * scale, 0f);
         }
+
+        alignModelInstancesWithNoiseGrid(scale);
+    }
+
+    public final Vector3 tmpV1 = new Vector3();
+    public void alignModelInstancesWithNoiseGrid(float scale) {
+        for (EditableModelInstance mi: editableMIs) {
+            mi.transform.getTranslation(tmpV1);
+            tmpV1.y = getGridNoiseY(tmpV1.x, tmpV1.z, scale) + mi.getBB().getHeight()/2;
+            mi.setTranslation(tmpV1);
+        }
+    }
+
+    public float getGridNoiseY(float x, float z, float scale) {
+        for (TerrainChunk tc: chunks) {
+            //Gdx.app.debug("engine", ""
+            //        + " x: " + x + " z: " + z + " scale: " + scale
+            //        + " x0: " + tc.gridNoise.getX0()
+            //        + " z0: " + tc.gridNoise.getZ0()
+            //        + " width: " + tc.gridNoise.getWidth()
+            //        + " height: " + tc.gridNoise.getHeight()
+            //);
+            if ((x/scale >= tc.gridNoise.getX0() && x/scale < (tc.gridNoise.getX0() + tc.gridNoise.getWidth()))
+                && (z/scale >= tc.gridNoise.getZ0() && z/scale < (tc.gridNoise.getZ0() + tc.gridNoise.getHeight()))) {
+                float x0 = tc.gridNoise.getX0();
+                float z0 = tc.gridNoise.getZ0();
+                float rawY = 0f;
+                try {
+                    rawY = (tc.gridNoise.get(Math.round(x/scale - x0), Math.round(z/scale - z0)) - mid);
+                } catch (ArrayIndexOutOfBoundsException ignored) { }
+                return rawY * tc.gridNoise.yScale * scale;
+            }
+        }
+        return 0f;
     }
 
     public void resetDynamicsWorld(float scale) {
@@ -982,9 +1016,6 @@ public class HGEngine implements Disposable {
         // * if you forget to update the timepiece the wander orientation won't change.
         // * the timepiece should be always updated before this steering behavior runs.
         GdxAI.getTimepiece().update(delta);
-        formation.updateSlots();
-        editableMIs.forEach(mi -> mi.update(delta));
-
         if (dynamics) {
             // see https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part2/
             // The discrete dynamics world uses a fixed time step.
@@ -996,5 +1027,7 @@ public class HGEngine implements Disposable {
             // by the second argument.
             btDynamicsWorldTypesEnum.selected.dynamicsWorld.stepSimulation(delta, 20, 1f/300f);
         }
+        editableMIs.forEach(mi -> mi.update(delta));
+        formation.updateSlots();
     }
 }

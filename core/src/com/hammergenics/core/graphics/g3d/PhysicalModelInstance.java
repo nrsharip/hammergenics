@@ -146,6 +146,8 @@ public class PhysicalModelInstance extends HGModelInstance implements Disposable
     @Override public void trn(Vector3 vector) { super.trn(vector); syncRBWithTransform(); }
     @Override public void trn(float x, float y, float z) { super.trn(x, y, z); syncRBWithTransform(); }
     @Override public void translate(Vector3 translation) { super.translate(translation); syncRBWithTransform(); }
+    @Override public void setTranslation(Vector3 vector) { super.setTranslation(vector); syncRBWithTransform(); }
+    @Override public void setTranslation(float x, float y, float z) { super.setTranslation(x, y, z); syncRBWithTransform(); }
     @Override public void setToTranslation(Vector3 vector) { super.setToTranslation(vector); syncRBWithTransform(); }
     @Override public void setToTranslation(float x, float y, float z) { super.setToTranslation(x, y, z); syncRBWithTransform(); }
     @Override public void setToTranslationAndScaling(Vector3 translation, Vector3 scaling) { super.setToTranslationAndScaling(translation, scaling); syncRBWithTransform(true); }
@@ -251,6 +253,9 @@ public class PhysicalModelInstance extends HGModelInstance implements Disposable
         // This flag is required for the onContactAdded method to be called.
         rigidBody.setCollisionFlags(
                 rigidBody.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
+
+        // Configuration:
+        rigidBody.setFriction(2f);
 
         return rbHashCode;
     }
