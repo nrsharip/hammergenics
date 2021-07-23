@@ -930,9 +930,7 @@ public class ModelEditStage extends Stage {
         deleteCurrModelTextButton.addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                modelES.eng.removeEditableModelInstance(modelES.eng.getCurrMI());
-                if (modelES.eng.editableMIs.size > 0) { modelES.eng.setCurrMI(modelES.eng.editableMIs.get(0)); }
-                else { modelES.eng.selectedMIs.clear(); }
+                modelES.eng.removeSelectedModelInstances();
                 reset();
                 return super.touchDown(event, x, y, pointer, button);
             }

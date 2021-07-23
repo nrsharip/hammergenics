@@ -139,8 +139,7 @@ public class ModelEditInputController extends SpectatorInputController {
         }
         // Delete: deleting all selected model instances
         if (keysPressed.size == 1 && (keysPressed.contains(Keys.DEL) || keysPressed.contains(Keys.FORWARD_DEL))) {
-            eng.selectedMIs.forEach(eng::removeEditableModelInstance);
-            eng.selectedMIs.clear();
+            eng.removeSelectedModelInstances();
             modelES.stage.reset();
         }
         return super.keyUp(keycode);

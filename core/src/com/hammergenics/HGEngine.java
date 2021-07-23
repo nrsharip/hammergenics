@@ -938,6 +938,11 @@ public class HGEngine implements Disposable {
         }
     }
 
+    public void removeSelectedModelInstances() {
+        selectedMIs.forEach(this::removeEditableModelInstance);
+        selectedMIs.clear();
+    }
+
     public void removeEditableModelInstance(EditableModelInstance mi) {
         if (mi == null) { return; }
         editableMIs.removeValue(mi, true);
@@ -945,7 +950,7 @@ public class HGEngine implements Disposable {
     }
 
     public void clearModelInstances() {
-        editableMIs.forEach(mi -> { mi.dispose(); });
+        editableMIs.forEach(this::removeEditableModelInstance);
         editableMIs.clear();
         // no need to dispose - will be done in HGModelInstance on dispose()
         //auxMIs.forEach(HGModelInstance::dispose);
@@ -989,7 +994,7 @@ public class HGEngine implements Disposable {
             // then the calculation will be done multiple times.
             // The maximum number of times that this will be done (the maximum number of sub-steps) is specified
             // by the second argument.
-            btDynamicsWorldTypesEnum.selected.dynamicsWorld.stepSimulation(delta, 5, 1f/60f);
+            btDynamicsWorldTypesEnum.selected.dynamicsWorld.stepSimulation(delta, 20, 1f/300f);
         }
     }
 }

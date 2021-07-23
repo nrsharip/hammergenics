@@ -116,13 +116,13 @@ public class EditableModelInstance extends SteerableModelInstance implements Dis
 
     @Override
     public void dispose() {
-        super.dispose();
         // hgModel is being disposed by the AssetManager
         bbHgModel.dispose();
         if (bbHgMI != null) { bbHgMI.dispose(); }
         if (bbCornerMIs != null) { bbCornerMIs.forEach(HGModelInstance::dispose); }
         // TODO: clear things up with model disposal
         //node2model.values().forEach(HGModel::dispose);
+        super.dispose();
     }
 
     @Override public void trn(Vector3 vector) { super.trn(vector); syncAuxWithTransform(); }
