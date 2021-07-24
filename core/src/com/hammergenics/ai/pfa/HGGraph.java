@@ -33,27 +33,23 @@ public class HGGraph extends IndexedHierarchicalGraph<HGGraphNode> {
         super(levelCount);
     }
 
-    // IndexedHierarchicalGraph
+    // Interface HierarchicalGraph (IndexedHierarchicalGraph)
     @Override public int getLevelCount() { return super.getLevelCount(); }
     @Override public void setLevel(int level) { super.setLevel(level); }
     @Override public HGGraphNode convertNodeBetweenLevels(int inputLevel, HGGraphNode node, int outputLevel) { return null; }
 
-    // IndexedGraph
-    @Override
-    public int getIndex(HGGraphNode node) {
-        return 0;
-    }
-
+    // Interface IndexedGraph
+    @Override public int getIndex(HGGraphNode node) { return node.index; }
     @Override
     public int getNodeCount() {
-        return 0;
+        int result = 0;
+        for (HGGraphNodesGrid grid: grids) { result += grid.graphNodes.size; }
+        return result;
     }
 
-    // Graph
+    // Interface Graph
     @Override
-    public Array<Connection<HGGraphNode>> getConnections(HGGraphNode fromNode) {
-        return null;
-    }
+    public Array<Connection<HGGraphNode>> getConnections(HGGraphNode fromNode) { return fromNode.connections; }
 
     public void addGraphNodesGrid(HGGraphNodesGrid newGrid) {
         if (newGrid == null) { return; }
@@ -64,7 +60,6 @@ public class HGGraph extends IndexedHierarchicalGraph<HGGraphNode> {
                 return;
             }
         }
-
         //Gdx.app.debug("graph", " add: " + " newGrid.x0: " + newGrid.x0 + " newGrid.z0: " + newGrid.z0);
         for (HGGraphNodesGrid grid: grids) {
             //Gdx.app.debug("graph", " connect: " + " grid.x0: " + grid.x0 + " grid.z0: " + grid.z0);

@@ -17,6 +17,7 @@
 package com.hammergenics.ai.pfa;
 
 import com.badlogic.gdx.ai.pfa.DefaultConnection;
+import com.badlogic.gdx.math.Vector3;
 
 /**
  * Add description here
@@ -26,5 +27,10 @@ import com.badlogic.gdx.ai.pfa.DefaultConnection;
 public class HGGraphNodeConnection extends DefaultConnection<HGGraphNode> {
     public HGGraphNodeConnection(HGGraphNode fromNode, HGGraphNode toNode) {
         super(fromNode, toNode);
+    }
+
+    @Override
+    public float getCost() {
+        return fromNode.coordinates.dst2(toNode.coordinates);
     }
 }

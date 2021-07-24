@@ -16,6 +16,7 @@
 
 package com.hammergenics.ai.pfa;
 
+import com.badlogic.gdx.ai.pfa.Connection;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
@@ -219,7 +220,7 @@ public class HGGraphNodesGrid extends HGGrid {
     }
     public void addGraphNodesConnectionsToRenderer(HGImmediateModeRenderer20 imr, Color clr1, Color clr2) {
         for (HGGraphNode graphNode: graphNodes) {
-            for (HGGraphNodeConnection connection: graphNode.connections) {
+            for (Connection<HGGraphNode> connection: graphNode.connections) {
                 imr.line(connection.getFromNode().coordinates, connection.getToNode().coordinates, clr1, clr2);
             }
         }

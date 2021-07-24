@@ -16,6 +16,7 @@
 
 package com.hammergenics.ai.pfa;
 
+import com.badlogic.gdx.ai.pfa.Connection;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 
@@ -28,7 +29,7 @@ public class HGGraphNode {
 
     public int index = -1;
     public Vector3 coordinates = new Vector3();
-    public Array<HGGraphNodeConnection> connections = new Array<>(true, 16, HGGraphNodeConnection.class);
+    public Array<Connection<HGGraphNode>> connections = new Array<>(true, 16, Connection.class);
 
     public HGGraphNode() { this(-1, null, null); }
     public HGGraphNode(int index) { this(index, null, null); }
@@ -51,7 +52,7 @@ public class HGGraphNode {
         return this;
     }
 
-    public Array<HGGraphNodeConnection> getConnections() { return connections; }
+    public Array<Connection<HGGraphNode>> getConnections() { return connections; }
     public HGGraphNode setConnections(Array<HGGraphNodeConnection> connections) {
         this.connections.clear();
         return addConnections(connections);
