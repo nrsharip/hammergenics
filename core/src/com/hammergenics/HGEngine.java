@@ -414,6 +414,7 @@ public class HGEngine implements Disposable {
             tc.applyTerrainParts(scale);
             tc.trnTerrain(0f, -mid * tc.gridNoise.yScale * scale, 0f);
 
+            tc.gridNoise.recalculate();
             tc.gridNoise.graphNodes.forEach(node -> {
                 node.coordinates.y -= mid;
                 node.coordinates.scl(scale, tc.gridNoise.yScale * scale, scale);

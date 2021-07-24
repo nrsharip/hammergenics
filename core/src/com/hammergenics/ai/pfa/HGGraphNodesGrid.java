@@ -51,10 +51,10 @@ public class HGGraphNodesGrid extends HGGrid {
 
         for (int z = 0; z < height; z++) {
             for (int x = 0; x < width; x++) {
-                graphNodes.add(new HGGraphNode(getGraphNodeIndex(x, z), new Vector3(x + 0.5f + getX0(), 0, z + 0.5f + getZ0())));
+                graphNodes.add(new HGGraphNode(getGraphNodeIndex(x, z), new Vector3()));
             }
         }
-
+        recalculate();
         connectWithin();
     }
 
@@ -64,24 +64,6 @@ public class HGGraphNodesGrid extends HGGrid {
         Arrays.stream(graphNodes.toArray())
                 .map(HGGraphNode::getCoordinates)
                 .forEach(coordinates -> coordinates.y = 0);
-    }
-
-    @Override
-    public void roundToDigits(int digits) {
-        super.roundToDigits(digits);
-        recalculate();
-    }
-
-    @Override
-    public void roundToStep(float step) {
-        super.roundToStep(step);
-        recalculate();
-    }
-
-    @Override
-    public void generateNoise(float yScale, Array<NoiseStageInfo> stages) {
-        super.generateNoise(yScale, stages);
-        recalculate();
     }
 
     public void recalculate() {
@@ -97,7 +79,9 @@ public class HGGraphNodesGrid extends HGGrid {
                         get(x + 1, z + 1)
                 };
                 node = getGraphNode(x, z);
+                node.getCoordinates().x = x + 0.5f + getX0();
                 node.getCoordinates().y = (float) Arrays.stream(values).average().orElse(0f);
+                node.getCoordinates().z = z + 0.5f + getZ0();
             }
         }
     }

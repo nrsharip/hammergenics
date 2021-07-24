@@ -17,6 +17,7 @@
 package com.hammergenics.ai.pfa;
 
 import com.badlogic.gdx.ai.pfa.Connection;
+import com.badlogic.gdx.ai.pfa.Heuristic;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 
@@ -26,6 +27,7 @@ import com.badlogic.gdx.utils.Array;
  * @author nrsharip
  */
 public class HGGraphNode {
+    public static Heuristic<HGGraphNode> heuristic = (node, endNode) -> node.coordinates.dst2(endNode.coordinates);
 
     public int index = -1;
     public Vector3 coordinates = new Vector3();
