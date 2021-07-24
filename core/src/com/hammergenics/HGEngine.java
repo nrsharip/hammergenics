@@ -60,6 +60,8 @@ import com.badlogic.gdx.utils.JsonValue;
 import com.badlogic.gdx.utils.Logger;
 import com.badlogic.gdx.utils.Sort;
 import com.badlogic.gdx.utils.UBJsonWriter;
+import com.hammergenics.ai.pfa.HGGraph;
+import com.hammergenics.ai.pfa.HGGraphNodesGrid;
 import com.hammergenics.core.graphics.HGTexture;
 import com.hammergenics.core.graphics.g3d.EditableModelInstance;
 import com.hammergenics.core.graphics.g3d.HGModel;
@@ -257,6 +259,9 @@ public class HGEngine implements Disposable {
     public float yScale = 1f;
     public float step = -1f;
 
+    // Graph for Pathfinding Algorithms
+    public HGGraph pfaGraph = new HGGraph();
+
     public HGEngine(HGGame game) {
         this.game = game;
         assetManager.getLogger().setLevel(Logger.DEBUG);
@@ -274,6 +279,8 @@ public class HGEngine implements Disposable {
                 new TerrainChunk(MAP_SIZE + 1, MAP_CENTER           , MAP_CENTER - MAP_SIZE),
                 new TerrainChunk(MAP_SIZE + 1, MAP_CENTER           , MAP_CENTER           )
         });
+
+        for (TerrainChunk tc: chunks) { pfaGraph.addGraphNodesGrid(tc.gridNoise); }
 
         // Formation Related:
         // NOTE: stubAnchor should be initialized after Bullet init.
@@ -393,7 +400,7 @@ public class HGEngine implements Disposable {
     public void resetChunks(float scale) {
         mid = (float) Arrays.stream(chunks.toArray())
                 .map(TerrainChunk::getGridNoise)
-                .mapToDouble(HGGrid::getMid)
+                .mapToDouble(HGGraphNodesGrid::getMid)
                 .average().orElse(0f);
 
         for (TerrainChunk tc: chunks) {
@@ -429,10 +436,11 @@ public class HGEngine implements Disposable {
             //        + " width: " + tc.gridNoise.getWidth()
             //        + " height: " + tc.gridNoise.getHeight()
             //);
-            if ((x/scale >= tc.gridNoise.getX0() && x/scale < (tc.gridNoise.getX0() + tc.gridNoise.getWidth()))
-                && (z/scale >= tc.gridNoise.getZ0() && z/scale < (tc.gridNoise.getZ0() + tc.gridNoise.getHeight()))) {
-                float x0 = tc.gridNoise.getX0();
-                float z0 = tc.gridNoise.getZ0();
+            float x0 = tc.gridNoise.getX0();
+            float z0 = tc.gridNoise.getZ0();
+            // TODO: change below to HGGrid.isIndexValid
+            if ((x/scale >= x0 && x/scale < (x0 + tc.gridNoise.getWidth()))
+                && (z/scale >= z0 && z/scale < (z0 + tc.gridNoise.getHeight()))) {
                 float rawY = 0f;
                 try {
                     rawY = (tc.gridNoise.get(Math.round(x/scale - x0), Math.round(z/scale - z0)) - mid);

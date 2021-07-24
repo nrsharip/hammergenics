@@ -25,6 +25,7 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.utils.Sort;
+import com.hammergenics.ai.pfa.HGGraphNodesGrid;
 import com.hammergenics.core.graphics.g3d.HGModel;
 import com.hammergenics.core.graphics.g3d.HGModelInstance;
 import com.hammergenics.core.graphics.g3d.PhysicalModelInstance;
@@ -47,7 +48,7 @@ import static java.math.BigDecimal.ROUND_HALF_UP;
  * @author nrsharip
  */
 public class TerrainChunk {
-    public HGGrid gridNoise;
+    public HGGraphNodesGrid gridNoise;
     public HGModel noiseLinesHgModel = null;
     public HGModel noiseTrianglesHgModel = null;
     public HGModelInstance noiseLinesHGModelInstance = null;
@@ -56,16 +57,16 @@ public class TerrainChunk {
     public Array<HGModelInstance> terrain = new Array<>(true, 16, HGModelInstance.class);
 
     public TerrainChunk(int size, int x0, int z0) {
-        gridNoise = new HGGrid(size, x0, z0);
+        gridNoise = new HGGraphNodesGrid(size, x0, z0);
         gridNoise.fill(0f);
 
         yLinesHGModelInstance = new HGModelInstance(gridHgModel, "Y");
         resetNoiseModelInstances(1f);
     }
 
-    public HGGrid getGridNoise() { return gridNoise; }
+    public HGGraphNodesGrid getGridNoise() { return gridNoise; }
 
-    public void generateNoise(float yScale, Array<HGGrid.NoiseStageInfo> stages) {
+    public void generateNoise(float yScale, Array<HGGraphNodesGrid.NoiseStageInfo> stages) {
         clearTerrain();
         gridNoise.generateNoise(yScale, stages);
     }

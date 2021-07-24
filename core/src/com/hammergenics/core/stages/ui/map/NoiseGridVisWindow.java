@@ -23,6 +23,7 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Array;
+import com.hammergenics.ai.pfa.HGGraphNodesGrid;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.stages.ModelEditStage;
 import com.hammergenics.core.stages.ui.ContextAwareVisWindow;
@@ -70,7 +71,7 @@ public class NoiseGridVisWindow extends ContextAwareVisWindow {
         genNoiseTextButton.addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                Array<HGGrid.NoiseStageInfo> stages = new Array<>(true, 16, HGGrid.NoiseStageInfo.class);
+                Array<HGGraphNodesGrid.NoiseStageInfo> stages = new Array<>(true, 16, HGGraphNodesGrid.NoiseStageInfo.class);
                 for (NoiseStageTable nst: noiseStageTables) {
                     if (nst.enabledCB.isChecked()) {
                         if (!nst.applySeedCB.isChecked()) { nst.stageInfo.seed = -1; }

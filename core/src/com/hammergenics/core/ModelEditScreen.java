@@ -94,7 +94,7 @@ public class ModelEditScreen extends ScreenAdapter {
         // https://github.com/Anuken/GDXGifRecorder
         recorder = new GifRecorder(spriteBatch);
 
-        immediateModeRenderer = new HGImmediateModeRenderer20(10*Short.MAX_VALUE, false, true, 0);
+        immediateModeRenderer = new HGImmediateModeRenderer20(100*Short.MAX_VALUE, false, true, 0);
 
         btDebugDrawer = new DebugDrawer();
 
@@ -279,6 +279,12 @@ public class ModelEditScreen extends ScreenAdapter {
             if (stage.physManagerTable.dynamicsWindow.rbCheckBox.isChecked()) { eng.editableMIs.forEach(mi -> mi.addRBShapeToRenderer(immediateModeRenderer)); }
             if (stage.verticesCheckBox.isChecked()) { eng.editableMIs.forEach(mi -> mi.addVerticesToRenderer(immediateModeRenderer)); }
             if (stage.closestCheckBox.isChecked()) { eng.editableMIs.forEach(mi -> mi.addClosestVerticesToRenderer(immediateModeRenderer)); }
+
+            for (TerrainChunk tc: eng.chunks) {
+                tc.gridNoise.addGraphNodesToRenderer(immediateModeRenderer, Color.YELLOW, eng.unitSize / 10f);
+                tc.gridNoise.addGraphNodesConnectionsToRenderer(immediateModeRenderer, Color.ORANGE, Color.VIOLET);
+            }
+
             immediateModeRenderer.end();
         } catch (ArrayIndexOutOfBoundsException ignored) {
         } finally {

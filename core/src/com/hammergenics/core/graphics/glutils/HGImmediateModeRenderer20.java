@@ -60,6 +60,20 @@ public class HGImmediateModeRenderer20 extends ImmediateModeRenderer20 {
         super.end();
     }
 
+    public Matrix4 tmpM1 = new Matrix4();
+
+    public void point(Vector3 point, Color color, float scl) {
+        switch (primitiveType) {
+            case GL_LINES:
+                tmpM1.idt().setTranslation(point).scl(scl);
+                box(tmpM1, color);
+                break;
+            default:
+                Gdx.app.error(getClass().getSimpleName(), "line: UNSUPPORTED primitive type");
+                break;
+        }
+    }
+
     public void line(Vector3 p1, Vector3 p2, Color c1, Color c2) {
         switch (primitiveType) {
             case GL_LINES:
