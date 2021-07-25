@@ -152,7 +152,9 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     public int followPathParamSegmentIndex;
     public float followPathParamDistance;
     public boolean followPathArriveEnabled = true;
-    public float followPathPredictionTime = 1f;
+    public float followPathPredictionTime = 0.0000000001f; // making almost non-predictive path following
+                                                           // so path segment indices are switched precisely
+                                                           // at the point where the object goes from one segment to another
     // I.6.3 FollowPath debug
     public Vector3 followPathInternalTargetPosition = new Vector3();
     // I.7. Interpose: https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#interpose
@@ -260,23 +262,32 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
 
     // Path Finding:
     public GraphPath<Connection<HGGraphNode>> outPath = null;
+    public Array<Vector3> waypoints = new Array<>(true, 16, Vector3.class);
+    public final Vector3 tmpV1 = new Vector3();
+    public final Vector3 tmpV2 = new Vector3();
     public void setOutPath(GraphPath<Connection<HGGraphNode>> outPath) {
         this.outPath = outPath;
+        this.linearVelocity.set(Vector3.Zero);
+        this.angularVelocity = 0f;
         this.steeringAcceleration.setZero();
-        if (outPath == null) { return; }
+        if (outPath == null || outPath.getCount() < 1) { return; }
 
-        Array<Vector3> waypoints = new Array<>(true, 16, Vector3.class);
-        outPath.forEach(hgGraphNodeConnection -> waypoints.addAll(
-                hgGraphNodeConnection.getFromNode().coordinates,
-                hgGraphNodeConnection.getToNode().coordinates
-        ));
+        waypoints.clear();
+        outPath.forEach(hgGraphNodeConnection -> waypoints.add(hgGraphNodeConnection.getFromNode().coordinates));
+        tmpV1.set(outPath.get(outPath.getCount() - 1).getToNode().coordinates);
+        waypoints.add(tmpV1);
+        // adding one extra waypoint with some (meaningless) offset so this segment could be used to stop steering later
+        waypoints.add(tmpV2.set(tmpV1).add(tmpV1).add(1f));
+
         if (waypoints.size > 0) { followPath.createPath(waypoints); }
         else { outPath = null; }
     }
 
     public void addFollowPathSegmentsToRenderer(HGImmediateModeRenderer20 imr, Color clr1, Color clr2) {
         if (outPath == null) { return; }
-        for (LinePath.Segment<Vector3> segment: followPath.getSegments()) {
+        LinePath.Segment<Vector3> segment;
+        for (int i = 0; i < followPath.getSegments().size - 1; i++) { // size - 1: skipping the last auxiliary segment
+            segment = followPath.getSegments().get(i);
             imr.line(segment.getBegin(), segment.getEnd(), clr1, clr2);
         }
     }
@@ -471,7 +482,6 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
                     followPathArriveEnabled,
                     followPathOffset,
                     followPathParam);
-            followLinePath.calculateSteering(steeringAcceleration);
             // Look Where You Are Going
             LookWhereYouAreGoing<Vector3> lookWhereYouAreGoing = (LookWhereYouAreGoing<Vector3>) LOOK_WHERE_YOU_ARE_GOING.getInstance();
             SteeringBehaviorsVector3Enum.initSteeringBehavior(lookWhereYouAreGoing,
@@ -501,15 +511,12 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
             //        + " followPathParamSegmentIndex: " + followPathParamSegmentIndex
             //);
             if (followPathParamSegmentIndex == followPath.getSegments().size - 1) {
-                float length = followPath.getSegments().get(followPathParamSegmentIndex).getLength();
-                float cumulativeLength = followPath.getSegments().get(followPathParamSegmentIndex).getCumulativeLength();
-                if (cumulativeLength - followPathParamDistance < followPathArrivalTolerance) {
-                    outPath = null;
-                    linearVelocity.set(Vector3.Zero);
-                    angularVelocity = 0f;
-                    steeringAcceleration.setZero();
-                    steeringEnabled = false;
-                }
+                outPath.clear();
+                outPath = null;
+                linearVelocity.set(Vector3.Zero);
+                angularVelocity = 0f;
+                steeringAcceleration.setZero();
+                steeringEnabled = false;
             }
 
             return;
