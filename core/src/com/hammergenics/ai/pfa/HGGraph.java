@@ -105,20 +105,15 @@ public class HGGraph extends IndexedHierarchicalGraph<HGGraphNode> {
         //        + " end: " + end
         //);
         for (HGGraphNodesGrid grid: grids) {
-//            float startX = (start.x / globalScale) - grid.getX0();
-//            float startZ = (start.z / globalScale) - grid.getZ0();
-//            float endX = (end.x / globalScale) - grid.getX0();
-//            float endZ = (end.z / globalScale) - grid.getZ0();
+            float startX = (start.x / globalScale) - grid.getX0();
+            float startZ = (start.z / globalScale) - grid.getZ0();
+            float endX = (end.x / globalScale) - grid.getX0();
+            float endZ = (end.z / globalScale) - grid.getZ0();
 
-            float startX = start.x / globalScale;
-            float startZ = start.z / globalScale;
-            float endX = end.x / globalScale;
-            float endZ = end.z / globalScale;
-
-            boolean startXBelongsToGrid = startX - grid.getX0() >= 0 && startX - grid.getX0() < grid.getWidth(true);
-            boolean startZBelongsToGrid = startZ - grid.getZ0() >= 0 && startZ - grid.getZ0() < grid.getHeight(true);
-            boolean endXBelongsToGrid = endX - grid.getX0() >= 0 && endX - grid.getX0() < grid.getWidth(true);
-            boolean endZBelongsToGrid = endZ - grid.getZ0() >= 0 && endZ - grid.getZ0() < grid.getHeight(true);
+            boolean startXBelongsToGrid = startX >= 0 && startX < grid.getWidth(true);
+            boolean startZBelongsToGrid = startZ >= 0 && startZ < grid.getHeight(true);
+            boolean endXBelongsToGrid = endX >= 0 && endX < grid.getWidth(true);
+            boolean endZBelongsToGrid = endZ >= 0 && endZ < grid.getHeight(true);
 
             //Gdx.app.debug("graph", "search: "
             //        + " globalScale: " + globalScale
@@ -131,10 +126,10 @@ public class HGGraph extends IndexedHierarchicalGraph<HGGraphNode> {
             //);
 
             if (startNode == null && startXBelongsToGrid && startZBelongsToGrid) {
-                startNode = grid.getGraphNode(startX - grid.getX0(), startZ - grid.getZ0());
+                startNode = grid.getGraphNode(Math.floor(startX), Math.floor(startZ));
             }
             if (endNode == null && endXBelongsToGrid && endZBelongsToGrid) {
-                endNode = grid.getGraphNode(endX - grid.getX0(), endZ - grid.getZ0());
+                endNode = grid.getGraphNode(Math.floor(endX), Math.floor(endZ));
             }
 
             if (startNode != null && endNode != null) { break; }

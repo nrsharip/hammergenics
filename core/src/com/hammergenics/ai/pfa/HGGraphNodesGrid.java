@@ -80,7 +80,7 @@ public class HGGraphNodesGrid extends HGGrid {
         }
     }
 
-    public HGGraphNode getGraphNode(float x, float z) { return getGraphNode(Math.round(x), Math.round(z)); }
+    public HGGraphNode getGraphNode(double x, double z) { return getGraphNode((int)Math.round(x), (int)Math.round(z)); }
     public HGGraphNode getGraphNode(int x, int z) {
         int index = getGraphNodeIndex(x, z);
         //Gdx.app.debug("grid", " x: " + x + " z: " + z + " index: " + index + " size: " + graphNodes.size);
