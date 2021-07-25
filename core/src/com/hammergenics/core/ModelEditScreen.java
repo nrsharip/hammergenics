@@ -286,7 +286,9 @@ public class ModelEditScreen extends ScreenAdapter {
             if (stage.aiManagerTable.aiVisWindow.pathFindingTable.previewGraphNodesConnectionsGrid.isChecked()) {
                 for (TerrainChunk tc: eng.chunks) { tc.gridNoise.addGraphNodesConnectionsToRenderer(immediateModeRenderer, Color.ORANGE, Color.VIOLET); }
             }
-            eng.editableMIs.forEach(hgMI -> hgMI.addFollowPathSegmentsToRenderer(immediateModeRenderer, Color.RED, Color.RED));
+            if (stage.aiManagerTable.aiVisWindow.pathFindingTable.previewPathSegments.isChecked()) {
+                eng.editableMIs.forEach(hgMI -> hgMI.addFollowPathSegmentsToRenderer(immediateModeRenderer, Color.RED, Color.GREEN));
+            }
             immediateModeRenderer.end();
         } catch (ArrayIndexOutOfBoundsException ignored) {
         } finally {

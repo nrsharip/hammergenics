@@ -26,7 +26,6 @@ import com.badlogic.gdx.ai.steer.SteeringAcceleration;
 import com.badlogic.gdx.ai.steer.SteeringBehavior;
 import com.badlogic.gdx.ai.steer.behaviors.Alignment;
 import com.badlogic.gdx.ai.steer.behaviors.Arrive;
-import com.badlogic.gdx.ai.steer.behaviors.BlendedSteering;
 import com.badlogic.gdx.ai.steer.behaviors.Cohesion;
 import com.badlogic.gdx.ai.steer.behaviors.CollisionAvoidance;
 import com.badlogic.gdx.ai.steer.behaviors.Evade;
@@ -60,13 +59,15 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import com.hammergenics.ai.pfa.HGGraphNode;
 import com.hammergenics.ai.steer.SteeringBehaviorsVector3Enum;
+import com.hammergenics.ai.steer.SteeringBehaviorsVector3EnumCombining;
+import com.hammergenics.ai.steer.SteeringBehaviorsVector3EnumCombining.HGBlendedSteering;
 import com.hammergenics.ai.steer.behaviors.JumpCallbackAdapter;
 import com.hammergenics.ai.steer.behaviors.Y3DGravityComponentHandler;
 import com.hammergenics.ai.utils.LocationAdapter;
 import com.hammergenics.core.graphics.glutils.HGImmediateModeRenderer20;
 
 import static com.hammergenics.ai.steer.SteeringBehaviorsVector3Enum.*;
-import static com.hammergenics.ai.steer.SteeringBehaviorsVector3EnumCombining.BLENDED_STEERING;
+import static com.hammergenics.ai.steer.SteeringBehaviorsVector3EnumCombining.*;
 
 /**
  * Add description here
@@ -91,8 +92,8 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     public float maxLinearSpeed = 5.0f;          // the maximum linear speed
     public float maxLinearAcceleration = 100.0f; // the maximum linear acceleration
                                                  // NOTE: keeping a large number so there's always enough speed on the slopes
-    public float maxAngularSpeed = 1f;           // (~ 60 degrees) the maximum angular speed
-    public float maxAngularAcceleration = 1f;    // (~ 60 degrees) the maximum angular acceleration
+    public float maxAngularSpeed = 10f;          // the maximum angular speed
+    public float maxAngularAcceleration = 30f;   // the maximum angular acceleration
 
     // INTERFACE Location:
     // the vector indicating the position of this location
@@ -191,7 +192,7 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     public Location<Vector3> lwyagTarget = this;
     public float lwyagAlignTolerance = 0.01f;
     public float lwyagDecelerationRadius = 2f;
-    public float lwyagTimeToTarget = 0.5f;
+    public float lwyagTimeToTarget = 0.1f;
     // I.10. Match Velocity: https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#match-velocity
     //       SteeringBehavior -> MatchVelocity
     public Steerable<Vector3> matchVelocityTarget = this;
@@ -266,11 +267,10 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     public final Vector3 tmpV1 = new Vector3();
     public final Vector3 tmpV2 = new Vector3();
     public void setOutPath(GraphPath<Connection<HGGraphNode>> outPath) {
+        if (this.outPath != null) { this.outPath.clear(); }
         this.outPath = outPath;
-        this.linearVelocity.set(Vector3.Zero);
-        this.angularVelocity = 0f;
-        this.steeringAcceleration.setZero();
-        if (outPath == null || outPath.getCount() < 1) { return; }
+
+        if (outPath == null || outPath.getCount() < 1) { steeringEnabled = false; return; }
 
         waypoints.clear();
         outPath.forEach(hgGraphNodeConnection -> waypoints.add(hgGraphNodeConnection.getFromNode().coordinates));
@@ -460,16 +460,19 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
         if (outPath != null) {
             // COMBINING STEERING BEHAVIORS: https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#combining-steering-behaviors
             // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#blended-steering
-            BlendedSteering<Vector3> blendedSteering = (BlendedSteering<Vector3>) BLENDED_STEERING.getInstance();
+            HGBlendedSteering blendedSteering = (HGBlendedSteering) BLENDED_STEERING.getInstance();
             SteeringBehaviorsVector3Enum.initSteeringBehavior(blendedSteering,
                     steeringBehaviorOwner,
-                    steeringBehaviorLimiter,
+                    steeringBehaviorOwner,
                     steeringEnabled);
+            // IMPORTANT: the BlendedSteering.list should be cleared
+            SteeringBehaviorsVector3EnumCombining.initBlendedSteering(blendedSteering);
+
             // Follow Path
             HG3DFollowLinePath followLinePath = (HG3DFollowLinePath) FOLLOW_PATH.getInstance();
             SteeringBehaviorsVector3Enum.initSteeringBehavior(followLinePath,
                     steeringBehaviorOwner,
-                    steeringBehaviorLimiter,
+                    steeringBehaviorOwner,
                     steeringEnabled);
             SteeringBehaviorsVector3Enum.initArrive(followLinePath,
                     null,
@@ -482,18 +485,25 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
                     followPathArriveEnabled,
                     followPathOffset,
                     followPathParam);
+
             // Look Where You Are Going
             LookWhereYouAreGoing<Vector3> lookWhereYouAreGoing = (LookWhereYouAreGoing<Vector3>) LOOK_WHERE_YOU_ARE_GOING.getInstance();
             SteeringBehaviorsVector3Enum.initSteeringBehavior(lookWhereYouAreGoing,
                     steeringBehaviorOwner,
-                    steeringBehaviorLimiter,
+                    steeringBehaviorOwner,
                     steeringEnabled);
             SteeringBehaviorsVector3Enum.initReachOrientation(lookWhereYouAreGoing,
+                    // LookWhereYouAreGoing calls ReachOrientation's:
+                    // reachOrientation (SteeringAcceleration<T> steering, float targetOrientation)
+                    // directly bypassing ReachOrientation.calculateRealSteering (SteeringAcceleration<T> steering)
+                    // Thus the target is not playing any role, the targetOrientation is calculated from the linear velocity
                     lwyagTarget,
                     lwyagAlignTolerance,
                     lwyagDecelerationRadius,
                     lwyagTimeToTarget);
 
+            // the weights could be taken as 1f since FollowPath and LWYAG produce different
+            // types of acceleration: FollowPath - linear, LWYAG - angular
             blendedSteering.add(followLinePath, 1f);
             blendedSteering.add(lookWhereYouAreGoing, 1f);
             blendedSteering.calculateSteering(steeringAcceleration);
@@ -506,18 +516,10 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
 
             followPathParamSegmentIndex = followPathParam.getSegmentIndex();
             followPathParamDistance = followPathParam.getDistance();
-            //Gdx.app.debug("steerable", ""
-            //        + " size: " + followPath.getSegments().size
-            //        + " followPathParamSegmentIndex: " + followPathParamSegmentIndex
-            //);
-            if (followPathParamSegmentIndex == followPath.getSegments().size - 1) {
-                outPath.clear();
-                outPath = null;
-                linearVelocity.set(Vector3.Zero);
-                angularVelocity = 0f;
-                steeringAcceleration.setZero();
-                steeringEnabled = false;
-            }
+
+            // Using the last auxiliary segment to stop the steering.
+            // The check below will stop steering right at the beginning of the last extra segment
+            if (followPathParamSegmentIndex == followPath.getSegments().size - 1) { setOutPath(null); }
 
             return;
         }

@@ -40,7 +40,7 @@ public enum SteeringBehaviorsVector3EnumCombining {
         @Override
         public SteeringBehavior<Vector3> getInstance() {
             // single threaded processing is assumed: returning a singleton
-            if (instance == null) { instance = new BlendedSteering<>(stubOwner); }
+            if (instance == null) { instance = new HGBlendedSteering(stubOwner); }
             return instance;
         }
     },
@@ -79,7 +79,17 @@ public enum SteeringBehaviorsVector3EnumCombining {
     // and getInstance() is expected to return a singleton.
     public abstract SteeringBehavior<Vector3> getInstance();
 
+    public static class HGBlendedSteering extends BlendedSteering<Vector3> {
+        public HGBlendedSteering(Steerable<Vector3> owner) { super(owner); }
+        public void clearList() { list.clear(); }
+    }
+
     // Init Methods
-    public static void initBlendedSteering() { }
-    public static void initPrioritySteering() { }
+    public static void initBlendedSteering(HGBlendedSteering blendedSteering) {
+        // IMPORTANT
+        blendedSteering.clearList();
+    }
+    public static void initPrioritySteering() {
+        // IMPORTANT: TODO: make sure behaviors list is reset (blendedSteering.clearList())
+    }
 }

@@ -38,6 +38,7 @@ import com.kotcrab.vis.ui.widget.VisTable;
 public class PathFindingVisTable extends ContextAwareVisTable {
     public VisCheckBox previewGraphNodesGrid;
     public VisCheckBox previewGraphNodesConnectionsGrid;
+    public VisCheckBox previewPathSegments;
 
     public Vector3VisTable fromVisTable;
     public Vector3VisTable toVisTable;
@@ -50,6 +51,7 @@ public class PathFindingVisTable extends ContextAwareVisTable {
         VisTable previewCheckBoxes = new VisTable();
         previewCheckBoxes.add(previewGraphNodesGrid).center().expandX().fillX();
         previewCheckBoxes.add(previewGraphNodesConnectionsGrid).center().expandX().fillX();
+        previewCheckBoxes.add(previewPathSegments).center().expandX().fillX();
         add(previewCheckBoxes).center().expandX().fillX().colspan(2).row();
 
         add(fromVisTable.titleL).right();
@@ -64,6 +66,9 @@ public class PathFindingVisTable extends ContextAwareVisTable {
 
         previewGraphNodesConnectionsGrid = new VisCheckBox("Preview Graph Nodes Connections");
         previewGraphNodesConnectionsGrid.setChecked(false);
+
+        previewPathSegments = new VisCheckBox("Preview Path Segments");
+        previewPathSegments.setChecked(false);
 
         fromVisTable = new Vector3VisTable(false, true, true, new VisLabel("Move From: "));
         toVisTable  = new Vector3VisTable(false, true, true, new VisLabel("Move To: "));
@@ -80,13 +85,21 @@ public class PathFindingVisTable extends ContextAwareVisTable {
                 GraphPath<Connection<HGGraphNode>> outPath = new DefaultGraphPath<>();
                 if (eng.pfaGraph.searchConnectionPath(pmi.getPosition(), smi.getPosition(), outPath)) {
                     dbgModelInstance.setOutPath(outPath);
+                    dbgModelInstance.steeringEnabled = true;
+
+                    fromVisTable.setVector3(dbgModelInstance.followPath.getStartPoint());
+                    toVisTable.setVector3(dbgModelInstance.followPath.getEndPoint());
+                } else {
+                    dbgModelInstance.setOutPath(null);
+
+                    fromVisTable.setVector3(dbgModelInstance.getPosition());
+                    toVisTable.setVector3(null);
                 }
-                fromVisTable.setVector3(dbgModelInstance.followPath.getStartPoint());
-                toVisTable.setVector3(dbgModelInstance.followPath.getEndPoint());
             } else {
+                dbgModelInstance.setOutPath(null);
+
                 fromVisTable.setVector3(dbgModelInstance.getPosition());
                 toVisTable.setVector3(null);
-                dbgModelInstance.setOutPath(null);
             }
         } else {
             fromVisTable.setVector3(null);
