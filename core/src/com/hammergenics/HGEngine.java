@@ -403,6 +403,8 @@ public class HGEngine implements Disposable {
                 .mapToDouble(HGGraphNodesGrid::getMid)
                 .average().orElse(0f);
 
+        pfaGraph.globalScale = scale;
+
         for (TerrainChunk tc: chunks) {
             tc.resetNoiseModelInstances(scale);
 

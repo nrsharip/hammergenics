@@ -280,11 +280,13 @@ public class ModelEditScreen extends ScreenAdapter {
             if (stage.verticesCheckBox.isChecked()) { eng.editableMIs.forEach(mi -> mi.addVerticesToRenderer(immediateModeRenderer)); }
             if (stage.closestCheckBox.isChecked()) { eng.editableMIs.forEach(mi -> mi.addClosestVerticesToRenderer(immediateModeRenderer)); }
 
-            for (TerrainChunk tc: eng.chunks) {
-                tc.gridNoise.addGraphNodesToRenderer(immediateModeRenderer, Color.YELLOW, eng.unitSize / 10f);
-                tc.gridNoise.addGraphNodesConnectionsToRenderer(immediateModeRenderer, Color.ORANGE, Color.VIOLET);
+            if (stage.aiManagerTable.aiVisWindow.pathFindingTable.previewGraphNodesGrid.isChecked()) {
+                for (TerrainChunk tc: eng.chunks) { tc.gridNoise.addGraphNodesToRenderer(immediateModeRenderer, Color.YELLOW, eng.unitSize / 10f); }
             }
-
+            if (stage.aiManagerTable.aiVisWindow.pathFindingTable.previewGraphNodesConnectionsGrid.isChecked()) {
+                for (TerrainChunk tc: eng.chunks) { tc.gridNoise.addGraphNodesConnectionsToRenderer(immediateModeRenderer, Color.ORANGE, Color.VIOLET); }
+            }
+            eng.editableMIs.forEach(hgMI -> hgMI.addFollowPathSegmentsToRenderer(immediateModeRenderer, Color.RED, Color.RED));
             immediateModeRenderer.end();
         } catch (ArrayIndexOutOfBoundsException ignored) {
         } finally {

@@ -36,7 +36,6 @@ public class HGGraphNodesGrid extends HGGrid {
     // https://libgdx.badlogicgames.com/ci/gdx-ai/docs/com/badlogic/gdx/ai/pfa/GraphPath.html
     // https://libgdx.badlogicgames.com/ci/gdx-ai/docs/com/badlogic/gdx/ai/pfa/DefaultGraphPath.html
     public final Array<HGGraphNode> graphNodes = new Array<>(true, 16, HGGraphNode.class);
-    public int graphNodeIndexHexSize;
 
     public HGGraphNodesGrid(int size, int x0, int z0) {
         super(size, x0, z0);
@@ -44,14 +43,9 @@ public class HGGraphNodesGrid extends HGGrid {
         int width = getWidth(true);
         int height = getHeight(true);
 
-        // Node indices consist of two parts: [chunk index] [node index within chunk]
-        // graphNodeIndexHexSize - is the size of the internal node's index (node index within chunk)
-        // Later when the nodes are aggregated in a graph the chunk index is applied after the graphNodeIndexHexSize
-        graphNodeIndexHexSize = Integer.toHexString(width * height).length();
-
         for (int z = 0; z < height; z++) {
             for (int x = 0; x < width; x++) {
-                graphNodes.add(new HGGraphNode(getGraphNodeIndex(x, z), new Vector3()));
+                graphNodes.add(new HGGraphNode(0, new Vector3()));
             }
         }
         recalculate();
@@ -86,7 +80,13 @@ public class HGGraphNodesGrid extends HGGrid {
         }
     }
 
-    public HGGraphNode getGraphNode(int x, int z) { return graphNodes.get(getGraphNodeIndex(x, z)); }
+    public HGGraphNode getGraphNode(float x, float z) { return getGraphNode(Math.round(x), Math.round(z)); }
+    public HGGraphNode getGraphNode(int x, int z) {
+        int index = getGraphNodeIndex(x, z);
+        //Gdx.app.debug("grid", " x: " + x + " z: " + z + " index: " + index + " size: " + graphNodes.size);
+        if (index >= graphNodes.size) { return null; }
+        return graphNodes.get(index);
+    }
     public int getGraphNodeIndex(int x, int z) { return z * getWidth(true) + x; }
 
     public void connectNode(HGGraphNode node, Array<HGGraphNode> others) {

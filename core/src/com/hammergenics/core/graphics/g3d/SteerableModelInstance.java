@@ -17,6 +17,8 @@
 package com.hammergenics.core.graphics.g3d;
 
 import com.badlogic.gdx.ai.fma.FormationMember;
+import com.badlogic.gdx.ai.pfa.Connection;
+import com.badlogic.gdx.ai.pfa.GraphPath;
 import com.badlogic.gdx.ai.steer.Limiter;
 import com.badlogic.gdx.ai.steer.Proximity;
 import com.badlogic.gdx.ai.steer.Steerable;
@@ -24,6 +26,7 @@ import com.badlogic.gdx.ai.steer.SteeringAcceleration;
 import com.badlogic.gdx.ai.steer.SteeringBehavior;
 import com.badlogic.gdx.ai.steer.behaviors.Alignment;
 import com.badlogic.gdx.ai.steer.behaviors.Arrive;
+import com.badlogic.gdx.ai.steer.behaviors.BlendedSteering;
 import com.badlogic.gdx.ai.steer.behaviors.Cohesion;
 import com.badlogic.gdx.ai.steer.behaviors.CollisionAvoidance;
 import com.badlogic.gdx.ai.steer.behaviors.Evade;
@@ -48,18 +51,22 @@ import com.badlogic.gdx.ai.utils.Location;
 import com.badlogic.gdx.ai.utils.Ray;
 import com.badlogic.gdx.ai.utils.RaycastCollisionDetector;
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
+import com.hammergenics.ai.pfa.HGGraphNode;
 import com.hammergenics.ai.steer.SteeringBehaviorsVector3Enum;
 import com.hammergenics.ai.steer.behaviors.JumpCallbackAdapter;
 import com.hammergenics.ai.steer.behaviors.Y3DGravityComponentHandler;
 import com.hammergenics.ai.utils.LocationAdapter;
+import com.hammergenics.core.graphics.glutils.HGImmediateModeRenderer20;
 
 import static com.hammergenics.ai.steer.SteeringBehaviorsVector3Enum.*;
+import static com.hammergenics.ai.steer.SteeringBehaviorsVector3EnumCombining.BLENDED_STEERING;
 
 /**
  * Add description here
@@ -139,7 +146,7 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
             new Vector3(-3, 1, -3), new Vector3(-3, 1, 3), new Vector3(3, 1, 3), new Vector3(3, 1, -3), new Vector3(-3, 1, -3),
             new Vector3(-6, 1, -6), new Vector3(-6, 1, 6), new Vector3(6, 1, 6), new Vector3(6, 1, -6), new Vector3(-6, 1, -6),
             new Vector3(-9, 1, -9), new Vector3(-9, 1, 9), new Vector3(9, 1, 9), new Vector3(9, 1, -9), new Vector3(-9, 1, -9),
-    }));
+    }), true);
     public float followPathOffset = 1f;
     public LinePath.LinePathParam followPathParam = new LinePath.LinePathParam();
     public int followPathParamSegmentIndex;
@@ -250,6 +257,29 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
     public Array<Steerable<Vector3>> separationAgents = new Array<>(true, 16, Steerable.class);
     public Proximity<Vector3> separationProximity = new RadiusProximity<>(this, separationAgents, 50f);
     public float separationDecayCoefficient = 0.5f;
+
+    // Path Finding:
+    public GraphPath<Connection<HGGraphNode>> outPath = null;
+    public void setOutPath(GraphPath<Connection<HGGraphNode>> outPath) {
+        this.outPath = outPath;
+        this.steeringAcceleration.setZero();
+        if (outPath == null) { return; }
+
+        Array<Vector3> waypoints = new Array<>(true, 16, Vector3.class);
+        outPath.forEach(hgGraphNodeConnection -> waypoints.addAll(
+                hgGraphNodeConnection.getFromNode().coordinates,
+                hgGraphNodeConnection.getToNode().coordinates
+        ));
+        if (waypoints.size > 0) { followPath.createPath(waypoints); }
+        else { outPath = null; }
+    }
+
+    public void addFollowPathSegmentsToRenderer(HGImmediateModeRenderer20 imr, Color clr1, Color clr2) {
+        if (outPath == null) { return; }
+        for (LinePath.Segment<Vector3> segment: followPath.getSegments()) {
+            imr.line(segment.getBegin(), segment.getEnd(), clr1, clr2);
+        }
+    }
 
     // Constructors
     public SteerableModelInstance(Model model, float mass, ShapesEnum shape) { this(new HGModel(model), null, mass, shape, (String[])null); }
@@ -415,6 +445,75 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
         if (!steeringEnabled) { return; }
 
         steeringAcceleration.setZero();
+
+        if (outPath != null) {
+            // COMBINING STEERING BEHAVIORS: https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#combining-steering-behaviors
+            // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#blended-steering
+            BlendedSteering<Vector3> blendedSteering = (BlendedSteering<Vector3>) BLENDED_STEERING.getInstance();
+            SteeringBehaviorsVector3Enum.initSteeringBehavior(blendedSteering,
+                    steeringBehaviorOwner,
+                    steeringBehaviorLimiter,
+                    steeringEnabled);
+            // Follow Path
+            HG3DFollowLinePath followLinePath = (HG3DFollowLinePath) FOLLOW_PATH.getInstance();
+            SteeringBehaviorsVector3Enum.initSteeringBehavior(followLinePath,
+                    steeringBehaviorOwner,
+                    steeringBehaviorLimiter,
+                    steeringEnabled);
+            SteeringBehaviorsVector3Enum.initArrive(followLinePath,
+                    null,
+                    followPathArrivalTolerance,
+                    followPathDecelerationRadius,
+                    followPathTimeToTarget);
+            SteeringBehaviorsVector3Enum.initFollowPath(followLinePath,
+                    followPath,
+                    followPathPredictionTime,
+                    followPathArriveEnabled,
+                    followPathOffset,
+                    followPathParam);
+            followLinePath.calculateSteering(steeringAcceleration);
+            // Look Where You Are Going
+            LookWhereYouAreGoing<Vector3> lookWhereYouAreGoing = (LookWhereYouAreGoing<Vector3>) LOOK_WHERE_YOU_ARE_GOING.getInstance();
+            SteeringBehaviorsVector3Enum.initSteeringBehavior(lookWhereYouAreGoing,
+                    steeringBehaviorOwner,
+                    steeringBehaviorLimiter,
+                    steeringEnabled);
+            SteeringBehaviorsVector3Enum.initReachOrientation(lookWhereYouAreGoing,
+                    lwyagTarget,
+                    lwyagAlignTolerance,
+                    lwyagDecelerationRadius,
+                    lwyagTimeToTarget);
+
+            blendedSteering.add(followLinePath, 1f);
+            blendedSteering.add(lookWhereYouAreGoing, 1f);
+            blendedSteering.calculateSteering(steeringAcceleration);
+
+            // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#priority-steering
+            //case PRIORITY_STEERING: break;
+
+            // Apply steering acceleration to move this agent
+            applySteering(steeringAcceleration, delta);
+
+            followPathParamSegmentIndex = followPathParam.getSegmentIndex();
+            followPathParamDistance = followPathParam.getDistance();
+            //Gdx.app.debug("steerable", ""
+            //        + " size: " + followPath.getSegments().size
+            //        + " followPathParamSegmentIndex: " + followPathParamSegmentIndex
+            //);
+            if (followPathParamSegmentIndex == followPath.getSegments().size - 1) {
+                float length = followPath.getSegments().get(followPathParamSegmentIndex).getLength();
+                float cumulativeLength = followPath.getSegments().get(followPathParamSegmentIndex).getCumulativeLength();
+                if (cumulativeLength - followPathParamDistance < followPathArrivalTolerance) {
+                    outPath = null;
+                    linearVelocity.set(Vector3.Zero);
+                    angularVelocity = 0f;
+                    steeringAcceleration.setZero();
+                    steeringEnabled = false;
+                }
+            }
+
+            return;
+        }
 
         SteeringBehavior<Vector3> sb = null;
         // Calculate steering acceleration for selected behavior
@@ -640,12 +739,6 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
                 separation.calculateSteering(steeringAcceleration);
                 steeringAcceleration.linear.y = 0; // cancelling any vertical linear acceleration for now
                 break;
-
-            // COMBINING STEERING BEHAVIORS: https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#combining-steering-behaviors
-            // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#blended-steering
-            case BLENDED_STEERING: break;
-            // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#priority-steering
-            case PRIORITY_STEERING: break;
         }
 
         if (sb != null) {

@@ -23,6 +23,7 @@ import com.hammergenics.core.graphics.g3d.EditableModelInstance;
 import com.hammergenics.core.stages.ModelEditStage;
 import com.hammergenics.core.stages.ui.ContextAwareVisWindow;
 import com.hammergenics.core.stages.ui.ai.fma.FormationVisTable;
+import com.hammergenics.core.stages.ui.ai.pfa.PathFindingVisTable;
 import com.hammergenics.core.stages.ui.ai.steer.SteeringVisTable;
 import com.kotcrab.vis.ui.VisUI;
 import com.kotcrab.vis.ui.widget.VisScrollPane;
@@ -40,10 +41,12 @@ public class AIVisWindow extends ContextAwareVisWindow {
     public VisTable mainTabbedPaneTable;
     public SteeringVisTable steeringTable;
     public FormationVisTable formationTable;
+    public PathFindingVisTable pathFindingTable;
 
     public TabbedPane tabbedPane;
     public aiTab steeringTab;
     public aiTab formationTab;
+    public aiTab pathFindingTab;
 
     public AIVisWindow(ModelEditScreen modelES, ModelEditStage stage) {
         super("AI Algorithms", modelES, stage);
@@ -70,8 +73,13 @@ public class AIVisWindow extends ContextAwareVisWindow {
         VisTable formationScrollPaneTable = new VisTable();
         formationScrollPaneTable.add(formationScrollPane);
 
+        VisScrollPane pathFindingScrollPane = new VisScrollPane(pathFindingTable);
+        VisTable pathFindingScrollPaneTable = new VisTable();
+        pathFindingScrollPaneTable.add(pathFindingScrollPane);
+
         tabbedPane.add(steeringTab = new aiTab("Steering", steeringScrollPaneTable));
         tabbedPane.add(formationTab = new aiTab("Formation", formationScrollPaneTable));
+        tabbedPane.add(pathFindingTab = new aiTab("Path Finding", pathFindingScrollPaneTable));
 
         tabbedPane.switchTab(0);
         add(tabbedPane.getTable()).expandX().fillX();
@@ -82,6 +90,7 @@ public class AIVisWindow extends ContextAwareVisWindow {
     public void init() {
         steeringTable = new SteeringVisTable(modelES, stage);
         formationTable = new FormationVisTable(modelES, stage);
+        pathFindingTable = new PathFindingVisTable(modelES, stage);
     }
 
     @Override
@@ -94,11 +103,14 @@ public class AIVisWindow extends ContextAwareVisWindow {
     public void setTabsDbgModelInstances(Array<EditableModelInstance> mis) {
         steeringTable.setDbgModelInstances(null);
         formationTable.setDbgModelInstances(null);
+        pathFindingTable.setDbgModelInstances(null);
 
         if (tabbedPane.getActiveTab().equals(steeringTab)) {
             steeringTable.setDbgModelInstances(mis);
         } else if (tabbedPane.getActiveTab().equals(formationTab)) {
             formationTable.setDbgModelInstances(mis);
+        } else if (tabbedPane.getActiveTab().equals(pathFindingTab)) {
+            pathFindingTable.setDbgModelInstances(mis);
         }
     }
 
@@ -110,6 +122,8 @@ public class AIVisWindow extends ContextAwareVisWindow {
             steeringTable.update(delta);
         } else if (tabbedPane.getActiveTab().equals(formationTab)) {
             formationTable.update(delta);
+        } else if (tabbedPane.getActiveTab().equals(pathFindingTab)) {
+            pathFindingTable.update(delta);
         }
     }
 

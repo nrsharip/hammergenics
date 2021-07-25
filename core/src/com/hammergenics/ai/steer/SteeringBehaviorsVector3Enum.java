@@ -245,28 +245,6 @@ public enum SteeringBehaviorsVector3Enum {
             if (instance == null) { instance = new Separation<>(stubOwner, stubProximity); }
             return instance;
         }
-    },
-
-    // COMBINING STEERING BEHAVIORS: https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#combining-steering-behaviors
-    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#blended-steering
-    // This combination behavior simply sums up all the behaviors,
-    // applies their weights, and truncates the result before returning.
-    BLENDED_STEERING(BlendedSteering.class) {
-        @Override
-        public SteeringBehavior<Vector3> getInstance() {
-            // single threaded processing is assumed: returning a singleton
-            if (instance == null) { instance = new BlendedSteering<>(stubOwner); }
-            return instance;
-        }
-    },
-    // https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#priority-steering
-    PRIORITY_STEERING(PrioritySteering.class) {
-        @Override
-        public SteeringBehavior<Vector3> getInstance() {
-            // single threaded processing is assumed: returning a singleton
-            if (instance == null) { instance = new PrioritySteering<>(stubOwner); }
-            return instance;
-        }
     };
 
     // SteeringBehavior (and it's descendants) seem to be the "stateless" algorithm providers
@@ -363,7 +341,6 @@ public enum SteeringBehaviorsVector3Enum {
         arrive.setDecelerationRadius(decelerationRadius);
         arrive.setTimeToTarget(timeToTarget);
     }
-    public static void initBlendedSteering() { }
     public static void initCohesion() { }
     public static void initCollisionAvoidance() { }
     public static void initEvade(Evade<Vector3> evade) {
@@ -443,7 +420,6 @@ public enum SteeringBehaviorsVector3Enum {
         matchVelocity.setTarget(target);
         matchVelocity.setTimeToTarget(timeToTarget);
     }
-    public static void initPrioritySteering() { }
     public static void initPursue(Pursue<Vector3> pursue, Steerable<Vector3> target, float maxPredictionTime) {
         // Consider also:
         // initSteeringBehavior
