@@ -273,8 +273,12 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
         if (outPath == null || outPath.getCount() < 1) { steeringEnabled = false; return; }
 
         waypoints.clear();
-        outPath.forEach(hgGraphNodeConnection -> waypoints.add(hgGraphNodeConnection.getFromNode().coordinates));
-        tmpV1.set(outPath.get(outPath.getCount() - 1).getToNode().coordinates);
+        float halfHeight = getBB().getHeight()/2f;
+        outPath.forEach(hgGraphNodeConnection -> {
+            tmpV1.set(hgGraphNodeConnection.getFromNode().coordinates).add(0f, halfHeight, 0f);
+            waypoints.add(tmpV1.cpy());
+        });
+        tmpV1.set(outPath.get(outPath.getCount() - 1).getToNode().coordinates).add(0f, halfHeight, 0f);
         waypoints.add(tmpV1);
         // adding one extra waypoint with some (meaningless) offset so this segment could be used to stop steering later
         waypoints.add(tmpV2.set(tmpV1).add(tmpV1).add(1f));
