@@ -279,9 +279,9 @@ public class SteerableModelInstance extends PhysicalModelInstance implements Dis
             waypoints.add(tmpV1.cpy());
         });
         tmpV1.set(outPath.get(outPath.getCount() - 1).getToNode().coordinates).add(0f, halfHeight, 0f);
-        waypoints.add(tmpV1);
+        waypoints.add(tmpV1.cpy());
         // adding one extra waypoint with some (meaningless) offset so this segment could be used to stop steering later
-        waypoints.add(tmpV2.set(tmpV1).add(tmpV1).add(1f));
+        waypoints.add(tmpV2.set(tmpV1).add(tmpV1).add(1f).cpy());
 
         if (waypoints.size > 0) { followPath.createPath(waypoints); }
         else { outPath = null; }
