@@ -36,6 +36,13 @@ public enum TypeFilterRulesEnum {
             || file.getName().toLowerCase().endsWith(".tga"), "bmp", "png", "tga"),
     FONT_FILES("Font files", file -> file.isDirectory()
             || file.getName().toLowerCase().endsWith(".fnt"), "fnt"),
+    SOUND_FILES("Sound files", file -> file.isDirectory()
+            // see: https://github.com/libgdx/libgdx/wiki/Sound-effects
+            // Sound effects can be stored in various formats. libGDX supports MP3, OGG and WAV files.
+            // RoboVM (iOS) currently does not support OGG files.
+            || file.getName().toLowerCase().endsWith(".mp3")
+            || file.getName().toLowerCase().endsWith(".ogg")
+            || file.getName().toLowerCase().endsWith(".wav"), "mp3", "ogg", "wav"),
     ALL_FILES("All files", file -> false) {
         @Override
         public String getDescription() {

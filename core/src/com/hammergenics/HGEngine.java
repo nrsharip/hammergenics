@@ -27,6 +27,8 @@ import com.badlogic.gdx.assets.AssetDescriptor;
 import com.badlogic.gdx.assets.AssetLoaderParameters;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.assets.loaders.TextureLoader;
+import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -62,7 +64,7 @@ import com.badlogic.gdx.utils.Sort;
 import com.badlogic.gdx.utils.UBJsonWriter;
 import com.hammergenics.ai.pfa.HGGraph;
 import com.hammergenics.ai.pfa.HGGraphNodesGrid;
-import com.hammergenics.core.graphics.HGTexture;
+import com.hammergenics.core.HGAsset;
 import com.hammergenics.core.graphics.g3d.EditableModelInstance;
 import com.hammergenics.core.graphics.g3d.HGModel;
 import com.hammergenics.core.graphics.g3d.HGModelInstance;
@@ -176,7 +178,9 @@ public class HGEngine implements Disposable {
     }
 
     public ArrayMap<FileHandle, HGModel> hgModels = new ArrayMap<>(FileHandle.class, HGModel.class);
-    public ArrayMap<FileHandle, HGTexture> hgTextures = new ArrayMap<>(FileHandle.class, HGTexture.class);
+    public ArrayMap<FileHandle, HGAsset<Texture>> hgTextures = new ArrayMap<>(FileHandle.class, HGAsset.class);
+    public ArrayMap<FileHandle, HGAsset<Sound>> hgSounds = new ArrayMap<>(FileHandle.class, HGAsset.class);
+    public ArrayMap<FileHandle, HGAsset<Music>> hgMusic = new ArrayMap<>(FileHandle.class, HGAsset.class);
 
     // Creating the Aux Models beforehand:
     public static final HGModel gridHgModel = new HGModel(createGridModel(MAP_SIZE/2));
@@ -588,6 +592,18 @@ public class HGEngine implements Disposable {
                 return Texture.class;
             case "fnt":
                 return BitmapFont.class;
+            case "mp3":
+            case "ogg":
+            case "wav":
+                // On Android, a Sound instance can not be over 1mb in size
+                // (uncompressed raw PCM size, not the file size).
+                // If you have a bigger file, use Music
+                if (fileHandle.length() > 40 * 1024) { // TODO: uncompressed raw PCM size should be checked
+                                                       //       not the file size (taking 40Kb for now)
+                    return Music.class;
+                } else {
+                    return Sound.class;
+                }
             case "XXX": // for testing purposes
                 return ParticleEffect.class;
             default:
@@ -617,7 +633,15 @@ public class HGEngine implements Disposable {
         } else if (assetClass.equals(Texture.class)) {
             //Gdx.app.debug("engine", " add asset: " + " Texture ");
             Texture texture = assetManager.get(fileHandle.path(), Texture.class);
-            this.hgTextures.put(fileHandle, new HGTexture(texture, fileHandle));
+            this.hgTextures.put(fileHandle, new HGAsset<>(texture, fileHandle));
+        } else if (assetClass.equals(Sound.class)) {
+            //Gdx.app.debug("engine", " add asset: " + " Sound ");
+            Sound sound = assetManager.get(fileHandle.path(), Sound.class);
+            this.hgSounds.put(fileHandle, new HGAsset<>(sound, fileHandle));
+        } else if (assetClass.equals(Music.class)) {
+            //Gdx.app.debug("engine", " add asset: " + " Music ");
+            Music music = assetManager.get(fileHandle.path(), Music.class);
+            this.hgMusic.put(fileHandle, new HGAsset<>(music, fileHandle));
         }
     }
 
@@ -646,9 +670,12 @@ public class HGEngine implements Disposable {
                 .map(texture -> {
                     String fn = assetManager.getAssetFileName(texture);
                     FileHandle fh = assetManager.getFileHandleResolver().resolve(fn);
-                    return new HGTexture(texture, fh); })                                       // Array<Texture> -> Array<HGTexture>
-                .collect(() -> new ArrayMap<>(FileHandle.class, HGTexture.class),
-                        (accum, texture) -> accum.put(texture.afh, texture), ArrayMap::putAll); // retrieving the ArrayMap<FileHandle, HGTexture>
+                    return new HGAsset<>(texture, fh); })                                       // Array<Texture> -> Array<HGAsset<Texture>>
+                .collect(() -> new ArrayMap<>(FileHandle.class, HGAsset.class),
+                        (accum, texture) -> accum.put(texture.afh, texture), ArrayMap::putAll); // retrieving the ArrayMap<FileHandle, HGAsset<Texture>>
+
+        // TODO: add the same for this.hgSounds
+        // TODO: add the same for this.hgMusic
 
         Gdx.app.debug(Thread.currentThread().getStackTrace()[1].getMethodName(), "textures loaded: " + textures.size);
     }

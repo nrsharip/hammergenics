@@ -14,10 +14,9 @@
  * limitations under the License.
  ******************************************************************************/
 
-package com.hammergenics.core.graphics;
+package com.hammergenics.core;
 
 import com.badlogic.gdx.files.FileHandle;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.utils.Disposable;
 
 /**
@@ -25,20 +24,19 @@ import com.badlogic.gdx.utils.Disposable;
  *
  * @author nrsharip
  */
-public class HGTexture implements Disposable {
+public class HGAsset<T> implements Disposable {
     /**
      * texture object
      */
-    public Texture obj;
+    public T obj;
     /**
      * asset file handle
      */
     public FileHandle afh;
 
-    public HGTexture(Texture texture) { this(texture, null); }
-
-    public HGTexture(Texture texture, FileHandle assetFileHandle) {
-        this.obj = texture;
+    public HGAsset(T asset) { this(asset, null); }
+    public HGAsset(T asset, FileHandle assetFileHandle) {
+        this.obj = asset;
         this.afh = assetFileHandle;
     }
 

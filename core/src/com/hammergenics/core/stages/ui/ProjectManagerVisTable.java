@@ -17,6 +17,8 @@
 package com.hammergenics.core.stages.ui;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
@@ -31,8 +33,8 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.hammergenics.HGEngine;
+import com.hammergenics.core.HGAsset;
 import com.hammergenics.core.ModelEditScreen;
-import com.hammergenics.core.graphics.HGTexture;
 import com.hammergenics.core.graphics.g3d.EditableModelInstance;
 import com.hammergenics.core.graphics.g3d.HGModel;
 import com.hammergenics.core.stages.ModelEditStage;
@@ -73,6 +75,7 @@ public class ProjectManagerVisTable extends ManagerVisTable {
     public final ArrayMap<HGTreeVisTableNode, FileHandle> treeNode2fh = new ArrayMap<>(HGTreeVisTableNode.class, FileHandle.class);
     public final ArrayMap<FileHandle, HGTreeVisTableNode> fh2modelsTreeNode = new ArrayMap<>(FileHandle.class, HGTreeVisTableNode.class);
     public final ArrayMap<FileHandle, HGTreeVisTableNode> fh2imagesTreeNode = new ArrayMap<>(FileHandle.class, HGTreeVisTableNode.class);
+    public final ArrayMap<FileHandle, HGTreeVisTableNode> fh2soundsTreeNode = new ArrayMap<>(FileHandle.class, HGTreeVisTableNode.class);
 
     public final ArrayMap<String, HGTreeVisTableNode> extension2treeNode = new ArrayMap<>(String.class, HGTreeVisTableNode.class);
 
@@ -245,39 +248,56 @@ public class ProjectManagerVisTable extends ManagerVisTable {
         }
 
         assetsImagesTreeNode.clearChildren();
-        for (ObjectMap.Entry<FileHandle, HGTexture> entry: eng.hgTextures) {
+        for (ObjectMap.Entry<FileHandle, HGAsset<Texture>> entry: eng.hgTextures) {
             HGTreeVisTableNode node;
             assetsImagesTreeNode.add(node = new HGTreeVisTableNode(new HGTreeVisTable(entry.key.nameWithoutExtension())));
             node.add(new HGTreeVisTableNode(new HGTreeVisTable(entry.key.path())));
         }
     }
 
-    public void fillTreeNodesWithAssets(HGTreeVisTableNode rootModelsTreeNode, HGTreeVisTableNode rootImagesTreeNode) {
+    public void fillTreeNodesWithAssets(HGTreeVisTableNode rootModelsTreeNode,
+                                        HGTreeVisTableNode rootImagesTreeNode,
+                                        HGTreeVisTableNode rootSoundsTreeNode) {
         final ArrayMap<FileHandle, HGTreeVisTableNode> tmpModels = new ArrayMap<>(FileHandle.class, HGTreeVisTableNode.class);
         final ArrayMap<FileHandle, HGTreeVisTableNode> tmpImages = new ArrayMap<>(FileHandle.class, HGTreeVisTableNode.class);
+        final ArrayMap<FileHandle, HGTreeVisTableNode> tmpSounds = new ArrayMap<>(FileHandle.class, HGTreeVisTableNode.class);
 
         if (rootModelsTreeNode != null) {
             for (ObjectMap.Entry<FileHandle, HGModel> entry: eng.hgModels) {
-                addAssetTreeNode(entry.key, rootModelsTreeNode, rootImagesTreeNode, tmpModels, tmpImages);
+                addAssetTreeNode(entry.key, rootModelsTreeNode, rootImagesTreeNode, rootSoundsTreeNode, tmpModels, tmpImages, tmpSounds);
             }
         }
 
         if (rootImagesTreeNode != null) {
-            for (ObjectMap.Entry<FileHandle, HGTexture> entry: eng.hgTextures) {
-                addAssetTreeNode(entry.key, rootModelsTreeNode, rootImagesTreeNode, tmpModels, tmpImages);
+            for (ObjectMap.Entry<FileHandle, HGAsset<Texture>> entry: eng.hgTextures) {
+                addAssetTreeNode(entry.key, rootModelsTreeNode, rootImagesTreeNode, rootSoundsTreeNode, tmpModels, tmpImages, tmpSounds);
+            }
+        }
+
+        if (rootSoundsTreeNode != null) {
+            for (ObjectMap.Entry<FileHandle, HGAsset<Sound>> entry: eng.hgSounds) {
+                addAssetTreeNode(entry.key, rootModelsTreeNode, rootImagesTreeNode, rootSoundsTreeNode, tmpModels, tmpImages, tmpSounds);
             }
         }
     }
 
     public void addAssetTreeNode(FileHandle fileHandle) {
-        addAssetTreeNode(fileHandle, assetsModelsTreeNode, assetsImagesTreeNode, fh2modelsTreeNode, fh2imagesTreeNode);
+        addAssetTreeNode(fileHandle,
+                assetsModelsTreeNode,
+                assetsImagesTreeNode,
+                assetsSoundsTreeNode,
+                fh2modelsTreeNode,
+                fh2imagesTreeNode,
+                fh2soundsTreeNode);
     }
 
     public void addAssetTreeNode(FileHandle fileHandle,
                                  HGTreeVisTableNode rootModelsTreeNode,
                                  HGTreeVisTableNode rootImagesTreeNode,
+                                 HGTreeVisTableNode rootSoundsTreeNode,
                                  final ArrayMap<FileHandle, HGTreeVisTableNode> mapModels,
-                                 final ArrayMap<FileHandle, HGTreeVisTableNode> mapImages) {
+                                 final ArrayMap<FileHandle, HGTreeVisTableNode> mapImages,
+                                 final ArrayMap<FileHandle, HGTreeVisTableNode> mapSounds) {
         if (fileHandle == null || fileHandle.isDirectory()) { return; }
 
         Class<?> assetClass = HGEngine.getAssetClass(fileHandle);
@@ -293,18 +313,25 @@ public class ProjectManagerVisTable extends ManagerVisTable {
             parentPresent = mapImages.containsKey(fileHandle.parent());
             parentTreeNode = getAssetParentFolderTreeNode(fileHandle, assetClass, mapImages);
             if (!parentPresent) { addImageAssetParentFolderTreeNode(fileHandle, parentTreeNode, rootImagesTreeNode); }
+        } else if ((assetClass.equals(Sound.class) || assetClass.equals(Music.class)) && rootSoundsTreeNode != null) {
+            parentPresent = mapSounds.containsKey(fileHandle.parent());
+            parentTreeNode = getAssetParentFolderTreeNode(fileHandle, assetClass, mapSounds);
+            if (!parentPresent) { addSoundAssetParentFolderTreeNode(fileHandle, parentTreeNode, rootSoundsTreeNode); }
         } else {
             return;
         }
 
         applyCommonPathToParentTreeNodes(mapModels);
         applyCommonPathToParentTreeNodes(mapImages);
+        applyCommonPathToParentTreeNodes(mapSounds);
 
         // then adding the child node - the asset itself
         if (assetClass.equals(Model.class) || assetClass.equals(SceneAsset.class)) {
             addModelAssetTreeNode(fileHandle, parentTreeNode);
         } else if (assetClass.equals(Texture.class)) {
             addImageAssetTreeNode(fileHandle, parentTreeNode);
+        } else if (assetClass.equals(Sound.class) || assetClass.equals(Music.class)) {
+            addSoundAssetTreeNode(fileHandle, parentTreeNode);
         }
     }
 
@@ -318,6 +345,7 @@ public class ProjectManagerVisTable extends ManagerVisTable {
             Color clr = Color.WHITE;
             if (assetClass.equals(Model.class) || assetClass.equals(SceneAsset.class)) { clr = Color.CYAN; }
             else if (assetClass.equals(Texture.class)) { clr = Color.CHARTREUSE; }
+            else if (assetClass.equals(Sound.class) || assetClass.equals(Music.class)) { clr = Color.GOLD; }
 
             treeNode = new HGTreeVisTableNode(new HGTreeVisTable(parentAbsPath, clr, parent));
             map.put(parent, treeNode);
@@ -376,9 +404,9 @@ public class ProjectManagerVisTable extends ManagerVisTable {
                 Array<FileHandle> fhs;
                 // by this time fh2treeNode.get(parent) should return a real node
                 fhs = Arrays.stream(fh2modelsTreeNode.get(parent).getChildren().toArray()) // Array<HGTreeVisTableNode> -> HGTreeVisTableNode[]
-                        .map(Tree.Node::getActor)                                    // HGTreeVisTableNode -> HGTreeVisTable
-                        .map(HGTreeVisTable::getFileHandle)                          // HGTreeVisTable -> FileHandle
-                        .collect(Array::new, Array::add, Array::addAll);             // -> Array<FileHandle>
+                        .map(Tree.Node::getActor)                                          // HGTreeVisTableNode -> HGTreeVisTable
+                        .map(HGTreeVisTable::getFileHandle)                                // HGTreeVisTable -> FileHandle
+                        .collect(Array::new, Array::add, Array::addAll);                   // -> Array<FileHandle>
                 stage.addModelInstances(fhs);
                 stage.afterCurrentModelInstanceChanged();
                 return super.touchDown(event, x, y, pointer, button);
@@ -427,6 +455,35 @@ public class ProjectManagerVisTable extends ManagerVisTable {
     public void addImageAssetTreeNode(FileHandle fileHandle, HGTreeVisTableNode treeNode) {
         HGTreeVisTableNode node;
         treeNode.add(node = new HGTreeVisTableNode(new HGTreeVisTable(fileHandle.name(), Color.CHARTREUSE, fileHandle)));
+        //node.add(new HGTreeVisTableNode(new HGTreeVisTable(fileHandle.file().getAbsolutePath())));
+    }
+
+    public void addSoundAssetParentFolderTreeNode(final FileHandle fileHandle, HGTreeVisTableNode treeNode,
+                                                  HGTreeVisTableNode rootTreeNode) {
+        rootTreeNode.add(treeNode);
+    }
+
+    public void addSoundAssetTreeNode(FileHandle fileHandle, HGTreeVisTableNode treeNode) {
+        HGTreeVisTableNode node;
+
+        VisTextButton playTB = new VisTextButton("play");
+        playTB.addListener(new InputListener(){
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                Object asset = eng.getAsset(fileHandle, HGEngine.getAssetClass(fileHandle));
+                if (asset instanceof Sound) {
+                    // https://github.com/libgdx/libgdx/wiki/Sound-effects
+                    ((Sound)asset).play(1f);
+                } else if (asset instanceof Music) {
+                    // https://github.com/libgdx/libgdx/wiki/Streaming-music
+                    ((Music)asset).play();
+                }
+                return super.touchDown(event, x, y, pointer, button);
+            }
+        });
+
+        treeNode.add(node = new HGTreeVisTableNode(new HGTreeVisTable(fileHandle.name(), Color.GOLD, fileHandle)
+                .setCell1(playTB)));
         //node.add(new HGTreeVisTableNode(new HGTreeVisTable(fileHandle.file().getAbsolutePath())));
     }
 

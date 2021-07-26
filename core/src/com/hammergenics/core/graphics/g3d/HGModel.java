@@ -29,6 +29,7 @@ import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Disposable;
+import com.hammergenics.core.HGAsset;
 
 import static com.badlogic.gdx.graphics.VertexAttributes.Usage.Position;
 
@@ -37,24 +38,14 @@ import static com.badlogic.gdx.graphics.VertexAttributes.Usage.Position;
  *
  * @author nrsharip
  */
-public class HGModel implements Disposable {
-    /**
-     * model object
-     */
-    public Model obj;
-    /**
-     * asset file handle
-     */
-    public FileHandle afh;
-
+public class HGModel extends HGAsset<Model> implements Disposable {
     public ArrayMap<Mesh, MeshData> mesh2data = new ArrayMap<>(Mesh.class, MeshData.class);
     private Array<Vector3> vertices = new Array<>(Vector3.class);
 
     public HGModel(Model model) { this(model, null); }
 
     public HGModel(Model model, FileHandle assetFileHandle) {
-        this.obj = model;
-        this.afh = assetFileHandle;
+        super(model, assetFileHandle);
 
         getMeshData();
         // this is done mostly for the simplicity of rigid body calculations

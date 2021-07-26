@@ -38,7 +38,7 @@ public class ModelChooser extends AssetChooser {
     public HGTreeVisTableNode getAssetsNode()  {
         HGTreeVisTableNode assetsNode = new HGTreeVisTableNode(new HGTreeVisTableNode.HGTreeVisTable("Models"));
         if (stage.projManagerTable != null) {
-            stage.projManagerTable.fillTreeNodesWithAssets(assetsNode, null);
+            stage.projManagerTable.fillTreeNodesWithAssets(assetsNode, null, null);
         }
         return assetsNode;
     }

@@ -71,7 +71,7 @@ public class ImageChooser extends AssetChooser {
     public HGTreeVisTableNode getAssetsNode()  {
         HGTreeVisTableNode assetsNode = new HGTreeVisTableNode(new HGTreeVisTableNode.HGTreeVisTable("Images"));
         if (stage.projManagerTable != null) {
-            stage.projManagerTable.fillTreeNodesWithAssets(null, assetsNode);
+            stage.projManagerTable.fillTreeNodesWithAssets(null, assetsNode, null);
         }
         return assetsNode;
     }
