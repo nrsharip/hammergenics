@@ -26,7 +26,7 @@ import com.badlogic.gdx.utils.Disposable;
  */
 public class HGAsset<T> implements Disposable {
     /**
-     * texture object
+     * asset object
      */
     public T obj;
     /**
