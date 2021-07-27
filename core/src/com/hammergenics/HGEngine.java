@@ -758,8 +758,6 @@ public class HGEngine implements Disposable {
         // ********************
         // **** ANIMATIONS ****
         // ********************
-        copyExternalAnimations(hgModel.afh);
-
         getCurrMI().checkAnimations();
 
         return true;
@@ -809,6 +807,30 @@ public class HGEngine implements Disposable {
                     });
                 }
             }
+        }
+    }
+
+    public void copyExternalAnimationsV2(FileHandle copyFrom, ModelInstance copyTo) {
+        HGModel hgModel = hgModels.get(copyFrom);
+
+        if (hgModel == null) { return; }
+
+        String id;
+        Animation tmp;
+        for (Animation animation: hgModel.obj.animations) {
+            id = hgModel.toString() + ": " + animation.id;
+            if ((tmp = copyTo.getAnimation(id)) != null) {
+                Gdx.app.debug("engine", "overriding animation: " + id);
+                copyTo.animations.removeValue(tmp, false);
+            } else {
+                Gdx.app.debug("engine", "adding animation: " + id);
+            }
+            copyTo.copyAnimation(animation);
+            copyTo.getAnimation(animation.id).id = id;
+        }
+
+        if (copyTo instanceof EditableModelInstance) {
+            ((EditableModelInstance)copyTo).checkAnimations();
         }
     }
 

@@ -78,7 +78,7 @@ public class EditableModelInstance extends SteerableModelInstance implements Dis
     public float currKeyTime = 0f;
     public boolean animLoop = true;
     public Animation selectedAnimation = null;
-    public ArrayMap<Animation, AnimationInfo> anim2info = new ArrayMap<>(Animation.class, AnimationInfo.class);
+    public final ArrayMap<Animation, AnimationInfo> anim2info = new ArrayMap<>(Animation.class, AnimationInfo.class);
 
     public HGModel bbHgModel = null;
     public HGModelInstance bbHgMI = null;
@@ -149,6 +149,7 @@ public class EditableModelInstance extends SteerableModelInstance implements Dis
     }
 
     public void checkAnimations() {
+        anim2info.clear();
         for (Animation anim:animations) { anim2info.put(anim, new AnimationInfo(this, anim)); }
     }
 

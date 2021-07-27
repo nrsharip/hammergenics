@@ -17,6 +17,7 @@
 package com.hammergenics.core.stages.ui.animations;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.model.Animation;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -29,6 +30,7 @@ import com.hammergenics.core.graphics.g3d.EditableModelInstance;
 import com.hammergenics.core.graphics.g3d.model.AnimationInfo;
 import com.hammergenics.core.stages.ModelEditStage;
 import com.hammergenics.core.stages.ui.ContextAwareVisWindow;
+import com.kotcrab.vis.ui.util.dialog.ConfirmDialogListener;
 import com.kotcrab.vis.ui.widget.Separator;
 import com.kotcrab.vis.ui.widget.VisCheckBox;
 import com.kotcrab.vis.ui.widget.VisLabel;
@@ -46,6 +48,7 @@ public class AnimationsVisWindow extends ContextAwareVisWindow {
     public VisCheckBox animLoopCheckBox;
     public VisTextButton createAnimTextButton;
     public VisTextButton deleteAnimTextButton;
+    public VisTextButton chooseAnimModelTextButton;
 
     public AnimationEditVisTable animationEditVisTable;
 
@@ -60,6 +63,7 @@ public class AnimationsVisWindow extends ContextAwareVisWindow {
         topPanelTable.add(animLoopCheckBox).padLeft(5f).left();
         topPanelTable.add(deleteAnimTextButton).padLeft(5f).left();
         topPanelTable.add(createAnimTextButton).padLeft(5f).left();
+        topPanelTable.add(chooseAnimModelTextButton).padLeft(5f).left();
 
         add(topPanelTable).row();
         add(new Separator("menu")).expandX().fillX().pad(5f).row();
@@ -104,7 +108,7 @@ public class AnimationsVisWindow extends ContextAwareVisWindow {
             }
         });
 
-        animLoopCheckBox = new VisCheckBox("loop");
+        animLoopCheckBox = new VisCheckBox("Loop");
         animLoopCheckBox.setChecked(true);
         animLoopCheckBox.addListener(new ChangeListener() {
             @Override
@@ -130,7 +134,7 @@ public class AnimationsVisWindow extends ContextAwareVisWindow {
             }
         });
 
-        deleteAnimTextButton = new VisTextButton("delete");
+        deleteAnimTextButton = new VisTextButton("Delete");
         stage.unpressButton(deleteAnimTextButton);
         deleteAnimTextButton.addListener(new InputListener() {
             @Override
@@ -150,7 +154,7 @@ public class AnimationsVisWindow extends ContextAwareVisWindow {
             }
         });
 
-        createAnimTextButton = new VisTextButton("new");
+        createAnimTextButton = new VisTextButton("New");
         stage.unpressButton(createAnimTextButton);
         createAnimTextButton.addListener(new InputListener() {
             @Override
@@ -166,6 +170,28 @@ public class AnimationsVisWindow extends ContextAwareVisWindow {
                 // If true is returned, this listener will have touch focus, so it will receive all
                 // touchDragged and touchUp events, even those not over this actor, until touchUp is received.
                 // Also when true is returned, the event is handled
+            }
+        });
+
+        chooseAnimModelTextButton = new VisTextButton("Copy from model");
+        chooseAnimModelTextButton.addListener(new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                modelES.stage.modelChooser.updateAssetsTree();
+                modelES.stage.modelChooser.setListener(new ConfirmDialogListener<FileHandle>() {
+                    @Override
+                    public void result(FileHandle result) {
+                        //Gdx.app.debug("anim","" + " result: " + result);
+                        if (result.exists()) {
+                            //Gdx.app.debug("anim","exists");
+                            eng.copyExternalAnimationsV2(result, dbgModelInstance);
+
+                            setAnimSelectBox(dbgModelInstance);
+                        }
+                    }
+                });
+                modelES.stage.addActor(modelES.stage.modelChooser.fadeIn());
+                return super.touchDown(event, x, y, pointer, button);
             }
         });
 

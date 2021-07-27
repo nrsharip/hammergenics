@@ -58,6 +58,12 @@ public class HGModel extends HGAsset<Model> implements Disposable {
     @Override
     public void dispose() { obj.dispose(); }
 
+    @Override
+    public String toString() {
+        return afh != null ? afh.nameWithoutExtension() :
+                (obj.nodes != null && obj.nodes.size > 0) ? obj.nodes.get(0).id : "@" + Integer.toHexString(obj.hashCode());
+    }
+
     public boolean hasAnimations() { return obj.animations.size != 0; }
     public boolean hasMaterials() { return obj.materials.size != 0; }
     public boolean hasMeshes() { return obj.meshes.size != 0; }
