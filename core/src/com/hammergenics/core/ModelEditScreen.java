@@ -305,6 +305,17 @@ public class ModelEditScreen extends ScreenAdapter {
         if (!stage.console.isVisible()) {
             // https://github.com/Anuken/GDXGifRecorder
             recorder.update();
+            // FIXME:
+            //  Exception in thread "LWJGL Application" com.badlogic.gdx.utils.GdxRuntimeException: java.lang.OutOfMemoryError: Java heap space
+            //        at com.badlogic.gdx.backends.lwjgl.LwjglApplication$1.run(LwjglApplication.java:134)
+            //  Caused by: java.lang.OutOfMemoryError: Java heap space
+            //        at com.badlogic.gdx.utils.ScreenUtils.getFrameBufferPixels(ScreenUtils.java:133)
+            //        at io.anuke.gif.GifRecorder.update(GifRecorder.java:180)
+            //        at com.hammergenics.core.ModelEditScreen.render(ModelEditScreen.java:307)
+            //        at com.badlogic.gdx.Game.render(Game.java:46)
+            //        at com.hammergenics.HGGame.render(HGGame.java:280)
+            //        at com.badlogic.gdx.backends.lwjgl.LwjglApplication.mainLoop(LwjglApplication.java:232)
+            //        at com.badlogic.gdx.backends.lwjgl.LwjglApplication$1.run(LwjglApplication.java:127)
         }
 
         checkTimerEvents(delta);

@@ -177,6 +177,7 @@ public abstract class AssetChooser extends VisWindow {
         ChangeListener fileBtnListener = new ChangeListener() {
             @Override
             public void changed (ChangeEvent event, Actor actor) {
+                stage.fileChooser.setMode(FileChooser.Mode.OPEN);
                 // https://github.com/kotcrab/vis-ui/wiki/File-chooser#typefilters
                 // FileTypeFilter allows user to filter file chooser list by given set of extension. If type filter is set
                 // for chooser then below file path select box with possible extensions is displayed. If user switches filter

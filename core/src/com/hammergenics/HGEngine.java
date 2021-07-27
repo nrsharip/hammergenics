@@ -1017,23 +1017,24 @@ public class HGEngine implements Disposable {
         }
     }
 
-    public void saveHgModelInstance(HGModelInstance mi) {
+    public void saveHgModelInstance(HGModelInstance mi, FileHandle location) {
         if (mi == null) { return; }
 
-        String filename = "test";
-        if (mi.afh != null) { filename = mi.afh.name().replace("." + mi.afh.extension(), ""); }
-
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
-        LocalDateTime now = LocalDateTime.now();
-        FileHandle g3dj = Gdx.files.local("root/test/" + filename + "." + fmt.format(now) + ".g3dj");
-        FileHandle g3db = Gdx.files.local("root/test/" + filename + "." + fmt.format(now) + ".g3db");
-
-        g3dSaver.saveG3dj(g3dj, mi);
-        JsonValue jv = new JsonReader().parse(g3dj);
-        try {
-            new UBJsonWriter(g3db.write(false, 8192)).value(jv).close();
-        } catch (IOException e) {
-            Gdx.app.error(getClass().getSimpleName(), "ERROR writing to file: " + e.getMessage());
+        if (location.extension().toLowerCase().equals("g3dj")) {
+            g3dSaver.saveG3dj(location, mi);
+        } else if (location.extension().toLowerCase().equals("g3db")) {
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+            LocalDateTime now = LocalDateTime.now();
+            FileHandle tmp;
+            g3dSaver.saveG3dj(tmp = new FileHandle(location.path() + ".tmp." + fmt.format(now)), mi);
+            JsonValue jv = new JsonReader().parse(tmp);
+            try {
+                new UBJsonWriter(location.write(false, 8192)).value(jv).close();
+            } catch (IOException e) {
+                Gdx.app.error(getClass().getSimpleName(), "ERROR writing to file: " + e.getMessage());
+            } finally {
+                tmp.delete();
+            }
         }
     }
 

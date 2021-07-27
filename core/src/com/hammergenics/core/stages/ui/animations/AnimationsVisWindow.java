@@ -173,7 +173,7 @@ public class AnimationsVisWindow extends ContextAwareVisWindow {
             }
         });
 
-        chooseAnimModelTextButton = new VisTextButton("Copy from model");
+        chooseAnimModelTextButton = new VisTextButton("Copy From Model");
         chooseAnimModelTextButton.addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {

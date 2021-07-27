@@ -30,6 +30,10 @@ public enum TypeFilterRulesEnum {
             || file.getName().toLowerCase().endsWith(".glb")   //
             || file.getName().toLowerCase().endsWith(".gltf")  //
             || file.getName().toLowerCase().endsWith(".obj"), "obj", "gltf", "glb", "g3dj", "g3db"),
+    MODEL_FILES_G3DB("G3DB files", file -> file.isDirectory()
+            || file.getName().toLowerCase().endsWith(".g3db"), "g3db"),
+    MODEL_FILES_G3DJ("G3DJ files", file -> file.isDirectory()
+            || file.getName().toLowerCase().endsWith(".g3dj"), "g3dj"),
     IMAGE_FILES("Image files", file -> file.isDirectory()
             || file.getName().toLowerCase().endsWith(".bmp")  // textures in BMP
             || file.getName().toLowerCase().endsWith(".png")  // textures in PNG

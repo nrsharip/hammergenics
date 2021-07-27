@@ -99,6 +99,9 @@ import static com.hammergenics.core.stages.ui.file.TypeFilterRulesEnum.FONT_FILE
 import static com.hammergenics.core.stages.ui.file.TypeFilterRulesEnum.HG_FILES;
 import static com.hammergenics.core.stages.ui.file.TypeFilterRulesEnum.IMAGE_FILES;
 import static com.hammergenics.core.stages.ui.file.TypeFilterRulesEnum.MODEL_FILES;
+import static com.hammergenics.core.stages.ui.file.TypeFilterRulesEnum.MODEL_FILES_G3DB;
+import static com.hammergenics.core.stages.ui.file.TypeFilterRulesEnum.MODEL_FILES_G3DJ;
+import static com.hammergenics.core.stages.ui.file.TypeFilterRulesEnum.SOUND_FILES;
 import static com.hammergenics.utils.HGUtils.getLibgdxGraph_NodeConfigurationsInfo;
 
 /**
@@ -120,6 +123,7 @@ public class ModelEditStage extends Stage {
     // 2D Stage Layout:
     public VisTable rootTable;
     public MenuBar menuBar;
+    public MenuItem exportModelMenuItem;
     public Cell<?> leftPaneCell;
     public Cell<?> infoCell;
     public Cell<?> imagePreviewCell;
@@ -264,6 +268,7 @@ public class ModelEditStage extends Stage {
 
         openMenuItem.addListener(new ChangeListener() {
             @Override public void changed (ChangeEvent event, Actor actor) {
+                fileChooser.setMode(FileChooser.Mode.OPEN);
                 // https://github.com/kotcrab/vis-ui/wiki/File-chooser#typefilters
                 // FileTypeFilter allows user to filter file chooser list by given set of extension. If type filter is set
                 // for chooser then below file path select box with possible extensions is displayed. If user switches filter
@@ -299,6 +304,7 @@ public class ModelEditStage extends Stage {
         PopupMenu addToProjectPopupMenu = new PopupMenu();
         MenuItem addFolderMenuItem = new MenuItem("Folder", new ChangeListener() {
             @Override public void changed (ChangeEvent event, Actor actor) {
+                fileChooser.setMode(FileChooser.Mode.OPEN);
                 // https://github.com/kotcrab/vis-ui/wiki/File-chooser#selection-mode
                 // The following selection modes are available: FILES, DIRECTORIES, FILES_AND_DIRECTORIES.
                 // Please note that if dialog is in DIRECTORIES mode files still will be displayed, if user tries
@@ -346,6 +352,7 @@ public class ModelEditStage extends Stage {
         MENU_ITEM_ADD_FOLDER.seize(addFolderMenuItem);
         MenuItem addFileMenuItem = new MenuItem("Files", new ChangeListener() {
             @Override public void changed (ChangeEvent event, Actor actor) {
+                fileChooser.setMode(FileChooser.Mode.OPEN);
                 // https://github.com/kotcrab/vis-ui/wiki/File-chooser#typefilters
                 // FileTypeFilter allows user to filter file chooser list by given set of extension. If type filter is set
                 // for chooser then below file path select box with possible extensions is displayed. If user switches filter
@@ -353,6 +360,7 @@ public class ModelEditStage extends Stage {
                 FileTypeFilter typeFilter = new FileTypeFilter(true); //allow "All Types" mode where all files are shown
                 typeFilter.addRule(MODEL_FILES.getDescription(), MODEL_FILES.getExtensions());
                 typeFilter.addRule(IMAGE_FILES.getDescription(), IMAGE_FILES.getExtensions());
+                typeFilter.addRule(SOUND_FILES.getDescription(), SOUND_FILES.getExtensions());
                 typeFilter.addRule(FONT_FILES.getDescription(), FONT_FILES.getExtensions());
                 fileChooser.setFileTypeFilter(typeFilter);
 
@@ -392,9 +400,55 @@ public class ModelEditStage extends Stage {
         addToProjectPopupMenu.addItem(addFileMenuItem);
         addToProjectMenuItem.setSubMenu(addToProjectPopupMenu);
 
-
         MenuItem saveMenuItem = new MenuItem("Save").setShortcut("Ctrl + S"); MENU_ITEM_SAVE.seize(saveMenuItem);
         saveMenuItem.setDisabled(true);
+
+        exportModelMenuItem = new MenuItem("Export Model", new ChangeListener() {
+            @Override public void changed (ChangeEvent event, Actor actor) {
+                fileChooser.setMode(FileChooser.Mode.SAVE);
+                // https://github.com/kotcrab/vis-ui/wiki/File-chooser#typefilters
+                // FileTypeFilter allows user to filter file chooser list by given set of extension. If type filter is set
+                // for chooser then below file path select box with possible extensions is displayed. If user switches filter
+                // rule then only extensions allowed in that rule will be displayed (directories are also displayed of course)
+                FileTypeFilter typeFilter = new FileTypeFilter(false); //allow "All Types" mode where all files are shown
+                typeFilter.addRule(MODEL_FILES_G3DB.getDescription(), MODEL_FILES_G3DB.getExtensions());
+                typeFilter.addRule(MODEL_FILES_G3DJ.getDescription(), MODEL_FILES_G3DJ.getExtensions());
+                fileChooser.setFileTypeFilter(typeFilter);
+
+                // https://github.com/kotcrab/vis-ui/wiki/File-chooser#selection-mode
+                // The following selection modes are available: FILES, DIRECTORIES, FILES_AND_DIRECTORIES.
+                // Please note that if dialog is in DIRECTORIES mode files still will be displayed, if user tries
+                // to select file, error message will be showed. Default selection mode is SelectionMode.FILES.
+                fileChooser.setSelectionMode(FileChooser.SelectionMode.FILES);
+
+                // https://github.com/kotcrab/vis-ui/wiki/File-chooser#multiple-selection
+                // Chooser allow to select multiple files. It is disabled by default, to enable it call:
+                fileChooser.setMultiSelectionEnabled(false);
+
+                fileChooser.setListener(new FileChooserAdapter() {
+                    @Override
+                    public void selected (Array<FileHandle> fileHandles) {
+                        Gdx.app.debug("filechooser", "\n" + fileHandles.toString("\n"));
+                        if (fileHandles.size != 1 || modelES.eng.getCurrMI() == null) { return; }
+                        modelES.eng.saveHgModelInstance(modelES.eng.getCurrMI(), fileHandles.first());
+                    }
+                });
+
+                //displaying chooser with fade in animation
+                addActor(fileChooser.fadeIn());
+            }
+        }).setShortcut("Ctrl + E");
+        MENU_ITEM_EXPORT_MODEL.seize(exportModelMenuItem);
+        exportModelMenuItem.setDisabled(true);
+
+        MenuItem generateMenuItem = new MenuItem("Generate"); MENU_ITEM_GENERATE.seize(generateMenuItem);
+        PopupMenu generatePopupMenu = new PopupMenu();
+        MenuItem generateGroovyMenuItem = new MenuItem("Groovy Script"); MENU_ITEM_GENERATE_GROOVY.seize(generateGroovyMenuItem);
+        MenuItem generateGradleMenuItem = new MenuItem("Gradle Project"); MENU_ITEM_GENERATE_GRADLE.seize(generateGradleMenuItem);
+        generatePopupMenu.addItem(generateGroovyMenuItem);
+        generatePopupMenu.addItem(generateGradleMenuItem);
+        generateMenuItem.setSubMenu(generatePopupMenu);
+
         MenuItem settingsMenuItem = new MenuItem("Settings...").setShortcut("Ctrl + Alt + S"); MENU_ITEM_SETTINGS.seize(settingsMenuItem);
         MenuItem exitMenuItem = new MenuItem("Exit").setShortcut("Alt + F4"); MENU_ITEM_EXIT.seize(exitMenuItem);
 
@@ -403,6 +457,10 @@ public class ModelEditStage extends Stage {
         fileMenu.addItem(addToProjectMenuItem);
         fileMenu.addSeparator();
         fileMenu.addItem(saveMenuItem);
+        fileMenu.addSeparator();
+        fileMenu.addItem(exportModelMenuItem);
+        fileMenu.addSeparator();
+        fileMenu.addItem(generateMenuItem);
         fileMenu.addSeparator();
         fileMenu.addItem(settingsMenuItem);
         fileMenu.addSeparator();
@@ -941,7 +999,7 @@ public class ModelEditStage extends Stage {
         saveCurrModelTextButton.addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                modelES.eng.saveHgModelInstance(modelES.eng.getCurrMI());
+                //modelES.eng.saveHgModelInstance(modelES.eng.getCurrMI());
                 return super.touchDown(event, x, y, pointer, button);
             }
         });
@@ -1144,7 +1202,7 @@ public class ModelEditStage extends Stage {
         lowerPanel.add(meshPartsCheckBox).pad(3f);
         lowerPanel.add(verticesCheckBox);
         lowerPanel.add(closestCheckBox).pad(3f);
-        lowerPanel.add(saveCurrModelTextButton).pad(3f);
+        //lowerPanel.add(saveCurrModelTextButton).pad(3f);
         lowerPanel.add(deleteCurrModelTextButton).pad(3f);
         lowerPanel.add(clearModelsTextButton).pad(3f);
 
@@ -1205,6 +1263,12 @@ public class ModelEditStage extends Stage {
         }
         nodeSelectBox.getSelection().setProgrammaticChangeEvents(true);
         nodeSelectBox.getColor().set(Color.WHITE);
+
+        if (modelES.eng.getCurrMI() != null) {
+            exportModelMenuItem.setDisabled(false);
+        } else {
+            exportModelMenuItem.setDisabled(true);
+        }
 
         resetTables();
     }
@@ -1316,6 +1380,10 @@ public class ModelEditStage extends Stage {
         MENU_ITEM_ADD_FOLDER("menuItem.label.addFolderToProject"),
         MENU_ITEM_ADD_FILE("menuItem.label.addFileToProject"),
         MENU_ITEM_SAVE("menuItem.label.save", Keys.CONTROL_LEFT, Keys.S),
+        MENU_ITEM_EXPORT_MODEL("menuItem.label.export.model", Keys.CONTROL_LEFT, Keys.E),
+        MENU_ITEM_GENERATE("menuItem.label.generate"),
+        MENU_ITEM_GENERATE_GROOVY("menuItem.label.generate.groovy"),
+        MENU_ITEM_GENERATE_GRADLE("menuItem.label.generate.gradle"),
         MENU_ITEM_SETTINGS("menuItem.label.settings", Keys.CONTROL_LEFT, Keys.ALT_LEFT, Keys.S),
         MENU_ITEM_EXIT("menuItem.label.exit", Keys.ALT_LEFT, Keys.F4),
 
