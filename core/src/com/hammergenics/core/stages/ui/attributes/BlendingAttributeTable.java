@@ -32,6 +32,8 @@ import com.kotcrab.vis.ui.widget.VisTable;
 import com.kotcrab.vis.ui.widget.VisTextField;
 import com.kotcrab.vis.ui.widget.VisWindow;
 
+import static com.hammergenics.core.stages.ui.attributes.AttributeTable.TextButtonsTextEnum.CHECKBOX_BLENDED;
+import static com.hammergenics.core.stages.ui.attributes.AttributeTable.TextButtonsTextEnum.CHECKBOX_MATCH_SRC_WITH_DST;
 import static com.hammergenics.utils.HGUtils.gl20_i2s;
 import static com.hammergenics.utils.HGUtils.gl20_s2i;
 
@@ -73,10 +75,10 @@ public class BlendingAttributeTable extends AttributeTable<BlendingAttribute> {
 
         opacityTF = new VisTextField("1");
 
-        blendedCB = new VisCheckBox("blended");
+        blendedCB = new VisCheckBox("blended"); CHECKBOX_BLENDED.seize(blendedCB);
         blendedCB.setChecked(true);
 
-        mapSrc2DstCB = new VisCheckBox("match src with dst");
+        mapSrc2DstCB = new VisCheckBox("match src with dst"); CHECKBOX_MATCH_SRC_WITH_DST.seize(mapSrc2DstCB);
         mapSrc2DstCB.setChecked(true);
 
         srcFuncSB = new VisSelectBox<>();

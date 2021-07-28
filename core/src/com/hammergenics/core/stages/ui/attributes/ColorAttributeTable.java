@@ -29,6 +29,7 @@ import com.kotcrab.vis.ui.widget.VisTextField;
 import com.kotcrab.vis.ui.widget.VisWindow;
 import com.kotcrab.vis.ui.widget.color.ColorPickerListener;
 
+import static com.hammergenics.core.stages.ui.attributes.AttributeTable.TextButtonsTextEnum.SELECT_COLOR;
 import static com.hammergenics.utils.HGUtils.color_c2s;
 import static com.hammergenics.utils.HGUtils.color_s2c;
 
@@ -95,7 +96,7 @@ public class ColorAttributeTable extends AttributeTable<ColorAttribute> {
         //[switchModelInstance] after set
         colorSB.addListener(colorSelectBoxListener);
 
-        selectColorTB = new VisTextButton("select");
+        selectColorTB = new VisTextButton("select"); SELECT_COLOR.seize(selectColorTB);
         selectColorTB.addListener(new ChangeListener() {
             @Override
             public void changed (ChangeEvent event, Actor actor) {

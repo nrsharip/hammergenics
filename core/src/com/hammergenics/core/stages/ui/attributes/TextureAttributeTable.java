@@ -22,6 +22,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g3d.Attributes;
+import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.glutils.FileTextureData;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -39,6 +40,9 @@ import com.kotcrab.vis.ui.widget.VisTextField;
 import com.kotcrab.vis.ui.widget.VisWindow;
 
 import java.util.Arrays;
+
+import static com.hammergenics.core.stages.ui.attributes.AttributeTable.TextButtonsTextEnum.CHOOSE_IMAGE;
+import static com.hammergenics.core.stages.ui.attributes.AttributesTable.LabelsTextEnum.*;
 
 /**
  * Add description here
@@ -132,7 +136,7 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
             vWrapSB.setItems(itemsTextureWrap);
         }
 
-        VisTextButton chooseImageTB = new VisTextButton("image");
+        VisTextButton chooseImageTB = new VisTextButton("image"); CHOOSE_IMAGE.seize(chooseImageTB);
         chooseImageTB.addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -160,7 +164,18 @@ public class TextureAttributeTable extends AttributeTable<TextureAttribute> {
         uWrapSB.addListener(paramSelectBoxListener);
         vWrapSB.addListener(paramSelectBoxListener);
 
-        add(new VisLabel(alias)).expandX().padRight(5f).center();
+        VisLabel aliasLabel = new VisLabel(alias);
+        switch (alias) {
+            case TextureAttribute.DiffuseAlias: ATTR_TEXTURE_DIFFUSE.seize(aliasLabel); break;
+            case TextureAttribute.SpecularAlias: ATTR_TEXTURE_SPECULAR.seize(aliasLabel); break;
+            case TextureAttribute.BumpAlias: ATTR_TEXTURE_BUMP.seize(aliasLabel); break;
+            case TextureAttribute.NormalAlias: ATTR_TEXTURE_NORMAL.seize(aliasLabel); break;
+            case TextureAttribute.AmbientAlias: ATTR_TEXTURE_AMBIENT.seize(aliasLabel); break;
+            case TextureAttribute.EmissiveAlias: ATTR_TEXTURE_EMISSIVE.seize(aliasLabel); break;
+            case TextureAttribute.ReflectionAlias: ATTR_TEXTURE_REFLECTION.seize(aliasLabel); break;
+        }
+
+        add(aliasLabel).expandX().padRight(5f).center();
         add(new VisLabel("offsetU:")).padRight(5f).right();
         add(offsetUTF).width(40).maxWidth(40);
         add(new VisLabel("minFilter:")).padRight(5f).right();

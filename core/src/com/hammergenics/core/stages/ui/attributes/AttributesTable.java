@@ -28,14 +28,20 @@ import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.environment.PointLight;
 import com.badlogic.gdx.graphics.g3d.environment.SpotLight;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
+import com.hammergenics.HGGame;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.utils.HGUtils;
+import com.kotcrab.vis.ui.i18n.BundleText;
 import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisWindow;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
+
+import static com.hammergenics.core.stages.ui.attributes.AttributesTable.LabelsTextEnum.*;
 
 /**
  * Add description here
@@ -73,11 +79,26 @@ public abstract class AttributesTable<T extends Attribute, Q extends AttributeTa
         super(container, modelES, aClass, null);
 
         window = new VisWindow(title);
-        //window.setBackground((Drawable)null);
+
+        if (this instanceof Blending) {
+            WINDOW_TITLE_BLENDING.seize(window.getTitleLabel());
+        } else if (this instanceof Color) {
+            WINDOW_TITLE_COLOR.seize(window.getTitleLabel());
+        } else if (this instanceof DirectionalLights) {
+            WINDOW_TITLE_DIRECTIONAL_LIGHTS.seize(window.getTitleLabel());
+        } else if (this instanceof PointLights) {
+            WINDOW_TITLE_POINT_LIGHTS.seize(window.getTitleLabel());
+        } else if (this instanceof SpotLights) {
+            WINDOW_TITLE_SPOT_LIGHTS.seize(window.getTitleLabel());
+        } else if (this instanceof Texture) {
+            WINDOW_TITLE_TEXTURE.seize(window.getTitleLabel());
+        }
+
         window.add(this).expand().fill();
 
         t2a = new ArrayMap<>();
         a2t = new ArrayMap<>();
+
         traverse();
 
         t2a.forEach((entry) -> {
@@ -89,13 +110,32 @@ public abstract class AttributesTable<T extends Attribute, Q extends AttributeTa
         resetAttributes();
 
         a2Table.forEach((entry) -> {
-            if (addLabel) { add(new VisLabel(entry.key + ":")).right(); }
+            if (addLabel) {
+                VisLabel label = new VisLabel(entry.key + ":");
+                add(label).right();
+
+                switch (entry.key) {
+                    case ColorAttribute.DiffuseAlias: ATTR_COLOR_DIFFUSE.seize(label); break;
+                    case ColorAttribute.SpecularAlias: ATTR_COLOR_SPECULAR.seize(label); break;
+                    case ColorAttribute.AmbientAlias: ATTR_COLOR_AMBIENT.seize(label); break;
+                    case ColorAttribute.EmissiveAlias: ATTR_COLOR_EMISSIVE.seize(label); break;
+                    case ColorAttribute.ReflectionAlias: ATTR_COLOR_REFLECTION.seize(label); break;
+                    case ColorAttribute.AmbientLightAlias: ATTR_COLOR_AMBIENT_LIGHT.seize(label); break;
+                    case ColorAttribute.FogAlias: ATTR_COLOR_FOG.seize(label); break;
+                }
+            }
             add(entry.value).expand().fill().right();
             row().pad(0.5f);
         });
     }
 
     protected abstract Q createTable(Attributes container, ModelEditScreen modelES, VisWindow window, Long type, String alias);
+
+    protected void applyLocale(HGGame.I18NBundlesEnum language) {
+        LabelsTextEnum.setLanguage(language);
+
+        if (a2Table != null) { a2Table.forEach((entry) -> entry.value.applyLocale(language)); }
+    }
 
     /**
      *
@@ -222,5 +262,57 @@ public abstract class AttributesTable<T extends Attribute, Q extends AttributeTa
         protected TextureAttributeTable createTable(Attributes container, ModelEditScreen modelES, VisWindow window, Long type, String alias) {
             return new TextureAttributeTable(container, modelES, window, type, alias);
         }
+    }
+
+    public enum LabelsTextEnum implements BundleText {
+        WINDOW_TITLE_BLENDING("window.title.blending"),
+        WINDOW_TITLE_COLOR("window.title.color"),
+        WINDOW_TITLE_DIRECTIONAL_LIGHTS("window.title.lights.directional"),
+        WINDOW_TITLE_POINT_LIGHTS("window.title.lights.point"),
+        WINDOW_TITLE_SPOT_LIGHTS("window.title.lights.spot"),
+        WINDOW_TITLE_TEXTURE("window.title.texture"),
+
+        ATTR_COLOR_DIFFUSE("attribute.color.label.diffuse"),
+        ATTR_COLOR_SPECULAR("attribute.color.label.specular"),
+        ATTR_COLOR_AMBIENT("attribute.color.label.ambient"),
+        ATTR_COLOR_EMISSIVE("attribute.color.label.emissive"),
+        ATTR_COLOR_REFLECTION("attribute.color.label.reflection"),
+        ATTR_COLOR_AMBIENT_LIGHT("attribute.color.label.ambientlight"),
+        ATTR_COLOR_FOG("attribute.color.label.fog"),
+
+        ATTR_TEXTURE_DIFFUSE("attribute.texture.label.diffuse"),
+        ATTR_TEXTURE_SPECULAR("attribute.texture.label.specular"),
+        ATTR_TEXTURE_BUMP("attribute.texture.label.bump"),
+        ATTR_TEXTURE_NORMAL("attribute.texture.label.normal"),
+        ATTR_TEXTURE_AMBIENT("attribute.texture.label.ambient"),
+        ATTR_TEXTURE_EMISSIVE("attribute.texture.label.emissive"),
+        ATTR_TEXTURE_REFLECTION("attribute.texture.label.reflection");
+
+        private final String property;
+        // TODO: IMPORTANT: This array will keeps the references to all buttons.
+        //                  Need to make sure the references are removed when no longer needed
+        private Array<Label> instances = new Array<>(Label.class);
+        private static HGGame.I18NBundlesEnum language;
+
+        LabelsTextEnum(String property) { this.property = property; }
+
+        public static void setLanguage(HGGame.I18NBundlesEnum lang) {
+            language = lang;
+
+            for (LabelsTextEnum label: LabelsTextEnum.values()) {
+                for (Label instance: label.instances) { if (instance != null) { instance.setText(label.get()); } }
+            }
+        }
+
+        public Label seize(Label label) {
+            this.instances.add(label);
+            label.setText(get());
+            return label;
+        }
+
+        @Override public String getName() { return property; }
+        @Override public String get() { return language != null ? language.attributesManagerBundle.get(property) : "ERR"; }
+        @Override public String format() { return language != null ? language.attributesManagerBundle.format(property) : "ERR"; }
+        @Override public String format(Object... arguments) { return language != null ? language.attributesManagerBundle.format(property, arguments) : "ERR"; }
     }
 }

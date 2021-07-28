@@ -208,13 +208,14 @@ public class HGGame extends Game {
         public final Locale locale;
         public final String lang;
 
-        public I18NBundle visUIButtonBarBundle;   private static final String path1 = "root/bundles/visui/ButtonBar";
-        public I18NBundle visUIColorPickerBundle; private static final String path2 = "root/bundles/visui/ColorPicker";
-        public I18NBundle visUICommonBundle;      private static final String path3 = "root/bundles/visui/Common";
-        public I18NBundle visUIDialogsBundle;     private static final String path4 = "root/bundles/visui/Dialogs";
-        public I18NBundle visUIFileChooserBundle; private static final String path5 = "root/bundles/visui/FileChooser";
-        public I18NBundle modelEditStageBundle;   private static final String path6 = "root/bundles/stage/ModelEditStage";
-        public I18NBundle projectManagerBundle;   private static final String path7 = "root/bundles/stage/ProjectManager";
+        public I18NBundle visUIButtonBarBundle;    private static final String path1 = "root/bundles/visui/ButtonBar";
+        public I18NBundle visUIColorPickerBundle;  private static final String path2 = "root/bundles/visui/ColorPicker";
+        public I18NBundle visUICommonBundle;       private static final String path3 = "root/bundles/visui/Common";
+        public I18NBundle visUIDialogsBundle;      private static final String path4 = "root/bundles/visui/Dialogs";
+        public I18NBundle visUIFileChooserBundle;  private static final String path5 = "root/bundles/visui/FileChooser";
+        public I18NBundle modelEditStageBundle;    private static final String path6 = "root/bundles/stage/ModelEditStage";
+        public I18NBundle projectManagerBundle;    private static final String path7 = "root/bundles/stage/ProjectManager";
+        public I18NBundle attributesManagerBundle; private static final String path8 = "root/bundles/stage/AttributesManager";
 
         I18NBundlesEnum(Locale locale, String lang) { this.locale = locale; this.lang = lang; }
 
@@ -234,6 +235,7 @@ public class HGGame extends Game {
             if (am.contains(path5)) { am.unload(path5); } am.load(path5, I18NBundle.class, parameter);
             if (am.contains(path6)) { am.unload(path6); } am.load(path6, I18NBundle.class, parameter);
             if (am.contains(path7)) { am.unload(path7); } am.load(path7, I18NBundle.class, parameter);
+            if (am.contains(path8)) { am.unload(path8); } am.load(path8, I18NBundle.class, parameter);
             am.finishLoading();
 
             visUIButtonBarBundle = am.get(path1, I18NBundle.class);
@@ -243,6 +245,7 @@ public class HGGame extends Game {
             visUIFileChooserBundle = am.get(path5, I18NBundle.class);
             modelEditStageBundle = am.get(path6, I18NBundle.class);
             projectManagerBundle = am.get(path7, I18NBundle.class);
+            attributesManagerBundle = am.get(path8, I18NBundle.class);
 
             // see https://github.com/libgdx/libgdx/wiki/Internationalization-and-Localization
             // there's also an option of createBundle(fileHandle, locale) to have specific locale applied, if not - the default is applied

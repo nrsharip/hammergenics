@@ -80,6 +80,11 @@ public class AttributesManagerTable extends VisTable {
     }
 
     public void applyLocale(HGGame.I18NBundlesEnum language) {
-
+        textureAttrTable.applyLocale(language);
+        colorAttrTable.applyLocale(language);
+        blendingAttrTable.applyLocale(language);
+        dlAttrTable.applyLocale(language);
+        plAttrTable.applyLocale(language);
+        slAttrTable.applyLocale(language);
     }
 }

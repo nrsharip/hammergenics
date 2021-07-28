@@ -16,8 +16,10 @@
 
 package com.hammergenics.core.stages.ui.attributes;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g3d.Attribute;
 import com.badlogic.gdx.graphics.g3d.Attributes;
+import com.hammergenics.HGGame;
 import com.hammergenics.core.ModelEditScreen;
 import com.kotcrab.vis.ui.widget.VisTable;
 import com.kotcrab.vis.ui.widget.VisWindow;
@@ -39,6 +41,13 @@ public abstract class BaseAttributeTable<T extends Attribute> extends VisTable {
         this.attributeClass = aClass;
         this.container = container;
         this.window = window;
+
+        if (HGGame.I18NBundlesEnum.applied != null) {
+            applyLocale(HGGame.I18NBundlesEnum.applied);
+        } else {
+            Gdx.app.error(getClass().getSimpleName(), "ERROR: locales are not configured");
+            Gdx.app.exit();
+        }
     }
 
     public abstract void setListener(EventListener listener);
@@ -51,4 +60,5 @@ public abstract class BaseAttributeTable<T extends Attribute> extends VisTable {
     public enum EventType {
         ATTR_ENABLED, ATTR_DISABLED, ATTR_CHANGED
     }
+    protected abstract void applyLocale(HGGame.I18NBundlesEnum language);
 }

@@ -36,6 +36,7 @@ import com.kotcrab.vis.ui.widget.VisTextField;
 import com.kotcrab.vis.ui.widget.VisWindow;
 import com.kotcrab.vis.ui.widget.color.ColorPickerListener;
 
+import static com.hammergenics.core.stages.ui.attributes.AttributeTable.TextButtonsTextEnum.SELECT_COLOR;
 import static com.hammergenics.core.stages.ui.attributes.ColorAttributeTable.*;
 import static com.hammergenics.utils.HGUtils.color_s2c;
 
@@ -157,7 +158,7 @@ public abstract class BaseLightsAttributeTable<T extends Attribute, L extends Ba
         if (color_s2c != null && color_s2c.size > 0) { colorSB.setItems(color_s2c.keys().toArray()); }
         colorSB.addListener(colorSelectBoxListener);
 
-        selectColorTB = new VisTextButton("select");
+        selectColorTB = new VisTextButton("select"); SELECT_COLOR.seize(selectColorTB);
         selectColorTB.addListener(new ChangeListener() {
             @Override
             public void changed (ChangeEvent event, Actor actor) {

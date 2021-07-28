@@ -139,7 +139,7 @@ public class MapGenerationVisTable extends ManagerVisTable {
     public void resetActors() {
         super.resetActors();
 
-        stage.imagePreviewCell.setActor(stage.textureImage);
+        //stage.imagePreviewCell.setActor(stage.textureImage);
     }
 
     @Override

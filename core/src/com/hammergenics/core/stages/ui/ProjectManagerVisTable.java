@@ -100,11 +100,11 @@ public class ProjectManagerVisTable extends ManagerVisTable {
         // https://github.com/kotcrab/vis-ui/blob/master/ui/src/test/java/com/kotcrab/vis/ui/test/manual/TestTree.java#L75
         projectTree = new VisTree<>();
         projectTree.add(assetsTreeNode = new HGTreeVisTableNode(new HGTreeVisTable("Assets")));
-        MANAGER_TREE_NODE_ASSETS.seize(assetsTreeNode.getActor().label);
+        TREE_NODE_ASSETS.seize(assetsTreeNode.getActor().label);
         projectTree.add(modelInstancesTreeNode = new HGTreeVisTableNode(new HGTreeVisTable("Model Instances")));
-        MANAGER_TREE_NODE_MODEL_INSTANCES.seize(modelInstancesTreeNode.getActor().label);
+        TREE_NODE_MODEL_INSTANCES.seize(modelInstancesTreeNode.getActor().label);
         projectTree.add(envTreeNode = new HGTreeVisTableNode(new HGTreeVisTable("Environment")));
-        MANAGER_TREE_NODE_ENVIRONMENT.seize(envTreeNode.getActor().label);
+        TREE_NODE_ENVIRONMENT.seize(envTreeNode.getActor().label);
 
         //                   Blueish        Greenish        Yellowish      Reddish        Purplish
         //          Assets: Color.CYAN;  Color.CHARTREUSE; Color.GOLD;   Color.CORAL;   Color.PINK;
@@ -114,13 +114,13 @@ public class ProjectManagerVisTable extends ManagerVisTable {
         //            ... : the unused from the above
 
         assetsTreeNode.add(assetsModelsTreeNode = new HGTreeVisTableNode(new HGTreeVisTable("Models", Color.CYAN)));
-        MANAGER_TREE_NODE_ASSETS_MODELS.seize(assetsModelsTreeNode.getActor().label);
+        TREE_NODE_ASSETS_MODELS.seize(assetsModelsTreeNode.getActor().label);
         assetsTreeNode.add(assetsImagesTreeNode = new HGTreeVisTableNode(new HGTreeVisTable("Images", Color.CHARTREUSE)));
-        MANAGER_TREE_NODE_ASSETS_IMAGES.seize(assetsImagesTreeNode.getActor().label);
+        TREE_NODE_ASSETS_IMAGES.seize(assetsImagesTreeNode.getActor().label);
         assetsTreeNode.add(assetsSoundsTreeNode = new HGTreeVisTableNode(new HGTreeVisTable("Sounds", Color.GOLD)));
-        MANAGER_TREE_NODE_ASSETS_SOUNDS.seize(assetsSoundsTreeNode.getActor().label);
+        TREE_NODE_ASSETS_SOUNDS.seize(assetsSoundsTreeNode.getActor().label);
         assetsTreeNode.add(assetsFontsTreeNode = new HGTreeVisTableNode(new HGTreeVisTable("Fonts", Color.CORAL)));
-        MANAGER_TREE_NODE_ASSETS_FONTS.seize(assetsFontsTreeNode.getActor().label);
+        TREE_NODE_ASSETS_FONTS.seize(assetsFontsTreeNode.getActor().label);
 
         projectTree.expandAll();
         projectTreeScrollPane = new VisScrollPane(projectTree);
@@ -528,7 +528,7 @@ public class ProjectManagerVisTable extends ManagerVisTable {
         super.resetActors();
 
         VisTable table = new VisTable();
-        VisWindow window = new VisWindow("Project"); MANAGER_TITLE_PROJECT.seize(window.getTitleLabel());
+        VisWindow window = new VisWindow("Project"); WINDOW_TITLE_PROJECT.seize(window.getTitleLabel());
         window.setResizable(false);
         window.addCloseButton();
         window.setMovable(false);
@@ -580,8 +580,7 @@ public class ProjectManagerVisTable extends ManagerVisTable {
             language = lang;
 
             for (TextButtonsTextEnum tbs: TextButtonsTextEnum.values()) {
-                for (TextButton tb: tbs.instances)
-                if (tb != null) { tb.setText(tbs.get()); }
+                for (TextButton tb: tbs.instances) { if (tb != null) { tb.setText(tbs.get()); } }
             }
         }
 
@@ -598,15 +597,15 @@ public class ProjectManagerVisTable extends ManagerVisTable {
     }
 
     public enum LabelsTextEnum implements BundleText {
-        MANAGER_TITLE_PROJECT("window.title.project"),
-        MANAGER_TREE_NODE_ASSETS("tree.node.label.assets"),
-        MANAGER_TREE_NODE_ASSETS_MODELS("tree.node.label.assets.models"),
-        MANAGER_TREE_NODE_ASSETS_IMAGES("tree.node.label.assets.images"),
-        MANAGER_TREE_NODE_ASSETS_SOUNDS("tree.node.label.assets.sounds"),
-        MANAGER_TREE_NODE_ASSETS_FONTS("tree.node.label.assets.fonts"),
+        WINDOW_TITLE_PROJECT("window.title.project"),
+        TREE_NODE_ASSETS("tree.node.label.assets"),
+        TREE_NODE_ASSETS_MODELS("tree.node.label.assets.models"),
+        TREE_NODE_ASSETS_IMAGES("tree.node.label.assets.images"),
+        TREE_NODE_ASSETS_SOUNDS("tree.node.label.assets.sounds"),
+        TREE_NODE_ASSETS_FONTS("tree.node.label.assets.fonts"),
 
-        MANAGER_TREE_NODE_MODEL_INSTANCES("tree.node.label.modelinstances"),
-        MANAGER_TREE_NODE_ENVIRONMENT("tree.node.label.environment");
+        TREE_NODE_MODEL_INSTANCES("tree.node.label.modelinstances"),
+        TREE_NODE_ENVIRONMENT("tree.node.label.environment");
 
         private final String property;
         private Label instance = null;

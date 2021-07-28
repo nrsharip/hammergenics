@@ -20,6 +20,7 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Cell;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Array;
 import com.hammergenics.HGGame;
@@ -27,9 +28,13 @@ import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.graphics.g3d.EditableModelInstance;
 import com.hammergenics.core.stages.ModelEditStage;
 import com.hammergenics.utils.HGUtils;
+import com.kotcrab.vis.ui.i18n.BundleText;
 import com.kotcrab.vis.ui.widget.VisSelectBox;
 import com.kotcrab.vis.ui.widget.VisTable;
 import com.kotcrab.vis.ui.widget.VisTextButton;
+
+import static com.hammergenics.core.stages.ui.AggregatedAttributesManagerVisTable.TextButtonsTextEnum.ENVIRONMENT;
+import static com.hammergenics.core.stages.ui.AggregatedAttributesManagerVisTable.TextButtonsTextEnum.MATERIAL;
 
 /**
  * Add description here
@@ -58,7 +63,7 @@ public class AggregatedAttributesManagerVisTable extends ManagerVisTable {
 
     @Override
     protected void init() {
-        mtlTextButton = new VisTextButton("Material");
+        mtlTextButton = new VisTextButton("Material"); MATERIAL.seize(mtlTextButton);
         stage.unpressButton(mtlTextButton);
         mtlTextButton.addListener(new InputListener() {
             @Override
@@ -68,7 +73,7 @@ public class AggregatedAttributesManagerVisTable extends ManagerVisTable {
             }
         });
 
-        envTextButton = new VisTextButton("Environment");
+        envTextButton = new VisTextButton("Environment"); ENVIRONMENT.seize(envTextButton);
         stage.unpressButton(envTextButton);
         envTextButton.addListener(new InputListener() {
             @Override
@@ -147,5 +152,37 @@ public class AggregatedAttributesManagerVisTable extends ManagerVisTable {
     }
 
     @Override
-    public void applyLocale(HGGame.I18NBundlesEnum language) { }
+    public void applyLocale(HGGame.I18NBundlesEnum language) {
+        TextButtonsTextEnum.setLanguage(language);
+    }
+
+    public enum TextButtonsTextEnum implements BundleText {
+        ENVIRONMENT("textButton.environment"),
+        MATERIAL("textButton.material");
+
+        private final String property;
+        private TextButton instance = null;
+        private static HGGame.I18NBundlesEnum language;
+
+        TextButtonsTextEnum(String property) { this.property = property; }
+
+        public static void setLanguage(HGGame.I18NBundlesEnum lang) {
+            language = lang;
+
+            for (TextButtonsTextEnum tb: TextButtonsTextEnum.values()) {
+                if (tb.instance != null) { tb.instance.setText(tb.get()); }
+            }
+        }
+
+        public TextButton seize(TextButton btn) {
+            this.instance = btn;
+            btn.setText(get());
+            return btn;
+        }
+
+        @Override public String getName() { return property; }
+        @Override public String get() { return language != null ? language.attributesManagerBundle.get(property) : "ERR"; }
+        @Override public String format() { return language != null ? language.attributesManagerBundle.format(property) : "ERR"; }
+        @Override public String format(Object... arguments) { return language != null ? language.attributesManagerBundle.format(property, arguments) : "ERR"; }
+    }
 }
