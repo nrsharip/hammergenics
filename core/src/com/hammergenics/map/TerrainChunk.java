@@ -35,11 +35,11 @@ import java.math.BigDecimal;
 import java.util.Comparator;
 
 import static com.hammergenics.HGEngine.gridHgModel;
+import static com.hammergenics.core.graphics.g3d.utils.Models.createGridModel;
 import static com.hammergenics.map.TerrainPartsEnum.TRRN_CORN_INN;
 import static com.hammergenics.map.TerrainPartsEnum.TRRN_CORN_OUT;
 import static com.hammergenics.map.TerrainPartsEnum.TRRN_FLAT;
 import static com.hammergenics.map.TerrainPartsEnum.TRRN_SIDE;
-import static com.hammergenics.core.graphics.g3d.utils.Models.createGridModel;
 import static java.math.BigDecimal.ROUND_HALF_UP;
 
 /**
@@ -144,6 +144,7 @@ public class TerrainChunk {
         index2plane.put(0b001011, new Plane());
         index2plane.put(0b011011, new Plane());
 
+        //Gdx.app.debug("chunk", "x0: " + gridNoise.getX0() + " z0: " + gridNoise.getZ0());
         int floatScale = new BigDecimal(Float.toString(gridNoise.step)).scale();
         for (int x = 1; x < gridNoise.getWidth(); x++) {
             for (int z = 1; z < gridNoise.getHeight(); z++) {
@@ -238,6 +239,22 @@ public class TerrainChunk {
                     index2plane.get(0b001011).set(points.get(0b00), points.get(0b10), points.get(0b11));
                     index2plane.get(0b011011).set(points.get(0b01), points.get(0b10), points.get(0b11));
 
+                    // By default the screen camera is looking 111 -> 000 direction
+                    //
+                    //       (0b00) 010 **─────────** 110 (0b10)
+                    //                ** │       ** │
+                    //              **   │     **   │
+                    // (0b01) 011 **─────────** 111 │
+                    //            │      │    │     │
+                    //            │ 000 **────│────** 100
+                    //            │   **      │  **
+                    //            │ **        │**
+                    //        001 **─────────** 101 (0b11)
+                    //
+                    // In this example the plane P parallel to XZ is 0b000110 and the protrusive point is 0b11
+                    //
+                    // created with https://asciiflow.com/
+
                     // Index of P
                     int ip = -1;
                     for (ObjectMap.Entry<Integer, Plane> entry: index2plane) {
@@ -248,7 +265,11 @@ public class TerrainChunk {
                     }
                     if (ip < 0) { continue; }
 
-                    // Index of Protrusive Point
+                    // Index of Protrusive Point:
+                    // * for plane 0b000110 we have 00 ^ 01 ^ 10 = 11
+                    // * for plane 0b000111 we have 00 ^ 01 ^ 11 = 10
+                    // * for plane 0b001011 we have 00 ^ 10 ^ 11 = 01
+                    // * for plane 0b011011 we have 01 ^ 10 ^ 11 = 00
                     int ippoint = ((ip & 0b110000) >> 4) ^ ((ip & 0b1100) >> 2) ^ (ip & 0b11);
 
                     // making sure the P plane's normal points into the Y axis direction
@@ -266,12 +287,42 @@ public class TerrainChunk {
 
                         float factor = gridNoise.yScale * gridNoise.step/tmp.dims.y;
 
+                        //Gdx.app.debug("chunk", "point b00: " + points.get(0b00));
+                        //Gdx.app.debug("chunk", "point b01: " + points.get(0b01));
+                        //Gdx.app.debug("chunk", "point b10: " + points.get(0b10));
+                        //Gdx.app.debug("chunk", "point b11: " + points.get(0b11));
+                        //Gdx.app.debug("chunk", "plain index: " + Integer.toBinaryString(ip));
+                        //Gdx.app.debug("chunk", "leading corner: " + Integer.toBinaryString(TRRN_CORN_INN.leadingCornerI2d));
+                        //Gdx.app.debug("chunk", "protrusive point: "  + Integer.toBinaryString(ippoint));
+                        //Gdx.app.debug("chunk", " ^: " + Integer.toBinaryString(TRRN_CORN_INN.leadingCornerI2d ^ ippoint));
+
+                        // By default the screen camera is looking 111 -> 000 direction
+                        //
+                        //       010 **─────────** 110
+                        //         ** │       ** │
+                        //       **   │     **   │
+                        // 011 **─────────** 111 │
+                        //     │      │    │     │
+                        //     │ 000 **────│────** 100
+                        //     │   **      │  **
+                        //     │ **        │**
+                        // 001 **─────────** 101
+                        //
+                        // created with https://asciiflow.com/
+
+                        // LC - Leading Corner
+                        // PP - Protrusive Point
+                        //                0     1     2     3
+                        // indices2d = {0b00, 0b01, 0b11, 0b10}
+                        //            LC  PP  Steps  Expected Result
+                        // Example 1: 00  01    1    turn 90 degrees counterclockwise (yaw: 90 (or -270) degrees)
+                        // Example 2: 01  00   -1    turn 90 degrees clockwise (yaw: -90 (or 270) degrees)
+                        // Example 3: 00  10    3    turn 90 degrees clockwise (yaw: -90 (or 270) degrees)
+                        // Example 4: 10  00   -3    turn 90 degrees counterclockwise (yaw: 90 (or -270) degrees)
+                        // Example 5: 01  11    1    turn 90 degrees counterclockwise (yaw: 90 (or -270) degrees)
                         rotation.idt();
-                        switch (TRRN_CORN_INN.leadingCornerI2d ^ ippoint) {
-                            case 0b01: rotation.setEulerAngles(-90, 0, 0); break;
-                            case 0b10: rotation.setEulerAngles(90, 0, 0); break;
-                            case 0b11: rotation.setEulerAngles(180, 0, 0); break;
-                        }
+                        float yaw = HGModelInstance.get90DegreeRotationSteps(TRRN_CORN_INN.leadingCornerI2d, ippoint) * 90f;
+                        rotation.setEulerAngles(yaw, 0, 0);
 
                         translation.set(points.get(0b11));
                         translation.y = points.get(ippoint).y + gridNoise.step;
@@ -290,12 +341,22 @@ public class TerrainChunk {
 
                         float factor = gridNoise.yScale * gridNoise.step/tmp.dims.y;
 
+                        // By default the screen camera is looking 111 -> 000 direction
+                        //
+                        //       010 **─────────** 110
+                        //         ** │       ** │
+                        //       **   │     **   │
+                        // 011 **─────────** 111 │
+                        //     │      │    │     │
+                        //     │ 000 **────│────** 100
+                        //     │   **      │  **
+                        //     │ **        │**
+                        // 001 **─────────** 101
+                        //
+                        // created with https://asciiflow.com/
                         rotation.idt();
-                        switch (TRRN_CORN_OUT.leadingCornerI2d ^ ippoint) {
-                            case 0b01: rotation.setEulerAngles(-90, 0, 0); break;
-                            case 0b10: rotation.setEulerAngles(90, 0, 0); break;
-                            case 0b11: rotation.setEulerAngles(180, 0, 0); break;
-                        }
+                        float yaw = HGModelInstance.get90DegreeRotationSteps(TRRN_CORN_OUT.leadingCornerI2d, ippoint) * 90f;
+                        rotation.setEulerAngles(yaw, 0, 0);
 
                         translation.set(points.get(0b11));
                         translation.y = points.get(ippoint).y;

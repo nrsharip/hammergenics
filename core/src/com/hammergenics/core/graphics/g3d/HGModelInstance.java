@@ -170,6 +170,20 @@ public class HGModelInstance extends ModelInstance implements Disposable {
     public Vector3 getBBCorner(int corner, boolean transform, Vector3 out) {
         if (out == null) { return null; }
         BoundingBox bb = transform ? getBB(true) : this.bb;
+
+        // By default the screen camera is looking 111 -> 000 direction
+        //
+        //       010 **─────────** 110
+        //         ** │       ** │
+        //       **   │     **   │
+        // 011 **─────────** 111 │
+        //     │      │    │     │
+        //     │ 000 **────│────** 100
+        //     │   **      │  **
+        //     │ **        │**
+        // 001 **─────────** 101
+        //
+        // created with https://asciiflow.com/
         if (((corner % 8) & (1 << 2)) == 0) { out.x = bb.min.x; } else { out.x = bb.max.x; }
         if (((corner % 8) & (1 << 1)) == 0) { out.y = bb.min.y; } else { out.y = bb.max.y; }
         if (((corner % 8) & (1 << 0)) == 0) { out.z = bb.min.z; } else { out.z = bb.max.z; }
@@ -177,11 +191,18 @@ public class HGModelInstance extends ModelInstance implements Disposable {
     }
 
     public static int getNext2dIndex(int ind2d) {
-        return indices2d.get((indices2d.indexOf(ind2d, false) + 1) & 0b11);
+        return indices2d.get((indices2d.indexOf(ind2d & 0b11, false) + 1) & 0b11);
     }
+
     public static int getNext3dIndex(int ind3d) {
         int ind2d = ((ind3d & 0b100) >> 1) | (ind3d & 0b001);
         ind2d = getNext2dIndex(ind2d);
         return ((ind2d & 0b10) << 1) | (ind3d & 0b010) | (ind2d & 0b01);
+    }
+
+    public static int get90DegreeRotationSteps(int fromCorner2D, int toCorner2D) {
+        int start = indices2d.indexOf(fromCorner2D & 0b11, false);
+        int end = indices2d.indexOf(toCorner2D & 0b11, false);
+        return end - start;
     }
 }

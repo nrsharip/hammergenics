@@ -49,6 +49,19 @@ public enum TerrainPartsEnum {
             // expecting two adjacent top BB corners to be significantly farther
             // from the vertices than the the other two adjacent top corners
 
+            // By default the screen camera is looking 111 -> 000 direction
+            //
+            //       010 **─────────** 110
+            //         ** │       ** │
+            //       **   │     **   │
+            // 011 **─────────** 111 │
+            //     │      │    │     │
+            //     │ 000 **────│────** 100
+            //     │   **      │  **
+            //     │ **        │**
+            // 001 **─────────** 101
+            //
+            // created with https://asciiflow.com/
             Array<Integer> indices = new Array<>(new Integer[]{0b010, 0b011, 0b110, 0b111});
 
             if (!fillWithClosest(indices, model, sample)) { return false; }
@@ -77,6 +90,19 @@ public enum TerrainPartsEnum {
             // expecting one of the top BB corners to be significantly farther
             // from the vertices than the rest three top corners
 
+            // By default the screen camera is looking 111 -> 000 direction
+            //
+            //       010 **─────────** 110
+            //         ** │       ** │
+            //       **   │     **   │
+            // 011 **─────────** 111 │
+            //     │      │    │     │
+            //     │ 000 **────│────** 100
+            //     │   **      │  **
+            //     │ **        │**
+            // 001 **─────────** 101
+            //
+            // created with https://asciiflow.com/
             Array<Integer> indices = new Array<>(new Integer[]{0b010, 0b011, 0b110, 0b111});
 
             if (!fillWithClosest(indices, model, sample)) { return false; }
@@ -92,7 +118,7 @@ public enum TerrainPartsEnum {
             }
 
             // setting the actual leading corner to be the one below the top corner with the most distance
-            tmp ^= 0b010;
+            tmp &= 0b101;
             setLeadingCorner(tmp, sample);
 
             //Gdx.app.debug("TRRN_CORN_INN", "index: " + leadingCornerI + " vector: " + leadingCornerV);
@@ -105,6 +131,19 @@ public enum TerrainPartsEnum {
             // expecting one of the top BB corners to be significantly closer
             // to the vertices than the rest three top corners
 
+            // By default the screen camera is looking 111 -> 000 direction
+            //
+            //       010 **─────────** 110
+            //         ** │       ** │
+            //       **   │     **   │
+            // 011 **─────────** 111 │
+            //     │      │    │     │
+            //     │ 000 **────│────** 100
+            //     │   **      │  **
+            //     │ **        │**
+            // 001 **─────────** 101
+            //
+            // created with https://asciiflow.com/
             Array<Integer> indices = new Array<>(new Integer[]{0b010, 0b011, 0b110, 0b111});
 
             if (!fillWithClosest(indices, model, sample)) { return false; }
