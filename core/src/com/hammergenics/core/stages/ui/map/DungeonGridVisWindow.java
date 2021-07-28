@@ -20,6 +20,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.utils.Array;
+import com.hammergenics.HGGame;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.stages.ModelEditStage;
 import com.hammergenics.core.stages.ui.ContextAwareVisWindow;
@@ -56,5 +57,5 @@ public class DungeonGridVisWindow extends ContextAwareVisWindow {
     }
 
     @Override
-    public void applyLocale() { }
+    public void applyLocale(HGGame.I18NBundlesEnum language) { }
 }

@@ -31,6 +31,7 @@ import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Cell;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle;
@@ -91,6 +92,7 @@ import com.strongjoshua.console.annotation.ConsoleDoc;
 
 import org.codehaus.groovy.control.CompilationFailedException;
 
+import static com.hammergenics.core.stages.ModelEditStage.LabelsTextEnum.*;
 import static com.hammergenics.core.stages.ModelEditStage.MenuItemsTextEnum.*;
 import static com.hammergenics.core.stages.ModelEditStage.TextButtonsTextEnum.*;
 import static com.hammergenics.core.stages.ui.attributes.BaseAttributeTable.EventType.ATTR_CHANGED;
@@ -196,11 +198,11 @@ public class ModelEditStage extends Stage {
         initColorPicker();
         initFileChooser();
         initMenuBar();
-        initProgressBar();
+        initLoadProgressBar();
         initConsole();
-        imageChooser = new ImageChooser(modelES.eng, this);
-        modelChooser = new ModelChooser(modelES.eng, this);
-        soundChooser = new SoundChooser(modelES.eng, this);
+        imageChooser = new ImageChooser(modelES.eng, this); TITLE_CHOOSER_IMAGE.seize(imageChooser.getTitleLabel());
+        modelChooser = new ModelChooser(modelES.eng, this); TITLE_CHOOSER_MODEL.seize(modelChooser.getTitleLabel());
+        soundChooser = new SoundChooser(modelES.eng, this); TITLE_CHOOSER_SOUND.seize(soundChooser.getTitleLabel());
         WhitePixel.initializeShared();
 
         setup2DStageWidgets();
@@ -567,9 +569,10 @@ public class ModelEditStage extends Stage {
         fileChooser.setIconProvider(fileIconProvider);
     }
 
-    public void initProgressBar() {
+    public void initLoadProgressBar() {
         loadProgressWindow = new VisWindow("");
         loadProgressWindow.getTitleLabel().setText("Loading...");
+        TITLE_LOAD_PROGRESS_BAR.seize(loadProgressWindow.getTitleLabel());
         loadProgressWindow.setMovable(false);
         loadProgressWindow.centerWindow();
 
@@ -711,16 +714,17 @@ public class ModelEditStage extends Stage {
         initColorPicker();
         initFileChooser();
 
-        if (projManagerTable != null) { projManagerTable.applyLocale(); }
-        if (envAttrTable != null) { envAttrTable.applyLocale(); }
-        if (aggrAttrTable != null) { aggrAttrTable.applyLocale(); }
-        if (animationsManagerTable != null) { animationsManagerTable.applyLocale(); }
-        if (mapGenerationTable != null) { mapGenerationTable.applyLocale(); }
-        if (aiManagerTable != null) { aiManagerTable.applyLocale(); }
-        if (physManagerTable != null) { physManagerTable.applyLocale(); }
+        if (projManagerTable != null) { projManagerTable.applyLocale(language); }
+        if (envAttrTable != null) { envAttrTable.applyLocale(language); }
+        if (aggrAttrTable != null) { aggrAttrTable.applyLocale(language); }
+        if (animationsManagerTable != null) { animationsManagerTable.applyLocale(language); }
+        if (mapGenerationTable != null) { mapGenerationTable.applyLocale(language); }
+        if (aiManagerTable != null) { aiManagerTable.applyLocale(language); }
+        if (physManagerTable != null) { physManagerTable.applyLocale(language); }
 
         TextButtonsTextEnum.setLanguage(language);
         MenuItemsTextEnum.setLanguage(language);
+        LabelsTextEnum.setLanguage(language);
     }
 
     /**
@@ -1427,6 +1431,38 @@ public class ModelEditStage extends Stage {
         }
 
         public MenuItem seize(MenuItem label) {
+            this.instance = label;
+            label.setText(get());
+            return label;
+        }
+
+        @Override public String getName() { return property; }
+        @Override public String get() { return language != null ? language.modelEditStageBundle.get(property) : "ERR"; }
+        @Override public String format() { return language != null ? language.modelEditStageBundle.format(property) : "ERR"; }
+        @Override public String format(Object... arguments) { return language != null ? language.modelEditStageBundle.format(property, arguments) : "ERR"; }
+    }
+
+    public enum LabelsTextEnum implements BundleText {
+        TITLE_LOAD_PROGRESS_BAR("window.title.progressbar"),
+        TITLE_CHOOSER_MODEL("window.title.chooser.model"),
+        TITLE_CHOOSER_IMAGE("window.title.chooser.image"),
+        TITLE_CHOOSER_SOUND("window.title.chooser.sound");
+
+        private final String property;
+        private Label instance = null;
+        private static HGGame.I18NBundlesEnum language;
+
+        LabelsTextEnum(String property) { this.property = property; }
+
+        public static void setLanguage(HGGame.I18NBundlesEnum lang) {
+            language = lang;
+
+            for (LabelsTextEnum label: LabelsTextEnum.values()) {
+                if (label.instance != null) { label.instance.setText(label.get()); }
+            }
+        }
+
+        public Label seize(Label label) {
             this.instance = label;
             label.setText(get());
             return label;

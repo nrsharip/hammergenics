@@ -18,6 +18,7 @@ package com.hammergenics.core.stages.ui.physics.bullet.collision;
 
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.utils.Array;
+import com.hammergenics.HGGame;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.graphics.g3d.EditableModelInstance;
 import com.hammergenics.core.stages.ModelEditStage;
@@ -305,5 +306,5 @@ public class btCollisionObjectVisTable extends ContextAwareVisTable {
     }
 
     @Override
-    public void applyLocale() { }
+    public void applyLocale(HGGame.I18NBundlesEnum language) { }
 }

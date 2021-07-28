@@ -22,6 +22,7 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
+import com.hammergenics.HGGame;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.stages.ModelEditStage;
 import com.hammergenics.core.stages.ui.auxiliary.HGImageVisWindow;
@@ -142,5 +143,5 @@ public class MapGenerationVisTable extends ManagerVisTable {
     }
 
     @Override
-    public void applyLocale() { }
+    public void applyLocale(HGGame.I18NBundlesEnum language) { }
 }

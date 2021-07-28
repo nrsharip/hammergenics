@@ -24,6 +24,7 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Array;
+import com.hammergenics.HGGame;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.graphics.g3d.EditableModelInstance;
 import com.hammergenics.core.graphics.g3d.model.AnimationInfo;
@@ -239,5 +240,5 @@ public class AnimationEditVisTable extends ContextAwareVisTable {
     }
 
     @Override
-    public void applyLocale() { }
+    public void applyLocale(HGGame.I18NBundlesEnum language) { }
 }

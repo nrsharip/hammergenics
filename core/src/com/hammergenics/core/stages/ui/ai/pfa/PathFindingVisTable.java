@@ -20,6 +20,7 @@ import com.badlogic.gdx.ai.pfa.Connection;
 import com.badlogic.gdx.ai.pfa.DefaultGraphPath;
 import com.badlogic.gdx.ai.pfa.GraphPath;
 import com.badlogic.gdx.utils.Array;
+import com.hammergenics.HGGame;
 import com.hammergenics.ai.pfa.HGGraphNode;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.graphics.g3d.EditableModelInstance;
@@ -114,5 +115,5 @@ public class PathFindingVisTable extends ContextAwareVisTable {
     }
 
     @Override
-    public void applyLocale() { }
+    public void applyLocale(HGGame.I18NBundlesEnum language) { }
 }

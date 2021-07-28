@@ -23,6 +23,7 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Array;
+import com.hammergenics.HGGame;
 import com.hammergenics.ai.pfa.HGGraphNodesGrid;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.stages.ModelEditStage;
@@ -271,5 +272,5 @@ public class NoiseGridVisWindow extends ContextAwareVisWindow {
     }
 
     @Override
-    public void applyLocale() { }
+    public void applyLocale(HGGame.I18NBundlesEnum language) { }
 }

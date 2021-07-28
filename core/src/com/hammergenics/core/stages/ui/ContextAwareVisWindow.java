@@ -16,8 +16,10 @@
 
 package com.hammergenics.core.stages.ui;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.utils.Array;
 import com.hammergenics.HGEngine;
+import com.hammergenics.HGGame;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.graphics.g3d.EditableModelInstance;
 import com.hammergenics.core.stages.ModelEditStage;
@@ -40,6 +42,13 @@ public abstract class ContextAwareVisWindow extends VisWindow {
         this.modelES = modelES;
         this.eng = modelES.eng;
         this.stage = stage;
+
+        if (HGGame.I18NBundlesEnum.applied != null) {
+            applyLocale(HGGame.I18NBundlesEnum.applied);
+        } else {
+            Gdx.app.error(getClass().getSimpleName(), "ERROR: locales are not configured");
+            Gdx.app.exit();
+        }
     }
 
     public void setDbgModelInstances(Array<EditableModelInstance> mis) {
@@ -67,5 +76,5 @@ public abstract class ContextAwareVisWindow extends VisWindow {
 
     public void update(float delta) { }
 
-    public abstract void applyLocale();
+    public abstract void applyLocale(HGGame.I18NBundlesEnum language);
 }

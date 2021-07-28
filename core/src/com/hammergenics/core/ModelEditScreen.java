@@ -49,6 +49,7 @@ import com.hammergenics.physics.bullet.dynamics.btDynamicsWorldTypesEnum;
 import io.anuke.gif.GifRecorder;
 
 import static com.badlogic.gdx.physics.bullet.linearmath.btIDebugDraw.DebugDrawModes.DBG_NoDebug;
+import static com.hammergenics.core.stages.ModelEditStage.LabelsTextEnum.TITLE_LOAD_PROGRESS_BAR;
 
 /**
  * Add description here
@@ -155,7 +156,7 @@ public class ModelEditScreen extends ScreenAdapter {
 
             if (eng.loaded != null) {
                 stage.projManagerTable.addAssetTreeNode(eng.loaded);
-                stage.loadProgressWindow.getTitleLabel().setText("Loading... (" + eng.loaded.name() + ")");
+                stage.loadProgressWindow.getTitleLabel().setText(TITLE_LOAD_PROGRESS_BAR.get() + " (" + eng.loaded.name() + ")");
 
                 if (HGEngine.getAssetClass(eng.loaded).equals(Texture.class)) {
                     stage.loadShowPreviewImage(eng.loaded);

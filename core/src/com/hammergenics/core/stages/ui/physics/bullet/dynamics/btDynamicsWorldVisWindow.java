@@ -22,6 +22,7 @@ import com.badlogic.gdx.physics.bullet.dynamics.btMLCPSolver;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.hammergenics.HGEngine;
+import com.hammergenics.HGGame;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.stages.ModelEditStage;
 import com.hammergenics.core.stages.ui.ContextAwareVisWindow;
@@ -211,5 +212,5 @@ public class btDynamicsWorldVisWindow extends ContextAwareVisWindow {
     }
 
     @Override
-    public void applyLocale() { }
+    public void applyLocale(HGGame.I18NBundlesEnum language) { }
 }

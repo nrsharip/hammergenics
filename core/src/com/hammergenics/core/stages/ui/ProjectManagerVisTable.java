@@ -26,6 +26,8 @@ import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Tree;
 import com.badlogic.gdx.scenes.scene2d.utils.ActorGestureListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
@@ -33,6 +35,7 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.hammergenics.HGEngine;
+import com.hammergenics.HGGame;
 import com.hammergenics.core.HGAsset;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.graphics.g3d.EditableModelInstance;
@@ -40,6 +43,7 @@ import com.hammergenics.core.graphics.g3d.HGModel;
 import com.hammergenics.core.stages.ModelEditStage;
 import com.hammergenics.core.stages.ui.auxiliary.HGTreeVisTableNode;
 import com.hammergenics.core.stages.ui.auxiliary.HGTreeVisTableNode.HGTreeVisTable;
+import com.kotcrab.vis.ui.i18n.BundleText;
 import com.kotcrab.vis.ui.widget.VisImageButton;
 import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisScrollPane;
@@ -53,6 +57,9 @@ import net.mgsx.gltf.scene3d.scene.SceneAsset;
 import java.io.File;
 import java.util.Arrays;
 import java.util.regex.Pattern;
+
+import static com.hammergenics.core.stages.ui.ProjectManagerVisTable.LabelsTextEnum.*;
+import static com.hammergenics.core.stages.ui.ProjectManagerVisTable.TextButtonsTextEnum.*;
 
 /**
  * Add description here
@@ -93,8 +100,11 @@ public class ProjectManagerVisTable extends ManagerVisTable {
         // https://github.com/kotcrab/vis-ui/blob/master/ui/src/test/java/com/kotcrab/vis/ui/test/manual/TestTree.java#L75
         projectTree = new VisTree<>();
         projectTree.add(assetsTreeNode = new HGTreeVisTableNode(new HGTreeVisTable("Assets")));
+        MANAGER_TREE_NODE_ASSETS.seize(assetsTreeNode.getActor().label);
         projectTree.add(modelInstancesTreeNode = new HGTreeVisTableNode(new HGTreeVisTable("Model Instances")));
+        MANAGER_TREE_NODE_MODEL_INSTANCES.seize(modelInstancesTreeNode.getActor().label);
         projectTree.add(envTreeNode = new HGTreeVisTableNode(new HGTreeVisTable("Environment")));
+        MANAGER_TREE_NODE_ENVIRONMENT.seize(envTreeNode.getActor().label);
 
         //                   Blueish        Greenish        Yellowish      Reddish        Purplish
         //          Assets: Color.CYAN;  Color.CHARTREUSE; Color.GOLD;   Color.CORAL;   Color.PINK;
@@ -104,9 +114,13 @@ public class ProjectManagerVisTable extends ManagerVisTable {
         //            ... : the unused from the above
 
         assetsTreeNode.add(assetsModelsTreeNode = new HGTreeVisTableNode(new HGTreeVisTable("Models", Color.CYAN)));
+        MANAGER_TREE_NODE_ASSETS_MODELS.seize(assetsModelsTreeNode.getActor().label);
         assetsTreeNode.add(assetsImagesTreeNode = new HGTreeVisTableNode(new HGTreeVisTable("Images", Color.CHARTREUSE)));
+        MANAGER_TREE_NODE_ASSETS_IMAGES.seize(assetsImagesTreeNode.getActor().label);
         assetsTreeNode.add(assetsSoundsTreeNode = new HGTreeVisTableNode(new HGTreeVisTable("Sounds", Color.GOLD)));
+        MANAGER_TREE_NODE_ASSETS_SOUNDS.seize(assetsSoundsTreeNode.getActor().label);
         assetsTreeNode.add(assetsFontsTreeNode = new HGTreeVisTableNode(new HGTreeVisTable("Fonts", Color.CORAL)));
+        MANAGER_TREE_NODE_ASSETS_FONTS.seize(assetsFontsTreeNode.getActor().label);
 
         projectTree.expandAll();
         projectTreeScrollPane = new VisScrollPane(projectTree);
@@ -397,7 +411,8 @@ public class ProjectManagerVisTable extends ManagerVisTable {
     public void addModelAssetParentFolderTreeNode(final FileHandle fileHandle, HGTreeVisTableNode treeNode,
                                                   HGTreeVisTableNode rootTreeNode) {
         FileHandle parent = fileHandle.parent();
-        VisTextButton createMisTB = new VisTextButton("create instances");
+        VisTextButton createMisTB = new VisTextButton("Create Instances");
+        TREE_NODE_MODELS_PARENT_CREATE_INSTANCES.seize(createMisTB);
         createMisTB.addListener(new InputListener(){
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -412,7 +427,8 @@ public class ProjectManagerVisTable extends ManagerVisTable {
                 return super.touchDown(event, x, y, pointer, button);
             }
         });
-        VisTextButton unloadTB = new VisTextButton("unload");
+        VisTextButton unloadTB = new VisTextButton("Unload");
+        TREE_NODE_MODELS_PARENT_UNLOAD.seize(unloadTB);
         unloadTB.addListener(new InputListener(){
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -426,7 +442,8 @@ public class ProjectManagerVisTable extends ManagerVisTable {
     public void addModelAssetTreeNode(final FileHandle fileHandle, HGTreeVisTableNode treeNode) {
         HGTreeVisTableNode node;
 
-        VisTextButton createMisTB = new VisTextButton("create instance");
+        VisTextButton createMisTB = new VisTextButton("Create Instance");
+        TREE_NODE_MODELS_CREATE_INSTANCES.seize(createMisTB);
         createMisTB.addListener(new InputListener(){
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -435,7 +452,8 @@ public class ProjectManagerVisTable extends ManagerVisTable {
                 return super.touchDown(event, x, y, pointer, button);
             }
         });
-        VisTextButton unloadTB = new VisTextButton("unload");
+        VisTextButton unloadTB = new VisTextButton("Unload");
+        TREE_NODE_MODELS_UNLOAD.seize(unloadTB);
         unloadTB.addListener(new InputListener(){
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -466,7 +484,8 @@ public class ProjectManagerVisTable extends ManagerVisTable {
     public void addSoundAssetTreeNode(FileHandle fileHandle, HGTreeVisTableNode treeNode) {
         HGTreeVisTableNode node;
 
-        VisTextButton playTB = new VisTextButton("play");
+        VisTextButton playTB = new VisTextButton("Play");
+        TREE_NODE_SOUNDS_PLAY.seize(playTB);
         playTB.addListener(new InputListener(){
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -509,7 +528,7 @@ public class ProjectManagerVisTable extends ManagerVisTable {
         super.resetActors();
 
         VisTable table = new VisTable();
-        VisWindow window = new VisWindow("Project");
+        VisWindow window = new VisWindow("Project"); MANAGER_TITLE_PROJECT.seize(window.getTitleLabel());
         window.setResizable(false);
         window.addCloseButton();
         window.setMovable(false);
@@ -535,5 +554,83 @@ public class ProjectManagerVisTable extends ManagerVisTable {
     }
 
     @Override
-    public void applyLocale() { }
+    public void applyLocale(HGGame.I18NBundlesEnum language) {
+        TextButtonsTextEnum.setLanguage(language);
+        LabelsTextEnum.setLanguage(language);
+    }
+
+    public enum TextButtonsTextEnum implements BundleText {
+        TREE_NODE_MODELS_PARENT_CREATE_INSTANCES("tree.node.textButton.assets.models.parent.createinstances"),
+        TREE_NODE_MODELS_PARENT_UNLOAD("tree.node.textButton.assets.models.parent.unload"),
+        TREE_NODE_MODELS_CREATE_INSTANCES("tree.node.textButton.assets.models.createinstance"),
+        TREE_NODE_MODELS_UNLOAD("tree.node.textButton.assets.models.unload"),
+
+        TREE_NODE_SOUNDS_PLAY("tree.node.textButton.assets.sounds.play");
+
+        private final String property;
+        // TODO: IMPORTANT: This array will keeps the references to all buttons.
+        //                  Need to make sure the references are removed when no longer needed
+        //                  (e.g. after the model is unloaded and tree node removed)
+        private final Array<TextButton> instances = new Array<>(TextButton.class);
+        private static HGGame.I18NBundlesEnum language;
+
+        TextButtonsTextEnum(String property) { this.property = property; }
+
+        public static void setLanguage(HGGame.I18NBundlesEnum lang) {
+            language = lang;
+
+            for (TextButtonsTextEnum tbs: TextButtonsTextEnum.values()) {
+                for (TextButton tb: tbs.instances)
+                if (tb != null) { tb.setText(tbs.get()); }
+            }
+        }
+
+        public TextButton seize(TextButton btn) {
+            this.instances.add(btn);
+            btn.setText(get());
+            return btn;
+        }
+
+        @Override public String getName() { return property; }
+        @Override public String get() { return language != null ? language.projectManagerBundle.get(property) : "ERR"; }
+        @Override public String format() { return language != null ? language.projectManagerBundle.format(property) : "ERR"; }
+        @Override public String format(Object... arguments) { return language != null ? language.projectManagerBundle.format(property, arguments) : "ERR"; }
+    }
+
+    public enum LabelsTextEnum implements BundleText {
+        MANAGER_TITLE_PROJECT("window.title.project"),
+        MANAGER_TREE_NODE_ASSETS("tree.node.label.assets"),
+        MANAGER_TREE_NODE_ASSETS_MODELS("tree.node.label.assets.models"),
+        MANAGER_TREE_NODE_ASSETS_IMAGES("tree.node.label.assets.images"),
+        MANAGER_TREE_NODE_ASSETS_SOUNDS("tree.node.label.assets.sounds"),
+        MANAGER_TREE_NODE_ASSETS_FONTS("tree.node.label.assets.fonts"),
+
+        MANAGER_TREE_NODE_MODEL_INSTANCES("tree.node.label.modelinstances"),
+        MANAGER_TREE_NODE_ENVIRONMENT("tree.node.label.environment");
+
+        private final String property;
+        private Label instance = null;
+        private static HGGame.I18NBundlesEnum language;
+
+        LabelsTextEnum(String property) { this.property = property; }
+
+        public static void setLanguage(HGGame.I18NBundlesEnum lang) {
+            language = lang;
+
+            for (LabelsTextEnum label: LabelsTextEnum.values()) {
+                if (label.instance != null) { label.instance.setText(label.get()); }
+            }
+        }
+
+        public Label seize(Label label) {
+            this.instance = label;
+            label.setText(get());
+            return label;
+        }
+
+        @Override public String getName() { return property; }
+        @Override public String get() { return language != null ? language.projectManagerBundle.get(property) : "ERR"; }
+        @Override public String format() { return language != null ? language.projectManagerBundle.format(property) : "ERR"; }
+        @Override public String format(Object... arguments) { return language != null ? language.projectManagerBundle.format(property, arguments) : "ERR"; }
+    }
 }

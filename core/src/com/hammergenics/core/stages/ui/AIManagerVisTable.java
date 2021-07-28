@@ -17,6 +17,7 @@
 package com.hammergenics.core.stages.ui;
 
 import com.badlogic.gdx.utils.Array;
+import com.hammergenics.HGGame;
 import com.hammergenics.core.stages.ui.ai.AIVisWindow;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.graphics.g3d.EditableModelInstance;
@@ -61,5 +62,5 @@ public class AIManagerVisTable extends ManagerVisTable {
     }
 
     @Override
-    public void applyLocale() { }
+    public void applyLocale(HGGame.I18NBundlesEnum language) { }
 }

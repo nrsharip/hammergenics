@@ -17,6 +17,7 @@
 package com.hammergenics.core.stages.ui.attributes;
 
 import com.badlogic.gdx.graphics.g3d.Attributes;
+import com.hammergenics.HGGame;
 import com.hammergenics.core.ModelEditScreen;
 import com.kotcrab.vis.ui.widget.VisTable;
 
@@ -78,7 +79,7 @@ public class AttributesManagerTable extends VisTable {
         slAttrTable.setListener(listener);
     }
 
-    public void applyLocale() {
+    public void applyLocale(HGGame.I18NBundlesEnum language) {
 
     }
 }
