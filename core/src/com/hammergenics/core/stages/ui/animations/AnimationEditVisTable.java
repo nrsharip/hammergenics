@@ -16,6 +16,7 @@
 
 package com.hammergenics.core.stages.ui.animations;
 
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.model.Animation;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -28,6 +29,8 @@ import com.hammergenics.core.graphics.g3d.EditableModelInstance;
 import com.hammergenics.core.graphics.g3d.model.AnimationInfo;
 import com.hammergenics.core.stages.ModelEditStage;
 import com.hammergenics.core.stages.ui.ContextAwareVisTable;
+import com.kotcrab.vis.ui.util.dialog.ConfirmDialogListener;
+import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisSlider;
 import com.kotcrab.vis.ui.widget.VisTable;
 import com.kotcrab.vis.ui.widget.VisTextButton;
@@ -42,24 +45,36 @@ public class AnimationEditVisTable extends ContextAwareVisTable {
     public VisSlider keyFrameSlider;
     public VisTextField animIdTextField;
     public VisTextField keyTimeTextField;
-
     public VisTextButton plsKeyFrameTextButton;
     public VisTextButton mnsKeyFrameTextButton;
+    public VisLabel keyTimeSizeLabel;
+
+    public VisTextButton chooseSoundTB;
+    public VisLabel soundLabel;
 
     public AnimationEditVisTable(ModelEditScreen modelES, ModelEditStage stage) {
         super(modelES, stage);
 
         init();
 
-        add(animIdTextField).center().colspan(5).fillX();
-
+        add(animIdTextField).center().fillX();
         row();
+
         VisTable kfTable = new VisTable();
         kfTable.add(mnsKeyFrameTextButton).center();
         kfTable.add(plsKeyFrameTextButton).center();
         kfTable.add(keyFrameSlider).pad(5f).center().expandX().fillX();
-        kfTable.add(keyTimeTextField).width(80).maxWidth(80);
-        add(kfTable).left().colspan(5).fillX();
+        kfTable.add(keyTimeTextField).pad(5f).width(80).maxWidth(80);
+        kfTable.add(keyTimeSizeLabel).width(80).maxWidth(80);
+        add(kfTable).left().fillX().row();
+
+        VisTable chooseSoundTable = new VisTable();
+        chooseSoundTable.add(new VisLabel("Sound: ")).padRight(5f).right();
+        chooseSoundTable.add(chooseSoundTB).padRight(5f).fillX();
+        chooseSoundTable.add(soundLabel).padRight(5f).expandX().fillX().left();
+        chooseSoundTable.row().pad(0.5f);
+
+        add(chooseSoundTable).left().fillX().row();
     }
 
     public void init() {
@@ -68,12 +83,16 @@ public class AnimationEditVisTable extends ContextAwareVisTable {
         keyFrameSlider.addListener(new ChangeListener() {
             @Override
             public void changed (ChangeEvent event, Actor actor) {
-                if (modelES.eng.getCurrMI().selectedAnimation != null) {
+                if (dbgModelInstance.selectedAnimation != null) {
                     // turning off the animation loop (assuming the change event is fired on the checkbox)
                     stage.animationsManagerTable.animationsVisWindow.animLoopCheckBox.setChecked(false);
-                    modelES.eng.getCurrMI().animApplyKeyTime(keyFrameSlider.getValue());
+                    dbgModelInstance.animApplyKeyTime(keyFrameSlider.getValue());
                     //updateActors();
                     keyTimeTextField.setText(String.format("%.5f", keyFrameSlider.getValue()));
+
+                    AnimationInfo info = dbgModelInstance.anim2info.get(dbgModelInstance.selectedAnimation);
+                    FileHandle soundFileHandle = info.keyTimes2sounds.get(info.floorKeyTime(keyFrameSlider.getValue()));
+                    soundLabel.setText(soundFileHandle != null ? soundFileHandle.name() : "No sound selected");
                 }
             }
         });
@@ -148,6 +167,34 @@ public class AnimationEditVisTable extends ContextAwareVisTable {
                 // Also when true is returned, the event is handled
             }
         });
+
+        keyTimeSizeLabel = new VisLabel();
+
+        soundLabel = new VisLabel();
+
+        chooseSoundTB = new VisTextButton("select");
+        chooseSoundTB.addListener(new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                modelES.stage.soundChooser.updateAssetsTree();
+                modelES.stage.soundChooser.setListener(new ConfirmDialogListener<FileHandle>() {
+                    @Override
+                    public void result(FileHandle result) {
+                        //Gdx.app.debug("terrain","" + " tp: " + part.description + " filehandle: " + fileHandle);
+                        if (result.exists()) {
+                            //Gdx.app.debug("terrain","exists");
+                            if (dbgModelInstance.selectedAnimation != null) {
+                                AnimationInfo info = dbgModelInstance.anim2info.get(dbgModelInstance.selectedAnimation);
+                                info.keyTimes2sounds.put(info.floorKeyTime(keyFrameSlider.getValue()), result);
+                                soundLabel.setText(result.name());
+                            }
+                        }
+                    }
+                });
+                modelES.stage.addActor(modelES.stage.soundChooser.fadeIn());
+                return super.touchDown(event, x, y, pointer, button);
+            }
+        });
     }
 
     @Override
@@ -161,7 +208,10 @@ public class AnimationEditVisTable extends ContextAwareVisTable {
         if (mi != null && mi.selectedAnimation != null) {
             Animation anim = mi.selectedAnimation;
             AnimationInfo info = mi.anim2info.get(anim);
-            if (info != null) { setKeyFrameSlider(0f, anim.duration, info.minStep, mi.currKeyTime); }
+            if (info != null) {
+                setKeyFrameSlider(0f, anim.duration, info.minStep, mi.currKeyTime);
+                keyTimeSizeLabel.setText(Integer.toString(info.keyTimes.size));
+            }
             animIdTextField.setText(anim.id);
             keyTimeTextField.setText(String.format("%.5f", keyFrameSlider.getValue()));
             // this is to make sure the change events are fired

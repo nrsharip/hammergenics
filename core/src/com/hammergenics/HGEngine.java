@@ -613,8 +613,13 @@ public class HGEngine implements Disposable {
     }
 
     public <T> T getAsset(FileHandle fileHandle, Class<T> type) {
+        if (fileHandle == null) { return null; }
         FileHandle tmp = new FileHandle(fileHandle.file().getAbsolutePath());
-        return assetManager.get(tmp.path(), type);
+        if (assetManager.contains(tmp.path())) {
+            return assetManager.get(tmp.path(), type);
+        } else {
+            return null;
+        }
     }
 
     public void addAsset(FileHandle fileHandle) {
@@ -759,6 +764,7 @@ public class HGEngine implements Disposable {
         // **** ANIMATIONS ****
         // ********************
         getCurrMI().checkAnimations();
+        getCurrMI().animationController.setEng(this);
 
         return true;
     }

@@ -60,6 +60,7 @@ import com.hammergenics.core.stages.ui.attributes.BaseAttributeTable.EventType;
 import com.hammergenics.core.stages.ui.auxiliary.HGImageVisWindow;
 import com.hammergenics.core.stages.ui.auxiliary.ImageChooser;
 import com.hammergenics.core.stages.ui.auxiliary.ModelChooser;
+import com.hammergenics.core.stages.ui.auxiliary.SoundChooser;
 import com.hammergenics.graph.pipeline.LibgdxGraphVisWindow;
 import com.hammergenics.utils.HGUtils;
 import com.kotcrab.vis.ui.VisUI;
@@ -143,6 +144,7 @@ public class ModelEditStage extends Stage {
     public FileChooser fileChooser;
     public ImageChooser imageChooser;
     public ModelChooser modelChooser;
+    public SoundChooser soundChooser;
     // https://github.com/StrongJoshua/libgdx-inGameConsole
     public GUIConsole console;
 
@@ -198,6 +200,7 @@ public class ModelEditStage extends Stage {
         initConsole();
         imageChooser = new ImageChooser(modelES.eng, this);
         modelChooser = new ModelChooser(modelES.eng, this);
+        soundChooser = new SoundChooser(modelES.eng, this);
         WhitePixel.initializeShared();
 
         setup2DStageWidgets();
@@ -604,6 +607,7 @@ public class ModelEditStage extends Stage {
                     modelES.eng.removeLoadListener(this);
                     modelChooser.updateAssetsTree();
                     imageChooser.updateAssetsTree();
+                    soundChooser.updateAssetsTree();
                     projManagerTable.applyListeners();
                 }
                 super.update(result);

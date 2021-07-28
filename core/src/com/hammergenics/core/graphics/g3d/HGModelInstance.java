@@ -28,6 +28,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
+import com.hammergenics.core.graphics.g3d.utils.HGAnimationController;
 
 /**
  * Add description here
@@ -52,7 +53,7 @@ public class HGModelInstance extends ModelInstance implements Disposable {
     public Vector3 dims = new Vector3();
     public final float maxD;
     public final float radius;
-    public AnimationController animationController = null;
+    public HGAnimationController animationController = null;
     public AnimationController.AnimationDesc animationDesc = null;
 
     public HGModelInstance (final Model model) { this(new HGModel(model), null, (String[])null); }
@@ -70,7 +71,7 @@ public class HGModelInstance extends ModelInstance implements Disposable {
         this.hgModel = hgModel;
         this.afh = assetFL;
         this.rni = rootNodeIds;
-        animationController = new AnimationController(this);
+        animationController = new HGAnimationController(this);
 
         calculateBoundingBox(bb);
         bb.getCenter(center); // should be Vector3.Zero after HGModel::centerToOrigin

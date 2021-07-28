@@ -16,6 +16,7 @@
 
 package com.hammergenics.core.graphics.g3d.model;
 
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.g3d.model.Animation;
 import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.model.NodeAnimation;
@@ -36,11 +37,22 @@ import com.hammergenics.core.graphics.g3d.EditableModelInstance;
 public class AnimationInfo {
     public EditableModelInstance mi;
     public Animation a;
+
     public FloatArray keyTimes = new FloatArray(true, 16); // aggregated from all Node Animations
+    // KeyTimeCallback is currently not being used
+    public ArrayMap<Float, KeyTimeCallback> keyTimes2callbacks = new ArrayMap<>(Float.class, KeyTimeCallback.class);
+    // see HGAnimationController.applyAnimation to see the use of sounds
+    public ArrayMap<Float, FileHandle> keyTimes2sounds = new ArrayMap<>(Float.class, FileHandle.class);
+
     public ArrayMap<Node, NodeAnimation> n2nAnim = new ArrayMap<>(Node.class, NodeAnimation.class);
     public ArrayMap<NodeAnimation, Node> nAnim2n = new ArrayMap<>(NodeAnimation.class, Node.class);
     public ArrayMap<NodeAnimation, FloatArray> nAnim2keyTimes = new ArrayMap<>(NodeAnimation.class, FloatArray.class);
     public float minStep = 0f;
+
+    // KeyTimeCallback is currently not being used
+    public interface KeyTimeCallback {
+        void applyAnimation(Animation animation, float time);
+    }
 
     public AnimationInfo(EditableModelInstance mi, Animation animation) {
         this.mi = mi;
@@ -72,6 +84,9 @@ public class AnimationInfo {
             nAnim2n.put(nAnim, nAnim.node);
         }
 
+        // keyTimes is the array of all keyTimes for this animation
+        // (aggregated from the individual NodeAnimation's NodeKeyFrames)
+        // For keyTimes of a particular NodeAnimation (Node) see nAnim2keyTimes
         keyTimes.clear();
         fa.clear();
         for (ObjectMap.Entry<NodeAnimation, FloatArray> entry: nAnim2keyTimes) {
@@ -111,6 +126,14 @@ public class AnimationInfo {
         //        + " min step: " + minStep
         //        + " OVERALL key times: " + keyTimes.toString()
         //);
+    }
+
+    public float floorKeyTime(float time) {
+        if (keyTimes.size < 2) { return 0f; }
+        for (int i = 1; i < keyTimes.size; i++) {
+            if (time < keyTimes.get(i)) { return keyTimes.get(i-1); }
+        }
+        return 0f;
     }
 
     public NodeAnimation getNodeAnimation(Node node) {
