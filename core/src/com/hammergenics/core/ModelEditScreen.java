@@ -94,6 +94,8 @@ public class ModelEditScreen extends ScreenAdapter {
         this.spriteBatch = game.spriteBatch;
         // https://github.com/Anuken/GDXGifRecorder
         recorder = new GifRecorder(spriteBatch);
+        recorder.setExportDirectory(Gdx.files.external("gifexport"));
+        recorder.setWorkingDirectory(Gdx.files.external("gifexportwd"));
 
         immediateModeRenderer = new HGImmediateModeRenderer20(100*Short.MAX_VALUE, false, true, 0);
 
