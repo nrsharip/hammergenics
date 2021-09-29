@@ -95,7 +95,6 @@ import com.gempukku.libgdx.graph.pipeline.producer.postprocessor.BloomPipelineNo
 import com.gempukku.libgdx.graph.pipeline.producer.postprocessor.DepthOfFieldPipelineNodeProducer;
 import com.gempukku.libgdx.graph.pipeline.producer.postprocessor.GammaCorrectionPipelineNodeProducer;
 import com.gempukku.libgdx.graph.pipeline.producer.postprocessor.GaussianBlurPipelineNodeProducer;
-import com.gempukku.libgdx.graph.pipeline.producer.property.PropertyPipelineNodeProducer;
 import com.gempukku.libgdx.graph.pipeline.producer.provided.RenderSizePipelineNodeProducer;
 import com.gempukku.libgdx.graph.pipeline.producer.provided.TimePipelineNodeProducer;
 import com.gempukku.libgdx.graph.pipeline.producer.rendering.producer.CustomRendererPipelineNodeProducer;
@@ -107,7 +106,6 @@ import com.gempukku.libgdx.graph.pipeline.producer.value.producer.ValueColorPipe
 import com.gempukku.libgdx.graph.pipeline.producer.value.producer.ValueFloatPipelineNodeProducer;
 import com.gempukku.libgdx.graph.pipeline.producer.value.producer.ValueVector2PipelineNodeProducer;
 import com.gempukku.libgdx.graph.pipeline.producer.value.producer.ValueVector3PipelineNodeProducer;
-import com.hammergenics.config.Conventions;
 import com.hammergenics.core.graphics.g3d.HGModelInstance;
 
 import java.io.FileFilter;
@@ -307,7 +305,7 @@ public class HGUtils {
         FileHandle parent = startFileHandle;
         FileHandle soughtFileHandle = null;
 
-        if (startFileHandle.path().equals(Conventions.modelsRootDirectory)) {
+        if (startFileHandle.path().equals("./")) {
             //Gdx.app.debug(getTag(),
             //        "start file '" + startFileHandle.path() + "' is the same as the assets root '"
             //                + Conventions.modelsRootDirectory + "'");
@@ -328,7 +326,7 @@ public class HGUtils {
                     break rootLoop;
                 }
             }
-        } while (!parent.path().equals(Conventions.modelsRootDirectory)
+        } while (!parent.path().equals("./")
                     && !parent.path().equals(parent.type() == Files.FileType.Absolute ? "/" : ""));
 
         return soughtFileHandle;
