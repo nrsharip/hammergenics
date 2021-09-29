@@ -38,7 +38,7 @@ import com.kotcrab.vis.ui.widget.color.ColorPickerListener;
 
 import static com.hammergenics.core.stages.ui.attributes.AttributeTable.TextButtonsTextEnum.SELECT_COLOR;
 import static com.hammergenics.core.stages.ui.attributes.ColorAttributeTable.*;
-import static com.hammergenics.utils.HGUtils.color_s2c;
+import static com.hammergenics.HGUtils.color_s2c;
 
 /**
  * Add description here

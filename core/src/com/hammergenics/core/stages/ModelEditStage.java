@@ -63,7 +63,7 @@ import com.hammergenics.core.stages.ui.auxiliary.ImageChooser;
 import com.hammergenics.core.stages.ui.auxiliary.ModelChooser;
 import com.hammergenics.core.stages.ui.auxiliary.SoundChooser;
 import com.hammergenics.graph.pipeline.LibgdxGraphVisWindow;
-import com.hammergenics.utils.HGUtils;
+import com.hammergenics.HGUtils;
 import com.kotcrab.vis.ui.VisUI;
 import com.kotcrab.vis.ui.i18n.BundleText;
 import com.kotcrab.vis.ui.util.dialog.Dialogs;
@@ -105,7 +105,7 @@ import static com.hammergenics.core.stages.ui.file.TypeFilterRulesEnum.MODEL_FIL
 import static com.hammergenics.core.stages.ui.file.TypeFilterRulesEnum.MODEL_FILES_G3DB;
 import static com.hammergenics.core.stages.ui.file.TypeFilterRulesEnum.MODEL_FILES_G3DJ;
 import static com.hammergenics.core.stages.ui.file.TypeFilterRulesEnum.SOUND_FILES;
-import static com.hammergenics.utils.HGUtils.getLibgdxGraph_NodeConfigurationsInfo;
+import static com.hammergenics.HGUtils.getLibgdxGraph_NodeConfigurationsInfo;
 
 /**
  * Add description here

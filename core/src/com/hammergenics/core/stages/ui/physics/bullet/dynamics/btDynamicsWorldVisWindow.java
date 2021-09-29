@@ -21,7 +21,6 @@ import com.badlogic.gdx.physics.bullet.dynamics.btDynamicsWorld;
 import com.badlogic.gdx.physics.bullet.dynamics.btMLCPSolver;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
-import com.hammergenics.HGEngine;
 import com.hammergenics.HGGame;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.stages.ModelEditStage;
@@ -34,10 +33,9 @@ import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisSelectBox;
 import com.kotcrab.vis.ui.widget.VisTable;
 import com.kotcrab.vis.ui.widget.VisTextField;
-import com.kotcrab.vis.ui.widget.VisWindow;
 
 import static com.hammergenics.physics.bullet.dynamics.btConstraintSolversEnum.BT_MLCP_SOLVER;
-import static com.hammergenics.utils.HGUtils.btDbgModes;
+import static com.hammergenics.HGUtils.btDbgModes;
 
 /**
  * Add description here

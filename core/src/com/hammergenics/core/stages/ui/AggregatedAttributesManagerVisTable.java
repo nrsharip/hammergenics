@@ -27,7 +27,7 @@ import com.hammergenics.HGGame;
 import com.hammergenics.core.ModelEditScreen;
 import com.hammergenics.core.graphics.g3d.EditableModelInstance;
 import com.hammergenics.core.stages.ModelEditStage;
-import com.hammergenics.utils.HGUtils;
+import com.hammergenics.HGUtils;
 import com.kotcrab.vis.ui.i18n.BundleText;
 import com.kotcrab.vis.ui.widget.VisSelectBox;
 import com.kotcrab.vis.ui.widget.VisTable;

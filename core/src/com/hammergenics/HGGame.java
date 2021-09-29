@@ -31,7 +31,6 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.I18NBundle;
 import com.hammergenics.core.ModelEditScreen;
-import com.hammergenics.utils.HGUtils;
 import com.kotcrab.vis.ui.Locales;
 import com.kotcrab.vis.ui.VisUI;
 

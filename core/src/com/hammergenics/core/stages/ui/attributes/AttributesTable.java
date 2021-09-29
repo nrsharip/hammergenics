@@ -33,7 +33,7 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.hammergenics.HGGame;
 import com.hammergenics.core.ModelEditScreen;
-import com.hammergenics.utils.HGUtils;
+import com.hammergenics.HGUtils;
 import com.kotcrab.vis.ui.i18n.BundleText;
 import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisWindow;

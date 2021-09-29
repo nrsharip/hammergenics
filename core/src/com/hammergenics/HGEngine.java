@@ -77,7 +77,6 @@ import com.hammergenics.map.HGGrid.NoiseStageInfo;
 import com.hammergenics.map.TerrainChunk;
 import com.hammergenics.map.TerrainPartsEnum;
 import com.hammergenics.physics.bullet.dynamics.btDynamicsWorldTypesEnum;
-import com.hammergenics.utils.HGUtils;
 import com.kotcrab.vis.ui.widget.file.FileTypeFilter;
 
 import net.mgsx.gltf.loaders.glb.GLBAssetLoader;

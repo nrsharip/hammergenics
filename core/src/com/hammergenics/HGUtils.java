@@ -14,7 +14,7 @@
  * limitations under the License.
  ******************************************************************************/
 
-package com.hammergenics.utils;
+package com.hammergenics;
 
 import com.badlogic.gdx.Files;
 import com.badlogic.gdx.Gdx;

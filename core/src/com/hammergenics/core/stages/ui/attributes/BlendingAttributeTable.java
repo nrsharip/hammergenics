@@ -34,8 +34,8 @@ import com.kotcrab.vis.ui.widget.VisWindow;
 
 import static com.hammergenics.core.stages.ui.attributes.AttributeTable.TextButtonsTextEnum.CHECKBOX_BLENDED;
 import static com.hammergenics.core.stages.ui.attributes.AttributeTable.TextButtonsTextEnum.CHECKBOX_MATCH_SRC_WITH_DST;
-import static com.hammergenics.utils.HGUtils.gl20_i2s;
-import static com.hammergenics.utils.HGUtils.gl20_s2i;
+import static com.hammergenics.HGUtils.gl20_i2s;
+import static com.hammergenics.HGUtils.gl20_s2i;
 
 /**
  * Add description here
