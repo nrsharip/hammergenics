@@ -1,5 +1,5 @@
 ## Overview
-**HammerGenics** is a simple, extensible (with [Groovy](https://en.wikipedia.org/wiki/Apache_Groovy)) 3D sanbox game engine built on top of [LibGDX](https://github.com/libgdx/libgdx) ecosystem and [Bullet3](https://github.com/bulletphysics/bullet3) physics engine. It has been designed with an idea that the game development could be as simple, seamless and joyful as playing with [Lego](https://en.wikipedia.org/wiki/Lego).
+**HammerGenics** is a simple, extensible (with [Groovy](https://en.wikipedia.org/wiki/Apache_Groovy) - **under development**) 3D sanbox game engine built on top of [LibGDX](https://github.com/libgdx/libgdx) ecosystem and [Bullet3](https://github.com/bulletphysics/bullet3) physics engine. It has been designed with an idea that the game development could be as simple, seamless and joyful as playing with [Lego](https://en.wikipedia.org/wiki/Lego).
 
 Major features introduced in current version are:
 - **Material Attributes editor**: the UI and underlying structures to edit colors, textures and lights
@@ -48,4 +48,20 @@ Address any licensing concerns or considerations regarding the use of HammerGeni
 1. [Project Structure](#project-structure)
 
 ## Project Structure
-<img src="/docs/drawings/component_overall.png?raw=true" width="100%">
+<p align="center"><img src="/docs/drawings/component_overall.png?raw=true" width="80%"></p>
+
+**CREDITS**
+
+|Dependency|Authors|License|
+|---|:---:|---|
+|[com.badlogicgames.gdx:gdx](https://github.com/libgdx/libgdx):1.10.0|[authors file](https://github.com/libgdx/libgdx/blob/master/AUTHORS)|[license](https://github.com/libgdx/libgdx/blob/master/LICENSE)|
+|[com.badlogicgames.gdx:gdx-ai](https://github.com/libgdx/gdx-ai):1.8.2|[davebaol](https://github.com/davebaol)|[license](https://github.com/libgdx/gdx-ai/blob/master/LICENSE)|
+|[com.badlogicgames.gdx:gdx-bullet](https://github.com/libgdx/libgdx):1.10.0|[authors file](https://github.com/libgdx/libgdx/blob/master/AUTHORS)|[license](https://github.com/libgdx/libgdx/blob/master/LICENSE)|
+|[com.github.czyzby:noise4j](https://github.com/czyzby/noise4j):0.1.0|[czyzby](https://github.com/czyzby)|[license](https://github.com/czyzby/noise4j/blob/master/LICENSE.md)|
+|[com.kotcrab.vis:vis-ui](https://github.com/kotcrab/vis-ui):1.5.0|[Pawel Pastuszak](mailto:contact@kotcrab.com)|[license](https://github.com/kotcrab/vis-ui/blob/master/LICENSE)|
+|[com.github.mgsx-dev.gdx-gltf:gltf](https://github.com/mgsx-dev/gdx-gltf):1.0.0|[mgsx-dev](https://github.com/mgsx-dev)|[license](https://github.com/mgsx-dev/gdx-gltf/blob/master/LICENSE)|
+|[com.github.Anuken:GdxGifRecorder](https://github.com/Anuken/GDXGifRecorder):1.4|[Anuken](https://github.com/Anuken)|[license](https://github.com/Anuken/GDXGifRecorder)|
+|[com.strongjoshua:libgdx-inGameConsole](https://github.com/StrongJoshua/libgdx-inGameConsole):1.0.0|[StrongJoshua](https://github.com/StrongJoshua)|[license](https://github.com/StrongJoshua/libgdx-inGameConsole/blob/master/LICENSE)|
+|[com.github.MarcinSc:libgdx-graph](https://github.com/MarcinSc/libgdx-graph):9f6c886795ad1a201e3140fef262ee5a86f0cac1|[Marcin Sciesinski](https://github.com/MarcinSc)|[license](https://github.com/MarcinSc/libgdx-graph/blob/master/LICENSE)|
+|[org.codehaus.groovy:groovy-all](https://mvnrepository.com/artifact/org.codehaus.groovy/groovy-all):3.0.8|see [wiki](https://en.wikipedia.org/wiki/Apache_Groovy)||
+
