@@ -49,8 +49,11 @@ Address any licensing concerns or considerations regarding the use of HammerGeni
 
 ## Development
 1. [Project Structure](#project-structure)
-   1. [`:core` Project](#core-project)
+   1. [`:core` Project structure](#core-project-structure)
    1. [Credits for libraries](#credits-for-libraries)
+1. [Running HammerGenics](#running-hammergenics)
+   1. [Running `:desktop` Project](#running-desktop-project)
+
 ## Project Structure
 
 Run the following command to see the list of the projects in the build: `.\gradlew.bat projects`.
@@ -74,7 +77,7 @@ Other useful commands:
 1. `.\gradlew.bat properties` (also for project specific info, e.g. `.\gradlew.bat core:properties`)
 1. `.\gradlew.bat tasks -all` (also for project specific info, e.g. `.\gradlew.bat core:tasks`)
 
-### `:core` Project
+### `:core` Project structure
 
 The following is a high-level component diagram to show the folder/package structure of the `:core` Project and the dependencies these packages have on the external libraries 
 
@@ -95,3 +98,10 @@ The following is a high-level component diagram to show the folder/package struc
 |[com.github.MarcinSc:libgdx-graph](https://github.com/MarcinSc/libgdx-graph):9f6c886795ad1a201e3140fef262ee5a86f0cac1|[Marcin Sciesinski](https://github.com/MarcinSc)|[license](https://github.com/MarcinSc/libgdx-graph/blob/master/LICENSE)|
 |[org.codehaus.groovy:groovy-all](https://mvnrepository.com/artifact/org.codehaus.groovy/groovy-all):3.0.8|see [wiki](https://en.wikipedia.org/wiki/Apache_Groovy)||
 
+## Running HammerGenics
+
+## Running `:desktop` Project
+
+`.\gradle.bat desktop:run`
+
+see also [Command Line Interface](https://libgdx.com/dev/import-and-running/#command-line) from LibGDX.
