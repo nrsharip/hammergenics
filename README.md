@@ -63,7 +63,7 @@ Root project
 
 Root project 'hammergenics'
 +--- Project ':android'
-+--- Project ':core' - This is a core library that abstracts frame rendering
++--- Project ':core'
 +--- Project ':desktop'
 +--- Project ':html'
 \--- Project ':ios'
