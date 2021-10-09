@@ -48,11 +48,32 @@ As an example of another well-known projects under the very same license think o
 Address any licensing concerns or considerations regarding the use of HammerGenics as you were dealing with any of these projects.
 
 ## Development
+1. [Prerequisites](#prerequisites)
+   1. [Download Java Development Kit 8](#download-java-development-kit-8)
+   1. [`git clone` or download the sources](#git-clone-or-download-the-sources)
 1. [Project Structure](#project-structure)
    1. [`:core` Project structure](#core-project-structure)
    1. [Credits for libraries](#credits-for-libraries)
 1. [Running HammerGenics](#running-hammergenics)
    1. [Running `:desktop` Project](#running-desktop-project)
+
+## Prerequisites
+
+### Download Java Development Kit 8
+
+Choose one of the available distributors and download JDK 8:
+1. [Adoptium.net](https://adoptium.net/) (former AdoptOpenJdk)
+1. [Amazon Corretto](https://aws.amazon.com/ru/corretto/)
+
+### `git clone` or download the sources
+
+Do one of the following:
+
+`git clone https://github.com/nrsharip/hammergenics.git`
+
+**OR**
+
+Download the [ZIP archive](https://github.com/nrsharip/hammergenics/archive/refs/heads/main.zip) with the source code of this repo.
 
 ## Project Structure
 
