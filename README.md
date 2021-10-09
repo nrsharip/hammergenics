@@ -123,6 +123,6 @@ The following is a high-level component diagram to show the folder/package struc
 
 ### Running `:desktop` Project
 
-`.\gradle.bat desktop:run`
+`.\gradlew.bat desktop:run`
 
 see also [Command Line Interface](https://libgdx.com/dev/import-and-running/#command-line) from LibGDX.
