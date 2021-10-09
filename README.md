@@ -100,7 +100,7 @@ The following is a high-level component diagram to show the folder/package struc
 
 ## Running HammerGenics
 
-## Running `:desktop` Project
+### Running `:desktop` Project
 
 `.\gradle.bat desktop:run`
 
