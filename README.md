@@ -1,5 +1,5 @@
 ## Overview
-**HammerGenics** is a simple, extensible (with [Groovy](https://en.wikipedia.org/wiki/Apache_Groovy) - **under development**) 3D sanbox game engine built on top of [LibGDX](https://github.com/libgdx/libgdx) ecosystem and [Bullet3](https://github.com/bulletphysics/bullet3) physics engine. It has been designed with an idea that the game development could be as simple, seamless and joyful as playing with [Lego](https://en.wikipedia.org/wiki/Lego).
+**HammerGenics** is a simple, extensible (with [Groovy](https://en.wikipedia.org/wiki/Apache_Groovy) - **under development**) 3D sanbox game engine built on top of the [LibGDX](https://github.com/libgdx/libgdx) ecosystem and [Bullet3](https://github.com/bulletphysics/bullet3) physics engine. It has been designed with an idea that the game development could be as simple, seamless and joyful as playing with [Lego](https://en.wikipedia.org/wiki/Lego).
 
 Major features introduced in current version are:
 - **Material Attributes editor**: the UI and underlying structures to edit colors, textures and lights
@@ -10,6 +10,9 @@ Major features introduced in current version are:
 - **AI Algorithms**: currently implemented the following features from [gdx-ai](https://github.com/libgdx/gdx-ai) library: [Steering](https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors), [Formations](https://github.com/libgdx/gdx-ai/wiki/Formation-Motion) and [Pathfinding Algorithms](https://github.com/libgdx/gdx-ai/wiki/Pathfinding)
 
 ## Presentations
+
+**CREDITS**: assets by [Kenney](https://kenney.nl/) ([Animated Characters 1](https://kenney.nl/assets/animated-characters), [Car Kit](https://kenney.nl/assets/car-kit), [Weapon Pack](https://kenney.nl/assets/weapon-pack) etc.)
+
 <table>
   <tr>
     <td width="50%"><img src="/docs/gifs/attr_1.gif?raw=true" width="100%"></td>
@@ -46,11 +49,38 @@ Address any licensing concerns or considerations regarding the use of HammerGeni
 
 ## Development
 1. [Project Structure](#project-structure)
-
+   1. [`:core` Project](#core-project)
+   1. [Credits for libraries](#credits-for-libraries)
 ## Project Structure
+
+Run the following command to see the list of the projects in the build: `.\gradlew.bat projects`.
+
+The output should look like this:
+```
+------------------------------------------------------------
+Root project
+------------------------------------------------------------
+
+Root project 'hammergenics'
++--- Project ':android'
++--- Project ':core' - This is a core library that abstracts frame rendering
++--- Project ':desktop'
++--- Project ':html'
+\--- Project ':ios'
+```
+
+Other useful commands:
+1. `.\gradlew.bat model` (also for project specific info, e.g. `.\gradlew.bat core:model`)
+1. `.\gradlew.bat properties` (also for project specific info, e.g. `.\gradlew.bat core:properties`)
+1. `.\gradlew.bat tasks -all` (also for project specific info, e.g. `.\gradlew.bat core:tasks`)
+
+### `:core` Project
+
+The following is a high-level component diagram to show the folder/package structure of the `:core` Project and the dependencies these packages have on the external libraries 
+
 <p align="center"><img src="/docs/drawings/component_overall.png?raw=true" width="80%"></p>
 
-**CREDITS**
+### Credits for libraries
 
 |Dependency|Authors|License|
 |---|:---:|---|
